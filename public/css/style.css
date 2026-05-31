@@ -223,7 +223,7 @@ img { display: block; }
   background: linear-gradient(to bottom, transparent 60%, var(--bg) 100%);
 }
 
-.hero-content { position: relative; max-width: 900px; }
+.hero-content { position: relative; max-width: 900px; transition: transform 0.15s ease-out; will-change: transform; }
 
 .hero-eyebrow {
   font-size: 0.8rem;
