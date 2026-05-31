@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Discord Bot CU — Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>⚔️ Discord Bot CU</h1>
+      <p class="subtitle">Level System Dashboard</p>
+    </header>
+
+    <!-- Login Section -->
+    <section id="login-section" class="card">
+      <h2>Login</h2>
+      <p>Enter your Server ID and dashboard password to manage settings.</p>
+      <div class="form-group">
+        <label>Server (Guild) ID</label>
+        <input id="guild-id" type="text" placeholder="e.g. 123456789012345678" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input id="password" type="password" placeholder="Default: changeme" />
+      </div>
+      <button id="login-btn" class="btn btn-primary">Login</button>
+      <p id="login-error" class="error hidden"></p>
+    </section>
+
+    <!-- Dashboard Section -->
+    <div id="dashboard" class="hidden">
+
+      <section class="card">
+        <h2>XP Settings</h2>
+        <div class="form-group">
+          <label>XP per Message</label>
+          <input id="xp-per-message" type="number" min="1" max="1000" />
+        </div>
+        <div class="form-group">
+          <label>Cooldown (seconds between XP gains)</label>
+          <input id="xp-cooldown" type="number" min="0" max="3600" />
+        </div>
+        <div class="form-group">
+          <label>Level-Up Channel ID <span class="hint">(leave blank to disable announcements)</span></label>
+          <input id="level-up-channel" type="text" placeholder="e.g. 987654321098765432" />
+        </div>
+        <button id="save-xp-btn" class="btn btn-primary">Save XP Settings</button>
+        <p id="xp-status" class="status hidden"></p>
+      </section>
+
+      <section class="card">
+        <h2>Level Configuration</h2>
+        <p class="hint">Define your levels, names, and the XP required to reach each one.</p>
+        <div id="levels-container"></div>
+        <div class="level-actions">
+          <button id="add-level-btn" class="btn btn-secondary">+ Add Level</button>
+          <button id="save-levels-btn" class="btn btn-primary">Save Levels</button>
+        </div>
+        <p id="levels-status" class="status hidden"></p>
+      </section>
+
+      <section class="card">
+        <h2>Change Password</h2>
+        <div class="form-group">
+          <label>New Password</label>
+          <input id="new-password" type="password" placeholder="Min 4 characters" />
+        </div>
+        <button id="change-pw-btn" class="btn btn-danger">Change Password</button>
+        <p id="pw-status" class="status hidden"></p>
+      </section>
+
+      <section class="card">
+        <h2>Leaderboard Preview</h2>
+        <div id="leaderboard-container"><p class="hint">Loading...</p></div>
+      </section>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
