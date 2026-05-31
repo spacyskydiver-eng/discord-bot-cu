@@ -1,0 +1,93 @@
+<%- include('partials/head', { title: 'Apply' }) %>
+<%- include('partials/nav') %>
+
+<main class="page-main">
+  <section class="page-hero">
+    <div class="container">
+      <div class="section-label reveal">500 Player Civilisation Event</div>
+      <h1 class="page-title reveal">Apply to <span class="glow-text">Participate</span></h1>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container container--narrow">
+      <% if (!event) { %>
+        <div class="card card--centered reveal">
+          <div class="card-icon">⏳</div>
+          <h2>No Active Event</h2>
+          <p>There are no events open for applications right now. Check back soon.</p>
+        </div>
+
+      <% } else if (existing) { %>
+        <div class="card card--centered reveal">
+          <div class="card-icon">✅</div>
+          <h2>Application Submitted</h2>
+          <p>You've already applied for <strong><%= event.title %></strong>.</p>
+          <p class="muted">Status: <span class="status-badge status-<%= existing.status %>"><%= existing.status %></span></p>
+          <p class="muted">We'll be in touch via Discord.</p>
+        </div>
+
+      <% } else if (locals.query && query.submitted) { %>
+        <div class="card card--centered reveal">
+          <div class="card-icon">🎉</div>
+          <h2>Application Received!</h2>
+          <p>Your application for <strong><%= event.title %></strong> has been submitted. We'll review it and reach out on Discord.</p>
+        </div>
+
+      <% } else if (!event.is_open && event.opens_at && new Date(event.opens_at) > new Date()) { %>
+        <div class="card card--centered reveal">
+          <div class="card-icon">🔒</div>
+          <h2>Applications Not Yet Open</h2>
+          <p>Applications for <strong><%= event.title %></strong> open in:</p>
+          <div class="countdown countdown--large" data-target="<%= new Date(event.opens_at).toISOString() %>">
+            <div class="countdown-block"><span class="cd-num" id="cd-d">--</span><span class="cd-unit">Days</span></div>
+            <div class="countdown-sep">:</div>
+            <div class="countdown-block"><span class="cd-num" id="cd-h">--</span><span class="cd-unit">Hours</span></div>
+            <div class="countdown-sep">:</div>
+            <div class="countdown-block"><span class="cd-num" id="cd-m">--</span><span class="cd-unit">Min</span></div>
+            <div class="countdown-sep">:</div>
+            <div class="countdown-block"><span class="cd-num" id="cd-s">--</span><span class="cd-unit">Sec</span></div>
+          </div>
+        </div>
+
+      <% } else if (!event.is_open) { %>
+        <div class="card card--centered reveal">
+          <div class="card-icon">🔒</div>
+          <h2>Applications Closed</h2>
+          <p>Applications for <strong><%= event.title %></strong> are currently closed.</p>
+        </div>
+
+      <% } else if (questions.length === 0) { %>
+        <div class="card card--centered reveal">
+          <div class="card-icon">⚙️</div>
+          <h2>Coming Soon</h2>
+          <p>Application questions are being set up. Check back shortly.</p>
+        </div>
+
+      <% } else { %>
+        <div class="apply-header reveal">
+          <h2><%= event.title %></h2>
+          <% if (event.closes_at) { %>
+            <p class="apply-deadline">Applications close <strong><%= new Date(event.closes_at).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }) %></strong></p>
+          <% } %>
+        </div>
+
+        <form class="apply-form reveal" action="/apply/submit" method="POST">
+          <% for (const q of questions) { %>
+            <div class="form-field">
+              <label class="form-label"><%= q.question_text %><% if (q.required) { %> <span class="required">*</span><% } %></label>
+              <% if (q.question_type === 'text') { %>
+                <input type="text" name="q_<%= q.id %>" class="form-input" <%= q.required ? 'required' : '' %> />
+              <% } else { %>
+                <textarea name="q_<%= q.id %>" class="form-textarea" rows="5" <%= q.required ? 'required' : '' %>></textarea>
+              <% } %>
+            </div>
+          <% } %>
+          <button type="submit" class="btn btn-primary btn-lg btn-full">Submit Application</button>
+        </form>
+      <% } %>
+    </div>
+  </section>
+</main>
+
+<%- include('partials/foot') %>

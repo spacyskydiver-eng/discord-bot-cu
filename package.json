@@ -7,9 +7,12 @@
     "deploy-commands": "node deploy-commands.js"
   },
   "dependencies": {
+    "connect-pg-simple": "^10.0.0",
     "discord.js": "^14.16.3",
-    "pg": "^8.13.3",
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
     "express": "^4.21.2",
-    "dotenv": "^16.4.7"
+    "express-session": "^1.18.1",
+    "pg": "^8.13.3"
   }
 }

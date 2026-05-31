@@ -1,0 +1,253 @@
+<%- include('partials/head', { title: 'Admin' }) %>
+<%- include('partials/nav') %>
+
+<main class="page-main admin-page">
+  <section class="page-hero">
+    <div class="container">
+      <div class="section-label">Admin Panel</div>
+      <h1 class="page-title">Control <span class="glow-text">Centre</span></h1>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+
+      <!-- Tab nav -->
+      <div class="admin-tabs">
+        <button class="admin-tab active" data-tab="event">Event</button>
+        <button class="admin-tab" data-tab="questions">Questions</button>
+        <button class="admin-tab" data-tab="applications">Applications (<%= applications.length %>)</button>
+        <button class="admin-tab" data-tab="bot" id="bot">Bot</button>
+      </div>
+
+      <!-- EVENT TAB -->
+      <div class="admin-panel active" id="tab-event">
+        <% if (!event) { %>
+          <div class="admin-card">
+            <h2>Create Event</h2>
+            <form action="/admin/event/create" method="POST" class="admin-form">
+              <div class="form-field">
+                <label class="form-label">Event Title</label>
+                <input type="text" name="title" class="form-input" value="500 Player Civilisation Event: 4 Island Experiment" required />
+              </div>
+              <div class="form-field">
+                <label class="form-label">Description</label>
+                <textarea name="description" class="form-textarea" rows="4"></textarea>
+              </div>
+              <div class="form-row">
+                <div class="form-field">
+                  <label class="form-label">Applications Open At</label>
+                  <input type="datetime-local" name="opens_at" class="form-input" />
+                </div>
+                <div class="form-field">
+                  <label class="form-label">Applications Close At</label>
+                  <input type="datetime-local" name="closes_at" class="form-input" />
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">Create Event</button>
+            </form>
+          </div>
+        <% } else { %>
+          <div class="admin-card">
+            <h2>Edit Event</h2>
+            <form action="/admin/event/update" method="POST" class="admin-form">
+              <input type="hidden" name="id" value="<%= event.id %>" />
+              <div class="form-field">
+                <label class="form-label">Event Title</label>
+                <input type="text" name="title" class="form-input" value="<%= event.title %>" required />
+              </div>
+              <div class="form-field">
+                <label class="form-label">Description</label>
+                <textarea name="description" class="form-textarea" rows="4"><%= event.description || '' %></textarea>
+              </div>
+              <div class="form-row">
+                <div class="form-field">
+                  <label class="form-label">Opens At</label>
+                  <input type="datetime-local" name="opens_at" class="form-input"
+                    value="<%= event.opens_at ? new Date(event.opens_at).toISOString().slice(0,16) : '' %>" />
+                </div>
+                <div class="form-field">
+                  <label class="form-label">Closes At</label>
+                  <input type="datetime-local" name="closes_at" class="form-input"
+                    value="<%= event.closes_at ? new Date(event.closes_at).toISOString().slice(0,16) : '' %>" />
+                </div>
+              </div>
+              <div class="form-field">
+                <label class="form-label">Applications Status</label>
+                <select name="is_open" class="form-input">
+                  <option value="true" <%= event.is_open ? 'selected' : '' %>>Open</option>
+                  <option value="false" <%= !event.is_open ? 'selected' : '' %>>Closed</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- QUESTIONS TAB -->
+      <div class="admin-panel" id="tab-questions">
+        <% if (!event) { %>
+          <div class="admin-card"><p>Create an event first.</p></div>
+        <% } else { %>
+          <div class="admin-card">
+            <h2>Application Questions</h2>
+            <% if (questions.length === 0) { %>
+              <p class="muted">No questions yet. Add your first one below.</p>
+            <% } else { %>
+              <div class="questions-list">
+                <% for (const q of questions) { %>
+                  <div class="question-item">
+                    <span class="question-order">#<%= q.order_num %></span>
+                    <span class="question-text"><%= q.question_text %></span>
+                    <span class="question-type-badge"><%= q.question_type %></span>
+                    <form action="/admin/question/delete" method="POST" style="display:inline">
+                      <input type="hidden" name="id" value="<%= q.id %>" />
+                      <button type="submit" class="btn-icon btn-delete" onclick="return confirm('Delete this question?')">✕</button>
+                    </form>
+                  </div>
+                <% } %>
+              </div>
+            <% } %>
+            <form action="/admin/question/add" method="POST" class="admin-form" style="margin-top:1.5rem">
+              <input type="hidden" name="event_id" value="<%= event.id %>" />
+              <div class="form-row">
+                <div class="form-field" style="flex:3">
+                  <label class="form-label">Question</label>
+                  <input type="text" name="question_text" class="form-input" placeholder="e.g. Why do you want to join?" required />
+                </div>
+                <div class="form-field">
+                  <label class="form-label">Type</label>
+                  <select name="question_type" class="form-input">
+                    <option value="textarea">Long Answer</option>
+                    <option value="text">Short Answer</option>
+                  </select>
+                </div>
+                <div class="form-field" style="flex:0.5">
+                  <label class="form-label">Order</label>
+                  <input type="number" name="order_num" class="form-input" value="<%= questions.length %>" min="0" />
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">Add Question</button>
+            </form>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- APPLICATIONS TAB -->
+      <div class="admin-panel" id="tab-applications">
+        <div class="admin-card">
+          <h2>Applications (<%= applications.length %>)</h2>
+          <% if (applications.length === 0) { %>
+            <p class="muted">No applications yet.</p>
+          <% } else { %>
+            <div class="applications-table">
+              <div class="app-table-head">
+                <span>User</span><span>Submitted</span><span>Status</span><span>Action</span>
+              </div>
+              <% for (const app of applications) { %>
+                <div class="app-table-row">
+                  <span class="app-user">
+                    <img src="<%= app.discord_avatar || '' %>" class="app-avatar" onerror="this.style.display='none'" />
+                    <%= app.discord_username %>
+                  </span>
+                  <span class="muted"><%= new Date(app.submitted_at).toLocaleDateString() %></span>
+                  <span><span class="status-badge status-<%= app.status %>"><%= app.status %></span></span>
+                  <span><a href="/admin/application/<%= app.id %>" class="btn btn-sm btn-outline">View</a></span>
+                </div>
+              <% } %>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- BOT TAB -->
+      <div class="admin-panel" id="tab-bot">
+        <% if (guilds.length === 0) { %>
+          <div class="admin-card">
+            <h2>Bot Settings</h2>
+            <p class="muted">The bot hasn't been active in any server yet. Once it receives its first message, the server will appear here.</p>
+          </div>
+        <% } else { %>
+          <% for (const guild of guilds) { %>
+            <div class="admin-card">
+              <h2>Server: <code><%= guild.guild_id %></code></h2>
+              <form action="/admin/bot/xp" method="POST" class="admin-form">
+                <input type="hidden" name="guild_id" value="<%= guild.guild_id %>" />
+                <div class="form-row">
+                  <div class="form-field">
+                    <label class="form-label">XP per Message</label>
+                    <input type="number" name="xp_per_message" class="form-input" value="<%= guild.xp_per_message %>" min="1" />
+                  </div>
+                  <div class="form-field">
+                    <label class="form-label">Cooldown (seconds)</label>
+                    <input type="number" name="xp_cooldown_seconds" class="form-input" value="<%= guild.xp_cooldown_seconds %>" min="0" />
+                  </div>
+                  <div class="form-field">
+                    <label class="form-label">Level-Up Channel ID</label>
+                    <input type="text" name="level_up_channel_id" class="form-input" value="<%= guild.level_up_channel_id || '' %>" />
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Save XP Settings</button>
+              </form>
+
+              <hr class="divider" />
+
+              <h3>Levels</h3>
+              <form action="/admin/bot/levels" method="POST" class="admin-form">
+                <input type="hidden" name="guild_id" value="<%= guild.guild_id %>" />
+                <div id="levels-list-<%= guild.guild_id %>">
+                  <div class="level-row-head"><span>Level #</span><span>Name</span><span>XP Required</span><span></span></div>
+                  <% const gLevels = levels.filter(l => l.guild_id === guild.guild_id); %>
+                  <% for (const lv of gLevels) { %>
+                    <div class="level-row">
+                      <input type="number" name="level_numbers" class="form-input" value="<%= lv.level_number %>" min="1" />
+                      <input type="text" name="level_names" class="form-input" value="<%= lv.level_name %>" />
+                      <input type="number" name="level_xp" class="form-input" value="<%= lv.xp_required %>" min="0" />
+                      <button type="button" class="btn-icon btn-delete" onclick="this.closest('.level-row').remove()">✕</button>
+                    </div>
+                  <% } %>
+                </div>
+                <button type="button" class="btn btn-ghost" onclick="addLevelRow('<%= guild.guild_id %>')">+ Add Level</button>
+                <button type="submit" class="btn btn-primary" style="margin-left:0.5rem">Save Levels</button>
+              </form>
+            </div>
+          <% } %>
+        <% } %>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<script>
+  // Tab switching
+  document.querySelectorAll('.admin-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  // If URL has #bot, open bot tab
+  if (window.location.hash === '#bot') {
+    document.querySelector('[data-tab="bot"]').click();
+  }
+
+  function addLevelRow(guildId) {
+    const container = document.getElementById('levels-list-' + guildId);
+    const row = document.createElement('div');
+    row.className = 'level-row';
+    row.innerHTML = `
+      <input type="number" name="level_numbers" class="form-input" placeholder="#" min="1" />
+      <input type="text" name="level_names" class="form-input" placeholder="Level name" />
+      <input type="number" name="level_xp" class="form-input" placeholder="XP" min="0" />
+      <button type="button" class="btn-icon btn-delete" onclick="this.closest('.level-row').remove()">✕</button>
+    `;
+    container.appendChild(row);
+  }
+</script>
+
+<%- include('partials/foot') %>

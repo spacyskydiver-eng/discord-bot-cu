@@ -1,0 +1,168 @@
+<%- include('partials/head', { title: 'Home' }) %>
+<%- include('partials/nav') %>
+
+<main>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-bg">
+      <div class="hero-gradient"></div>
+    </div>
+    <div class="hero-content">
+      <p class="hero-eyebrow reveal">500 Players · 4 Islands · 1 Civilisation</p>
+      <h1 class="hero-title reveal">
+        <span class="hero-title-line">4 Island</span>
+        <span class="hero-title-line glow-gold">Experiment</span>
+      </h1>
+      <p class="hero-sub reveal">The Collective Union's first open-world civilisation event. No factions plugin. No scripts. No safety net.</p>
+      <div class="hero-actions reveal">
+        <% if (event && event.is_open) { %>
+          <a href="/apply" class="btn btn-primary btn-lg">Apply Now</a>
+        <% } else if (event && event.opens_at && new Date(event.opens_at) > new Date()) { %>
+          <div class="countdown-wrap">
+            <p class="countdown-label">Applications open in</p>
+            <div class="countdown" data-target="<%= new Date(event.opens_at).toISOString() %>">
+              <div class="countdown-block"><span class="cd-num" id="cd-d">--</span><span class="cd-unit">Days</span></div>
+              <div class="countdown-sep">:</div>
+              <div class="countdown-block"><span class="cd-num" id="cd-h">--</span><span class="cd-unit">Hours</span></div>
+              <div class="countdown-sep">:</div>
+              <div class="countdown-block"><span class="cd-num" id="cd-m">--</span><span class="cd-unit">Min</span></div>
+              <div class="countdown-sep">:</div>
+              <div class="countdown-block"><span class="cd-num" id="cd-s">--</span><span class="cd-unit">Sec</span></div>
+            </div>
+          </div>
+        <% } else if (event && event.closes_at) { %>
+          <div class="countdown-wrap">
+            <p class="countdown-label">Applications close</p>
+            <div class="countdown" data-target="<%= new Date(event.closes_at).toISOString() %>">
+              <div class="countdown-block"><span class="cd-num" id="cd-d">--</span><span class="cd-unit">Days</span></div>
+              <div class="countdown-sep">:</div>
+              <div class="countdown-block"><span class="cd-num" id="cd-h">--</span><span class="cd-unit">Hours</span></div>
+              <div class="countdown-sep">:</div>
+              <div class="countdown-block"><span class="cd-num" id="cd-m">--</span><span class="cd-unit">Min</span></div>
+              <div class="countdown-sep">:</div>
+              <div class="countdown-block"><span class="cd-num" id="cd-s">--</span><span class="cd-unit">Sec</span></div>
+            </div>
+            <a href="/apply" class="btn btn-primary btn-lg" style="margin-top:1.5rem">Apply Now</a>
+          </div>
+        <% } else { %>
+          <a href="/apply" class="btn btn-outline btn-lg">View Event</a>
+        <% } %>
+        <a href="#about" class="btn btn-ghost btn-lg">Learn More</a>
+      </div>
+    </div>
+    <div class="hero-scroll-indicator">
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- Stats bar -->
+  <section class="stats-bar reveal">
+    <div class="stat"><span class="stat-num">500</span><span class="stat-label">Players</span></div>
+    <div class="stat-divider"></div>
+    <div class="stat"><span class="stat-num">4</span><span class="stat-label">Islands</span></div>
+    <div class="stat-divider"></div>
+    <div class="stat"><span class="stat-num">10</span><span class="stat-label">Sessions</span></div>
+    <div class="stat-divider"></div>
+    <div class="stat"><span class="stat-num glow-gold">$300</span><span class="stat-label">Prize Pool</span></div>
+  </section>
+
+  <!-- About -->
+  <section class="about section" id="about">
+    <div class="container">
+      <div class="section-label reveal">The Event</div>
+      <h2 class="section-title reveal">This is not your typical<br/><span class="glow-text">civilisation event.</span></h2>
+      <div class="about-grid">
+        <div class="about-text reveal">
+          <p>Most civ events are scripted. Two groups on separate islands, rushing enchantments, being told when they are allowed to fight. Everything controlled for a video that never comes out. Players feel like NPCs in someone else's story.</p>
+          <p>This is different.</p>
+          <p>500 players will be placed across 4 fully handcrafted islands. Players begin completely isolated. There are no forced teams, no factions plugin, no claim plugin, and no scripted outcomes. Every civilisation, every alliance, every war is built entirely by the people playing.</p>
+        </div>
+        <div class="about-quote reveal">
+          <blockquote>"Every civilisation, every alliance, every war is built entirely by the people playing."</blockquote>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Islands -->
+  <section class="islands section">
+    <div class="container">
+      <div class="section-label reveal">The World</div>
+      <h2 class="section-title reveal">4 Handcrafted <span class="glow-text">Islands</span></h2>
+      <div class="islands-grid">
+        <div class="island-card reveal" data-biome="jungle">
+          <div class="island-icon">🌿</div>
+          <h3>Dense Jungle</h3>
+          <p>Thick canopy. Hidden dangers. Resources buried beneath ancient roots. Visibility is your greatest enemy.</p>
+          <div class="island-tag">High Risk · High Reward</div>
+        </div>
+        <div class="island-card reveal" data-biome="plains">
+          <div class="island-icon">🌾</div>
+          <h3>Open Plains</h3>
+          <p>Vast, exposed terrain. No cover. Every movement is visible from miles away. The land rewards the bold.</p>
+          <div class="island-tag">Strategic · Exposed</div>
+        </div>
+        <div class="island-card reveal" data-biome="badlands">
+          <div class="island-icon">🏜️</div>
+          <h3>Cracked Badlands</h3>
+          <p>Fractured earth rich in minerals. Ravines carve deep scars across the surface. Fortune favours the prepared.</p>
+          <div class="island-tag">Resource Rich · Hostile</div>
+        </div>
+        <div class="island-card reveal" data-biome="tundra">
+          <div class="island-icon">❄️</div>
+          <h3>Frozen Tundra</h3>
+          <p>Brutal cold. Sparse resources. Those who survive here are forged into something unbreakable.</p>
+          <div class="island-tag">Survival · Isolation</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Mechanics -->
+  <section class="mechanics section">
+    <div class="container">
+      <div class="section-label reveal">How It Works</div>
+      <h2 class="section-title reveal">Civilisations must earn<br/><span class="glow-text">their survival.</span></h2>
+      <div class="mechanics-grid">
+        <div class="mechanic reveal">
+          <div class="mechanic-num">01</div>
+          <h3>Ancient Altars</h3>
+          <p>At the heart of each island lies an ancient altar. Hunt the creature unique to your land and bring its offerings to keep your island alive.</p>
+        </div>
+        <div class="mechanic reveal">
+          <div class="mechanic-num">02</div>
+          <h3>World Shifts</h3>
+          <p>After every session the world shifts. The weakest island begins to crack and decay. Let your altar fall silent and your island dies with it.</p>
+        </div>
+        <div class="mechanic reveal">
+          <div class="mechanic-num">03</div>
+          <h3>The Collapse</h3>
+          <p>Two islands will be destroyed before the end. What remains will collide. Only one civilisation can stand.</p>
+        </div>
+        <div class="mechanic reveal">
+          <div class="mechanic-num">04</div>
+          <h3>$300 Prize Pool</h3>
+          <p>10 scheduled sessions, 5–6 hours each. Real stakes. Real consequences. Applications close July 20th.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section section reveal">
+    <div class="container">
+      <div class="cta-box">
+        <div class="cta-glow"></div>
+        <h2>Ready to build your civilisation?</h2>
+        <p>Applications close <strong>July 20th</strong>. Spots are limited.</p>
+        <% if (event && (event.is_open || event.closes_at)) { %>
+          <a href="/apply" class="btn btn-primary btn-lg">Apply Now</a>
+        <% } else { %>
+          <a href="/apply" class="btn btn-outline btn-lg">View Application</a>
+        <% } %>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include('partials/foot') %>

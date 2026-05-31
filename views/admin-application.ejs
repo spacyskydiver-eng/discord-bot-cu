@@ -1,0 +1,56 @@
+<%- include('partials/head', { title: 'Application' }) %>
+<%- include('partials/nav') %>
+
+<main class="page-main admin-page">
+  <section class="page-hero">
+    <div class="container">
+      <a href="/admin" class="back-link">← Back to Admin</a>
+      <h1 class="page-title">Application: <span class="glow-text"><%= application.discord_username %></span></h1>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container container--narrow">
+      <div class="admin-card">
+        <div class="app-meta">
+          <img src="<%= application.discord_avatar || '' %>" class="app-avatar-lg" onerror="this.style.display='none'" />
+          <div>
+            <p><strong><%= application.discord_username %></strong></p>
+            <p class="muted">Discord ID: <%= application.discord_id %></p>
+            <p class="muted">Submitted: <%= new Date(application.submitted_at).toLocaleString() %></p>
+            <p>Status: <span class="status-badge status-<%= application.status %>"><%= application.status %></span></p>
+          </div>
+        </div>
+
+        <form action="/admin/application/<%= application.id %>/status" method="POST" class="admin-form" style="margin-top:1.5rem">
+          <div class="form-row">
+            <div class="form-field">
+              <label class="form-label">Update Status</label>
+              <select name="status" class="form-input">
+                <option value="pending" <%= application.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                <option value="accepted" <%= application.status === 'accepted' ? 'selected' : '' %>>Accepted</option>
+                <option value="rejected" <%= application.status === 'rejected' ? 'selected' : '' %>>Rejected</option>
+              </select>
+            </div>
+            <div class="form-field" style="flex:0;align-self:flex-end">
+              <button type="submit" class="btn btn-primary">Update</button>
+            </div>
+          </div>
+        </form>
+
+        <hr class="divider" />
+
+        <div class="answers-list">
+          <% for (const a of answers) { %>
+            <div class="answer-item">
+              <p class="answer-question"><%= a.question_text %></p>
+              <p class="answer-text"><%= a.answer_text %></p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include('partials/foot') %>

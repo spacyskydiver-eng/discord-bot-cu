@@ -2,7 +2,7 @@ require('dotenv').config();
 const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const startDashboard = require('./dashboard/server');
+const startServer = require('./server/app');
 
 const client = new Client({
   intents: [
@@ -22,7 +22,7 @@ for (const file of commandFiles) {
 }
 
 client.once('ready', () => {
-  console.log(`Logged in as ${client.user.tag}`);
+  console.log(`Bot online: ${client.user.tag}`);
 });
 
 client.on('messageCreate', require('./events/messageCreate'));
@@ -36,20 +36,15 @@ client.on('interactionCreate', async interaction => {
   } catch (err) {
     console.error(err);
     const msg = { content: 'An error occurred.', ephemeral: true };
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp(msg);
-    } else {
-      await interaction.reply(msg);
-    }
+    if (interaction.replied || interaction.deferred) await interaction.followUp(msg);
+    else await interaction.reply(msg);
   }
 });
 
-startDashboard();
+startServer();
 
 client.login(process.env.DISCORD_TOKEN).catch(err => {
-  console.error('Failed to log in to Discord:', err.message);
+  console.error('Discord login failed:', err.message);
 });
 
-process.on('unhandledRejection', err => {
-  console.error('Unhandled rejection:', err);
-});
+process.on('unhandledRejection', err => console.error('Unhandled rejection:', err));
