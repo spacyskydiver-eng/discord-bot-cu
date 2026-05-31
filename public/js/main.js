@@ -68,37 +68,74 @@
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   let W = window.innerWidth, H = window.innerHeight;
+  window.addEventListener('resize', () => { W = window.innerWidth; H = window.innerHeight; });
 
   function shootingStar() {
-    const x = Math.random() * W * 0.7;
-    const y = Math.random() * H * 0.4;
-    const len = Math.random() * 120 + 60;
-    const speed = Math.random() * 6 + 4;
-    let progress = 0;
+    const angle = (Math.random() * 20 + 25) * Math.PI / 180;
+    const startX = Math.random() * W * 0.75;
+    const startY = Math.random() * H * 0.45;
+    const len = Math.random() * 140 + 80;
+    const tailLen = len * 0.85;
+    const duration = Math.random() * 500 + 500;
+    const start = performance.now();
 
-    function draw() {
-      if (progress > 1) return;
-      progress += 0.025 / (len / speed);
-      const ex = x + len * progress;
-      const ey = y + len * 0.35 * progress;
-      const grad = ctx.createLinearGradient(x, y, ex, ey);
-      grad.addColorStop(0, 'rgba(201,168,76,0)');
-      grad.addColorStop(0.6, 'rgba(255,240,180,0.7)');
-      grad.addColorStop(1, 'rgba(255,255,255,0.9)');
+    function draw(now) {
+      const elapsed = now - start;
+      const t = Math.min(elapsed / duration, 1);
+
+      // tip moves forward, tail follows with offset
+      const tipX = startX + Math.cos(angle) * len * t;
+      const tipY = startY + Math.sin(angle) * len * t;
+      const tailStart = Math.max(0, t - 0.45);
+      const tailX = startX + Math.cos(angle) * len * tailStart;
+      const tailY = startY + Math.sin(angle) * len * tailStart;
+
+      // overall fade: in quickly, hold, fade out at end
+      const globalAlpha = t < 0.15 ? t / 0.15 : t > 0.75 ? 1 - (t - 0.75) / 0.25 : 1;
+
+      // trail gradient
+      const grad = ctx.createLinearGradient(tailX, tailY, tipX, tipY);
+      grad.addColorStop(0, `rgba(201,168,76,0)`);
+      grad.addColorStop(0.6, `rgba(255,230,140,${0.45 * globalAlpha})`);
+      grad.addColorStop(1, `rgba(255,255,255,0)`);
+
+      ctx.save();
+      ctx.globalAlpha = globalAlpha;
       ctx.strokeStyle = grad;
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 1.8;
+      ctx.lineCap = 'round';
       ctx.beginPath();
-      ctx.moveTo(x + len * Math.max(0, progress - 0.3), y + len * 0.35 * Math.max(0, progress - 0.3));
-      ctx.lineTo(ex, ey);
+      ctx.moveTo(tailX, tailY);
+      ctx.lineTo(tipX, tipY);
       ctx.stroke();
-      requestAnimationFrame(draw);
+
+      // glowing tip
+      const glow = ctx.createRadialGradient(tipX, tipY, 0, tipX, tipY, 7);
+      glow.addColorStop(0, `rgba(255,245,200,${0.9 * globalAlpha})`);
+      glow.addColorStop(0.3, `rgba(201,168,76,${0.4 * globalAlpha})`);
+      glow.addColorStop(1, `rgba(201,168,76,0)`);
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(tipX, tipY, 7, 0, Math.PI * 2);
+      ctx.fill();
+
+      // bright core dot
+      ctx.fillStyle = `rgba(255,255,255,${0.95 * globalAlpha})`;
+      ctx.beginPath();
+      ctx.arc(tipX, tipY, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+
+      if (t < 1) requestAnimationFrame(draw);
     }
-    draw();
+
+    requestAnimationFrame(draw);
   }
 
-  window.addEventListener('resize', () => { W = window.innerWidth; H = window.innerHeight; });
-  setInterval(() => { if (Math.random() < 0.6) shootingStar(); }, 2800);
-  setTimeout(shootingStar, 1000);
+  setInterval(() => { if (Math.random() < 0.65) shootingStar(); }, 2600);
+  setTimeout(shootingStar, 800);
+  setTimeout(shootingStar, 2000);
 })();
 
 // ── Nav scroll style ──
