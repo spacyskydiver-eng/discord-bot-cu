@@ -7,22 +7,29 @@ function requireLogin(req, res, next) {
   next();
 }
 
-router.get('/', requireLogin, async (req, res) => {
+// Anyone can view the apply page — login only required to submit
+router.get('/', async (req, res) => {
   const eventRes = await db.query(`SELECT * FROM events ORDER BY created_at DESC LIMIT 1`);
-  const event = eventRes.rows[0];
-  if (!event) return res.render('apply', { event: null, questions: [], existing: null });
+  const event = eventRes.rows[0] || null;
 
-  const questions = (await db.query(
-    `SELECT * FROM application_questions WHERE event_id = $1 ORDER BY order_num`,
-    [event.id]
-  )).rows;
+  let questions = [];
+  let existing = null;
 
-  const existing = (await db.query(
-    `SELECT * FROM applications WHERE event_id = $1 AND discord_id = $2`,
-    [event.id, req.session.user.id]
-  )).rows[0] || null;
+  if (event) {
+    questions = (await db.query(
+      `SELECT * FROM application_questions WHERE event_id = $1 ORDER BY order_num`,
+      [event.id]
+    )).rows;
 
-  res.render('apply', { event, questions, existing });
+    if (req.session.user) {
+      existing = (await db.query(
+        `SELECT * FROM applications WHERE event_id = $1 AND discord_id = $2`,
+        [event.id, req.session.user.id]
+      )).rows[0] || null;
+    }
+  }
+
+  res.render('apply', { event, questions, existing, submitted: req.query.submitted === '1' });
 });
 
 router.post('/submit', requireLogin, async (req, res) => {

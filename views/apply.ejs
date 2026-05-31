@@ -64,19 +64,38 @@
           <% } %>
         </div>
 
-        <form class="apply-form reveal" action="/apply/submit" method="POST">
-          <% for (const q of questions) { %>
-            <div class="form-field">
-              <label class="form-label"><%= q.question_text %><% if (q.required) { %> <span class="required">*</span><% } %></label>
-              <% if (q.question_type === 'text') { %>
-                <input type="text" name="q_<%= q.id %>" class="form-input" <%= q.required ? 'required' : '' %> />
-              <% } else { %>
-                <textarea name="q_<%= q.id %>" class="form-textarea" rows="5" <%= q.required ? 'required' : '' %>></textarea>
-              <% } %>
-            </div>
-          <% } %>
-          <button type="submit" class="btn btn-primary btn-lg btn-full">Submit Application</button>
-        </form>
+        <% if (!user) { %>
+          <div class="apply-form reveal">
+            <% for (const q of questions) { %>
+              <div class="form-field">
+                <label class="form-label"><%= q.question_text %></label>
+                <% if (q.question_type === 'text') { %>
+                  <input type="text" class="form-input" disabled placeholder="Login to answer" />
+                <% } else { %>
+                  <textarea class="form-textarea" rows="5" disabled placeholder="Login to answer"></textarea>
+                <% } %>
+              </div>
+            <% } %>
+            <a href="/auth/discord" class="btn btn-discord btn-lg btn-full">
+              <svg width="16" height="16" viewBox="0 0 71 55" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M60.1 4.9A58.5 58.5 0 0 0 45.6.7a.2.2 0 0 0-.2.1 40.7 40.7 0 0 0-1.8 3.7 54 54 0 0 0-16.2 0A37.7 37.7 0 0 0 25.6.8a.2.2 0 0 0-.2-.1A58.4 58.4 0 0 0 10.9 5a.2.2 0 0 0-.1.1C1.6 18.7-.9 32 .3 45c0 .1.1.2.2.2a58.8 58.8 0 0 0 17.7 9 .2.2 0 0 0 .2-.1 42 42 0 0 0 3.6-5.9.2.2 0 0 0-.1-.3 38.7 38.7 0 0 1-5.5-2.6.2.2 0 0 1 0-.4l1.1-.9a.2.2 0 0 1 .2 0c11.5 5.3 24 5.3 35.4 0a.2.2 0 0 1 .2 0l1.1.9a.2.2 0 0 1 0 .4 36.2 36.2 0 0 1-5.5 2.6.2.2 0 0 0-.1.3 47.1 47.1 0 0 0 3.6 5.9.2.2 0 0 0 .2.1 58.6 58.6 0 0 0 17.7-9 .2.2 0 0 0 .1-.2c1.5-15.3-2.5-28.5-10.6-40.2a.2.2 0 0 0-.1-.1ZM23.7 37c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2c3.6 0 6.5 3.3 6.4 7.2 0 4-2.8 7.2-6.4 7.2Zm23.7 0c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2c3.6 0 6.5 3.3 6.4 7.2 0 4-2.8 7.2-6.4 7.2Z"/></svg>
+              Login with Discord to Apply
+            </a>
+          </div>
+        <% } else { %>
+          <form class="apply-form reveal" action="/apply/submit" method="POST">
+            <% for (const q of questions) { %>
+              <div class="form-field">
+                <label class="form-label"><%= q.question_text %><% if (q.required) { %> <span class="required">*</span><% } %></label>
+                <% if (q.question_type === 'text') { %>
+                  <input type="text" name="q_<%= q.id %>" class="form-input" <%= q.required ? 'required' : '' %> />
+                <% } else { %>
+                  <textarea name="q_<%= q.id %>" class="form-textarea" rows="5" <%= q.required ? 'required' : '' %>></textarea>
+                <% } %>
+              </div>
+            <% } %>
+            <button type="submit" class="btn btn-primary btn-lg btn-full">Submit Application</button>
+          </form>
+        <% } %>
       <% } %>
     </div>
   </section>

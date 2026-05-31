@@ -4,6 +4,9 @@ const router = express.Router();
 const DISCORD_API = 'https://discord.com/api/v10';
 
 router.get('/discord', (req, res) => {
+  if (!process.env.DISCORD_CLIENT_SECRET || !process.env.REDIRECT_URI) {
+    return res.send('<p style="font-family:sans-serif;padding:2rem;color:red">Discord OAuth2 is not configured yet. Add DISCORD_CLIENT_SECRET and REDIRECT_URI to your Render environment variables.</p>');
+  }
   const params = new URLSearchParams({
     client_id: process.env.CLIENT_ID,
     redirect_uri: process.env.REDIRECT_URI,
