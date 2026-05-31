@@ -76,7 +76,7 @@
     const startY = Math.random() * H * 0.45;
     const len = Math.random() * 140 + 80;
     const tailLen = len * 0.85;
-    const duration = Math.random() * 500 + 500;
+    const duration = Math.random() * 1800 + 1400;
     const start = performance.now();
 
     function draw(now) {
@@ -133,9 +133,10 @@
     requestAnimationFrame(draw);
   }
 
-  setInterval(() => { if (Math.random() < 0.65) shootingStar(); }, 2600);
-  setTimeout(shootingStar, 800);
-  setTimeout(shootingStar, 2000);
+  setInterval(() => { if (Math.random() < 0.75) shootingStar(); }, 1400);
+  setTimeout(shootingStar, 400);
+  setTimeout(shootingStar, 1200);
+  setTimeout(shootingStar, 2400);
 })();
 
 // ── Nav scroll style ──
