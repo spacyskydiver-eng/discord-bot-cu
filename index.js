@@ -45,4 +45,11 @@ client.on('interactionCreate', async interaction => {
 });
 
 startDashboard();
-client.login(process.env.DISCORD_TOKEN);
+
+client.login(process.env.DISCORD_TOKEN).catch(err => {
+  console.error('Failed to log in to Discord:', err.message);
+});
+
+process.on('unhandledRejection', err => {
+  console.error('Unhandled rejection:', err);
+});
