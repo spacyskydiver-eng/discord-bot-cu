@@ -11,10 +11,13 @@ module.exports = function startDashboard() {
   function auth(req, res, next) {
     const { guild_id, password } = req.body || req.query;
     if (!guild_id) return res.status(400).json({ error: 'guild_id required' });
-    db.query(`SELECT dashboard_password FROM guild_config WHERE guild_id = $1`, [guild_id])
-      .then(r => {
-        if (!r.rows.length) return res.status(404).json({ error: 'Guild not found. Bot must be in the server first.' });
-        if (r.rows[0].dashboard_password !== password) return res.status(401).json({ error: 'Wrong password' });
+    db.query(
+      `INSERT INTO guild_config (guild_id) VALUES ($1) ON CONFLICT DO NOTHING`,
+      [guild_id]
+    ).then(() =>
+      db.query(`SELECT dashboard_password FROM guild_config WHERE guild_id = $1`, [guild_id])
+    ).then(r => {
+        if (r.rows[0].dashboard_password !== password) return res.status(401).json({ error: 'Wrong password. Default is: changeme' });
         req.guildId = guild_id;
         next();
       })
