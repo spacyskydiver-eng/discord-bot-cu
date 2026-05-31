@@ -4,8 +4,8 @@ const router = express.Router();
 const DISCORD_API = 'https://discord.com/api/v10';
 
 router.get('/discord', (req, res) => {
-  if (!process.env.DISCORD_CLIENT_SECRET || !process.env.REDIRECT_URI) {
-    return res.send('<p style="font-family:sans-serif;padding:2rem;color:red">Discord OAuth2 is not configured yet. Add DISCORD_CLIENT_SECRET and REDIRECT_URI to your Render environment variables.</p>');
+  if (!process.env.DISCORD_CLIENT_SECRET || !process.env.REDIRECT_URI || !process.env.CLIENT_ID) {
+    return res.redirect('/auth/error?reason=not-configured');
   }
   const params = new URLSearchParams({
     client_id: process.env.CLIENT_ID,
@@ -14,6 +14,10 @@ router.get('/discord', (req, res) => {
     scope: 'identify'
   });
   res.redirect(`https://discord.com/oauth2/authorize?${params}`);
+});
+
+router.get('/error', (req, res) => {
+  res.render('auth-error', { reason: req.query.reason || 'unknown' });
 });
 
 router.get('/callback', async (req, res) => {
@@ -52,7 +56,7 @@ router.get('/callback', async (req, res) => {
     res.redirect('/');
   } catch (err) {
     console.error('OAuth error:', err);
-    res.redirect('/');
+    res.redirect('/auth/error?reason=oauth-failed');
   }
 });
 

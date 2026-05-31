@@ -1,0 +1,25 @@
+<%- include('partials/head', { title: 'Sign In' }) %>
+<%- include('partials/nav') %>
+
+<main class="page-main">
+  <section class="section">
+    <div class="container container--narrow">
+      <div class="signin-gate">
+        <div class="signin-gate-inner">
+          <% if (reason === 'not-configured') { %>
+            <p class="signin-gate-title">Sign in is not available yet.</p>
+            <p class="signin-gate-sub">Discord login has not been configured for this site. Check back soon or contact the server staff.</p>
+          <% } else { %>
+            <p class="signin-gate-title">Sign in failed.</p>
+            <p class="signin-gate-sub">Something went wrong while signing you in with Discord. Please try again. If the problem persists, contact server staff.</p>
+            <a href="/auth/discord" class="btn btn-discord btn-lg">Try Again</a>
+          <% } %>
+          <br/>
+          <a href="/" class="btn btn-ghost" style="margin-top:1rem">Back to Home</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include('partials/foot') %>
