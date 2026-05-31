@@ -353,6 +353,16 @@ img { display: block; }
   line-height: 1.5;
   padding-left: 1.5rem;
   border-left: 3px solid var(--gold);
+  margin-bottom: 1rem;
+}
+.about-quote cite {
+  display: block;
+  padding-left: 1.5rem;
+  font-size: 0.78rem;
+  font-style: normal;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 /* ── Islands ── */
@@ -373,7 +383,14 @@ img { display: block; }
   border-color: rgba(201,168,76,0.3);
   box-shadow: 0 10px 40px rgba(201,168,76,0.1);
 }
-.island-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+.island-biome {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 0.85rem;
+}
 .island-card h3 {
   font-family: 'Cinzel', serif;
   font-size: 1.05rem;
@@ -477,6 +494,15 @@ img { display: block; }
 }
 .card--centered { text-align: center; }
 .card-icon { font-size: 3rem; margin-bottom: 1.25rem; }
+.card-status {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 1rem;
+}
 .card h2 { font-family: 'Cinzel', serif; font-size: 1.6rem; color: #fff; margin-bottom: 0.75rem; }
 .card p { color: var(--text-muted); line-height: 1.7; margin-bottom: 0.5rem; }
 

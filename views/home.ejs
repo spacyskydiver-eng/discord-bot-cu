@@ -20,28 +20,12 @@
         <% } else if (event && event.opens_at && new Date(event.opens_at) > new Date()) { %>
           <div class="countdown-wrap">
             <p class="countdown-label">Applications open in</p>
-            <div class="countdown" data-target="<%= new Date(event.opens_at).toISOString() %>">
-              <div class="countdown-block"><span class="cd-num" id="cd-d">--</span><span class="cd-unit">Days</span></div>
-              <div class="countdown-sep">:</div>
-              <div class="countdown-block"><span class="cd-num" id="cd-h">--</span><span class="cd-unit">Hours</span></div>
-              <div class="countdown-sep">:</div>
-              <div class="countdown-block"><span class="cd-num" id="cd-m">--</span><span class="cd-unit">Min</span></div>
-              <div class="countdown-sep">:</div>
-              <div class="countdown-block"><span class="cd-num" id="cd-s">--</span><span class="cd-unit">Sec</span></div>
-            </div>
+            <%- include('partials/countdown', { target: new Date(event.opens_at).toISOString() }) %>
           </div>
         <% } else if (event && event.closes_at) { %>
           <div class="countdown-wrap">
             <p class="countdown-label">Applications close</p>
-            <div class="countdown" data-target="<%= new Date(event.closes_at).toISOString() %>">
-              <div class="countdown-block"><span class="cd-num" id="cd-d">--</span><span class="cd-unit">Days</span></div>
-              <div class="countdown-sep">:</div>
-              <div class="countdown-block"><span class="cd-num" id="cd-h">--</span><span class="cd-unit">Hours</span></div>
-              <div class="countdown-sep">:</div>
-              <div class="countdown-block"><span class="cd-num" id="cd-m">--</span><span class="cd-unit">Min</span></div>
-              <div class="countdown-sep">:</div>
-              <div class="countdown-block"><span class="cd-num" id="cd-s">--</span><span class="cd-unit">Sec</span></div>
-            </div>
+            <%- include('partials/countdown', { target: new Date(event.closes_at).toISOString() }) %>
             <a href="/apply" class="btn btn-primary btn-lg" style="margin-top:1.5rem">Apply Now</a>
           </div>
         <% } else { %>
@@ -78,7 +62,8 @@
           <p>500 players will be placed across 4 fully handcrafted islands. Players begin completely isolated. There are no forced teams, no factions plugin, no claim plugin, and no scripted outcomes. Every civilisation, every alliance, every war is built entirely by the people playing.</p>
         </div>
         <div class="about-quote reveal">
-          <blockquote>"Every civilisation, every alliance, every war is built entirely by the people playing."</blockquote>
+          <blockquote>"No man is good enough to govern another man without that other's consent."</blockquote>
+          <cite>Abraham Lincoln</cite>
         </div>
       </div>
     </div>
@@ -91,27 +76,27 @@
       <h2 class="section-title reveal">4 Handcrafted <span class="glow-text">Islands</span></h2>
       <div class="islands-grid">
         <div class="island-card reveal" data-biome="jungle">
-          <div class="island-icon">🌿</div>
-          <h3>Dense Jungle</h3>
-          <p>Thick canopy. Hidden dangers. Resources buried beneath ancient roots. Visibility is your greatest enemy.</p>
+          <div class="island-biome">Jungle</div>
+          <h3>Jungle Island</h3>
+          <p>Dense, overgrown, and unforgiving. Visibility is low and danger hides between the trees. Those who call this island home learn quickly that the jungle provides, but only to those who know where to look.</p>
           <div class="island-tag">High Risk · High Reward</div>
         </div>
         <div class="island-card reveal" data-biome="plains">
-          <div class="island-icon">🌾</div>
-          <h3>Open Plains</h3>
-          <p>Vast, exposed terrain. No cover. Every movement is visible from miles away. The land rewards the bold.</p>
+          <div class="island-biome">Plains</div>
+          <h3>Plains Island</h3>
+          <p>Open land as far as the eye can see. No natural cover, no hidden valleys. Everything happens in the open here. What this island lacks in secrecy it makes up for in space to build, farm, and organise.</p>
           <div class="island-tag">Strategic · Exposed</div>
         </div>
         <div class="island-card reveal" data-biome="badlands">
-          <div class="island-icon">🏜️</div>
-          <h3>Cracked Badlands</h3>
-          <p>Fractured earth rich in minerals. Ravines carve deep scars across the surface. Fortune favours the prepared.</p>
+          <div class="island-biome">Badlands</div>
+          <h3>Badlands Island</h3>
+          <p>Cracked earth, winding rivers of terracotta, and a harsh unrelenting landscape. The badlands demand resilience from those who settle here. Rich in rare materials and riddled with caves, this island rewards those willing to dig deep.</p>
           <div class="island-tag">Resource Rich · Hostile</div>
         </div>
         <div class="island-card reveal" data-biome="tundra">
-          <div class="island-icon">❄️</div>
-          <h3>Frozen Tundra</h3>
-          <p>Brutal cold. Sparse resources. Those who survive here are forged into something unbreakable.</p>
+          <div class="island-biome">Ice</div>
+          <h3>Ice Island</h3>
+          <p>Frozen, brutal, and hauntingly beautiful. The cold does not care about your plans. Survival here requires discipline above all else. Those who endure the ice tend to be the hardest to break.</p>
           <div class="island-tag">Survival · Isolation</div>
         </div>
       </div>
@@ -142,7 +127,7 @@
         <div class="mechanic reveal">
           <div class="mechanic-num">04</div>
           <h3>$300 Prize Pool</h3>
-          <p>10 scheduled sessions, 5–6 hours each. Real stakes. Real consequences. Applications close July 20th.</p>
+          <p>10 scheduled sessions, 5 to 6 hours each. Real stakes. Real consequences. Applications close July 20th.</p>
         </div>
       </div>
     </div>
