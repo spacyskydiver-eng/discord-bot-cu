@@ -240,8 +240,11 @@ img { display: block; }
 .music-btn-wrap.visible { display: block; }
 .music-notes-canvas {
   position: absolute;
-  bottom: 0; right: 0;
-  width: 120px; height: 120px;
+  bottom: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  height: 200px;
   pointer-events: none;
 }
 .music-btn {

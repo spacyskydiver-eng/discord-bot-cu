@@ -144,6 +144,9 @@
   const canvas = document.getElementById('musicNotesCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
+  const CW = 140, CH = 200;
+  canvas.width = CW;
+  canvas.height = CH;
   const notes = [];
   const symbols = ['♪', '♫', '♩', '♬'];
   let active = false;
@@ -151,29 +154,29 @@
   function spawnNote() {
     if (!active) return;
     notes.push({
-      x: 28 + (Math.random() - 0.5) * 20,
-      y: 28,
+      x: CW / 2 + (Math.random() - 0.5) * 30,
+      y: CH - 10,
       symbol: symbols[Math.floor(Math.random() * symbols.length)],
       alpha: 1,
-      size: Math.random() * 10 + 10,
-      vx: (Math.random() - 0.5) * 1.2,
-      vy: -(Math.random() * 1.5 + 0.8)
+      size: Math.random() * 12 + 20,
+      vx: (Math.random() - 0.5) * 0.7,
+      vy: -(Math.random() * 0.7 + 0.5)
     });
   }
 
   function loop() {
-    ctx.clearRect(0, 0, 120, 120);
+    ctx.clearRect(0, 0, CW, CH);
     for (let i = notes.length - 1; i >= 0; i--) {
       const n = notes[i];
       n.x += n.vx;
       n.y += n.vy;
-      n.alpha -= 0.018;
+      n.alpha -= 0.007;
       if (n.alpha <= 0) { notes.splice(i, 1); continue; }
       ctx.globalAlpha = n.alpha;
       ctx.font = `${n.size}px serif`;
       ctx.fillStyle = '#f0c94e';
-      ctx.shadowColor = 'rgba(240,201,78,0.8)';
-      ctx.shadowBlur = 8;
+      ctx.shadowColor = 'rgba(240,201,78,0.9)';
+      ctx.shadowBlur = 12;
       ctx.fillText(n.symbol, n.x, n.y);
     }
     ctx.globalAlpha = 1;
@@ -182,7 +185,7 @@
   }
 
   loop();
-  setInterval(() => { if (active) spawnNote(); }, 400);
+  setInterval(() => { if (active) spawnNote(); }, 500);
 
   window._musicNotesSetActive = (v) => { active = v; };
 })();
