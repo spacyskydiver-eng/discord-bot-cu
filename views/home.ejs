@@ -11,13 +11,24 @@
     <!-- Click to enter overlay -->
     <div class="video-gate" id="videoGate">
       <div class="video-gate-inner">
-        <img src="/img/home-title.png" alt="Collective Union" class="video-gate-logo" />
+        <img src="/img/collective-union.png" alt="Collective Union" class="video-gate-logo" />
         <p class="video-gate-hint">Click anywhere to enter</p>
       </div>
     </div>
 
     <video id="heroBg" class="hero-video" src="/video/bg.mp4" loop playsinline preload="auto"></video>
     <div class="hero-video-fade" id="heroVideoFade"></div>
+
+    <!-- Music control button -->
+    <div class="music-btn-wrap" id="musicBtnWrap">
+      <canvas class="music-notes-canvas" id="musicNotesCanvas"></canvas>
+      <button class="music-btn" id="musicBtn" title="Toggle music">
+        <svg class="music-btn-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9 3v10.55A4 4 0 1 0 11 17V7h4V3H9z"/>
+        </svg>
+        <span class="music-btn-label" id="musicBtnLabel">♪</span>
+      </button>
+    </div>
     <div class="hero-content">
       <img src="/img/collective-union.png" alt="Collective Union" class="hero-logo-img reveal" />
       <p class="hero-eyebrow reveal">500 Players · 4 Islands · 1 Civilisation</p>

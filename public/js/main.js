@@ -139,27 +139,97 @@
   setTimeout(shootingStar, 2400);
 })();
 
-// ── Hero video: click to enter + scroll fade ──
+// ── Music notes canvas ──
+(function () {
+  const canvas = document.getElementById('musicNotesCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const notes = [];
+  const symbols = ['♪', '♫', '♩', '♬'];
+  let active = false;
+
+  function spawnNote() {
+    if (!active) return;
+    notes.push({
+      x: 28 + (Math.random() - 0.5) * 20,
+      y: 28,
+      symbol: symbols[Math.floor(Math.random() * symbols.length)],
+      alpha: 1,
+      size: Math.random() * 10 + 10,
+      vx: (Math.random() - 0.5) * 1.2,
+      vy: -(Math.random() * 1.5 + 0.8)
+    });
+  }
+
+  function loop() {
+    ctx.clearRect(0, 0, 120, 120);
+    for (let i = notes.length - 1; i >= 0; i--) {
+      const n = notes[i];
+      n.x += n.vx;
+      n.y += n.vy;
+      n.alpha -= 0.018;
+      if (n.alpha <= 0) { notes.splice(i, 1); continue; }
+      ctx.globalAlpha = n.alpha;
+      ctx.font = `${n.size}px serif`;
+      ctx.fillStyle = '#f0c94e';
+      ctx.shadowColor = 'rgba(240,201,78,0.8)';
+      ctx.shadowBlur = 8;
+      ctx.fillText(n.symbol, n.x, n.y);
+    }
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+    requestAnimationFrame(loop);
+  }
+
+  loop();
+  setInterval(() => { if (active) spawnNote(); }, 400);
+
+  window._musicNotesSetActive = (v) => { active = v; };
+})();
+
+// ── Hero video: click to enter + scroll fade + music button ──
 (function () {
   const gate = document.getElementById('videoGate');
   const video = document.getElementById('heroBg');
+  const musicWrap = document.getElementById('musicBtnWrap');
+  const musicBtn = document.getElementById('musicBtn');
   if (!gate || !video) return;
+
+  let userMuted = false;
+  let scrollVolume = 1;
+
+  function applyVolume() {
+    video.volume = userMuted ? 0 : Math.max(scrollVolume * 0.85, 0.12);
+    video.muted = userMuted;
+  }
 
   gate.addEventListener('click', () => {
     video.volume = 1;
     video.play().then(() => {
       gate.classList.add('hidden');
       setTimeout(() => { gate.style.display = 'none'; }, 1300);
+      if (musicWrap) { musicWrap.classList.add('visible'); }
+      if (window._musicNotesSetActive) window._musicNotesSetActive(true);
     }).catch(() => {
-      // fallback: play muted if browser still blocks
       video.muted = true;
+      userMuted = true;
       video.play();
       gate.classList.add('hidden');
       setTimeout(() => { gate.style.display = 'none'; }, 1300);
+      if (musicWrap) { musicWrap.classList.add('visible'); }
+      if (musicBtn) musicBtn.classList.add('muted');
     });
   });
 
-  // Scroll: fade video opacity and audio together
+  if (musicBtn) {
+    musicBtn.addEventListener('click', () => {
+      userMuted = !userMuted;
+      musicBtn.classList.toggle('muted', userMuted);
+      if (window._musicNotesSetActive) window._musicNotesSetActive(!userMuted);
+      applyVolume();
+    });
+  }
+
   let scrollTicking = false;
   window.addEventListener('scroll', () => {
     if (scrollTicking) return;
@@ -167,11 +237,10 @@
     requestAnimationFrame(() => {
       const heroH = window.innerHeight;
       const scrolled = window.scrollY;
-      // start fading at 10% scroll, fully faded at 80% of hero height
       const progress = Math.min(Math.max((scrolled - heroH * 0.1) / (heroH * 0.7), 0), 1);
       video.style.opacity = 1 - progress;
-      // audio fades to 15% minimum so it never fully disappears
-      if (!video.muted) video.volume = Math.max(1 - progress * 0.85, 0.15);
+      scrollVolume = 1 - progress;
+      applyVolume();
       scrollTicking = false;
     });
   }, { passive: true });
