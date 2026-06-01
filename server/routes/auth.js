@@ -49,6 +49,24 @@ router.get('/error', (req, res) => {
   res.render('auth-error', { reason: req.query.reason || 'unknown' });
 });
 
+router.get('/whoami', (req, res) => {
+  const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(s => s.trim());
+  const user = req.session.user || null;
+  res.send(`
+    <style>body{font-family:monospace;padding:2rem;background:#111;color:#ddd}
+    .ok{color:#4ec994}.bad{color:#e05555}</style>
+    <h2>Session Info</h2>
+    <p>Logged in: <b class="${user ? 'ok' : 'bad'}">${user ? 'YES' : 'NO'}</b></p>
+    ${user ? `
+      <p>Discord ID in session: <b>${user.id}</b></p>
+      <p>Username: <b>${user.username}</b></p>
+      <p>ADMIN_DISCORD_IDS env: <b>${process.env.ADMIN_DISCORD_IDS || 'NOT SET'}</b></p>
+      <p>Is admin: <b class="${adminIds.includes(user.id) ? 'ok' : 'bad'}">${adminIds.includes(user.id) ? 'YES' : 'NO'}</b></p>
+      <p>ID match check: session="<b>${user.id}</b>" vs env="<b>${adminIds[0]}</b>" equal=<b>${user.id === adminIds[0]}</b></p>
+    ` : '<p>Not logged in — <a href="/auth/discord" style="color:#5865f2">login first</a></p>'}
+  `);
+});
+
 router.get('/callback', async (req, res) => {
   const { code } = req.query;
   if (!code) return res.redirect('/');
