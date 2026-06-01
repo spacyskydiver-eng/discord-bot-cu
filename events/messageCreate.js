@@ -6,7 +6,6 @@ module.exports = async (message) => {
   const guildId = message.guild.id;
   const userId = message.author.id;
 
-  // Ensure guild config exists
   await db.query(
     `INSERT INTO guild_config (guild_id) VALUES ($1) ON CONFLICT DO NOTHING`,
     [guildId]
@@ -18,7 +17,6 @@ module.exports = async (message) => {
   );
   const config = configRes.rows[0];
 
-  // Upsert user row
   await db.query(
     `INSERT INTO user_xp (discord_id, guild_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
     [userId, guildId]
@@ -30,7 +28,6 @@ module.exports = async (message) => {
   );
   const user = userRes.rows[0];
 
-  // Enforce cooldown
   const now = new Date();
   if (user.last_message_at) {
     const secondsSinceLast = (now - new Date(user.last_message_at)) / 1000;
@@ -39,7 +36,6 @@ module.exports = async (message) => {
 
   const newXp = user.xp + config.xp_per_message;
 
-  // Check for level up
   const levelRes = await db.query(
     `SELECT level_number, level_name, xp_required FROM level_config WHERE guild_id = $1 AND xp_required <= $2 ORDER BY xp_required DESC LIMIT 1`,
     [guildId, newXp]
@@ -63,10 +59,42 @@ module.exports = async (message) => {
     [newXp, newLevel, now, userId, guildId]
   );
 
-  if (leveledUp && config.level_up_channel_id) {
-    const channel = message.guild.channels.cache.get(config.level_up_channel_id);
-    if (channel) {
-      await channel.send(`🎉 ${message.author} reached **Level ${newLevel}** — **${newLevelName}**!`);
+  if (leveledUp) {
+    // Assign level role
+    await assignLevelRole(message.guild, message.member, guildId, newLevel);
+
+    if (config.level_up_channel_id) {
+      const channel = message.guild.channels.cache.get(config.level_up_channel_id);
+      if (channel) {
+        await channel.send(`${message.author} reached **Level ${newLevel}** — **${newLevelName}**!`);
+      }
     }
   }
 };
+
+async function assignLevelRole(guild, member, guildId, newLevel) {
+  try {
+    const rolesRes = await db.query(
+      `SELECT level_number, role_id FROM level_roles WHERE guild_id = $1 ORDER BY level_number`,
+      [guildId]
+    );
+    if (!rolesRes.rows.length) return;
+
+    // Remove all old level roles first
+    for (const row of rolesRes.rows) {
+      const role = guild.roles.cache.get(row.role_id);
+      if (role && member.roles.cache.has(role.id)) {
+        await member.roles.remove(role).catch(() => {});
+      }
+    }
+
+    // Assign the role for the new level (highest matching role)
+    const matching = rolesRes.rows.filter(r => r.level_number <= newLevel);
+    if (!matching.length) return;
+    const best = matching[matching.length - 1];
+    const role = guild.roles.cache.get(best.role_id);
+    if (role) await member.roles.add(role).catch(() => {});
+  } catch (err) {
+    console.error('Level role assignment error:', err.message);
+  }
+}

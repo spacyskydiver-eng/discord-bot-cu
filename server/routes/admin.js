@@ -29,13 +29,15 @@ router.get('/', async (req, res) => {
     )).rows;
   }
 
-  // Guild config for bot dashboard
   const guildRes = await db.query(`SELECT * FROM guild_config LIMIT 10`);
-  const levels = event ? (await db.query(
+  const levels = (await db.query(
     `SELECT guild_id, level_number, level_name, xp_required FROM level_config ORDER BY guild_id, level_number`
-  )).rows : [];
+  )).rows;
+  const levelRoles = (await db.query(
+    `SELECT guild_id, level_number, role_id FROM level_roles ORDER BY guild_id, level_number`
+  )).rows;
 
-  res.render('admin', { event, questions, applications, guilds: guildRes.rows, levels });
+  res.render('admin', { event, questions, applications, guilds: guildRes.rows, levels, levelRoles });
 });
 
 // View single application
@@ -106,19 +108,37 @@ router.post('/bot/xp', async (req, res) => {
   res.redirect('/admin?saved=xp#bot');
 });
 
-// Bot: save levels
+// Bot: save veteran role
+router.post('/bot/veteran', async (req, res) => {
+  const { guild_id, veteran_role_id, veteran_months } = req.body;
+  await db.query(
+    `UPDATE guild_config SET veteran_role_id = $1, veteran_months = $2 WHERE guild_id = $3`,
+    [veteran_role_id || null, parseInt(veteran_months) || 6, guild_id]
+  );
+  res.redirect('/admin?saved=veteran#bot');
+});
+
+// Bot: save levels + roles
 router.post('/bot/levels', async (req, res) => {
-  const { guild_id, level_numbers, level_names, level_xp } = req.body;
+  const { guild_id, level_numbers, level_names, level_xp, level_role_ids } = req.body;
   await db.query(`DELETE FROM level_config WHERE guild_id = $1`, [guild_id]);
+  await db.query(`DELETE FROM level_roles WHERE guild_id = $1`, [guild_id]);
   const nums = Array.isArray(level_numbers) ? level_numbers : [level_numbers];
   const names = Array.isArray(level_names) ? level_names : [level_names];
   const xps = Array.isArray(level_xp) ? level_xp : [level_xp];
+  const roleIds = Array.isArray(level_role_ids) ? level_role_ids : [level_role_ids];
   for (let i = 0; i < nums.length; i++) {
     if (!nums[i] || !names[i] || !xps[i]) continue;
     await db.query(
       `INSERT INTO level_config (guild_id, level_number, level_name, xp_required) VALUES ($1,$2,$3,$4)`,
       [guild_id, parseInt(nums[i]), names[i], parseInt(xps[i])]
     );
+    if (roleIds[i] && roleIds[i].trim()) {
+      await db.query(
+        `INSERT INTO level_roles (guild_id, level_number, role_id) VALUES ($1,$2,$3) ON CONFLICT (guild_id, level_number) DO UPDATE SET role_id = $3`,
+        [guild_id, parseInt(nums[i]), roleIds[i].trim()]
+      );
+    }
   }
   res.redirect('/admin?saved=levels#bot');
 });

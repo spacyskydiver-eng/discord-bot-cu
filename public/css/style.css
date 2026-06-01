@@ -835,8 +835,9 @@ img { display: block; }
 .answer-text { color: var(--text); line-height: 1.7; white-space: pre-wrap; }
 
 /* Levels (admin) */
-.level-row-head { display: grid; grid-template-columns: 80px 1fr 1fr 40px; gap: 0.75rem; padding: 0.25rem 0; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.5rem; }
-.level-row { display: grid; grid-template-columns: 80px 1fr 1fr 40px; gap: 0.75rem; margin-bottom: 0.6rem; align-items: center; }
+.level-row-head { display: grid; grid-template-columns: 70px 1fr 1fr 1fr 40px; gap: 0.75rem; padding: 0.25rem 0; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.5rem; }
+.level-row { display: grid; grid-template-columns: 70px 1fr 1fr 40px; gap: 0.75rem; margin-bottom: 0.6rem; align-items: center; }
+.level-row--wide { grid-template-columns: 70px 1fr 1fr 1fr 40px; }
 .level-row .form-input { margin: 0; }
 
 /* ── Scroll reveal animations ── */

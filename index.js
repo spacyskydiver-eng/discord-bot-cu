@@ -3,6 +3,7 @@ const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const startServer = require('./server/app');
+const runVeteranCheck = require('./events/veteranCheck');
 
 const client = new Client({
   intents: [
@@ -23,6 +24,9 @@ for (const file of commandFiles) {
 
 client.once('ready', () => {
   console.log(`Bot online: ${client.user.tag}`);
+  // Run veteran check on startup then every 6 hours
+  runVeteranCheck(client);
+  setInterval(() => runVeteranCheck(client), 6 * 60 * 60 * 1000);
 });
 
 client.on('messageCreate', require('./events/messageCreate'));

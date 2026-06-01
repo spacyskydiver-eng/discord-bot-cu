@@ -193,17 +193,40 @@
 
               <hr class="divider" />
 
-              <h3>Levels</h3>
+              <h3>Veteran Role</h3>
+              <p class="muted" style="font-size:0.85rem;margin-bottom:1rem">Automatically assigns a role to members who joined the server 6+ months ago. Uses Discord's actual join date — works for members who joined before the bot.</p>
+              <form action="/admin/bot/veteran" method="POST" class="admin-form">
+                <input type="hidden" name="guild_id" value="<%= guild.guild_id %>" />
+                <div class="form-row">
+                  <div class="form-field">
+                    <label class="form-label">Veteran Role ID</label>
+                    <input type="text" name="veteran_role_id" class="form-input" value="<%= guild.veteran_role_id || '' %>" placeholder="Right-click role in Discord, Copy ID" />
+                  </div>
+                  <div class="form-field" style="flex:0.4">
+                    <label class="form-label">Months threshold</label>
+                    <input type="number" name="veteran_months" class="form-input" value="<%= guild.veteran_months || 6 %>" min="1" max="60" />
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Veteran Role</button>
+              </form>
+
+              <hr class="divider" />
+
+              <h3>Levels and Roles</h3>
+              <p class="muted" style="font-size:0.85rem;margin-bottom:1rem">Role ID is optional. If set, the bot will assign that Discord role when a user reaches that level (and remove the previous level role).</p>
               <form action="/admin/bot/levels" method="POST" class="admin-form">
                 <input type="hidden" name="guild_id" value="<%= guild.guild_id %>" />
                 <div id="levels-list-<%= guild.guild_id %>">
-                  <div class="level-row-head"><span>Level #</span><span>Name</span><span>XP Required</span><span></span></div>
+                  <div class="level-row-head"><span>Level #</span><span>Name</span><span>XP Required</span><span>Role ID (optional)</span><span></span></div>
                   <% const gLevels = levels.filter(l => l.guild_id === guild.guild_id); %>
+                  <% const gLevelRoles = levelRoles.filter(l => l.guild_id === guild.guild_id); %>
                   <% for (const lv of gLevels) { %>
-                    <div class="level-row">
+                    <% const lr = gLevelRoles.find(r => r.level_number === lv.level_number); %>
+                    <div class="level-row level-row--wide">
                       <input type="number" name="level_numbers" class="form-input" value="<%= lv.level_number %>" min="1" />
                       <input type="text" name="level_names" class="form-input" value="<%= lv.level_name %>" />
                       <input type="number" name="level_xp" class="form-input" value="<%= lv.xp_required %>" min="0" />
+                      <input type="text" name="level_role_ids" class="form-input" value="<%= lr ? lr.role_id : '' %>" placeholder="Role ID" />
                       <button type="button" class="btn-icon btn-delete" onclick="this.closest('.level-row').remove()">✕</button>
                     </div>
                   <% } %>
@@ -247,7 +270,8 @@
   const params = new URLSearchParams(window.location.search);
   if (params.get('saved')) {
     const toast = document.createElement('div');
-    toast.textContent = params.get('saved') === 'levels' ? 'Levels saved!' : 'XP settings saved!';
+    const savedVal = params.get('saved');
+    toast.textContent = savedVal === 'levels' ? 'Levels saved!' : savedVal === 'veteran' ? 'Veteran role saved!' : 'XP settings saved!';
     toast.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#4ec994;color:#000;padding:0.75rem 1.5rem;border-radius:8px;font-weight:600;font-size:0.9rem;z-index:999;box-shadow:0 4px 20px rgba(78,201,148,0.4)';
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
@@ -257,11 +281,12 @@
   function addLevelRow(guildId) {
     const container = document.getElementById('levels-list-' + guildId);
     const row = document.createElement('div');
-    row.className = 'level-row';
+    row.className = 'level-row level-row--wide';
     row.innerHTML = `
       <input type="number" name="level_numbers" class="form-input" placeholder="#" min="1" />
       <input type="text" name="level_names" class="form-input" placeholder="Level name" />
       <input type="number" name="level_xp" class="form-input" placeholder="XP" min="0" />
+      <input type="text" name="level_role_ids" class="form-input" placeholder="Role ID" />
       <button type="button" class="btn-icon btn-delete" onclick="this.closest('.level-row').remove()">✕</button>
     `;
     container.appendChild(row);
