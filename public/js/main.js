@@ -139,6 +139,44 @@
   setTimeout(shootingStar, 2400);
 })();
 
+// ── Hero video: click to enter + scroll fade ──
+(function () {
+  const gate = document.getElementById('videoGate');
+  const video = document.getElementById('heroBg');
+  if (!gate || !video) return;
+
+  gate.addEventListener('click', () => {
+    video.volume = 1;
+    video.play().then(() => {
+      gate.classList.add('hidden');
+      setTimeout(() => { gate.style.display = 'none'; }, 1300);
+    }).catch(() => {
+      // fallback: play muted if browser still blocks
+      video.muted = true;
+      video.play();
+      gate.classList.add('hidden');
+      setTimeout(() => { gate.style.display = 'none'; }, 1300);
+    });
+  });
+
+  // Scroll: fade video opacity and audio together
+  let scrollTicking = false;
+  window.addEventListener('scroll', () => {
+    if (scrollTicking) return;
+    scrollTicking = true;
+    requestAnimationFrame(() => {
+      const heroH = window.innerHeight;
+      const scrolled = window.scrollY;
+      // start fading at 10% scroll, fully faded at 80% of hero height
+      const progress = Math.min(Math.max((scrolled - heroH * 0.1) / (heroH * 0.7), 0), 1);
+      video.style.opacity = 1 - progress;
+      // audio fades to 15% minimum so it never fully disappears
+      if (!video.muted) video.volume = Math.max(1 - progress * 0.85, 0.15);
+      scrollTicking = false;
+    });
+  }, { passive: true });
+})();
+
 // ── Nav scroll style ──
 (function () {
   const nav = document.getElementById('nav');
