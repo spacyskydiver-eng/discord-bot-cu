@@ -221,19 +221,37 @@
 </main>
 
 <script>
+  function switchTab(name) {
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+    const tab = document.querySelector(`[data-tab="${name}"]`);
+    const panel = document.getElementById('tab-' + name);
+    if (tab) tab.classList.add('active');
+    if (panel) panel.classList.add('active');
+    sessionStorage.setItem('adminTab', name);
+  }
+
   // Tab switching
   document.querySelectorAll('.admin-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
-      tab.classList.add('active');
-      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
-    });
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
   });
 
-  // If URL has #bot, open bot tab
-  if (window.location.hash === '#bot') {
-    document.querySelector('[data-tab="bot"]').click();
+  // Restore tab from hash or sessionStorage
+  const hashTab = window.location.hash.replace('#', '');
+  const savedTab = sessionStorage.getItem('adminTab');
+  const activeTab = hashTab || savedTab || 'event';
+  switchTab(activeTab);
+  if (hashTab) history.replaceState(null, '', '/admin');
+
+  // Show save toast
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('saved')) {
+    const toast = document.createElement('div');
+    toast.textContent = params.get('saved') === 'levels' ? 'Levels saved!' : 'XP settings saved!';
+    toast.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#4ec994;color:#000;padding:0.75rem 1.5rem;border-radius:8px;font-weight:600;font-size:0.9rem;z-index:999;box-shadow:0 4px 20px rgba(78,201,148,0.4)';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+    history.replaceState(null, '', '/admin');
   }
 
   function addLevelRow(guildId) {

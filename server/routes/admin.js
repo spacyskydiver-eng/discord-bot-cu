@@ -103,7 +103,7 @@ router.post('/bot/xp', async (req, res) => {
      ON CONFLICT (guild_id) DO UPDATE SET xp_per_message=$2, xp_cooldown_seconds=$3, level_up_channel_id=$4`,
     [guild_id, xp_per_message, xp_cooldown_seconds, level_up_channel_id || null]
   );
-  res.redirect('/admin#bot');
+  res.redirect('/admin?saved=xp#bot');
 });
 
 // Bot: save levels
@@ -120,7 +120,7 @@ router.post('/bot/levels', async (req, res) => {
       [guild_id, parseInt(nums[i]), names[i], parseInt(xps[i])]
     );
   }
-  res.redirect('/admin#bot');
+  res.redirect('/admin?saved=levels#bot');
 });
 
 module.exports = router;
