@@ -3,35 +3,6 @@ const router = express.Router();
 
 const DISCORD_API = 'https://discord.com/api/v10';
 
-router.get('/debug', (req, res) => {
-  const redirectUri = process.env.REDIRECT_URI || 'NOT SET';
-  const clientId = process.env.CLIENT_ID || 'NOT SET';
-  const hasSecret = !!process.env.DISCORD_CLIENT_SECRET;
-  const hasSession = !!process.env.SESSION_SECRET;
-  const params = new URLSearchParams({
-    client_id: clientId,
-    redirect_uri: redirectUri,
-    response_type: 'code',
-    scope: 'identify'
-  });
-  const oauthUrl = `https://discord.com/oauth2/authorize?${params}`;
-  res.send(`
-    <style>body{font-family:monospace;padding:2rem;background:#111;color:#ddd}
-    .ok{color:#4ec994}.bad{color:#e05555}.label{color:#888;font-size:0.8rem}</style>
-    <h2>OAuth Debug</h2>
-    <p><span class="label">CLIENT_ID: </span><b>${clientId}</b></p>
-    <p><span class="label">REDIRECT_URI: </span><b>${redirectUri}</b></p>
-    <p><span class="label">DISCORD_CLIENT_SECRET set: </span><b class="${hasSecret ? 'ok' : 'bad'}">${hasSecret ? 'YES' : 'NO'}</b></p>
-    <p><span class="label">SESSION_SECRET set: </span><b class="${hasSession ? 'ok' : 'bad'}">${hasSession ? 'YES' : 'NO'}</b></p>
-    <br/>
-    <p><span class="label">Full OAuth URL that will be sent to Discord:</span></p>
-    <p style="word-break:break-all;background:#222;padding:1rem;border-radius:6px">${oauthUrl}</p>
-    <br/>
-    <p style="color:#888;font-size:0.8rem">The REDIRECT_URI above must match EXACTLY what is registered in Discord Developer Portal under OAuth2 &gt; Redirects.</p>
-    <a href="/auth/discord" style="color:#5865f2">Try Discord login</a>
-  `);
-});
-
 router.get('/discord', (req, res) => {
   if (!process.env.DISCORD_CLIENT_SECRET || !process.env.REDIRECT_URI || !process.env.CLIENT_ID) {
     return res.redirect('/auth/error?reason=not-configured');
@@ -47,24 +18,6 @@ router.get('/discord', (req, res) => {
 
 router.get('/error', (req, res) => {
   res.render('auth-error', { reason: req.query.reason || 'unknown' });
-});
-
-router.get('/whoami', (req, res) => {
-  const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(s => s.trim());
-  const user = req.session.user || null;
-  res.send(`
-    <style>body{font-family:monospace;padding:2rem;background:#111;color:#ddd}
-    .ok{color:#4ec994}.bad{color:#e05555}</style>
-    <h2>Session Info</h2>
-    <p>Logged in: <b class="${user ? 'ok' : 'bad'}">${user ? 'YES' : 'NO'}</b></p>
-    ${user ? `
-      <p>Discord ID in session: <b>${user.id}</b></p>
-      <p>Username: <b>${user.username}</b></p>
-      <p>ADMIN_DISCORD_IDS env: <b>${process.env.ADMIN_DISCORD_IDS || 'NOT SET'}</b></p>
-      <p>Is admin: <b class="${adminIds.includes(user.id) ? 'ok' : 'bad'}">${adminIds.includes(user.id) ? 'YES' : 'NO'}</b></p>
-      <p>ID match check: session="<b>${user.id}</b>" vs env="<b>${adminIds[0]}</b>" equal=<b>${user.id === adminIds[0]}</b></p>
-    ` : '<p>Not logged in — <a href="/auth/discord" style="color:#5865f2">login first</a></p>'}
-  `);
 });
 
 router.get('/callback', async (req, res) => {
