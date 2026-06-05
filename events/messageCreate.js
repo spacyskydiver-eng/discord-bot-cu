@@ -3,7 +3,9 @@ const db = require('../db');
 const EVENT_KEYWORDS = [
   'when will it be', 'when is it', 'when is the event', 'when does it start',
   'when does it happen', 'when will the event', 'what time is the event',
-  'when will this start', 'when will it start', 'when is it happening'
+  'when will this start', 'when will it start', 'when is it happening',
+  'when event', 'when does event', 'when will event', 'event when',
+  'event start', 'event date', 'event time'
 ];
 
 const APPLY_KEYWORDS = [
