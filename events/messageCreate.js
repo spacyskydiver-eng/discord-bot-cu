@@ -1,7 +1,30 @@
 const db = require('../db');
 
+const EVENT_KEYWORDS = [
+  'when will it be', 'when is it', 'when is the event', 'when does it start',
+  'when does it happen', 'when will the event', 'what time is the event',
+  'when will this start', 'when will it start', 'when is it happening'
+];
+
+const APPLY_KEYWORDS = [
+  'how to apply', 'how do i apply', 'how do you apply', 'how can i apply',
+  'how to join', 'how do i join', 'how can i join', 'how to sign up',
+  'how do i sign up', 'when can i apply', 'when can we apply',
+  'when do applications', 'when are applications'
+];
+
 module.exports = async (message) => {
   if (message.author.bot || !message.guild) return;
+
+  const lower = message.content.toLowerCase();
+
+  if (EVENT_KEYWORDS.some(kw => lower.includes(kw))) {
+    return message.reply('Summer — around end of July to mid August and will run across 10 sessions over 2 weeks. Not a 24/7 server.');
+  }
+
+  if (APPLY_KEYWORDS.some(kw => lower.includes(kw))) {
+    return message.reply('Applications will release in mid June. If you are accepted you will be notified and given a custom role.');
+  }
 
   const guildId = message.guild.id;
   const userId = message.author.id;
