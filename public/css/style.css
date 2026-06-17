@@ -840,6 +840,68 @@ img { display: block; }
 .level-row--wide { grid-template-columns: 70px 1fr 1fr 1fr 40px; }
 .level-row .form-input { margin: 0; }
 
+/* ── Staff roles page ── */
+.staff-roles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-bottom: 3rem;
+}
+.staff-role-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 1.5rem 1.75rem;
+  transition: border-color 0.2s;
+}
+.staff-role-card:hover { border-color: rgba(212,175,55,0.3); }
+.staff-role-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+.staff-role-title {
+  font-size: 1rem;
+  color: #f0e6c8;
+  margin: 0;
+}
+.staff-role-pay {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+}
+.pay-label {
+  color: rgba(255,255,255,0.35);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.staff-role-desc {
+  color: rgba(255,255,255,0.65);
+  font-size: 0.88rem;
+  line-height: 1.7;
+  margin: 0;
+}
+.blurred .blurred-value,
+.blurred-value {
+  filter: blur(6px);
+  user-select: none;
+  color: rgba(255,255,255,0.5);
+  cursor: default;
+  transition: filter 0.2s;
+  display: inline-block;
+}
+.staff-gate-notice {
+  margin-top: 1rem;
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.45);
+}
+.inline-link { color: #d4af37; text-decoration: underline; }
+
 /* ── Scroll reveal animations ── */
 .reveal {
   opacity: 0;

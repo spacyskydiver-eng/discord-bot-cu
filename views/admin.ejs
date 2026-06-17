@@ -18,6 +18,7 @@
         <button class="admin-tab" data-tab="questions">Questions</button>
         <button class="admin-tab" data-tab="applications">Applications (<%= applications.length %>)</button>
         <button class="admin-tab" data-tab="bot" id="bot">Bot</button>
+        <button class="admin-tab" data-tab="staff" id="staff">Staff</button>
       </div>
 
       <!-- EVENT TAB -->
@@ -212,6 +213,19 @@
 
               <hr class="divider" />
 
+              <h3>Staff Page Role</h3>
+              <p class="muted" style="font-size:0.85rem;margin-bottom:1rem">Members with this Discord role can see unblurred content on the Staff page. Right-click the role in Discord and Copy ID.</p>
+              <form action="/admin/bot/staff-role" method="POST" class="admin-form">
+                <input type="hidden" name="guild_id" value="<%= guild.guild_id %>" />
+                <div class="form-field" style="max-width:340px">
+                  <label class="form-label">Staff Role ID</label>
+                  <input type="text" name="staff_role_id" class="form-input" value="<%= guild.staff_role_id || '' %>" placeholder="Right-click role in Discord, Copy ID" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save Staff Role</button>
+              </form>
+
+              <hr class="divider" />
+
               <h3>Levels and Roles</h3>
               <p class="muted" style="font-size:0.85rem;margin-bottom:1rem">Role ID is optional. If set, the bot will assign that Discord role when a user reaches that level (and remove the previous level role).</p>
               <form action="/admin/bot/levels" method="POST" class="admin-form">
@@ -237,6 +251,89 @@
             </div>
           <% } %>
         <% } %>
+      </div>
+
+      <!-- STAFF TAB -->
+      <div class="admin-panel" id="tab-staff">
+        <div class="admin-card">
+          <h2>Staff Roles</h2>
+          <p class="muted" style="font-size:0.85rem;margin-bottom:1.5rem">Add staff positions shown on the public Staff page. Tick "Blur" to hide that field from non-staff visitors.</p>
+
+          <% for (const sr of staffRoles) { %>
+            <form action="/admin/staff/update" method="POST" class="admin-form staff-role-form">
+              <input type="hidden" name="id" value="<%= sr.id %>" />
+              <div class="form-row" style="align-items:flex-start;gap:0.75rem">
+                <div class="form-field" style="flex:0.5">
+                  <label class="form-label">Order</label>
+                  <input type="number" name="display_order" class="form-input" value="<%= sr.display_order %>" min="0" style="width:70px" />
+                </div>
+                <div class="form-field" style="flex:2">
+                  <label class="form-label">Title</label>
+                  <input type="text" name="title" class="form-input" value="<%= sr.title %>" required />
+                </div>
+                <div class="form-field" style="flex:1.5">
+                  <label class="form-label">Pay</label>
+                  <input type="text" name="pay" class="form-input" value="<%= sr.pay %>" placeholder="e.g. $10/hr" />
+                </div>
+                <div class="form-field" style="flex:0;white-space:nowrap;padding-top:1.6rem">
+                  <label class="form-label" style="display:flex;align-items:center;gap:0.4rem;cursor:pointer">
+                    <input type="checkbox" name="blur_pay" <%= sr.blur_pay ? 'checked' : '' %> /> Blur pay
+                  </label>
+                </div>
+              </div>
+              <div class="form-field">
+                <label class="form-label">Description</label>
+                <textarea name="description" class="form-textarea" rows="2"><%= sr.description %></textarea>
+              </div>
+              <div class="form-field">
+                <label class="form-label" style="display:flex;align-items:center;gap:0.4rem;cursor:pointer">
+                  <input type="checkbox" name="blur_description" <%= sr.blur_description ? 'checked' : '' %> /> Blur description
+                </label>
+              </div>
+              <div style="display:flex;gap:0.5rem;margin-top:0.25rem">
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                <form action="/admin/staff/delete" method="POST" style="margin:0">
+                  <input type="hidden" name="id" value="<%= sr.id %>" />
+                  <button type="submit" class="btn btn-sm" style="background:rgba(220,50,50,0.15);color:#f87171;border:1px solid rgba(220,50,50,0.3)" onclick="return confirm('Delete this staff role?')">Delete</button>
+                </form>
+              </div>
+            </form>
+            <hr class="divider" />
+          <% } %>
+
+          <h3 style="margin-bottom:1rem"><%= staffRoles.length ? 'Add Another' : 'Add First Staff Role' %></h3>
+          <form action="/admin/staff/add" method="POST" class="admin-form">
+            <div class="form-row" style="align-items:flex-start;gap:0.75rem">
+              <div class="form-field" style="flex:0.5">
+                <label class="form-label">Order</label>
+                <input type="number" name="display_order" class="form-input" value="<%= staffRoles.length %>" min="0" style="width:70px" />
+              </div>
+              <div class="form-field" style="flex:2">
+                <label class="form-label">Title</label>
+                <input type="text" name="title" class="form-input" placeholder="e.g. Event Director" required />
+              </div>
+              <div class="form-field" style="flex:1.5">
+                <label class="form-label">Pay</label>
+                <input type="text" name="pay" class="form-input" placeholder="e.g. $10/hr or Volunteer" />
+              </div>
+              <div class="form-field" style="flex:0;white-space:nowrap;padding-top:1.6rem">
+                <label class="form-label" style="display:flex;align-items:center;gap:0.4rem;cursor:pointer">
+                  <input type="checkbox" name="blur_pay" /> Blur pay
+                </label>
+              </div>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Description</label>
+              <textarea name="description" class="form-textarea" rows="2" placeholder="What does this role do?"></textarea>
+            </div>
+            <div class="form-field">
+              <label class="form-label" style="display:flex;align-items:center;gap:0.4rem;cursor:pointer">
+                <input type="checkbox" name="blur_description" /> Blur description
+              </label>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Staff Role</button>
+          </form>
+        </div>
       </div>
 
     </div>
@@ -271,7 +368,8 @@
   if (params.get('saved')) {
     const toast = document.createElement('div');
     const savedVal = params.get('saved');
-    toast.textContent = savedVal === 'levels' ? 'Levels saved!' : savedVal === 'veteran' ? 'Veteran role saved!' : 'XP settings saved!';
+    const toastMessages = { levels: 'Levels saved!', veteran: 'Veteran role saved!', staffrole: 'Staff role saved!', staff: 'Staff page saved!', xp: 'XP settings saved!' };
+    toast.textContent = toastMessages[savedVal] || 'Saved!';
     toast.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#4ec994;color:#000;padding:0.75rem 1.5rem;border-radius:8px;font-weight:600;font-size:0.9rem;z-index:999;box-shadow:0 4px 20px rgba(78,201,148,0.4)';
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);

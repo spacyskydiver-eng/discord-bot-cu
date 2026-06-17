@@ -36,8 +36,11 @@ router.get('/', async (req, res) => {
   const levelRoles = (await db.query(
     `SELECT guild_id, level_number, role_id FROM level_roles ORDER BY guild_id, level_number`
   )).rows;
+  const staffRoles = (await db.query(
+    `SELECT * FROM staff_roles ORDER BY display_order ASC, id ASC`
+  )).rows;
 
-  res.render('admin', { event, questions, applications, guilds: guildRes.rows, levels, levelRoles });
+  res.render('admin', { event, questions, applications, guilds: guildRes.rows, levels, levelRoles, staffRoles });
 });
 
 // View single application
@@ -141,6 +144,40 @@ router.post('/bot/levels', async (req, res) => {
     }
   }
   res.redirect('/admin?saved=levels#bot');
+});
+
+// Bot: save staff Discord role ID
+router.post('/bot/staff-role', async (req, res) => {
+  const { guild_id, staff_role_id } = req.body;
+  await db.query(
+    `UPDATE guild_config SET staff_role_id = $1 WHERE guild_id = $2`,
+    [staff_role_id || null, guild_id]
+  );
+  res.redirect('/admin?saved=staffrole#bot');
+});
+
+// Staff roles CRUD
+router.post('/staff/add', async (req, res) => {
+  const { title, description, pay, blur_pay, blur_description, display_order } = req.body;
+  await db.query(
+    `INSERT INTO staff_roles (title, description, pay, blur_pay, blur_description, display_order) VALUES ($1,$2,$3,$4,$5,$6)`,
+    [title, description || '', pay || '', blur_pay === 'on', blur_description === 'on', parseInt(display_order) || 0]
+  );
+  res.redirect('/admin?saved=staff#staff');
+});
+
+router.post('/staff/update', async (req, res) => {
+  const { id, title, description, pay, blur_pay, blur_description, display_order } = req.body;
+  await db.query(
+    `UPDATE staff_roles SET title=$1, description=$2, pay=$3, blur_pay=$4, blur_description=$5, display_order=$6 WHERE id=$7`,
+    [title, description || '', pay || '', blur_pay === 'on', blur_description === 'on', parseInt(display_order) || 0, id]
+  );
+  res.redirect('/admin?saved=staff#staff');
+});
+
+router.post('/staff/delete', async (req, res) => {
+  await db.query(`DELETE FROM staff_roles WHERE id = $1`, [req.body.id]);
+  res.redirect('/admin?saved=staff#staff');
 });
 
 module.exports = router;

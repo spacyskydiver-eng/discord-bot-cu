@@ -27,6 +27,7 @@ module.exports = function startServer() {
     res.locals.isAdmin = req.session.user
       ? (process.env.ADMIN_DISCORD_IDS || '').split(',').map(s => s.trim()).includes(req.session.user.id)
       : false;
+    res.locals.staffRoleId = null; // set per-route where needed
     next();
   });
 

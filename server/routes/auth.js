@@ -50,8 +50,22 @@ router.get('/callback', async (req, res) => {
       username: user.username,
       avatar: user.avatar
         ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
-        : `https://cdn.discordapp.com/embed/avatars/${parseInt(user.id) % 5}.png`
+        : `https://cdn.discordapp.com/embed/avatars/${parseInt(user.id) % 5}.png`,
+      guildRoleIds: []
     };
+
+    // Fetch the user's roles in the guild so we can gate staff content
+    if (process.env.DISCORD_TOKEN && process.env.GUILD_ID) {
+      try {
+        const memberRes = await fetch(`${DISCORD_API}/guilds/${process.env.GUILD_ID}/members/${user.id}`, {
+          headers: { Authorization: `Bot ${process.env.DISCORD_TOKEN}` }
+        });
+        if (memberRes.ok) {
+          const member = await memberRes.json();
+          req.session.user.guildRoleIds = member.roles || [];
+        }
+      } catch (_) {}
+    }
 
     res.redirect('/');
   } catch (err) {

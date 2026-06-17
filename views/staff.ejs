@@ -6,37 +6,45 @@
     <div class="container">
       <div class="section-label reveal">The Team</div>
       <h1 class="page-title reveal">Meet the <span class="glow-text">Staff</span></h1>
+      <% if (!isStaff && staffRoles.some(r => r.blur_pay || r.blur_description)) { %>
+        <p class="staff-gate-notice reveal">Some information is restricted to staff members. <% if (!user) { %><a href="/auth/discord" class="inline-link">Sign in with Discord</a> to check your access.<% } else { %>Sign in with a staff account to unlock.<% } %></p>
+      <% } %>
     </div>
   </section>
 
   <section class="section">
     <div class="container">
-      <div class="staff-grid">
-        <div class="staff-card reveal">
-          <div class="staff-avatar-wrap">
-            <div class="staff-avatar">I</div>
-          </div>
-          <h3>Owner</h3>
-          <p class="staff-role">Event Director</p>
-          <p class="staff-desc">Oversees all event operations, final decisions, and the grand design of the Collective Union experience.</p>
+      <% if (staffRoles.length === 0) { %>
+        <p class="muted" style="text-align:center">No staff roles have been added yet.</p>
+      <% } else { %>
+        <div class="staff-roles-list">
+          <% for (const sr of staffRoles) { %>
+            <div class="staff-role-card reveal">
+              <div class="staff-role-header">
+                <h3 class="staff-role-title"><%= sr.title %></h3>
+                <div class="staff-role-pay <%= (!isStaff && sr.blur_pay) ? 'blurred' : '' %>">
+                  <span class="pay-label">Pay</span>
+                  <% if (!isStaff && sr.blur_pay) { %>
+                    <span class="blurred-value" title="Staff only">████████</span>
+                  <% } else { %>
+                    <span><%= sr.pay || 'Not specified' %></span>
+                  <% } %>
+                </div>
+              </div>
+              <% if (sr.description) { %>
+                <p class="staff-role-desc <%= (!isStaff && sr.blur_description) ? 'blurred' : '' %>">
+                  <% if (!isStaff && sr.blur_description) { %>
+                    <span class="blurred-value" title="Staff only"><%= sr.description.replace(/./g, '█') %></span>
+                  <% } else { %>
+                    <%= sr.description %>
+                  <% } %>
+                </p>
+              <% } %>
+            </div>
+          <% } %>
         </div>
-        <div class="staff-card reveal">
-          <div class="staff-avatar-wrap">
-            <div class="staff-avatar">M</div>
-          </div>
-          <h3>Moderators</h3>
-          <p class="staff-role">Event Staff</p>
-          <p class="staff-desc">Enforcing the rules, keeping order across 4 islands, and making sure every session runs smoothly.</p>
-        </div>
-        <div class="staff-card reveal">
-          <div class="staff-avatar-wrap">
-            <div class="staff-avatar">B</div>
-          </div>
-          <h3>Builders</h3>
-          <p class="staff-role">World Designers</p>
-          <p class="staff-desc">The architects behind the 4 handcrafted islands. Every biome, altar and terrain feature crafted by hand.</p>
-        </div>
-      </div>
+      <% } %>
+
       <p class="staff-note reveal">Want to join the team? Reach out in our Discord server.</p>
     </div>
   </section>
