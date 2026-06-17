@@ -19,8 +19,17 @@ router.get('/staff', async (req, res) => {
   const staffRoleId = configRes.rows[0]?.staff_role_id || null;
 
   const userRoleIds = req.session.user?.guildRoleIds || [];
+  const userId = req.session.user?.id || null;
   const isAdmin = res.locals.isAdmin;
-  const isStaff = isAdmin || (staffRoleId && userRoleIds.includes(staffRoleId));
+
+  // Check manual staff access grant (by Discord ID entered in admin panel)
+  let hasManualAccess = false;
+  if (userId) {
+    const accessRes = await db.query(`SELECT 1 FROM staff_access WHERE discord_id = $1`, [userId]);
+    hasManualAccess = accessRes.rows.length > 0;
+  }
+
+  const isStaff = isAdmin || hasManualAccess || (staffRoleId && userRoleIds.includes(staffRoleId));
 
   res.render('staff', { staffRoles, isStaff });
 });

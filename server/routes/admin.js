@@ -39,8 +39,11 @@ router.get('/', async (req, res) => {
   const staffRoles = (await db.query(
     `SELECT * FROM staff_roles ORDER BY display_order ASC, id ASC`
   )).rows;
+  const staffAccess = (await db.query(
+    `SELECT discord_id, granted_at FROM staff_access ORDER BY granted_at DESC`
+  )).rows;
 
-  res.render('admin', { event, questions, applications, guilds: guildRes.rows, levels, levelRoles, staffRoles });
+  res.render('admin', { event, questions, applications, guilds: guildRes.rows, levels, levelRoles, staffRoles, staffAccess });
 });
 
 // View single application
@@ -178,6 +181,23 @@ router.post('/staff/update', async (req, res) => {
 router.post('/staff/delete', async (req, res) => {
   await db.query(`DELETE FROM staff_roles WHERE id = $1`, [req.body.id]);
   res.redirect('/admin?saved=staff#staff');
+});
+
+// Staff access: grant by Discord ID
+router.post('/staff/access/add', async (req, res) => {
+  const id = (req.body.discord_id || '').trim();
+  if (id) {
+    await db.query(
+      `INSERT INTO staff_access (discord_id) VALUES ($1) ON CONFLICT DO NOTHING`, [id]
+    );
+  }
+  res.redirect('/admin?saved=access#staff');
+});
+
+// Staff access: revoke by Discord ID
+router.post('/staff/access/remove', async (req, res) => {
+  await db.query(`DELETE FROM staff_access WHERE discord_id = $1`, [req.body.discord_id]);
+  res.redirect('/admin?saved=access#staff');
 });
 
 module.exports = router;

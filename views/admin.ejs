@@ -334,6 +334,35 @@
             <button type="submit" class="btn btn-primary">Add Staff Role</button>
           </form>
         </div>
+
+        <div class="admin-card">
+          <h2>Staff Page Access</h2>
+          <p class="muted" style="font-size:0.85rem;margin-bottom:1.5rem">Grant specific people access to see blurred content on the Staff page by their Discord User ID. They must sign in with Discord on the site. Right-click their name in Discord and click Copy User ID (with Developer Mode on).</p>
+
+          <% if (staffAccess.length > 0) { %>
+            <div class="staff-access-list">
+              <% for (const sa of staffAccess) { %>
+                <div class="staff-access-row">
+                  <span class="staff-access-id"><%= sa.discord_id %></span>
+                  <span class="muted" style="font-size:0.75rem">Added <%= new Date(sa.granted_at).toLocaleDateString() %></span>
+                  <form action="/admin/staff/access/remove" method="POST" style="margin:0">
+                    <input type="hidden" name="discord_id" value="<%= sa.discord_id %>" />
+                    <button type="submit" class="btn btn-sm" style="background:rgba(220,50,50,0.15);color:#f87171;border:1px solid rgba(220,50,50,0.3)" onclick="return confirm('Remove access for <%= sa.discord_id %>?')">Remove</button>
+                  </form>
+                </div>
+              <% } %>
+            </div>
+            <hr class="divider" />
+          <% } %>
+
+          <form action="/admin/staff/access/add" method="POST" class="admin-form" style="display:flex;gap:0.75rem;align-items:flex-end;flex-wrap:wrap">
+            <div class="form-field" style="flex:1;min-width:200px;margin:0">
+              <label class="form-label">Discord User ID</label>
+              <input type="text" name="discord_id" class="form-input" placeholder="e.g. 933421117211815987" required pattern="[0-9]+" title="Numbers only" />
+            </div>
+            <button type="submit" class="btn btn-primary">Grant Access</button>
+          </form>
+        </div>
       </div>
 
     </div>
@@ -368,7 +397,7 @@
   if (params.get('saved')) {
     const toast = document.createElement('div');
     const savedVal = params.get('saved');
-    const toastMessages = { levels: 'Levels saved!', veteran: 'Veteran role saved!', staffrole: 'Staff role saved!', staff: 'Staff page saved!', xp: 'XP settings saved!' };
+    const toastMessages = { levels: 'Levels saved!', veteran: 'Veteran role saved!', staffrole: 'Staff role saved!', staff: 'Staff page saved!', xp: 'XP settings saved!', access: 'Staff access updated!' };
     toast.textContent = toastMessages[savedVal] || 'Saved!';
     toast.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#4ec994;color:#000;padding:0.75rem 1.5rem;border-radius:8px;font-weight:600;font-size:0.9rem;z-index:999;box-shadow:0 4px 20px rgba(78,201,148,0.4)';
     document.body.appendChild(toast);
