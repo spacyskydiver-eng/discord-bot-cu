@@ -672,6 +672,30 @@ img { display: block; }
 }
 .staff-access-id { font-family: monospace; font-size: 0.88rem; color: #f0e6c8; flex: 1; }
 
+/* ── Description format toolbar (admin) ── */
+.fmt-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+.fmt-btn {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #f0e6c8;
+  width: 28px;
+  height: 28px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+.fmt-btn:hover { background: rgba(255,255,255,0.13); border-color: var(--gold); }
+.fmt-hint { font-size: 0.7rem; color: var(--text-muted); }
+
 /* ── Page hero (inner pages) ── */
 .page-main { padding-top: var(--nav-h); }
 .page-hero {
@@ -963,14 +987,12 @@ img { display: block; }
   line-height: 1.7;
   margin: 0;
 }
-.blurred .blurred-value,
-.blurred-value {
+.content-blurred {
   filter: blur(6px);
   user-select: none;
-  color: rgba(255,255,255,0.5);
   cursor: default;
   transition: filter 0.2s;
-  display: inline-block;
+  pointer-events: none;
 }
 .staff-gate-notice {
   margin-top: 1rem;

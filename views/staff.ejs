@@ -24,21 +24,17 @@
                 <h3 class="staff-role-title"><%= sr.title %></h3>
                 <div class="staff-role-pay <%= (!isStaff && sr.blur_pay) ? 'blurred' : '' %>">
                   <span class="pay-label">Pay</span>
-                  <% if (!isStaff && sr.blur_pay) { %>
-                    <span class="blurred-value" title="Staff only">████████</span>
-                  <% } else { %>
-                    <span><%= sr.pay || 'Not specified' %></span>
-                  <% } %>
+                  <span class="<%= (!isStaff && sr.blur_pay) ? 'content-blurred' : '' %>"
+                        <% if (!isStaff && sr.blur_pay) { %>title="Staff only"<% } %>>
+                    <%= sr.pay || 'Not specified' %>
+                  </span>
                 </div>
               </div>
               <% if (sr.description) { %>
-                <p class="staff-role-desc <%= (!isStaff && sr.blur_description) ? 'blurred' : '' %>">
-                  <% if (!isStaff && sr.blur_description) { %>
-                    <span class="blurred-value" title="Staff only"><%= sr.description.replace(/./g, '█') %></span>
-                  <% } else { %>
-                    <%= sr.description %>
-                  <% } %>
-                </p>
+                <div class="staff-role-desc<%= (!isStaff && sr.blur_description) ? ' content-blurred' : '' %>"
+                     <% if (!isStaff && sr.blur_description) { %>title="Staff only"<% } %>>
+                  <%- formatDesc(sr.description) %>
+                </div>
               <% } %>
             </div>
           <% } %>

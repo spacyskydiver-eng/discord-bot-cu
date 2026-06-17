@@ -2,6 +2,15 @@ const express = require('express');
 const router = express.Router();
 const db = require('../../db');
 
+function formatDesc(text) {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__(.+?)__/g, '<u>$1</u>')
+    .replace(/\n/g, '<br>');
+}
+
 router.get('/', async (req, res) => {
   const eventRes = await db.query(
     `SELECT * FROM events ORDER BY created_at DESC LIMIT 1`
@@ -31,7 +40,7 @@ router.get('/staff', async (req, res) => {
 
   const isStaff = isAdmin || hasManualAccess || (staffRoleId && userRoleIds.includes(staffRoleId));
 
-  res.render('staff', { staffRoles, isStaff });
+  res.render('staff', { staffRoles, isStaff, formatDesc });
 });
 router.get('/rules', (req, res) => res.render('rules'));
 

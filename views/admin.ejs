@@ -283,7 +283,12 @@
               </div>
               <div class="form-field">
                 <label class="form-label">Description</label>
-                <textarea name="description" class="form-textarea" rows="2"><%= sr.description %></textarea>
+                <div class="fmt-toolbar">
+                  <button type="button" class="fmt-btn" onclick="fmtWrap(this,'**','**')" title="Bold"><b>B</b></button>
+                  <button type="button" class="fmt-btn" onclick="fmtWrap(this,'__','__')" title="Underline"><u>U</u></button>
+                  <span class="fmt-hint">**bold** &nbsp; __underline__ &nbsp; Enter = new line</span>
+                </div>
+                <textarea name="description" class="form-textarea" rows="4"><%= sr.description %></textarea>
               </div>
               <div class="form-field">
                 <label class="form-label" style="display:flex;align-items:center;gap:0.4rem;cursor:pointer">
@@ -325,7 +330,12 @@
             </div>
             <div class="form-field">
               <label class="form-label">Description</label>
-              <textarea name="description" class="form-textarea" rows="2" placeholder="What does this role do?"></textarea>
+              <div class="fmt-toolbar">
+                <button type="button" class="fmt-btn" onclick="fmtWrap(this,'**','**')" title="Bold"><b>B</b></button>
+                <button type="button" class="fmt-btn" onclick="fmtWrap(this,'__','__')" title="Underline"><u>U</u></button>
+                <span class="fmt-hint">**bold** &nbsp; __underline__ &nbsp; Enter = new line</span>
+              </div>
+              <textarea name="description" class="form-textarea" rows="4" placeholder="What does this role do?"></textarea>
             </div>
             <div class="form-field">
               <label class="form-label" style="display:flex;align-items:center;gap:0.4rem;cursor:pointer">
@@ -404,6 +414,20 @@
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
     history.replaceState(null, '', '/admin');
+  }
+
+  function fmtWrap(btn, before, after) {
+    const ta = btn.closest('.form-field').querySelector('textarea');
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const selected = ta.value.slice(start, end);
+    const replacement = before + (selected || 'text') + after;
+    ta.setRangeText(replacement, start, end, 'select');
+    ta.focus();
+    if (!selected) {
+      ta.selectionStart = start + before.length;
+      ta.selectionEnd = start + before.length + 4;
+    }
   }
 
   function addLevelRow(guildId) {
