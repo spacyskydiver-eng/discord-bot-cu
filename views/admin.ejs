@@ -292,11 +292,12 @@
               </div>
               <div style="display:flex;gap:0.5rem;margin-top:0.25rem">
                 <button type="submit" class="btn btn-primary btn-sm">Save</button>
-                <form action="/admin/staff/delete" method="POST" style="margin:0">
-                  <input type="hidden" name="id" value="<%= sr.id %>" />
-                  <button type="submit" class="btn btn-sm" style="background:rgba(220,50,50,0.15);color:#f87171;border:1px solid rgba(220,50,50,0.3)" onclick="return confirm('Delete this staff role?')">Delete</button>
-                </form>
+                <button type="button" class="btn btn-sm" style="background:rgba(220,50,50,0.15);color:#f87171;border:1px solid rgba(220,50,50,0.3)"
+                  onclick="if(confirm('Delete this staff role?')){document.getElementById('del-sr-<%= sr.id %>').submit()}">Delete</button>
               </div>
+            </form>
+            <form id="del-sr-<%= sr.id %>" action="/admin/staff/delete" method="POST" style="display:none">
+              <input type="hidden" name="id" value="<%= sr.id %>" />
             </form>
             <hr class="divider" />
           <% } %>
