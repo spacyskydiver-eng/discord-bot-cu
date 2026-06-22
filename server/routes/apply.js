@@ -2,65 +2,69 @@ const express = require('express');
 const router = express.Router();
 const db = require('../../db');
 
-function requireLogin(req, res, next) {
-  if (!req.session.user) return res.redirect('/auth/discord');
-  next();
-}
-
-// Anyone can view the apply page — login only required to submit
 router.get('/', async (req, res) => {
   const eventRes = await db.query(`SELECT * FROM events ORDER BY created_at DESC LIMIT 1`);
   const event = eventRes.rows[0] || null;
 
-  let questions = [];
+  const eligibilityQuestions = (await db.query(
+    `SELECT * FROM eligibility_questions ORDER BY display_order ASC, id ASC`
+  )).rows;
+
   let existing = null;
-
-  if (event) {
-    questions = (await db.query(
-      `SELECT * FROM application_questions WHERE event_id = $1 ORDER BY order_num`,
-      [event.id]
-    )).rows;
-
-    if (req.session.user) {
-      existing = (await db.query(
-        `SELECT * FROM applications WHERE event_id = $1 AND discord_id = $2`,
-        [event.id, req.session.user.id]
-      )).rows[0] || null;
-    }
+  if (event && req.session.user) {
+    existing = (await db.query(
+      `SELECT id, status FROM structured_applications WHERE discord_id = $1`,
+      [req.session.user.id]
+    )).rows[0] || null;
   }
 
-  res.render('apply', { event, questions, existing, submitted: req.query.submitted === '1' });
+  res.render('apply', { event, eligibilityQuestions, existing, submitted: req.query.submitted === '1' });
 });
 
-router.post('/submit', requireLogin, async (req, res) => {
+router.post('/submit', async (req, res) => {
+  if (!req.session.user) return res.redirect('/auth/discord');
+
   const eventRes = await db.query(`SELECT * FROM events ORDER BY created_at DESC LIMIT 1`);
   const event = eventRes.rows[0];
   if (!event || !event.is_open) return res.redirect('/apply');
 
   const existing = (await db.query(
-    `SELECT id FROM applications WHERE event_id = $1 AND discord_id = $2`,
-    [event.id, req.session.user.id]
+    `SELECT id FROM structured_applications WHERE discord_id = $1`, [req.session.user.id]
   )).rows[0];
   if (existing) return res.redirect('/apply');
 
-  const appRes = await db.query(
-    `INSERT INTO applications (event_id, discord_id, discord_username, discord_avatar) VALUES ($1,$2,$3,$4) RETURNING id`,
-    [event.id, req.session.user.id, req.session.user.username, req.session.user.avatar]
-  );
-  const appId = appRes.rows[0].id;
+  const {
+    eligibility_answers, ign, discord_username, age, country, how_heard,
+    played_civ, played_civ_details, creates_content, content_link,
+    playstyle, playstyle_description, scenario_1, scenario_2, scenario_3,
+    app_type, video_link, written_app, agreements
+  } = req.body;
 
-  const questions = (await db.query(
-    `SELECT id FROM application_questions WHERE event_id = $1 ORDER BY order_num`,
-    [event.id]
-  )).rows;
-
-  for (const q of questions) {
-    const answer = req.body[`q_${q.id}`] || '';
-    await db.query(
-      `INSERT INTO application_answers (application_id, question_id, answer_text) VALUES ($1,$2,$3)`,
-      [appId, q.id, answer]
-    );
+  if (!ign || !playstyle || !scenario_1 || !scenario_2 || !scenario_3 || !app_type) {
+    return res.redirect('/apply?error=incomplete');
   }
+
+  let parsedAnswers = {};
+  try { parsedAnswers = JSON.parse(eligibility_answers || '{}'); } catch (_) {}
+
+  await db.query(
+    `INSERT INTO structured_applications (
+      eligibility_answers, ign, discord_username_input, age, country, how_heard,
+      played_civ, played_civ_details, creates_content, content_link,
+      playstyle, playstyle_description, scenario_1, scenario_2, scenario_3,
+      app_type, video_link, written_app, agreements_confirmed,
+      discord_id, discord_avatar, discord_tag
+    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
+    [
+      parsedAnswers, ign, discord_username, parseInt(age) || null, country, how_heard,
+      played_civ === 'yes', played_civ_details || null,
+      creates_content === 'yes', content_link || null,
+      playstyle, playstyle_description, scenario_1, scenario_2, scenario_3,
+      app_type, video_link || null, written_app || null,
+      agreements === 'confirmed',
+      req.session.user.id, req.session.user.avatar, req.session.user.username
+    ]
+  );
 
   res.redirect('/apply?submitted=1');
 });

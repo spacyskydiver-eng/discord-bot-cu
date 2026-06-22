@@ -11,88 +11,462 @@
 
   <section class="section">
     <div class="container container--narrow">
+
       <% if (!event) { %>
-        <div class="card card--centered reveal">
-          <div class="card-status">No Event</div>
+        <div class="status-card reveal">
+          <div class="status-card-icon">—</div>
           <h2>No Active Event</h2>
-          <p>There are no events open for applications right now. Check back soon.</p>
+          <p class="muted">There are no events open for applications right now. Check back soon.</p>
+        </div>
+
+      <% } else if (existing && existing.status === 'accepted') { %>
+        <div class="status-card status-card--accepted reveal">
+          <div class="status-card-icon">✓</div>
+          <h2>Application Accepted</h2>
+          <p>Congratulations. You have been accepted for <strong><%= event.title %></strong>. Watch your Discord for further instructions.</p>
+        </div>
+
+      <% } else if (existing && existing.status === 'declined') { %>
+        <div class="status-card status-card--declined reveal">
+          <div class="status-card-icon">✕</div>
+          <h2>Application Declined</h2>
+          <p class="muted">Your application was not successful this time. We appreciate you applying and hope to see you at a future event.</p>
         </div>
 
       <% } else if (existing) { %>
-        <div class="card card--centered reveal">
-          <div class="card-status">Submitted</div>
-          <h2>Application Submitted</h2>
-          <p>You have already applied for <strong><%= event.title %></strong>.</p>
-          <p class="muted">Status: <span class="status-badge status-<%= existing.status %>"><%= existing.status %></span></p>
-          <p class="muted">We will be in touch via Discord.</p>
+        <div class="status-card reveal">
+          <div class="status-card-icon">◎</div>
+          <h2>Application Under Review</h2>
+          <p>Your application for <strong><%= event.title %></strong> has been submitted and is being reviewed. We will reach out via Discord.</p>
+          <span class="status-badge status-pending" style="margin-top:0.75rem;display:inline-block">Pending</span>
         </div>
 
-      <% } else if (locals.query && query.submitted) { %>
-        <div class="card card--centered reveal">
-          <div class="card-status">Received</div>
+      <% } else if (submitted) { %>
+        <div class="status-card status-card--success reveal">
+          <div class="status-card-icon">✓</div>
           <h2>Application Received</h2>
-          <p>Your application for <strong><%= event.title %></strong> has been submitted. We will review it and reach out on Discord.</p>
+          <p>Your application for <strong><%= event.title %></strong> has been submitted. We will review it and reach out via Discord.</p>
         </div>
 
       <% } else if (!event.is_open && event.opens_at && new Date(event.opens_at) > new Date()) { %>
-        <div class="card card--centered reveal">
-          <div class="card-status">Locked</div>
+        <div class="status-card reveal">
+          <div class="status-card-icon">◷</div>
           <h2>Applications Not Yet Open</h2>
-          <p>Applications for <strong><%= event.title %></strong> open in:</p>
+          <p>Applications for <strong><%= event.title %></strong> open soon.</p>
           <%- include('partials/countdown', { target: new Date(event.opens_at).toISOString() }) %>
         </div>
 
       <% } else if (!event.is_open) { %>
-        <div class="card card--centered reveal">
-          <div class="card-status">Closed</div>
+        <div class="status-card reveal">
+          <div class="status-card-icon">—</div>
           <h2>Applications Closed</h2>
-          <p>Applications for <strong><%= event.title %></strong> are currently closed.</p>
+          <p class="muted">Applications for <strong><%= event.title %></strong> are currently closed.</p>
         </div>
 
-      <% } else if (questions.length === 0) { %>
-        <div class="card card--centered reveal">
-          <div class="card-status">Soon</div>
-          <h2>Coming Soon</h2>
-          <p>Application questions are being set up. Check back shortly.</p>
+      <% } else if (!user) { %>
+        <div class="signin-gate reveal">
+          <div class="signin-gate-inner">
+            <p class="signin-gate-title">Sign in to apply</p>
+            <p class="signin-gate-sub">You need to sign in with Discord before you can submit your application.</p>
+            <a href="/auth/discord" class="btn btn-discord btn-lg">
+              <svg width="16" height="16" viewBox="0 0 71 55" fill="currentColor"><path d="M60.1 4.9A58.5 58.5 0 0 0 45.6.7a.2.2 0 0 0-.2.1 40.7 40.7 0 0 0-1.8 3.7 54 54 0 0 0-16.2 0A37.7 37.7 0 0 0 25.6.8a.2.2 0 0 0-.2-.1A58.4 58.4 0 0 0 10.9 5a.2.2 0 0 0-.1.1C1.6 18.7-.9 32 .3 45c0 .1.1.2.2.2a58.8 58.8 0 0 0 17.7 9 .2.2 0 0 0 .2-.1 42 42 0 0 0 3.6-5.9.2.2 0 0 0-.1-.3 38.7 38.7 0 0 1-5.5-2.6.2.2 0 0 1 0-.4l1.1-.9a.2.2 0 0 1 .2 0c11.5 5.3 24 5.3 35.4 0a.2.2 0 0 1 .2 0l1.1.9a.2.2 0 0 1 0 .4 36.2 36.2 0 0 1-5.5 2.6.2.2 0 0 0-.1.3 47.1 47.1 0 0 0 3.6 5.9.2.2 0 0 0 .2.1 58.6 58.6 0 0 0 17.7-9 .2.2 0 0 0 .1-.2c1.5-15.3-2.5-28.5-10.6-40.2a.2.2 0 0 0-.1-.1ZM23.7 37c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2c3.6 0 6.5 3.3 6.4 7.2 0 4-2.8 7.2-6.4 7.2Zm23.7 0c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2c3.6 0 6.5 3.3 6.4 7.2 0 4-2.8 7.2-6.4 7.2Z"/></svg>
+              Sign in with Discord
+            </a>
+          </div>
         </div>
 
       <% } else { %>
-        <div class="apply-header reveal">
-          <h2><%= event.title %></h2>
-          <% if (event.closes_at) { %>
-            <p class="apply-deadline">Applications close <strong><%= new Date(event.closes_at).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }) %></strong></p>
-          <% } %>
+
+        <!-- Progress indicator -->
+        <div class="wizard-header reveal" id="wizardHeader">
+          <div class="wizard-steps">
+            <% ['Eligibility','Basic Info','Playstyle','Scenarios','Application','Agreement'].forEach((name, i) => { %>
+              <div class="wizard-step <%= i === 0 ? 'active' : '' %>" data-stage="<%= i+1 %>">
+                <div class="wizard-step-dot"><%= i+1 %></div>
+                <div class="wizard-step-label"><%= name %></div>
+              </div>
+              <% if (i < 5) { %><div class="wizard-connector"></div><% } %>
+            <% }) %>
+          </div>
         </div>
 
-        <% if (!user) { %>
-          <div class="signin-gate reveal">
-            <div class="signin-gate-inner">
-              <p class="signin-gate-title">You need to be signed in to apply.</p>
-              <p class="signin-gate-sub">Sign in with your Discord account to fill out and submit your application. It only takes a moment.</p>
-              <a href="/auth/discord" class="btn btn-discord btn-lg">
-                <svg width="16" height="16" viewBox="0 0 71 55" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M60.1 4.9A58.5 58.5 0 0 0 45.6.7a.2.2 0 0 0-.2.1 40.7 40.7 0 0 0-1.8 3.7 54 54 0 0 0-16.2 0A37.7 37.7 0 0 0 25.6.8a.2.2 0 0 0-.2-.1A58.4 58.4 0 0 0 10.9 5a.2.2 0 0 0-.1.1C1.6 18.7-.9 32 .3 45c0 .1.1.2.2.2a58.8 58.8 0 0 0 17.7 9 .2.2 0 0 0 .2-.1 42 42 0 0 0 3.6-5.9.2.2 0 0 0-.1-.3 38.7 38.7 0 0 1-5.5-2.6.2.2 0 0 1 0-.4l1.1-.9a.2.2 0 0 1 .2 0c11.5 5.3 24 5.3 35.4 0a.2.2 0 0 1 .2 0l1.1.9a.2.2 0 0 1 0 .4 36.2 36.2 0 0 1-5.5 2.6.2.2 0 0 0-.1.3 47.1 47.1 0 0 0 3.6 5.9.2.2 0 0 0 .2.1 58.6 58.6 0 0 0 17.7-9 .2.2 0 0 0 .1-.2c1.5-15.3-2.5-28.5-10.6-40.2a.2.2 0 0 0-.1-.1ZM23.7 37c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2c3.6 0 6.5 3.3 6.4 7.2 0 4-2.8 7.2-6.4 7.2Zm23.7 0c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2c3.6 0 6.5 3.3 6.4 7.2 0 4-2.8 7.2-6.4 7.2Z"/></svg>
-                Sign in with Discord
-              </a>
+        <form id="applyForm" action="/apply/submit" method="POST">
+          <input type="hidden" name="eligibility_answers" id="eligAnswersInput" value="{}" />
+
+          <!-- ── STAGE 1: ELIGIBILITY ── -->
+          <div class="wizard-stage active" id="stage-1">
+            <div class="wizard-stage-hd">
+              <div class="wizard-stage-num">Stage 1 of 6</div>
+              <h2>Eligibility Check</h2>
+              <p class="muted">Confirm you meet the basic requirements before you apply. This takes about 30 seconds.</p>
+            </div>
+
+            <div id="eligQList">
+              <% for (const q of eligibilityQuestions) { %>
+                <div class="elig-item" data-id="<%= q.id %>" data-req-yes="<%= q.required_yes %>" data-blocking="<%= q.blocking %>">
+                  <p class="elig-q"><%= q.question_text %></p>
+                  <div class="yn-group">
+                    <button type="button" class="yn-btn" data-val="yes">Yes</button>
+                    <button type="button" class="yn-btn" data-val="no">No</button>
+                  </div>
+                </div>
+              <% } %>
+            </div>
+
+            <div class="wizard-disq" id="disqMsg" style="display:none">
+              <p class="disq-title">You do not meet the requirements</p>
+              <p class="disq-body">Unfortunately you do not qualify for this event based on your answers. We hope to see you at a future one.</p>
+              <button type="button" class="btn btn-ghost" onclick="resetEligibility()">Go Back</button>
+            </div>
+
+            <div class="wizard-nav" id="stage1Nav">
+              <button type="button" id="eligCheckBtn" class="btn btn-primary" onclick="checkEligibility()" disabled>Check Eligibility</button>
             </div>
           </div>
-        <% } else { %>
-          <form class="apply-form reveal" action="/apply/submit" method="POST">
-            <% for (const q of questions) { %>
-              <div class="form-field">
-                <label class="form-label"><%= q.question_text %><% if (q.required) { %> <span class="required">*</span><% } %></label>
-                <% if (q.question_type === 'text') { %>
-                  <input type="text" name="q_<%= q.id %>" class="form-input" <%= q.required ? 'required' : '' %> />
-                <% } else { %>
-                  <textarea name="q_<%= q.id %>" class="form-textarea" rows="5" <%= q.required ? 'required' : '' %>></textarea>
-                <% } %>
+
+          <!-- ── STAGE 2: BASIC INFO ── -->
+          <div class="wizard-stage" id="stage-2">
+            <div class="wizard-stage-hd">
+              <div class="wizard-stage-num">Stage 2 of 6</div>
+              <h2>Basic Information</h2>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Minecraft In-Game Name <span class="required">*</span></label>
+              <input type="text" name="ign" class="form-input" placeholder="Your exact IGN" />
+            </div>
+            <div class="form-field">
+              <label class="form-label">Discord Username <span class="required">*</span></label>
+              <input type="text" name="discord_username" class="form-input" placeholder="e.g. spacey or spacey#0001" />
+            </div>
+            <div class="form-row">
+              <div class="form-field" style="flex:0.6">
+                <label class="form-label">Age <span class="required">*</span></label>
+                <input type="number" name="age" class="form-input" min="13" max="99" placeholder="Your age" />
               </div>
-            <% } %>
-            <button type="submit" class="btn btn-primary btn-lg btn-full">Submit Application</button>
-          </form>
-        <% } %>
+              <div class="form-field">
+                <label class="form-label">Country <span class="required">*</span></label>
+                <input type="text" name="country" class="form-input" placeholder="e.g. United Kingdom" />
+              </div>
+            </div>
+            <div class="form-field">
+              <label class="form-label">How did you hear about The Collective? <span class="required">*</span></label>
+              <input type="text" name="how_heard" class="form-input" placeholder="e.g. YouTube, a friend, Discord" />
+            </div>
+            <div class="form-field">
+              <label class="form-label">Have you played civilisation-style events before?</label>
+              <input type="hidden" name="played_civ" id="playedCivVal" value="no" />
+              <div class="toggle-row">
+                <button type="button" class="toggle-opt" onclick="setToggle('playedCivVal','yes',this,'civWrap')">Yes</button>
+                <button type="button" class="toggle-opt active" onclick="setToggle('playedCivVal','no',this,'civWrap')">No</button>
+              </div>
+              <div id="civWrap" class="cond-field" style="display:none">
+                <div class="form-field" style="margin-top:0.75rem;margin-bottom:0">
+                  <label class="form-label">Which events?</label>
+                  <input type="text" name="played_civ_details" class="form-input" placeholder="e.g. Forged Alliance, MCC" />
+                </div>
+              </div>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Do you create content? (YouTube, Twitch, etc.)</label>
+              <input type="hidden" name="creates_content" id="createsContentVal" value="no" />
+              <div class="toggle-row">
+                <button type="button" class="toggle-opt" onclick="setToggle('createsContentVal','yes',this,'contentWrap')">Yes</button>
+                <button type="button" class="toggle-opt active" onclick="setToggle('createsContentVal','no',this,'contentWrap')">No</button>
+              </div>
+              <div id="contentWrap" class="cond-field" style="display:none">
+                <div class="form-field" style="margin-top:0.75rem;margin-bottom:0">
+                  <label class="form-label">Channel / Stream Link</label>
+                  <input type="url" name="content_link" class="form-input" placeholder="https://..." />
+                </div>
+              </div>
+            </div>
+            <div class="wizard-nav">
+              <button type="button" class="btn btn-ghost" onclick="goStage(1)">Back</button>
+              <button type="button" class="btn btn-primary" onclick="nextFrom(2)">Next</button>
+            </div>
+          </div>
+
+          <!-- ── STAGE 3: PLAYSTYLE ── -->
+          <div class="wizard-stage" id="stage-3">
+            <div class="wizard-stage-hd">
+              <div class="wizard-stage-num">Stage 3 of 6</div>
+              <h2>Playstyle</h2>
+              <p class="muted">Select the role that best fits how you play. There are no wrong answers.</p>
+            </div>
+            <input type="hidden" name="playstyle" id="playstyleVal" />
+            <div class="playstyle-grid">
+              <% [
+                ['diplomat','Diplomat','Building relationships, negotiating, and forming alliances'],
+                ['warrior', 'Warrior', 'Combat, raiding, and defending territory'],
+                ['builder', 'Builder', 'Constructing, farming, and developing your civilisation'],
+                ['trader',  'Trader',  'Resources, economy, and exchanging with other players'],
+                ['spy',     'Spy',     'Gathering information, infiltrating, and working in the shadows']
+              ].forEach(([val, title, desc]) => { %>
+                <div class="playstyle-card" data-val="<%= val %>" onclick="pickPlaystyle(this)">
+                  <div class="playstyle-card-title"><%= title %></div>
+                  <div class="playstyle-card-desc"><%= desc %></div>
+                </div>
+              <% }) %>
+            </div>
+            <div class="form-field" style="margin-top:1.5rem">
+              <label class="form-label">Describe in 2-3 sentences how you would actually play this event based on your chosen playstyle. <span class="required">*</span></label>
+              <textarea name="playstyle_description" class="form-textarea" rows="4" placeholder="Be specific. What would you actually do on Day 1?"></textarea>
+            </div>
+            <div class="wizard-nav">
+              <button type="button" class="btn btn-ghost" onclick="goStage(2)">Back</button>
+              <button type="button" class="btn btn-primary" onclick="nextFrom(3)">Next</button>
+            </div>
+          </div>
+
+          <!-- ── STAGE 4: SCENARIOS ── -->
+          <div class="wizard-stage" id="stage-4">
+            <div class="wizard-stage-hd">
+              <div class="wizard-stage-num">Stage 4 of 6</div>
+              <h2>Scenario Questions</h2>
+              <p class="muted">These are the most important part. There are no right or wrong answers. We are looking for personality, creativity, and whether you would create interesting gameplay.</p>
+            </div>
+
+            <div class="scenario-block">
+              <div class="scenario-num">Scenario 1</div>
+              <blockquote class="scenario-quote">Your island is falling behind on altar contributions and is at risk of being destroyed. A player from another island approaches you privately and offers to send resources in exchange for information about your civilisation's defences. What do you do?</blockquote>
+              <textarea name="scenario_1" class="form-textarea" rows="5" placeholder="Your response..."></textarea>
+            </div>
+
+            <div class="scenario-block">
+              <div class="scenario-num">Scenario 2</div>
+              <blockquote class="scenario-quote">You discover that a player on your own island has been secretly trading supplies with an enemy civilisation. You have no proof yet. What do you do?</blockquote>
+              <textarea name="scenario_2" class="form-textarea" rows="5" placeholder="Your response..."></textarea>
+            </div>
+
+            <div class="scenario-block">
+              <div class="scenario-num">Scenario 3</div>
+              <blockquote class="scenario-quote">Your civilisation has just destroyed another island. Refugees are now arriving on your island looking for a new home. Some of your team want to accept them, others do not trust them. What is your position and why?</blockquote>
+              <textarea name="scenario_3" class="form-textarea" rows="5" placeholder="Your response..."></textarea>
+            </div>
+
+            <div class="wizard-nav">
+              <button type="button" class="btn btn-ghost" onclick="goStage(3)">Back</button>
+              <button type="button" class="btn btn-primary" onclick="nextFrom(4)">Next</button>
+            </div>
+          </div>
+
+          <!-- ── STAGE 5: APPLICATION TYPE ── -->
+          <div class="wizard-stage" id="stage-5">
+            <div class="wizard-stage-hd">
+              <div class="wizard-stage-num">Stage 5 of 6</div>
+              <h2>Your Application</h2>
+              <p class="muted">Choose how you want to introduce yourself.</p>
+            </div>
+            <input type="hidden" name="app_type" id="appTypeVal" />
+            <div class="app-type-grid">
+              <div class="app-type-card" data-type="video" onclick="pickAppType('video',this)">
+                <div class="app-type-card-title">Video</div>
+                <div class="app-type-card-desc">Record a short 1-3 minute introduction and paste the link. Tell us who you are, your Minecraft experience, and why you want to be part of The Collective.</div>
+              </div>
+              <div class="app-type-card" data-type="written" onclick="pickAppType('written',this)">
+                <div class="app-type-card-title">Written</div>
+                <div class="app-type-card-desc">Write at least 150 words covering who you are, your Minecraft experience, and what you would bring to this event that would make it more interesting for everyone playing.</div>
+              </div>
+            </div>
+            <div id="videoSection" class="cond-field" style="display:none">
+              <div class="form-field">
+                <label class="form-label">Video Link <span class="required">*</span></label>
+                <input type="url" name="video_link" id="videoLinkInput" class="form-input" placeholder="https://youtu.be/... or Google Drive link" />
+              </div>
+            </div>
+            <div id="writtenSection" class="cond-field" style="display:none">
+              <div class="form-field">
+                <label class="form-label">Written Application <span class="required">*</span></label>
+                <textarea name="written_app" id="writtenInput" class="form-textarea" rows="10" oninput="updateWordCount(this)" placeholder="Tell us about yourself..."></textarea>
+                <div class="word-counter" id="wordCounter"><span id="wordCountNum">0</span> words <span class="wc-min">(minimum 150)</span></div>
+              </div>
+            </div>
+            <div class="wizard-nav">
+              <button type="button" class="btn btn-ghost" onclick="goStage(4)">Back</button>
+              <button type="button" class="btn btn-primary" onclick="nextFrom(5)">Next</button>
+            </div>
+          </div>
+
+          <!-- ── STAGE 6: AGREEMENT ── -->
+          <div class="wizard-stage" id="stage-6">
+            <div class="wizard-stage-hd">
+              <div class="wizard-stage-num">Stage 6 of 6</div>
+              <h2>Final Agreement</h2>
+              <p class="muted">Confirm you understand the following before submitting.</p>
+            </div>
+            <input type="hidden" name="agreements" id="agreementsVal" value="" />
+            <div class="agreement-list">
+              <label class="agreement-item">
+                <input type="checkbox" class="agr-check" />
+                <span class="agr-text">I understand this is not a 24/7 server and sessions are scheduled in advance</span>
+              </label>
+              <label class="agreement-item">
+                <input type="checkbox" class="agr-check" />
+                <span class="agr-text">I understand that if I am inactive or disruptive I may be removed from the event</span>
+              </label>
+              <label class="agreement-item">
+                <input type="checkbox" class="agr-check" />
+                <span class="agr-text">I understand that PvP, stealing, and betrayal are all allowed and part of the event</span>
+              </label>
+              <label class="agreement-item">
+                <input type="checkbox" class="agr-check" />
+                <span class="agr-text">I understand that my actions during the event may be recorded and used in future content</span>
+              </label>
+            </div>
+            <div class="wizard-nav">
+              <button type="button" class="btn btn-ghost" onclick="goStage(5)">Back</button>
+              <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>Submit Application</button>
+            </div>
+          </div>
+
+        </form>
       <% } %>
     </div>
   </section>
 </main>
+
+<script>
+// ── Navigation ──
+function goStage(n) {
+  document.querySelectorAll('.wizard-stage').forEach(s => s.classList.remove('active'));
+  document.getElementById('stage-' + n).classList.add('active');
+  document.querySelectorAll('.wizard-step').forEach((el, i) => {
+    el.classList.toggle('done', i + 1 < n);
+    el.classList.toggle('active', i + 1 === n);
+  });
+  const hdr = document.getElementById('wizardHeader');
+  if (hdr) window.scrollTo({ top: hdr.offsetTop - 90, behavior: 'smooth' });
+}
+
+// ── Stage 1: Eligibility ──
+const eligAnswers = {};
+document.querySelectorAll('.yn-btn').forEach(btn => {
+  btn.addEventListener('click', function () {
+    this.closest('.elig-item').querySelectorAll('.yn-btn').forEach(b => b.classList.remove('selected'));
+    this.classList.add('selected');
+    eligAnswers[this.closest('.elig-item').dataset.id] = this.dataset.val;
+    const total = document.querySelectorAll('.elig-item').length;
+    document.getElementById('eligCheckBtn').disabled = Object.keys(eligAnswers).length < total;
+  });
+});
+
+function checkEligibility() {
+  let disq = false;
+  document.querySelectorAll('.elig-item').forEach(item => {
+    if (item.dataset.blocking !== 'true') return;
+    const ans = eligAnswers[item.dataset.id];
+    if (item.dataset.reqYes === 'true' && ans === 'no') disq = true;
+    if (item.dataset.reqYes === 'false' && ans === 'yes') disq = true;
+  });
+  document.getElementById('eligAnswersInput').value = JSON.stringify(eligAnswers);
+  if (disq) {
+    document.getElementById('eligQList').style.display = 'none';
+    document.getElementById('stage1Nav').style.display = 'none';
+    document.getElementById('disqMsg').style.display = 'block';
+  } else {
+    goStage(2);
+  }
+}
+
+function resetEligibility() {
+  document.getElementById('eligQList').style.display = 'block';
+  document.getElementById('stage1Nav').style.display = 'flex';
+  document.getElementById('disqMsg').style.display = 'none';
+  document.querySelectorAll('.yn-btn').forEach(b => b.classList.remove('selected'));
+  Object.keys(eligAnswers).forEach(k => delete eligAnswers[k]);
+  document.getElementById('eligCheckBtn').disabled = true;
+}
+
+// ── Stage 2: Toggle fields ──
+function setToggle(inputId, val, btn, wrapId) {
+  btn.parentElement.querySelectorAll('.toggle-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(inputId).value = val;
+  const wrap = document.getElementById(wrapId);
+  if (wrap) wrap.style.display = val === 'yes' ? 'block' : 'none';
+}
+
+// ── Stage 3: Playstyle ──
+function pickPlaystyle(card) {
+  document.querySelectorAll('.playstyle-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  document.getElementById('playstyleVal').value = card.dataset.val;
+}
+
+// ── Stage 5: App type ──
+function pickAppType(type, card) {
+  document.querySelectorAll('.app-type-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  document.getElementById('appTypeVal').value = type;
+  document.getElementById('videoSection').style.display = type === 'video' ? 'block' : 'none';
+  document.getElementById('writtenSection').style.display = type === 'written' ? 'block' : 'none';
+}
+
+function updateWordCount(ta) {
+  const n = ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0;
+  document.getElementById('wordCountNum').textContent = n;
+  document.getElementById('wordCounter').classList.toggle('wc-ok', n >= 150);
+}
+
+// ── Stage 6: Agreements ──
+document.querySelectorAll('.agr-check').forEach(cb => {
+  cb.addEventListener('change', () => {
+    const all = [...document.querySelectorAll('.agr-check')].every(c => c.checked);
+    document.getElementById('submitBtn').disabled = !all;
+    document.getElementById('agreementsVal').value = all ? 'confirmed' : '';
+  });
+});
+
+// ── Validation before advancing ──
+function nextFrom(stage) {
+  if (stage === 2) {
+    for (const name of ['ign','discord_username','age','country','how_heard']) {
+      const el = document.querySelector(`[name="${name}"]`);
+      if (!el.value.trim()) {
+        el.classList.add('input-error');
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.addEventListener('input', () => el.classList.remove('input-error'), { once: true });
+        return;
+      }
+    }
+  }
+  if (stage === 3) {
+    if (!document.getElementById('playstyleVal').value) {
+      alert('Please select a playstyle to continue.');
+      return;
+    }
+    if (!document.querySelector('[name="playstyle_description"]').value.trim()) {
+      document.querySelector('[name="playstyle_description"]').focus();
+      return;
+    }
+  }
+  if (stage === 4) {
+    for (const name of ['scenario_1','scenario_2','scenario_3']) {
+      if (!document.querySelector(`[name="${name}"]`).value.trim()) {
+        document.querySelector(`[name="${name}"]`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+        alert('Please answer all three scenarios.');
+        return;
+      }
+    }
+  }
+  if (stage === 5) {
+    const type = document.getElementById('appTypeVal').value;
+    if (!type) { alert('Please choose video or written.'); return; }
+    if (type === 'video' && !document.getElementById('videoLinkInput').value.trim()) {
+      document.getElementById('videoLinkInput').focus();
+      return;
+    }
+    if (type === 'written') {
+      const words = document.getElementById('writtenInput').value.trim()
+        ? document.getElementById('writtenInput').value.trim().split(/\s+/).length : 0;
+      if (words < 150) {
+        alert(`Your written application needs at least 150 words. You currently have ${words}.`);
+        return;
+      }
+    }
+  }
+  goStage(stage + 1);
+}
+</script>
 
 <%- include('partials/foot') %>

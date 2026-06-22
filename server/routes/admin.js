@@ -16,18 +16,14 @@ router.use(requireAdmin);
 router.get('/', async (req, res) => {
   const eventRes = await db.query(`SELECT * FROM events ORDER BY created_at DESC LIMIT 1`);
   const event = eventRes.rows[0] || null;
-  let questions = [], applications = [];
-  if (event) {
-    questions = (await db.query(
-      `SELECT * FROM application_questions WHERE event_id = $1 ORDER BY order_num`, [event.id]
-    )).rows;
-    applications = (await db.query(
-      `SELECT a.*, COUNT(aa.id) as answer_count FROM applications a
-       LEFT JOIN application_answers aa ON aa.application_id = a.id
-       WHERE a.event_id = $1 GROUP BY a.id ORDER BY a.submitted_at DESC`,
-      [event.id]
-    )).rows;
-  }
+
+  const eligibilityQuestions = (await db.query(
+    `SELECT * FROM eligibility_questions ORDER BY display_order ASC, id ASC`
+  )).rows;
+
+  const applications = (await db.query(
+    `SELECT * FROM structured_applications ORDER BY submitted_at DESC`
+  )).rows;
 
   const guildRes = await db.query(`SELECT * FROM guild_config LIMIT 10`);
   const levels = (await db.query(
@@ -43,27 +39,56 @@ router.get('/', async (req, res) => {
     `SELECT discord_id, granted_at FROM staff_access ORDER BY granted_at DESC`
   )).rows;
 
-  res.render('admin', { event, questions, applications, guilds: guildRes.rows, levels, levelRoles, staffRoles, staffAccess });
+  res.render('admin', {
+    event, eligibilityQuestions, applications,
+    guilds: guildRes.rows, levels, levelRoles, staffRoles, staffAccess
+  });
 });
 
 // View single application
 router.get('/application/:id', async (req, res) => {
-  const appRes = await db.query(`SELECT * FROM applications WHERE id = $1`, [req.params.id]);
+  const appRes = await db.query(`SELECT * FROM structured_applications WHERE id = $1`, [req.params.id]);
   if (!appRes.rows.length) return res.redirect('/admin');
   const app = appRes.rows[0];
-  const answers = (await db.query(
-    `SELECT aa.answer_text, aq.question_text FROM application_answers aa
-     JOIN application_questions aq ON aq.id = aa.question_id
-     WHERE aa.application_id = $1 ORDER BY aq.order_num`,
-    [req.params.id]
+  const eligibilityQuestions = (await db.query(
+    `SELECT * FROM eligibility_questions ORDER BY display_order ASC, id ASC`
   )).rows;
-  res.render('admin-application', { application: app, answers });
+  res.render('admin-application', { app, eligibilityQuestions });
 });
 
 // Update application status
 router.post('/application/:id/status', async (req, res) => {
-  await db.query(`UPDATE applications SET status = $1 WHERE id = $2`, [req.body.status, req.params.id]);
+  const { status } = req.body;
+  const acceptedAt = status === 'accepted' ? new Date() : null;
+  await db.query(
+    `UPDATE structured_applications SET status = $1, accepted_at = $2 WHERE id = $3`,
+    [status, acceptedAt, req.params.id]
+  );
   res.redirect(`/admin/application/${req.params.id}`);
+});
+
+// Save admin notes
+router.post('/application/:id/notes', async (req, res) => {
+  await db.query(
+    `UPDATE structured_applications SET admin_notes = $1 WHERE id = $2`,
+    [req.body.notes || null, req.params.id]
+  );
+  res.redirect(`/admin/application/${req.params.id}`);
+});
+
+// Eligibility questions CRUD
+router.post('/eligibility/add', async (req, res) => {
+  const { question_text, required_yes, blocking, display_order } = req.body;
+  await db.query(
+    `INSERT INTO eligibility_questions (question_text, required_yes, blocking, display_order) VALUES ($1,$2,$3,$4)`,
+    [question_text, required_yes === 'true', blocking === 'true', parseInt(display_order) || 0]
+  );
+  res.redirect('/admin?saved=eligibility#questions');
+});
+
+router.post('/eligibility/delete', async (req, res) => {
+  await db.query(`DELETE FROM eligibility_questions WHERE id = $1`, [req.body.id]);
+  res.redirect('/admin?saved=eligibility#questions');
 });
 
 // Create event
@@ -83,22 +108,6 @@ router.post('/event/update', async (req, res) => {
     `UPDATE events SET title=$1, description=$2, opens_at=$3, closes_at=$4, is_open=$5 WHERE id=$6`,
     [title, description, opens_at || null, closes_at || null, is_open === 'true', id]
   );
-  res.redirect('/admin');
-});
-
-// Add question
-router.post('/question/add', async (req, res) => {
-  const { event_id, question_text, question_type, order_num } = req.body;
-  await db.query(
-    `INSERT INTO application_questions (event_id, question_text, question_type, order_num) VALUES ($1,$2,$3,$4)`,
-    [event_id, question_text, question_type || 'textarea', parseInt(order_num) || 0]
-  );
-  res.redirect('/admin');
-});
-
-// Delete question
-router.post('/question/delete', async (req, res) => {
-  await db.query(`DELETE FROM application_questions WHERE id = $1`, [req.body.id]);
   res.redirect('/admin');
 });
 
@@ -187,9 +196,7 @@ router.post('/staff/delete', async (req, res) => {
 router.post('/staff/access/add', async (req, res) => {
   const id = (req.body.discord_id || '').trim();
   if (id) {
-    await db.query(
-      `INSERT INTO staff_access (discord_id) VALUES ($1) ON CONFLICT DO NOTHING`, [id]
-    );
+    await db.query(`INSERT INTO staff_access (discord_id) VALUES ($1) ON CONFLICT DO NOTHING`, [id]);
   }
   res.redirect('/admin?saved=access#staff');
 });

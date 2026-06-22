@@ -1,53 +1,162 @@
-<%- include('partials/head', { title: 'Application' }) %>
+<%- include('partials/head', { title: 'Review Application' }) %>
 <%- include('partials/nav') %>
 
 <main class="page-main admin-page">
-  <section class="page-hero">
+  <section class="section" style="padding-top:calc(var(--nav-h) + 1.5rem)">
     <div class="container">
-      <a href="/admin" class="back-link">← Back to Admin</a>
-      <h1 class="page-title">Application: <span class="glow-text"><%= application.discord_username %></span></h1>
-    </div>
-  </section>
 
-  <section class="section">
-    <div class="container container--narrow">
-      <div class="admin-card">
-        <div class="app-meta">
-          <img src="<%= application.discord_avatar || '' %>" class="app-avatar-lg" onerror="this.style.display='none'" />
+      <!-- Sticky action bar -->
+      <div class="review-bar">
+        <a href="/admin#applications" class="review-back">← Applications</a>
+        <div class="review-bar-identity">
+          <img src="<%= app.discord_avatar || '' %>" class="review-bar-avatar" onerror="this.style.display='none'" />
           <div>
-            <p><strong><%= application.discord_username %></strong></p>
-            <p class="muted">Discord ID: <%= application.discord_id %></p>
-            <p class="muted">Submitted: <%= new Date(application.submitted_at).toLocaleString() %></p>
-            <p>Status: <span class="status-badge status-<%= application.status %>"><%= application.status %></span></p>
+            <div class="review-bar-name"><%= app.ign || app.discord_tag %></div>
+            <div class="review-bar-tag">@<%= app.discord_tag %></div>
           </div>
+          <span class="status-badge status-<%= app.status %>"><%= app.status %></span>
         </div>
-
-        <form action="/admin/application/<%= application.id %>/status" method="POST" class="admin-form" style="margin-top:1.5rem">
-          <div class="form-row">
-            <div class="form-field">
-              <label class="form-label">Update Status</label>
-              <select name="status" class="form-input">
-                <option value="pending" <%= application.status === 'pending' ? 'selected' : '' %>>Pending</option>
-                <option value="accepted" <%= application.status === 'accepted' ? 'selected' : '' %>>Accepted</option>
-                <option value="rejected" <%= application.status === 'rejected' ? 'selected' : '' %>>Rejected</option>
-              </select>
-            </div>
-            <div class="form-field" style="flex:0;align-self:flex-end">
-              <button type="submit" class="btn btn-primary">Update</button>
-            </div>
-          </div>
-        </form>
-
-        <hr class="divider" />
-
-        <div class="answers-list">
-          <% for (const a of answers) { %>
-            <div class="answer-item">
-              <p class="answer-question"><%= a.question_text %></p>
-              <p class="answer-text"><%= a.answer_text %></p>
-            </div>
+        <div class="review-bar-actions">
+          <% if (app.status !== 'accepted') { %>
+            <form action="/admin/application/<%= app.id %>/status" method="POST" style="display:inline">
+              <input type="hidden" name="status" value="accepted" />
+              <button type="submit" class="btn btn-accept">Accept</button>
+            </form>
+          <% } %>
+          <% if (app.status !== 'declined') { %>
+            <form action="/admin/application/<%= app.id %>/status" method="POST" style="display:inline">
+              <input type="hidden" name="status" value="declined" />
+              <button type="submit" class="btn btn-decline" onclick="return confirm('Decline this application?')">Decline</button>
+            </form>
+          <% } %>
+          <% if (app.status !== 'pending') { %>
+            <form action="/admin/application/<%= app.id %>/status" method="POST" style="display:inline">
+              <input type="hidden" name="status" value="pending" />
+              <button type="submit" class="btn btn-ghost btn-sm">Reset</button>
+            </form>
           <% } %>
         </div>
+      </div>
+
+      <!-- Two-column layout -->
+      <div class="review-layout">
+
+        <!-- ── Main content ── -->
+        <div class="review-main">
+
+          <div class="review-section">
+            <div class="review-section-label">Stage 1 — Eligibility</div>
+            <% const ans = app.eligibility_answers || {}; %>
+            <% if (Object.keys(ans).length > 0) { %>
+              <% for (const [qId, answer] of Object.entries(ans)) { %>
+                <% const q = eligibilityQuestions.find(eq => String(eq.id) === String(qId)); %>
+                <div class="review-elig-row">
+                  <span class="review-elig-q"><%= q ? q.question_text : `Question ${qId}` %></span>
+                  <span class="review-elig-ans review-elig-ans--<%= answer %>"><%= answer.toUpperCase() %></span>
+                </div>
+              <% } %>
+            <% } else { %>
+              <p class="muted">No eligibility data recorded.</p>
+            <% } %>
+          </div>
+
+          <div class="review-section">
+            <div class="review-section-label">Stage 2 — Basic Information</div>
+            <div class="review-info-grid">
+              <div class="review-info-cell"><span class="ric-key">IGN</span><span><%= app.ign || '—' %></span></div>
+              <div class="review-info-cell"><span class="ric-key">Discord</span><span><%= app.discord_username_input || '—' %></span></div>
+              <div class="review-info-cell"><span class="ric-key">Age</span><span><%= app.age || '—' %></span></div>
+              <div class="review-info-cell"><span class="ric-key">Country</span><span><%= app.country || '—' %></span></div>
+              <div class="review-info-cell"><span class="ric-key">How heard</span><span><%= app.how_heard || '—' %></span></div>
+              <div class="review-info-cell">
+                <span class="ric-key">Civ events</span>
+                <span><%= app.played_civ ? 'Yes' : 'No' %><%= app.played_civ_details ? ` — ${app.played_civ_details}` : '' %></span>
+              </div>
+              <div class="review-info-cell">
+                <span class="ric-key">Content creator</span>
+                <span><%= app.creates_content ? 'Yes' : 'No' %></span>
+              </div>
+              <% if (app.content_link) { %>
+                <div class="review-info-cell">
+                  <span class="ric-key">Channel</span>
+                  <span><a href="<%= app.content_link %>" target="_blank" class="legal-link"><%= app.content_link %></a></span>
+                </div>
+              <% } %>
+            </div>
+          </div>
+
+          <div class="review-section">
+            <div class="review-section-label">Stage 3 — Playstyle</div>
+            <% if (app.playstyle) { %>
+              <span class="playstyle-badge playstyle-<%= app.playstyle %>"><%= app.playstyle %></span>
+            <% } %>
+            <p class="review-freetext"><%= app.playstyle_description || '—' %></p>
+          </div>
+
+          <div class="review-section">
+            <div class="review-section-label">Stage 4 — Scenarios</div>
+            <div class="review-scenario">
+              <p class="review-scenario-q">Scenario 1 — Resources in exchange for intelligence</p>
+              <p class="review-freetext"><%= app.scenario_1 || '—' %></p>
+            </div>
+            <div class="review-scenario">
+              <p class="review-scenario-q">Scenario 2 — Traitor on your island</p>
+              <p class="review-freetext"><%= app.scenario_2 || '—' %></p>
+            </div>
+            <div class="review-scenario">
+              <p class="review-scenario-q">Scenario 3 — Refugees from a destroyed island</p>
+              <p class="review-freetext"><%= app.scenario_3 || '—' %></p>
+            </div>
+          </div>
+
+          <div class="review-section">
+            <div class="review-section-label">Stage 5 — Application</div>
+            <% if (app.app_type === 'video') { %>
+              <p class="muted" style="font-size:0.8rem;margin-bottom:0.5rem">Video application:</p>
+              <a href="<%= app.video_link %>" target="_blank" class="legal-link" style="word-break:break-all"><%= app.video_link %></a>
+            <% } else { %>
+              <p class="muted" style="font-size:0.8rem;margin-bottom:0.5rem">Written application:</p>
+              <p class="review-freetext"><%= app.written_app || '—' %></p>
+            <% } %>
+          </div>
+
+          <div class="review-section" style="border-bottom:none">
+            <div class="review-section-label">Stage 6 — Agreements</div>
+            <p class="<%= app.agreements_confirmed ? '' : 'muted' %>">
+              <%= app.agreements_confirmed ? 'All four agreements confirmed.' : 'Agreements not confirmed.' %>
+            </p>
+          </div>
+        </div>
+
+        <!-- ── Sidebar ── -->
+        <div class="review-sidebar">
+          <div class="review-scard">
+            <h3>Applicant</h3>
+            <img src="<%= app.discord_avatar || '' %>" class="review-scard-avatar" onerror="this.style.display='none'" />
+            <p class="review-scard-name"><%= app.ign || '—' %></p>
+            <p class="muted review-scard-sub">@<%= app.discord_tag %></p>
+            <p class="muted review-scard-sub" style="font-size:0.72rem">ID: <%= app.discord_id %></p>
+            <p class="muted review-scard-sub" style="font-size:0.72rem">Applied: <%= new Date(app.submitted_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) %></p>
+          </div>
+
+          <div class="review-scard">
+            <h3>Quick Info</h3>
+            <div class="review-qrow"><span class="muted">Playstyle</span><span class="playstyle-badge playstyle-<%= app.playstyle %>"><%= app.playstyle || '—' %></span></div>
+            <div class="review-qrow"><span class="muted">App type</span><span><%= app.app_type || '—' %></span></div>
+            <div class="review-qrow"><span class="muted">Age</span><span><%= app.age || '—' %></span></div>
+            <div class="review-qrow"><span class="muted">Country</span><span><%= app.country || '—' %></span></div>
+            <div class="review-qrow"><span class="muted">Content creator</span><span><%= app.creates_content ? 'Yes' : 'No' %></span></div>
+          </div>
+
+          <div class="review-scard">
+            <h3>Admin Notes</h3>
+            <form action="/admin/application/<%= app.id %>/notes" method="POST">
+              <textarea name="notes" class="form-textarea" rows="5" placeholder="Internal notes — not visible to applicant"><%= app.admin_notes || '' %></textarea>
+              <button type="submit" class="btn btn-primary btn-sm" style="width:100%;margin-top:0.5rem">Save Notes</button>
+            </form>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>

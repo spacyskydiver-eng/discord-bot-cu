@@ -15,8 +15,10 @@
       <!-- Tab nav -->
       <div class="admin-tabs">
         <button class="admin-tab active" data-tab="event">Event</button>
-        <button class="admin-tab" data-tab="questions">Questions</button>
-        <button class="admin-tab" data-tab="applications">Applications (<%= applications.length %>)</button>
+        <button class="admin-tab" data-tab="questions">Eligibility</button>
+        <button class="admin-tab" data-tab="applications" id="applications">
+          Applications<% const pendingCount = applications.filter(a=>a.status==='pending').length; if(pendingCount>0){ %><span class="tab-badge"><%= pendingCount %></span><% } %>
+        </button>
         <button class="admin-tab" data-tab="bot" id="bot">Bot</button>
         <button class="admin-tab" data-tab="staff" id="staff">Staff</button>
       </div>
@@ -86,80 +88,133 @@
         <% } %>
       </div>
 
-      <!-- QUESTIONS TAB -->
+      <!-- ELIGIBILITY TAB -->
       <div class="admin-panel" id="tab-questions">
-        <% if (!event) { %>
-          <div class="admin-card"><p>Create an event first.</p></div>
-        <% } else { %>
-          <div class="admin-card">
-            <h2>Application Questions</h2>
-            <% if (questions.length === 0) { %>
-              <p class="muted">No questions yet. Add your first one below.</p>
-            <% } else { %>
-              <div class="questions-list">
-                <% for (const q of questions) { %>
-                  <div class="question-item">
-                    <span class="question-order">#<%= q.order_num %></span>
-                    <span class="question-text"><%= q.question_text %></span>
-                    <span class="question-type-badge"><%= q.question_type %></span>
-                    <form action="/admin/question/delete" method="POST" style="display:inline">
-                      <input type="hidden" name="id" value="<%= q.id %>" />
-                      <button type="submit" class="btn-icon btn-delete" onclick="return confirm('Delete this question?')">✕</button>
-                    </form>
-                  </div>
-                <% } %>
+        <div class="admin-card">
+          <h2>Eligibility Questions</h2>
+          <p class="muted" style="font-size:0.85rem;margin-bottom:1.5rem">These yes/no questions appear at Stage 1 of the application. <strong>Blocking</strong> means a wrong answer immediately disqualifies the applicant. Non-blocking questions are requirements but failing them alone does not disqualify.</p>
+          <% if (eligibilityQuestions.length > 0) { %>
+            <div class="questions-list">
+              <% for (const q of eligibilityQuestions) { %>
+                <div class="question-item">
+                  <span class="question-order">#<%= q.display_order %></span>
+                  <span class="question-text"><%= q.question_text %></span>
+                  <span class="question-type-badge" style="background:rgba(78,201,148,0.12);color:#4ec994"><%= q.required_yes ? 'Must say YES' : 'Must say NO' %></span>
+                  <span class="question-type-badge" style="<%= q.blocking ? 'background:rgba(220,50,50,0.12);color:#f87171' : 'background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.4)' %>"><%= q.blocking ? 'Blocking' : 'Optional' %></span>
+                  <form action="/admin/eligibility/delete" method="POST" style="display:inline">
+                    <input type="hidden" name="id" value="<%= q.id %>" />
+                    <button type="submit" class="btn-icon btn-delete" onclick="return confirm('Delete this question?')">✕</button>
+                  </form>
+                </div>
+              <% } %>
+            </div>
+            <hr class="divider" />
+          <% } %>
+          <h3 style="margin-bottom:1rem">Add Question</h3>
+          <form action="/admin/eligibility/add" method="POST" class="admin-form">
+            <div class="form-field">
+              <label class="form-label">Question Text</label>
+              <input type="text" name="question_text" class="form-input" placeholder="e.g. Are you 13 or older?" required />
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label class="form-label">Required Answer</label>
+                <select name="required_yes" class="form-input">
+                  <option value="true">Must answer YES to pass</option>
+                  <option value="false">Must answer NO to pass</option>
+                </select>
               </div>
-            <% } %>
-            <form action="/admin/question/add" method="POST" class="admin-form" style="margin-top:1.5rem">
-              <input type="hidden" name="event_id" value="<%= event.id %>" />
-              <div class="form-row">
-                <div class="form-field" style="flex:3">
-                  <label class="form-label">Question</label>
-                  <input type="text" name="question_text" class="form-input" placeholder="e.g. Why do you want to join?" required />
-                </div>
-                <div class="form-field">
-                  <label class="form-label">Type</label>
-                  <select name="question_type" class="form-input">
-                    <option value="textarea">Long Answer</option>
-                    <option value="text">Short Answer</option>
-                  </select>
-                </div>
-                <div class="form-field" style="flex:0.5">
-                  <label class="form-label">Order</label>
-                  <input type="number" name="order_num" class="form-input" value="<%= questions.length %>" min="0" />
-                </div>
+              <div class="form-field">
+                <label class="form-label">Blocking?</label>
+                <select name="blocking" class="form-input">
+                  <option value="true">Yes — wrong answer disqualifies</option>
+                  <option value="false">No — optional requirement</option>
+                </select>
               </div>
-              <button type="submit" class="btn btn-primary">Add Question</button>
-            </form>
-          </div>
-        <% } %>
+              <div class="form-field" style="flex:0.4">
+                <label class="form-label">Order</label>
+                <input type="number" name="display_order" class="form-input" value="<%= eligibilityQuestions.length %>" min="0" />
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Question</button>
+          </form>
+        </div>
       </div>
 
       <!-- APPLICATIONS TAB -->
       <div class="admin-panel" id="tab-applications">
-        <div class="admin-card">
-          <h2>Applications (<%= applications.length %>)</h2>
-          <% if (applications.length === 0) { %>
-            <p class="muted">No applications yet.</p>
-          <% } else { %>
-            <div class="applications-table">
-              <div class="app-table-head">
-                <span>User</span><span>Submitted</span><span>Status</span><span>Action</span>
-              </div>
-              <% for (const app of applications) { %>
-                <div class="app-table-row">
-                  <span class="app-user">
-                    <img src="<%= app.discord_avatar || '' %>" class="app-avatar" onerror="this.style.display='none'" />
-                    <%= app.discord_username %>
+
+        <!-- Stats -->
+        <div class="app-stats-bar">
+          <% const statTotal = applications.length; %>
+          <% const statPending = applications.filter(a=>a.status==='pending').length; %>
+          <% const statAccepted = applications.filter(a=>a.status==='accepted').length; %>
+          <% const statDeclined = applications.filter(a=>a.status==='declined').length; %>
+          <div class="app-stat"><span class="app-stat-n"><%= statTotal %></span><span class="app-stat-l">Total</span></div>
+          <div class="app-stat app-stat--pending"><span class="app-stat-n"><%= statPending %></span><span class="app-stat-l">Pending</span></div>
+          <div class="app-stat app-stat--accepted"><span class="app-stat-n"><%= statAccepted %></span><span class="app-stat-l">Accepted</span></div>
+          <div class="app-stat app-stat--declined"><span class="app-stat-n"><%= statDeclined %></span><span class="app-stat-l">Declined</span></div>
+        </div>
+
+        <!-- Controls -->
+        <div class="app-controls">
+          <div class="app-filter-tabs" id="appFilterTabs">
+            <button class="app-filter-tab active" data-filter="all" onclick="filterApps('all',this)">All (<%= statTotal %>)</button>
+            <button class="app-filter-tab" data-filter="pending" onclick="filterApps('pending',this)">Pending (<%= statPending %>)</button>
+            <button class="app-filter-tab" data-filter="accepted" onclick="filterApps('accepted',this)">Accepted (<%= statAccepted %>)</button>
+            <button class="app-filter-tab" data-filter="declined" onclick="filterApps('declined',this)">Declined (<%= statDeclined %>)</button>
+          </div>
+          <input type="text" class="app-search-input" id="appSearch" placeholder="Search by IGN or Discord..." oninput="filterApps(currentFilter, null)" />
+        </div>
+
+        <% if (applications.length === 0) { %>
+          <div class="admin-card"><p class="muted">No applications yet.</p></div>
+        <% } else { %>
+          <div class="admin-card" style="padding:0;overflow:hidden">
+            <div class="app-list-head">
+              <span>Applicant</span>
+              <span>IGN</span>
+              <span>Playstyle</span>
+              <span>Submitted</span>
+              <span>Status</span>
+              <span></span>
+            </div>
+            <div id="appList">
+              <% for (const a of applications) { %>
+                <div class="app-list-row" data-status="<%= a.status %>" data-search="<%= ((a.ign||'')+(a.discord_tag||'')).toLowerCase() %>">
+                  <span class="app-applicant-cell">
+                    <img src="<%= a.discord_avatar || '' %>" class="app-avatar" onerror="this.style.display='none'" />
+                    <span class="muted" style="font-size:0.8rem">@<%= a.discord_tag || '—' %></span>
                   </span>
-                  <span class="muted"><%= new Date(app.submitted_at).toLocaleDateString() %></span>
-                  <span><span class="status-badge status-<%= app.status %>"><%= app.status %></span></span>
-                  <span><a href="/admin/application/<%= app.id %>" class="btn btn-sm btn-outline">View</a></span>
+                  <span class="app-ign-cell"><%= a.ign || '—' %></span>
+                  <span><% if(a.playstyle){ %><span class="playstyle-badge playstyle-<%= a.playstyle %>"><%= a.playstyle %></span><% } else { %>—<% } %></span>
+                  <span class="muted" style="font-size:0.8rem"><%= new Date(a.submitted_at).toLocaleDateString('en-GB') %></span>
+                  <span><span class="status-badge status-<%= a.status %>"><%= a.status %></span></span>
+                  <span><a href="/admin/application/<%= a.id %>" class="btn btn-sm btn-outline">Review</a></span>
                 </div>
               <% } %>
             </div>
-          <% } %>
-        </div>
+            <div id="appEmptyMsg" style="display:none;padding:2rem;text-align:center;color:var(--text-muted)">No applications match your search.</div>
+          </div>
+        <% } %>
+
+        <!-- Accepted roster -->
+        <% const accepted = applications.filter(a => a.status === 'accepted'); %>
+        <% if (accepted.length > 0) { %>
+          <div class="admin-card" style="margin-top:1.5rem">
+            <h3>Accepted Players (<%= accepted.length %>)</h3>
+            <p class="muted" style="font-size:0.82rem;margin-bottom:1rem">Players confirmed for the event.</p>
+            <div class="accepted-roster">
+              <% for (const a of accepted) { %>
+                <a href="/admin/application/<%= a.id %>" class="accepted-card">
+                  <img src="<%= a.discord_avatar || '' %>" class="accepted-avatar" onerror="this.style.display='none'" />
+                  <div class="accepted-ign"><%= a.ign || a.discord_tag %></div>
+                  <% if (a.playstyle) { %><span class="playstyle-badge playstyle-<%= a.playstyle %>" style="font-size:0.6rem"><%= a.playstyle %></span><% } %>
+                </a>
+              <% } %>
+            </div>
+          </div>
+        <% } %>
       </div>
 
       <!-- BOT TAB -->
@@ -408,12 +463,34 @@
   if (params.get('saved')) {
     const toast = document.createElement('div');
     const savedVal = params.get('saved');
-    const toastMessages = { levels: 'Levels saved!', veteran: 'Veteran role saved!', staffrole: 'Staff role saved!', staff: 'Staff page saved!', xp: 'XP settings saved!', access: 'Staff access updated!' };
+    const toastMessages = { levels: 'Levels saved!', veteran: 'Veteran role saved!', staffrole: 'Staff role saved!', staff: 'Staff page saved!', xp: 'XP settings saved!', access: 'Staff access updated!', eligibility: 'Eligibility question saved!' };
     toast.textContent = toastMessages[savedVal] || 'Saved!';
     toast.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#4ec994;color:#000;padding:0.75rem 1.5rem;border-radius:8px;font-weight:600;font-size:0.9rem;z-index:999;box-shadow:0 4px 20px rgba(78,201,148,0.4)';
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
     history.replaceState(null, '', '/admin');
+  }
+
+  // Application list filter + search
+  let currentFilter = 'all';
+  function filterApps(filter, btn) {
+    if (filter) currentFilter = filter;
+    if (btn) {
+      document.querySelectorAll('.app-filter-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    const search = (document.getElementById('appSearch')?.value || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('#appList .app-list-row');
+    let visible = 0;
+    rows.forEach(row => {
+      const statusMatch = currentFilter === 'all' || row.dataset.status === currentFilter;
+      const searchMatch = !search || (row.dataset.search || '').includes(search);
+      const show = statusMatch && searchMatch;
+      row.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    const empty = document.getElementById('appEmptyMsg');
+    if (empty) empty.style.display = visible === 0 && rows.length > 0 ? 'block' : 'none';
   }
 
   function fmtWrap(btn, before, after) {
