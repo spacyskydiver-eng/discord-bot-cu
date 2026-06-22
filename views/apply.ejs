@@ -1,5 +1,6 @@
 <%- include('partials/head', { title: 'Apply' }) %>
 <%- include('partials/nav') %>
+<% const isPreview = typeof previewMode !== 'undefined' && previewMode; %>
 
 <%
 // Helper: render a single stage content block
@@ -36,7 +37,7 @@ function renderBlock(b) {
   </section>
 
   <section class="section">
-    <div class="container container--narrow">
+    <div class="container container--narrow" style="position:relative">
 
       <% if (!event) { %>
         <div class="status-card reveal">
@@ -129,6 +130,53 @@ function renderBlock(b) {
 
       <% } else { %>
 
+        <% if (isPreview) { %>
+          <div class="preview-banner">
+            <div class="preview-banner-dot"></div>
+            ADMIN PREVIEW — This is what applicants see. Not submitted for real.
+          </div>
+        <% } %>
+
+        <!-- Vine decorations (hidden on narrow screens) -->
+        <div class="wizard-vines wizard-vine-l" aria-hidden="true">
+          <svg width="64" height="800" viewBox="0 0 64 800" xmlns="http://www.w3.org/2000/svg">
+            <path d="M32 0 Q22 80 36 160 Q50 240 28 320 Q12 400 38 480 Q54 560 30 640 Q16 720 34 800" stroke="#2d5a1b" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <ellipse cx="14" cy="60"  rx="14" ry="6" fill="#3d7a20" transform="rotate(-38 14 60)" opacity="0.85"/>
+            <ellipse cx="48" cy="130" rx="13" ry="6" fill="#4a9a28" transform="rotate(32 48 130)" opacity="0.85"/>
+            <ellipse cx="16" cy="200" rx="15" ry="6" fill="#3d7a20" transform="rotate(-28 16 200)" opacity="0.8"/>
+            <ellipse cx="46" cy="270" rx="13" ry="5" fill="#5aaa38" transform="rotate(35 46 270)" opacity="0.8"/>
+            <ellipse cx="12" cy="340" rx="14" ry="6" fill="#3d7a20" transform="rotate(-42 12 340)" opacity="0.75"/>
+            <ellipse cx="50" cy="410" rx="12" ry="5" fill="#4a9a28" transform="rotate(28 50 410)" opacity="0.75"/>
+            <ellipse cx="18" cy="480" rx="14" ry="6" fill="#3d7a20" transform="rotate(-30 18 480)" opacity="0.7"/>
+            <ellipse cx="46" cy="550" rx="13" ry="5" fill="#5aaa38" transform="rotate(36 46 550)" opacity="0.65"/>
+            <ellipse cx="14" cy="620" rx="13" ry="5" fill="#3d7a20" transform="rotate(-25 14 620)" opacity="0.6"/>
+            <ellipse cx="48" cy="700" rx="12" ry="5" fill="#4a9a28" transform="rotate(30 48 700)" opacity="0.5"/>
+            <!-- Tendrils -->
+            <path d="M22 90 Q8 100 5 115" stroke="#2d5a1b" stroke-width="1.5" fill="none" opacity="0.6"/>
+            <path d="M44 210 Q55 220 58 238" stroke="#2d5a1b" stroke-width="1.5" fill="none" opacity="0.6"/>
+            <path d="M20 360 Q6 375 4 390" stroke="#2d5a1b" stroke-width="1.5" fill="none" opacity="0.5"/>
+            <path d="M46 490 Q58 505 60 522" stroke="#2d5a1b" stroke-width="1.5" fill="none" opacity="0.5"/>
+          </svg>
+        </div>
+        <div class="wizard-vines wizard-vine-r" aria-hidden="true">
+          <svg width="64" height="800" viewBox="0 0 64 800" xmlns="http://www.w3.org/2000/svg">
+            <path d="M32 0 Q22 80 36 160 Q50 240 28 320 Q12 400 38 480 Q54 560 30 640 Q16 720 34 800" stroke="#2d5a1b" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <ellipse cx="14" cy="60"  rx="14" ry="6" fill="#3d7a20" transform="rotate(-38 14 60)" opacity="0.85"/>
+            <ellipse cx="48" cy="130" rx="13" ry="6" fill="#4a9a28" transform="rotate(32 48 130)" opacity="0.85"/>
+            <ellipse cx="16" cy="200" rx="15" ry="6" fill="#3d7a20" transform="rotate(-28 16 200)" opacity="0.8"/>
+            <ellipse cx="46" cy="270" rx="13" ry="5" fill="#5aaa38" transform="rotate(35 46 270)" opacity="0.8"/>
+            <ellipse cx="12" cy="340" rx="14" ry="6" fill="#3d7a20" transform="rotate(-42 12 340)" opacity="0.75"/>
+            <ellipse cx="50" cy="410" rx="12" ry="5" fill="#4a9a28" transform="rotate(28 50 410)" opacity="0.75"/>
+            <ellipse cx="18" cy="480" rx="14" ry="6" fill="#3d7a20" transform="rotate(-30 18 480)" opacity="0.7"/>
+            <ellipse cx="46" cy="550" rx="13" ry="5" fill="#5aaa38" transform="rotate(36 46 550)" opacity="0.65"/>
+            <ellipse cx="14" cy="620" rx="13" ry="5" fill="#3d7a20" transform="rotate(-25 14 620)" opacity="0.6"/>
+            <ellipse cx="48" cy="700" rx="12" ry="5" fill="#4a9a28" transform="rotate(30 48 700)" opacity="0.5"/>
+            <path d="M22 90 Q8 100 5 115" stroke="#2d5a1b" stroke-width="1.5" fill="none" opacity="0.6"/>
+            <path d="M44 210 Q55 220 58 238" stroke="#2d5a1b" stroke-width="1.5" fill="none" opacity="0.6"/>
+            <path d="M20 360 Q6 375 4 390" stroke="#2d5a1b" stroke-width="1.5" fill="none" opacity="0.5"/>
+          </svg>
+        </div>
+
         <!-- Progress indicator -->
         <div class="wizard-header reveal" id="wizardHeader">
           <div class="wizard-steps">
@@ -149,7 +197,7 @@ function renderBlock(b) {
           <div class="wizard-stage active" id="stage-1">
             <div class="wizard-stage-hd">
               <div class="wizard-stage-num">Stage 1 of 6</div>
-              <h2>Eligibility Check</h2>
+              <h2><span class="stage-title-neon">Eligibility</span> Check</h2>
               <p class="muted">Confirm you meet the basic requirements before you apply. This takes about 30 seconds.</p>
             </div>
 
@@ -182,7 +230,7 @@ function renderBlock(b) {
           <div class="wizard-stage" id="stage-2">
             <div class="wizard-stage-hd">
               <div class="wizard-stage-num">Stage 2 of 6</div>
-              <h2><%= (stageSettings[2] && stageSettings[2].title) || 'Basic Information' %></h2>
+              <h2><span class="stage-title-neon"><%= (stageSettings[2] && stageSettings[2].title) || 'Basic Information' %></span></h2>
               <% if (stageSettings[2] && stageSettings[2].subtitle) { %><p class="muted"><%= stageSettings[2].subtitle %></p><% } %>
             </div>
             <%- (stageBlocks[2] || []).map(b => renderBlock(b)).join('') %>
@@ -246,7 +294,7 @@ function renderBlock(b) {
           <div class="wizard-stage" id="stage-3">
             <div class="wizard-stage-hd">
               <div class="wizard-stage-num">Stage 3 of 6</div>
-              <h2><%= (stageSettings[3] && stageSettings[3].title) || 'Playstyle' %></h2>
+              <h2><span class="stage-title-neon"><%= (stageSettings[3] && stageSettings[3].title) || 'Playstyle' %></span></h2>
               <% if (stageSettings[3] && stageSettings[3].subtitle) { %><p class="muted"><%= stageSettings[3].subtitle %></p><% } %>
             </div>
             <%- (stageBlocks[3] || []).map(b => renderBlock(b)).join('') %>
@@ -273,7 +321,7 @@ function renderBlock(b) {
           <div class="wizard-stage" id="stage-4">
             <div class="wizard-stage-hd">
               <div class="wizard-stage-num">Stage 4 of 6</div>
-              <h2><%= (stageSettings[4] && stageSettings[4].title) || 'Scenario Questions' %></h2>
+              <h2><span class="stage-title-neon"><%= (stageSettings[4] && stageSettings[4].title) || 'Scenario Questions' %></span></h2>
               <% if (stageSettings[4] && stageSettings[4].subtitle) { %><p class="muted"><%= stageSettings[4].subtitle %></p><% } %>
             </div>
             <%- (stageBlocks[4] || []).map(b => renderBlock(b)).join('') %>
@@ -306,7 +354,7 @@ function renderBlock(b) {
           <div class="wizard-stage" id="stage-5">
             <div class="wizard-stage-hd">
               <div class="wizard-stage-num">Stage 5 of 6</div>
-              <h2><%= (stageSettings[5] && stageSettings[5].title) || 'Your Application' %></h2>
+              <h2><span class="stage-title-neon"><%= (stageSettings[5] && stageSettings[5].title) || 'Your Application' %></span></h2>
               <% if (stageSettings[5] && stageSettings[5].subtitle) { %><p class="muted"><%= stageSettings[5].subtitle %></p><% } %>
             </div>
             <%- (stageBlocks[5] || []).map(b => renderBlock(b)).join('') %>
@@ -344,7 +392,7 @@ function renderBlock(b) {
           <div class="wizard-stage" id="stage-6">
             <div class="wizard-stage-hd">
               <div class="wizard-stage-num">Stage 6 of 6</div>
-              <h2><%= (stageSettings[6] && stageSettings[6].title) || 'Final Agreement' %></h2>
+              <h2><span class="stage-title-neon"><%= (stageSettings[6] && stageSettings[6].title) || 'Final Agreement' %></span></h2>
               <% if (stageSettings[6] && stageSettings[6].subtitle) { %><p class="muted"><%= stageSettings[6].subtitle %></p><% } %>
             </div>
             <%- (stageBlocks[6] || []).map(b => renderBlock(b)).join('') %>
@@ -381,17 +429,42 @@ document.querySelectorAll('.tz-stamp').forEach(el => {
   } catch(_) { el.textContent = el.dataset.utc; }
 });
 
-// ── Navigation ──
+// ── Navigation with slide direction ──
+let currentStageNum = 1;
 function goStage(n) {
-  document.querySelectorAll('.wizard-stage').forEach(s => s.classList.remove('active'));
-  document.getElementById('stage-' + n).classList.add('active');
+  const goingForward = n > currentStageNum;
+  document.querySelectorAll('.wizard-stage').forEach(s => s.classList.remove('active', 'slide-left'));
+  const incoming = document.getElementById('stage-' + n);
+  incoming.classList.add('active');
+  if (!goingForward) incoming.classList.add('slide-left');
+  currentStageNum = n;
+
   document.querySelectorAll('.wizard-step').forEach((el, i) => {
     el.classList.toggle('done', i + 1 < n);
     el.classList.toggle('active', i + 1 === n);
   });
+  // Update connectors
+  document.querySelectorAll('.wizard-connector').forEach((el, i) => {
+    el.classList.toggle('done', i + 1 < n);
+  });
+
   const hdr = document.getElementById('wizardHeader');
   if (hdr) window.scrollTo({ top: hdr.offsetTop - 90, behavior: 'smooth' });
 }
+
+// ── Floating leaf particles ──
+const LEAF_CHARS = ['🌿','🍃','🌱','🌾','✦'];
+function spawnLeaf() {
+  const el = document.createElement('span');
+  el.className = 'leaf-particle';
+  el.textContent = LEAF_CHARS[Math.floor(Math.random() * LEAF_CHARS.length)];
+  const dur = 5 + Math.random() * 6;
+  const size = 0.75 + Math.random() * 0.8;
+  el.style.cssText = `left:${Math.random()*100}vw;bottom:-30px;font-size:${size}rem;animation-duration:${dur}s;opacity:${0.4+Math.random()*0.35}`;
+  document.body.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+}
+setInterval(spawnLeaf, 2200);
 
 // ── Stage 1: Eligibility ──
 const eligAnswers = {};

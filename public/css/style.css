@@ -1495,6 +1495,379 @@ img { display: block; }
 @keyframes hueShift { 0%,100% { color: var(--gold); } 33% { color: var(--teal); } 66% { color: #a78bfa; } }
 .sb-animated { animation: hueShift 4s ease-in-out infinite; font-weight: 600; }
 
+/* ══════════════════════════════════════════════
+   APPLICATION WIZARD — VISUAL ANIMATIONS
+═══════════════════════════════════════════════ */
+
+/* ── Neon pulse (stage headings) ── */
+@keyframes neonFlicker {
+  0%, 18%, 20%, 22%, 25%, 55%, 57%, 100% {
+    text-shadow:
+      0 0 6px #4ec994,
+      0 0 18px #4ec994,
+      0 0 40px #4ec994,
+      0 0 80px rgba(78,201,148,0.4);
+    opacity: 1;
+  }
+  19%, 21%, 56% { text-shadow: none; opacity: 0.75; }
+}
+@keyframes neonPulse {
+  0%, 100% {
+    text-shadow:
+      0 0 8px rgba(201,168,76,0.8),
+      0 0 24px rgba(201,168,76,0.5),
+      0 0 50px rgba(201,168,76,0.25);
+  }
+  50% {
+    text-shadow:
+      0 0 4px rgba(201,168,76,0.6),
+      0 0 12px rgba(201,168,76,0.3);
+  }
+}
+.neon-green { color: #4ec994; animation: neonFlicker 8s ease-in-out infinite; }
+.neon-gold  { color: var(--gold); animation: neonPulse 3s ease-in-out infinite; }
+
+/* ── Wizard stage slide transitions ── */
+@keyframes stageSlideInRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes stageSlideInLeft {
+  from { opacity: 0; transform: translateX(-40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.wizard-stage.active { animation: stageSlideInRight 0.32s cubic-bezier(0.22,1,0.36,1) both; }
+.wizard-stage.active.slide-left { animation-name: stageSlideInLeft; }
+
+/* ── Field stagger (children of active stage) ── */
+@keyframes fieldIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.wizard-stage.active .form-field          { animation: fieldIn 0.35s ease both; }
+.wizard-stage.active .form-field:nth-child(2)  { animation-delay: 0.04s; }
+.wizard-stage.active .form-field:nth-child(3)  { animation-delay: 0.08s; }
+.wizard-stage.active .form-field:nth-child(4)  { animation-delay: 0.12s; }
+.wizard-stage.active .form-field:nth-child(5)  { animation-delay: 0.16s; }
+.wizard-stage.active .form-field:nth-child(6)  { animation-delay: 0.20s; }
+.wizard-stage.active .form-field:nth-child(7)  { animation-delay: 0.24s; }
+.wizard-stage.active .scenario-block { animation: fieldIn 0.4s ease both; }
+.wizard-stage.active .scenario-block:nth-of-type(2) { animation-delay: 0.1s; }
+.wizard-stage.active .scenario-block:nth-of-type(3) { animation-delay: 0.2s; }
+.wizard-stage.active .playstyle-card { animation: fieldIn 0.35s ease both; }
+.wizard-stage.active .playstyle-card:nth-child(2) { animation-delay: 0.05s; }
+.wizard-stage.active .playstyle-card:nth-child(3) { animation-delay: 0.10s; }
+.wizard-stage.active .playstyle-card:nth-child(4) { animation-delay: 0.15s; }
+.wizard-stage.active .playstyle-card:nth-child(5) { animation-delay: 0.20s; }
+.wizard-stage.active .agreement-item { animation: fieldIn 0.35s ease both; }
+.wizard-stage.active .agreement-item:nth-child(2) { animation-delay: 0.06s; }
+.wizard-stage.active .agreement-item:nth-child(3) { animation-delay: 0.12s; }
+.wizard-stage.active .agreement-item:nth-child(4) { animation-delay: 0.18s; }
+
+/* ── Leaf particle ── */
+@keyframes leafRise {
+  0%   { transform: translateY(0) rotate(0deg) scale(1);   opacity: 0.7; }
+  50%  { transform: translateY(-50vh) rotate(180deg) scale(0.8); opacity: 0.5; }
+  100% { transform: translateY(-100vh) rotate(360deg) scale(0.5); opacity: 0; }
+}
+.leaf-particle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  animation: leafRise linear forwards;
+  user-select: none;
+  will-change: transform;
+}
+
+/* ── Vine side decorations ── */
+.wizard-vines {
+  position: absolute;
+  top: 0;
+  width: 64px;
+  pointer-events: none;
+  overflow: visible;
+}
+.wizard-vine-l { left: -72px; }
+.wizard-vine-r { right: -72px; transform: scaleX(-1); }
+@keyframes vineGrow {
+  from { clip-path: inset(0 0 100% 0); opacity: 0; }
+  to   { clip-path: inset(0 0 0% 0);   opacity: 1; }
+}
+.wizard-vine-l svg, .wizard-vine-r svg {
+  animation: vineGrow 1.4s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+/* ── Enhanced wizard step dots ── */
+.wizard-step-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px; /* square/pixelated like Minecraft */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  border: 2px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.35);
+  transition: all 0.3s;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.5rem;
+}
+.wizard-step.active .wizard-step-dot {
+  background: rgba(201,168,76,0.18);
+  border-color: var(--gold);
+  color: var(--gold);
+  box-shadow: 0 0 12px rgba(201,168,76,0.5), 0 0 24px rgba(201,168,76,0.2);
+  animation: neonPulse 2.5s ease-in-out infinite;
+}
+.wizard-step.done .wizard-step-dot {
+  background: rgba(78,201,148,0.18);
+  border-color: #4ec994;
+  color: #4ec994;
+  box-shadow: 0 0 8px rgba(78,201,148,0.35);
+}
+.wizard-step-label {
+  font-size: 0.6rem;
+  color: rgba(255,255,255,0.35);
+  margin-top: 0.3rem;
+  text-align: center;
+  transition: color 0.3s;
+  max-width: 60px;
+  line-height: 1.3;
+}
+.wizard-step.active .wizard-step-label { color: var(--gold); font-weight: 700; }
+.wizard-step.done .wizard-step-label { color: #4ec994; }
+
+/* ── Enhanced wizard connector ── */
+.wizard-connector {
+  flex: 1;
+  height: 2px;
+  background: rgba(255,255,255,0.07);
+  margin-bottom: 1.4rem;
+  position: relative;
+  overflow: hidden;
+}
+.wizard-connector.done::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #4ec994;
+  animation: connectorFill 0.4s ease both;
+}
+@keyframes connectorFill {
+  from { transform: scaleX(0); transform-origin: left; }
+  to   { transform: scaleX(1); }
+}
+
+/* ── Wizard stage heading ── */
+.wizard-stage-hd h2 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+  position: relative;
+}
+/* Minecraft grass top on the wizard stage card */
+.wizard-stage {
+  position: relative;
+}
+.wizard-stage.active::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    #4ec994 10%, #3d7a20 15%, #4ec994 25%,
+    #3d7a20 35%, #4ec994 45%, #3d7a20 55%,
+    #4ec994 65%, #3d7a20 75%, #4ec994 85%,
+    transparent 100%
+  );
+  border-radius: 2px 2px 0 0;
+  animation: grassGrow 0.4s ease both;
+}
+@keyframes grassGrow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* ── Enhanced YES/NO buttons ── */
+.yn-btn {
+  padding: 0.55rem 1.5rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.6rem;
+  border: 2px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.05em;
+}
+.yn-btn:hover { border-color: rgba(255,255,255,0.25); color: var(--text); }
+.yn-btn.selected[data-val="yes"] {
+  background: rgba(78,201,148,0.15);
+  border-color: #4ec994;
+  color: #4ec994;
+  box-shadow: 0 0 12px rgba(78,201,148,0.4), inset 0 0 8px rgba(78,201,148,0.1);
+  animation: neonFlicker 6s ease-in-out infinite;
+}
+.yn-btn.selected[data-val="no"] {
+  background: rgba(220,50,50,0.15);
+  border-color: #f87171;
+  color: #f87171;
+  box-shadow: 0 0 12px rgba(220,50,50,0.35), inset 0 0 8px rgba(220,50,50,0.1);
+}
+
+/* ── Minecraft-style scenario quote ── */
+.scenario-quote {
+  position: relative;
+  background: linear-gradient(135deg, rgba(139,115,85,0.12) 0%, rgba(101,78,55,0.08) 100%);
+  border: 1px solid rgba(139,115,85,0.3);
+  border-left: 4px solid #8b7355;
+  border-radius: 0 8px 8px 0;
+  padding: 1rem 1.25rem;
+  margin: 0.75rem 0 0.75rem;
+  color: #d4c4a8;
+  font-style: italic;
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+.scenario-quote::before {
+  content: '"';
+  position: absolute;
+  top: -12px;
+  left: 10px;
+  font-size: 3rem;
+  color: rgba(139,115,85,0.35);
+  font-style: normal;
+  line-height: 1;
+  font-family: Georgia, serif;
+}
+.scenario-num {
+  display: inline-block;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.55rem;
+  color: #8b7355;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+  padding: 0.25rem 0.6rem;
+  background: rgba(139,115,85,0.12);
+  border-radius: 4px;
+  border: 1px solid rgba(139,115,85,0.2);
+}
+
+/* ── Playstyle card glow ── */
+.playstyle-card {
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.playstyle-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3), 0 0 20px rgba(201,168,76,0.1);
+}
+.playstyle-card.selected {
+  box-shadow: 0 0 20px rgba(201,168,76,0.25), 0 0 40px rgba(201,168,76,0.1) !important;
+}
+
+/* ── Stage heading neon text ── */
+.stage-title-neon {
+  display: inline;
+  background: linear-gradient(90deg, var(--gold), #4ec994, var(--gold));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmerText 4s linear infinite;
+}
+@keyframes shimmerText {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+/* ── Pulsing stage number badge ── */
+.wizard-stage-num {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.5rem;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid rgba(201,168,76,0.3);
+  border-radius: 4px;
+  background: rgba(201,168,76,0.08);
+  animation: neonPulse 3s ease-in-out infinite;
+}
+
+/* ── Eligibility check button pulse ── */
+#eligCheckBtn:not(:disabled) {
+  animation: neonPulse 2s ease-in-out infinite;
+  box-shadow: 0 0 16px rgba(201,168,76,0.4);
+}
+
+/* ── Admin preview banner ── */
+.preview-banner {
+  position: sticky;
+  top: calc(var(--nav-h) + 0px);
+  z-index: 100;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(201,168,76,0.2),
+    rgba(201,168,76,0.2) 10px,
+    rgba(201,168,76,0.05) 10px,
+    rgba(201,168,76,0.05) 20px
+  );
+  border: 2px solid rgba(201,168,76,0.5);
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.55rem;
+  color: var(--gold);
+  letter-spacing: 0.06em;
+}
+.preview-banner-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--gold);
+  border-radius: 2px;
+  animation: neonPulse 1s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+/* ── Admin preview page link button ── */
+.btn-preview {
+  background: rgba(201,168,76,0.12);
+  color: var(--gold);
+  border: 1px solid rgba(201,168,76,0.35);
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+.btn-preview:hover {
+  background: rgba(201,168,76,0.2);
+  box-shadow: 0 0 16px rgba(201,168,76,0.3);
+}
+
+/* ── Hide vines on narrow screens ── */
+@media (max-width: 1100px) { .wizard-vines { display: none; } }
+
 /* ── Stage tracker (admin-application) ── */
 .review-stage-track {
   display: flex;

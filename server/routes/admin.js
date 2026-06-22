@@ -62,6 +62,43 @@ router.get('/', async (req, res) => {
   });
 });
 
+// Admin preview of the application wizard
+router.get('/preview-apply', async (req, res) => {
+  const eventRes = await db.query(`SELECT * FROM events ORDER BY created_at DESC LIMIT 1`);
+  const rawEvent = eventRes.rows[0] || null;
+  const previewEvent = rawEvent
+    ? { ...rawEvent, is_open: true }
+    : { id: 0, title: 'Preview Event (No Live Event)', is_open: true, opens_at: null, closes_at: null };
+
+  const eligibilityQuestions = (await db.query(
+    `SELECT * FROM eligibility_questions ORDER BY display_order ASC, id ASC`
+  )).rows;
+
+  const stageSettingsRows = (await db.query(`SELECT * FROM stage_settings`)).rows;
+  const stageSettings = {};
+  for (const r of stageSettingsRows) {
+    if (!stageSettings[r.stage_number]) stageSettings[r.stage_number] = {};
+    stageSettings[r.stage_number][r.field_key] = r.field_value;
+  }
+  const stageBlocksRows = (await db.query(`SELECT * FROM stage_blocks ORDER BY stage_number, display_order ASC, id ASC`)).rows;
+  const stageBlocks = {};
+  for (const b of stageBlocksRows) {
+    if (!stageBlocks[b.stage_number]) stageBlocks[b.stage_number] = [];
+    stageBlocks[b.stage_number].push(b);
+  }
+  const agreementItems = (await db.query(`SELECT * FROM agreement_items ORDER BY display_order ASC, id ASC`)).rows;
+  const playstyleOptions = (await db.query(`SELECT * FROM playstyle_options ORDER BY display_order ASC, id ASC`)).rows;
+
+  res.render('apply', {
+    event: previewEvent,
+    eligibilityQuestions,
+    existing: null,
+    submitted: false,
+    stageSettings, stageBlocks, agreementItems, playstyleOptions,
+    previewMode: true
+  });
+});
+
 // View single application
 router.get('/application/:id', async (req, res) => {
   const appRes = await db.query(`SELECT * FROM structured_applications WHERE id = $1`, [req.params.id]);
