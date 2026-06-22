@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
   let existing = null;
   if (event && req.session.user) {
     existing = (await db.query(
-      `SELECT id, status FROM structured_applications WHERE discord_id = $1`,
+      `SELECT id, status, review_stage, declined_at_stage FROM structured_applications WHERE discord_id = $1`,
       [req.session.user.id]
     )).rows[0] || null;
   }
@@ -67,6 +67,23 @@ router.post('/submit', async (req, res) => {
   );
 
   res.redirect('/apply?submitted=1');
+});
+
+// Record Stage 1 disqualification so user can't re-apply
+router.post('/record-disqualified', async (req, res) => {
+  if (!req.session.user) return res.json({ ok: false });
+  const existing = (await db.query(
+    `SELECT id FROM structured_applications WHERE discord_id = $1`, [req.session.user.id]
+  )).rows[0];
+  if (!existing) {
+    await db.query(
+      `INSERT INTO structured_applications (discord_id, discord_tag, discord_avatar, status, eligibility_answers)
+       VALUES ($1,$2,$3,'disqualified',$4)`,
+      [req.session.user.id, req.session.user.username, req.session.user.avatar,
+       req.body.answers || {}]
+    );
+  }
+  res.json({ ok: true });
 });
 
 module.exports = router;

@@ -146,14 +146,16 @@
 
         <!-- Stats -->
         <div class="app-stats-bar">
-          <% const statTotal = applications.length; %>
+          <% const statTotal = applications.filter(a=>a.status!=='disqualified').length; %>
           <% const statPending = applications.filter(a=>a.status==='pending').length; %>
           <% const statAccepted = applications.filter(a=>a.status==='accepted').length; %>
           <% const statDeclined = applications.filter(a=>a.status==='declined').length; %>
-          <div class="app-stat"><span class="app-stat-n"><%= statTotal %></span><span class="app-stat-l">Total</span></div>
+          <% const statDisq = applications.filter(a=>a.status==='disqualified').length; %>
+          <div class="app-stat"><span class="app-stat-n"><%= statTotal %></span><span class="app-stat-l">Applied</span></div>
           <div class="app-stat app-stat--pending"><span class="app-stat-n"><%= statPending %></span><span class="app-stat-l">Pending</span></div>
           <div class="app-stat app-stat--accepted"><span class="app-stat-n"><%= statAccepted %></span><span class="app-stat-l">Accepted</span></div>
           <div class="app-stat app-stat--declined"><span class="app-stat-n"><%= statDeclined %></span><span class="app-stat-l">Declined</span></div>
+          <% if (statDisq > 0) { %><div class="app-stat"><span class="app-stat-n"><%= statDisq %></span><span class="app-stat-l">Disqualified</span></div><% } %>
         </div>
 
         <!-- Controls -->
@@ -161,13 +163,21 @@
           <div class="app-filter-tabs" id="appFilterTabs">
             <button class="app-filter-tab active" data-filter="all" onclick="filterApps('all',this)">All (<%= statTotal %>)</button>
             <button class="app-filter-tab" data-filter="pending" onclick="filterApps('pending',this)">Pending (<%= statPending %>)</button>
+            <% for (let s = 2; s <= 6; s++) { %>
+              <% const stageLabels = {2:'Basic Info',3:'Playstyle',4:'Scenarios',5:'Application',6:'Agreement'}; %>
+              <% const stageN = applications.filter(a=>a.status==='pending'&&(a.review_stage||2)===s).length; %>
+              <% if (stageN > 0) { %>
+                <button class="app-filter-tab app-filter-tab--stage" data-filter="stage<%= s %>" onclick="filterApps('stage<%= s %>',this)">S<%= s %>: <%= stageLabels[s] %> (<%= stageN %>)</button>
+              <% } %>
+            <% } %>
             <button class="app-filter-tab" data-filter="accepted" onclick="filterApps('accepted',this)">Accepted (<%= statAccepted %>)</button>
             <button class="app-filter-tab" data-filter="declined" onclick="filterApps('declined',this)">Declined (<%= statDeclined %>)</button>
           </div>
           <input type="text" class="app-search-input" id="appSearch" placeholder="Search by IGN or Discord..." oninput="filterApps(currentFilter, null)" />
         </div>
 
-        <% if (applications.length === 0) { %>
+        <% const listedApps = applications.filter(a => a.status !== 'disqualified'); %>
+        <% if (listedApps.length === 0) { %>
           <div class="admin-card"><p class="muted">No applications yet.</p></div>
         <% } else { %>
           <div class="admin-card" style="padding:0;overflow:hidden">
@@ -180,8 +190,8 @@
               <span></span>
             </div>
             <div id="appList">
-              <% for (const a of applications) { %>
-                <div class="app-list-row" data-status="<%= a.status %>" data-search="<%= ((a.ign||'')+(a.discord_tag||'')).toLowerCase() %>">
+              <% for (const a of listedApps) { %>
+                <div class="app-list-row" data-status="<%= a.status %>" data-stage="stage<%= a.review_stage||2 %>" data-search="<%= ((a.ign||'')+(a.discord_tag||'')).toLowerCase() %>">
                   <span class="app-applicant-cell">
                     <img src="<%= a.discord_avatar || '' %>" class="app-avatar" onerror="this.style.display='none'" />
                     <span class="muted" style="font-size:0.8rem">@<%= a.discord_tag || '—' %></span>
@@ -189,7 +199,11 @@
                   <span class="app-ign-cell"><%= a.ign || '—' %></span>
                   <span><% if(a.playstyle){ %><span class="playstyle-badge playstyle-<%= a.playstyle %>"><%= a.playstyle %></span><% } else { %>—<% } %></span>
                   <span class="muted" style="font-size:0.8rem"><%= new Date(a.submitted_at).toLocaleDateString('en-GB') %></span>
-                  <span><span class="status-badge status-<%= a.status %>"><%= a.status %></span></span>
+                  <span>
+                    <span class="status-badge status-<%= a.status %>"><%= a.status %></span>
+                    <% if (a.status === 'pending') { %><span class="review-stage-chip review-stage-chip--sm">S<%= a.review_stage||2 %></span><% } %>
+                    <% if (a.status === 'declined' && a.declined_at_stage) { %><span class="review-stage-chip review-stage-chip--fail review-stage-chip--sm">at S<%= a.declined_at_stage %></span><% } %>
+                  </span>
                   <span><a href="/admin/application/<%= a.id %>" class="btn btn-sm btn-outline">Review</a></span>
                 </div>
               <% } %>
@@ -483,7 +497,10 @@
     const rows = document.querySelectorAll('#appList .app-list-row');
     let visible = 0;
     rows.forEach(row => {
-      const statusMatch = currentFilter === 'all' || row.dataset.status === currentFilter;
+      let statusMatch;
+      if (currentFilter === 'all') statusMatch = true;
+      else if (currentFilter.startsWith('stage')) statusMatch = row.dataset.status === 'pending' && row.dataset.stage === currentFilter;
+      else statusMatch = row.dataset.status === currentFilter;
       const searchMatch = !search || (row.dataset.search || '').includes(search);
       const show = statusMatch && searchMatch;
       row.style.display = show ? '' : 'none';

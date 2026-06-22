@@ -15,24 +15,33 @@
             <div class="review-bar-tag">@<%= app.discord_tag %></div>
           </div>
           <span class="status-badge status-<%= app.status %>"><%= app.status %></span>
+          <% if (app.status === 'pending') { %>
+            <span class="review-stage-chip">Reviewing Stage <%= app.review_stage || 2 %></span>
+          <% } %>
+          <% if (app.status === 'declined' && app.declined_at_stage) { %>
+            <span class="review-stage-chip review-stage-chip--fail">Declined at Stage <%= app.declined_at_stage %></span>
+          <% } %>
         </div>
         <div class="review-bar-actions">
-          <% if (app.status !== 'accepted') { %>
-            <form action="/admin/application/<%= app.id %>/status" method="POST" style="display:inline">
-              <input type="hidden" name="status" value="accepted" />
-              <button type="submit" class="btn btn-accept">Accept</button>
+          <% if (app.status === 'pending') { %>
+            <% const stage = app.review_stage || 2; %>
+            <form action="/admin/application/<%= app.id %>/pass-stage" method="POST" style="display:inline">
+              <button type="submit" class="btn btn-accept"><%= stage >= 6 ? 'Accept' : 'Pass Stage ' + stage %></button>
+            </form>
+            <form action="/admin/application/<%= app.id %>/decline-stage" method="POST" style="display:inline">
+              <button type="submit" class="btn btn-decline" onclick="return confirm('Decline at Stage <%= stage %>?')">Decline Stage <%= stage %></button>
             </form>
           <% } %>
-          <% if (app.status !== 'declined') { %>
-            <form action="/admin/application/<%= app.id %>/status" method="POST" style="display:inline">
-              <input type="hidden" name="status" value="declined" />
-              <button type="submit" class="btn btn-decline" onclick="return confirm('Decline this application?')">Decline</button>
-            </form>
+          <% if (app.status === 'accepted') { %>
+            <span class="muted" style="font-size:0.8rem;align-self:center">Accepted</span>
+          <% } %>
+          <% if (app.status === 'declined') { %>
+            <span class="muted" style="font-size:0.8rem;align-self:center">Declined</span>
           <% } %>
           <% if (app.status !== 'pending') { %>
             <form action="/admin/application/<%= app.id %>/status" method="POST" style="display:inline">
               <input type="hidden" name="status" value="pending" />
-              <button type="submit" class="btn btn-ghost btn-sm">Reset</button>
+              <button type="submit" class="btn btn-ghost btn-sm">Reset to Pending</button>
             </form>
           <% } %>
         </div>
@@ -43,6 +52,24 @@
 
         <!-- ── Main content ── -->
         <div class="review-main">
+
+          <% if (app.status === 'pending' || app.status === 'declined') { %>
+          <div class="review-stage-track">
+            <% const stageNames = ['Eligibility','Basic Info','Playstyle','Scenarios','Application','Agreement']; %>
+            <% const currentStage = app.review_stage || 2; %>
+            <% const declinedStage = app.declined_at_stage || null; %>
+            <% for (let s = 1; s <= 6; s++) { %>
+              <% const isPassed = app.status === 'pending' ? s < currentStage : (declinedStage ? s < declinedStage : s < currentStage); %>
+              <% const isCurrent = app.status === 'pending' && s === currentStage; %>
+              <% const isDeclined = app.status === 'declined' && s === declinedStage; %>
+              <div class="rst-step <%= isPassed ? 'rst-passed' : isCurrent ? 'rst-current' : isDeclined ? 'rst-declined' : 'rst-waiting' %>">
+                <div class="rst-dot"><%= isPassed ? '✓' : isDeclined ? '✕' : s %></div>
+                <div class="rst-label">S<%= s %></div>
+              </div>
+              <% if (s < 6) { %><div class="rst-line <%= isPassed ? 'rst-passed' : '' %>"></div><% } %>
+            <% } %>
+          </div>
+          <% } %>
 
           <div class="review-section">
             <div class="review-section-label">Stage 1 — Eligibility</div>

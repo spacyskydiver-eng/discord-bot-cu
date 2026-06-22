@@ -19,6 +19,13 @@
           <p class="muted">There are no events open for applications right now. Check back soon.</p>
         </div>
 
+      <% } else if (existing && existing.status === 'disqualified') { %>
+        <div class="status-card status-card--declined reveal">
+          <div class="status-card-icon">✕</div>
+          <h2>Not Eligible</h2>
+          <p class="muted">You did not meet the eligibility requirements for <strong><%= event.title %></strong>. You cannot reapply for this event with this Discord account.</p>
+        </div>
+
       <% } else if (existing && existing.status === 'accepted') { %>
         <div class="status-card status-card--accepted reveal">
           <div class="status-card-icon">✓</div>
@@ -30,15 +37,34 @@
         <div class="status-card status-card--declined reveal">
           <div class="status-card-icon">✕</div>
           <h2>Application Declined</h2>
-          <p class="muted">Your application was not successful this time. We appreciate you applying and hope to see you at a future event.</p>
+          <% if (existing.declined_at_stage) { %>
+            <p class="muted">Your application was not successful at Stage <%= existing.declined_at_stage %>. You cannot reapply for this event with this Discord account.</p>
+          <% } else { %>
+            <p class="muted">Your application was not successful this time. We appreciate you applying and hope to see you at a future event.</p>
+          <% } %>
         </div>
 
-      <% } else if (existing) { %>
-        <div class="status-card reveal">
+      <% } else if (existing && existing.status === 'pending') { %>
+        <div class="status-card reveal" style="padding-bottom:2rem">
           <div class="status-card-icon">◎</div>
           <h2>Application Under Review</h2>
-          <p>Your application for <strong><%= event.title %></strong> has been submitted and is being reviewed. We will reach out via Discord.</p>
-          <span class="status-badge status-pending" style="margin-top:0.75rem;display:inline-block">Pending</span>
+          <p>Your application for <strong><%= event.title %></strong> is being reviewed by staff. Track your progress below.</p>
+          <div class="app-progress">
+            <% const stageNames = {2:'Basic Info',3:'Playstyle',4:'Scenarios',5:'Application',6:'Agreement'}; %>
+            <% const reviewStage = existing.review_stage || 2; %>
+            <% for (let s = 2; s <= 6; s++) { %>
+              <% const passed = reviewStage > s; %>
+              <% const current = reviewStage === s; %>
+              <div class="app-prog-step <%= passed ? 'app-prog-passed' : current ? 'app-prog-current' : 'app-prog-waiting' %>">
+                <div class="app-prog-dot"><%= passed ? '✓' : s %></div>
+                <div class="app-prog-info">
+                  <div class="app-prog-name">Stage <%= s %> — <%= stageNames[s] %></div>
+                  <div class="app-prog-status"><%= passed ? 'Passed' : current ? 'Under Review' : 'Waiting' %></div>
+                </div>
+              </div>
+              <% if (s < 6) { %><div class="app-prog-line <%= passed ? 'app-prog-passed' : '' %>"></div><% } %>
+            <% } %>
+          </div>
         </div>
 
       <% } else if (submitted) { %>
@@ -360,6 +386,11 @@ function checkEligibility() {
   });
   document.getElementById('eligAnswersInput').value = JSON.stringify(eligAnswers);
   if (disq) {
+    fetch('/apply/record-disqualified', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answers: eligAnswers })
+    }).catch(() => {});
     document.getElementById('eligQList').style.display = 'none';
     document.getElementById('stage1Nav').style.display = 'none';
     document.getElementById('disqMsg').style.display = 'block';

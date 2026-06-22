@@ -1406,6 +1406,130 @@ img { display: block; }
 .review-qrow { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.82rem; }
 .review-qrow:last-child { border-bottom: none; }
 
+/* ── Stage tracker (admin-application) ── */
+.review-stage-track {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  overflow-x: auto;
+}
+.rst-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+.rst-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border: 2px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.4);
+}
+.rst-label {
+  font-size: 0.62rem;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.rst-passed .rst-dot { background: rgba(78,201,148,0.18); border-color: #4ec994; color: #4ec994; }
+.rst-passed .rst-label { color: #4ec994; }
+.rst-current .rst-dot { background: rgba(201,168,76,0.18); border-color: var(--gold); color: var(--gold); }
+.rst-current .rst-label { color: var(--gold); font-weight: 700; }
+.rst-declined .rst-dot { background: rgba(220,50,50,0.18); border-color: var(--danger); color: var(--danger); }
+.rst-declined .rst-label { color: var(--danger); }
+.rst-line {
+  flex: 1;
+  height: 2px;
+  background: rgba(255,255,255,0.08);
+  min-width: 20px;
+  max-width: 40px;
+  margin-bottom: 1rem;
+}
+.rst-line.rst-passed { background: #4ec994; }
+
+/* ── Review stage chips ── */
+.review-stage-chip {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(201,168,76,0.15);
+  color: var(--gold);
+  border: 1px solid rgba(201,168,76,0.3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  margin-left: 0.4rem;
+}
+.review-stage-chip--fail { background: rgba(220,50,50,0.15); color: #f87171; border-color: rgba(220,50,50,0.3); }
+.review-stage-chip--sm { font-size: 0.58rem; padding: 0.1rem 0.35rem; margin-left: 0.3rem; }
+
+/* ── User-facing application progress timeline ── */
+.app-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 1.5rem;
+  padding: 0 0.25rem;
+  width: 100%;
+}
+.app-prog-step {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.6rem 0;
+}
+.app-prog-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.4);
+}
+.app-prog-info { flex: 1; }
+.app-prog-name { font-size: 0.82rem; font-weight: 600; color: var(--text); }
+.app-prog-status { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.1rem; }
+.app-prog-line {
+  width: 2px;
+  height: 16px;
+  background: rgba(255,255,255,0.08);
+  margin-left: 15px;
+}
+.app-prog-line.app-prog-passed { background: #4ec994; }
+.app-prog-passed .app-prog-dot { background: rgba(78,201,148,0.18); border-color: #4ec994; color: #4ec994; }
+.app-prog-passed .app-prog-name { color: #4ec994; }
+.app-prog-passed .app-prog-status { color: #4ec994; }
+.app-prog-current .app-prog-dot { background: rgba(201,168,76,0.18); border-color: var(--gold); color: var(--gold); animation: glowPulse 2s ease-in-out infinite; }
+.app-prog-current .app-prog-name { color: var(--gold); }
+.app-prog-current .app-prog-status { color: var(--gold); }
+
+/* ── Stage filter tabs variant ── */
+.app-filter-tab--stage {
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+
 /* ── Scroll reveal animations ── */
 .reveal {
   opacity: 0;

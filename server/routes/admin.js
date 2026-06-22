@@ -56,13 +56,55 @@ router.get('/application/:id', async (req, res) => {
   res.render('admin-application', { app, eligibilityQuestions });
 });
 
-// Update application status
+// Update application status (manual override / reset)
 router.post('/application/:id/status', async (req, res) => {
   const { status } = req.body;
-  const acceptedAt = status === 'accepted' ? new Date() : null;
+  if (status === 'pending') {
+    await db.query(
+      `UPDATE structured_applications SET status='pending', accepted_at=NULL, declined_at_stage=NULL, review_stage=2 WHERE id=$1`,
+      [req.params.id]
+    );
+  } else if (status === 'accepted') {
+    await db.query(
+      `UPDATE structured_applications SET status='accepted', accepted_at=$1 WHERE id=$2`,
+      [new Date(), req.params.id]
+    );
+  } else if (status === 'declined') {
+    await db.query(
+      `UPDATE structured_applications SET status='declined' WHERE id=$1`,
+      [req.params.id]
+    );
+  }
+  res.redirect(`/admin/application/${req.params.id}`);
+});
+
+// Pass current review stage (advance to next, or accept if at stage 6)
+router.post('/application/:id/pass-stage', async (req, res) => {
+  const appRes = await db.query(`SELECT review_stage FROM structured_applications WHERE id = $1`, [req.params.id]);
+  if (!appRes.rows.length) return res.redirect('/admin');
+  const stage = appRes.rows[0].review_stage || 2;
+  if (stage >= 6) {
+    await db.query(
+      `UPDATE structured_applications SET status='accepted', accepted_at=$1 WHERE id=$2`,
+      [new Date(), req.params.id]
+    );
+  } else {
+    await db.query(
+      `UPDATE structured_applications SET review_stage=$1 WHERE id=$2`,
+      [stage + 1, req.params.id]
+    );
+  }
+  res.redirect(`/admin/application/${req.params.id}`);
+});
+
+// Decline at current review stage
+router.post('/application/:id/decline-stage', async (req, res) => {
+  const appRes = await db.query(`SELECT review_stage FROM structured_applications WHERE id = $1`, [req.params.id]);
+  if (!appRes.rows.length) return res.redirect('/admin');
+  const stage = appRes.rows[0].review_stage || 2;
   await db.query(
-    `UPDATE structured_applications SET status = $1, accepted_at = $2 WHERE id = $3`,
-    [status, acceptedAt, req.params.id]
+    `UPDATE structured_applications SET status='declined', declined_at_stage=$1 WHERE id=$2`,
+    [stage, req.params.id]
   );
   res.redirect(`/admin/application/${req.params.id}`);
 });
