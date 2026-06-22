@@ -1,6 +1,32 @@
 <%- include('partials/head', { title: 'Apply' }) %>
 <%- include('partials/nav') %>
 
+<%
+// Helper: render a single stage content block
+function renderBlock(b) {
+  if (b.block_type === 'image') {
+    return `<figure class="sb sb-image"><img src="${b.content}" alt="${b.label||''}" />${b.label ? `<figcaption>${b.label}</figcaption>` : ''}</figure>`;
+  }
+  if (b.block_type === 'video') {
+    const ytMatch = b.content.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})/);
+    if (ytMatch) {
+      return `<figure class="sb sb-video"><div class="sb-iframe-wrap"><iframe src="https://www.youtube.com/embed/${ytMatch[1]}" frameborder="0" allowfullscreen></iframe></div>${b.label ? `<figcaption>${b.label}</figcaption>` : ''}</figure>`;
+    }
+    return `<figure class="sb sb-video"><video src="${b.content}" controls class="sb-video-el"></video>${b.label ? `<figcaption>${b.label}</figcaption>` : ''}</figure>`;
+  }
+  if (b.block_type === 'timestamp') {
+    return `<div class="sb sb-timestamp"><span class="sb-ts-label">${b.label||'Event time'}:</span> <span class="tz-stamp" data-utc="${b.content}">Loading...</span></div>`;
+  }
+  // text block
+  const cls = b.style_class || 'normal';
+  if (cls === 'heading') return `<h3 class="sb sb-text sb-heading">${b.content}</h3>`;
+  if (cls === 'glow') return `<p class="sb sb-text glow-text">${b.content}</p>`;
+  if (cls === 'animated') return `<p class="sb sb-text sb-animated">${b.content}</p>`;
+  if (cls === 'muted') return `<p class="sb sb-text muted">${b.content}</p>`;
+  return `<p class="sb sb-text">${b.content}</p>`;
+}
+%>
+
 <main class="page-main">
   <section class="page-hero">
     <div class="container">
@@ -50,7 +76,7 @@
           <h2>Application Under Review</h2>
           <p>Your application for <strong><%= event.title %></strong> is being reviewed by staff. Track your progress below.</p>
           <div class="app-progress">
-            <% const stageNames = {2:'Basic Info',3:'Playstyle',4:'Scenarios',5:'Application',6:'Agreement'}; %>
+            <% const stageNameMap = {2:'Basic Info',3:'Playstyle',4:'Scenarios',5:'Application',6:'Agreement'}; %>
             <% const reviewStage = existing.review_stage || 2; %>
             <% for (let s = 2; s <= 6; s++) { %>
               <% const passed = reviewStage > s; %>
@@ -58,7 +84,7 @@
               <div class="app-prog-step <%= passed ? 'app-prog-passed' : current ? 'app-prog-current' : 'app-prog-waiting' %>">
                 <div class="app-prog-dot"><%= passed ? '✓' : s %></div>
                 <div class="app-prog-info">
-                  <div class="app-prog-name">Stage <%= s %> — <%= stageNames[s] %></div>
+                  <div class="app-prog-name">Stage <%= s %> — <%= stageNameMap[s] %></div>
                   <div class="app-prog-status"><%= passed ? 'Passed' : current ? 'Under Review' : 'Waiting' %></div>
                 </div>
               </div>
@@ -127,6 +153,8 @@
               <p class="muted">Confirm you meet the basic requirements before you apply. This takes about 30 seconds.</p>
             </div>
 
+            <%- (stageBlocks[1] || []).map(b => renderBlock(b)).join('') %>
+
             <div id="eligQList">
               <% for (const q of eligibilityQuestions) { %>
                 <div class="elig-item" data-id="<%= q.id %>" data-req-yes="<%= q.required_yes %>" data-blocking="<%= q.blocking %>">
@@ -154,8 +182,10 @@
           <div class="wizard-stage" id="stage-2">
             <div class="wizard-stage-hd">
               <div class="wizard-stage-num">Stage 2 of 6</div>
-              <h2>Basic Information</h2>
+              <h2><%= (stageSettings[2] && stageSettings[2].title) || 'Basic Information' %></h2>
+              <% if (stageSettings[2] && stageSettings[2].subtitle) { %><p class="muted"><%= stageSettings[2].subtitle %></p><% } %>
             </div>
+            <%- (stageBlocks[2] || []).map(b => renderBlock(b)).join('') %>
             <div class="form-field">
               <label class="form-label">Minecraft In-Game Name <span class="required">*</span></label>
               <input type="text" name="ign" class="form-input" placeholder="Your exact IGN" />
@@ -216,26 +246,21 @@
           <div class="wizard-stage" id="stage-3">
             <div class="wizard-stage-hd">
               <div class="wizard-stage-num">Stage 3 of 6</div>
-              <h2>Playstyle</h2>
-              <p class="muted">Select the role that best fits how you play. There are no wrong answers.</p>
+              <h2><%= (stageSettings[3] && stageSettings[3].title) || 'Playstyle' %></h2>
+              <% if (stageSettings[3] && stageSettings[3].subtitle) { %><p class="muted"><%= stageSettings[3].subtitle %></p><% } %>
             </div>
+            <%- (stageBlocks[3] || []).map(b => renderBlock(b)).join('') %>
             <input type="hidden" name="playstyle" id="playstyleVal" />
             <div class="playstyle-grid">
-              <% [
-                ['diplomat','Diplomat','Building relationships, negotiating, and forming alliances'],
-                ['warrior', 'Warrior', 'Combat, raiding, and defending territory'],
-                ['builder', 'Builder', 'Constructing, farming, and developing your civilisation'],
-                ['trader',  'Trader',  'Resources, economy, and exchanging with other players'],
-                ['spy',     'Spy',     'Gathering information, infiltrating, and working in the shadows']
-              ].forEach(([val, title, desc]) => { %>
-                <div class="playstyle-card" data-val="<%= val %>" onclick="pickPlaystyle(this)">
-                  <div class="playstyle-card-title"><%= title %></div>
-                  <div class="playstyle-card-desc"><%= desc %></div>
+              <% for (const ps of playstyleOptions) { %>
+                <div class="playstyle-card" data-val="<%= ps.value_key %>" onclick="pickPlaystyle(this)">
+                  <div class="playstyle-card-title"><%= ps.title %></div>
+                  <div class="playstyle-card-desc"><%= ps.description %></div>
                 </div>
-              <% }) %>
+              <% } %>
             </div>
             <div class="form-field" style="margin-top:1.5rem">
-              <label class="form-label">Describe in 2-3 sentences how you would actually play this event based on your chosen playstyle. <span class="required">*</span></label>
+              <label class="form-label"><%= (stageSettings[3] && stageSettings[3].playstyle_desc_label) || 'Describe in 2-3 sentences how you would actually play this event based on your chosen playstyle.' %> <span class="required">*</span></label>
               <textarea name="playstyle_description" class="form-textarea" rows="4" placeholder="Be specific. What would you actually do on Day 1?"></textarea>
             </div>
             <div class="wizard-nav">
@@ -248,25 +273,26 @@
           <div class="wizard-stage" id="stage-4">
             <div class="wizard-stage-hd">
               <div class="wizard-stage-num">Stage 4 of 6</div>
-              <h2>Scenario Questions</h2>
-              <p class="muted">These are the most important part. There are no right or wrong answers. We are looking for personality, creativity, and whether you would create interesting gameplay.</p>
+              <h2><%= (stageSettings[4] && stageSettings[4].title) || 'Scenario Questions' %></h2>
+              <% if (stageSettings[4] && stageSettings[4].subtitle) { %><p class="muted"><%= stageSettings[4].subtitle %></p><% } %>
             </div>
+            <%- (stageBlocks[4] || []).map(b => renderBlock(b)).join('') %>
 
             <div class="scenario-block">
-              <div class="scenario-num">Scenario 1</div>
-              <blockquote class="scenario-quote">Your island is falling behind on altar contributions and is at risk of being destroyed. A player from another island approaches you privately and offers to send resources in exchange for information about your civilisation's defences. What do you do?</blockquote>
+              <div class="scenario-num"><%= (stageSettings[4] && stageSettings[4].scenario_1_title) || 'Scenario 1' %></div>
+              <blockquote class="scenario-quote"><%= (stageSettings[4] && stageSettings[4].scenario_1_text) || '' %></blockquote>
               <textarea name="scenario_1" class="form-textarea" rows="5" placeholder="Your response..."></textarea>
             </div>
 
             <div class="scenario-block">
-              <div class="scenario-num">Scenario 2</div>
-              <blockquote class="scenario-quote">You discover that a player on your own island has been secretly trading supplies with an enemy civilisation. You have no proof yet. What do you do?</blockquote>
+              <div class="scenario-num"><%= (stageSettings[4] && stageSettings[4].scenario_2_title) || 'Scenario 2' %></div>
+              <blockquote class="scenario-quote"><%= (stageSettings[4] && stageSettings[4].scenario_2_text) || '' %></blockquote>
               <textarea name="scenario_2" class="form-textarea" rows="5" placeholder="Your response..."></textarea>
             </div>
 
             <div class="scenario-block">
-              <div class="scenario-num">Scenario 3</div>
-              <blockquote class="scenario-quote">Your civilisation has just destroyed another island. Refugees are now arriving on your island looking for a new home. Some of your team want to accept them, others do not trust them. What is your position and why?</blockquote>
+              <div class="scenario-num"><%= (stageSettings[4] && stageSettings[4].scenario_3_title) || 'Scenario 3' %></div>
+              <blockquote class="scenario-quote"><%= (stageSettings[4] && stageSettings[4].scenario_3_text) || '' %></blockquote>
               <textarea name="scenario_3" class="form-textarea" rows="5" placeholder="Your response..."></textarea>
             </div>
 
@@ -280,18 +306,19 @@
           <div class="wizard-stage" id="stage-5">
             <div class="wizard-stage-hd">
               <div class="wizard-stage-num">Stage 5 of 6</div>
-              <h2>Your Application</h2>
-              <p class="muted">Choose how you want to introduce yourself.</p>
+              <h2><%= (stageSettings[5] && stageSettings[5].title) || 'Your Application' %></h2>
+              <% if (stageSettings[5] && stageSettings[5].subtitle) { %><p class="muted"><%= stageSettings[5].subtitle %></p><% } %>
             </div>
+            <%- (stageBlocks[5] || []).map(b => renderBlock(b)).join('') %>
             <input type="hidden" name="app_type" id="appTypeVal" />
             <div class="app-type-grid">
               <div class="app-type-card" data-type="video" onclick="pickAppType('video',this)">
-                <div class="app-type-card-title">Video</div>
-                <div class="app-type-card-desc">Record a short 1-3 minute introduction and paste the link. Tell us who you are, your Minecraft experience, and why you want to be part of The Collective.</div>
+                <div class="app-type-card-title"><%= (stageSettings[5] && stageSettings[5].video_title) || 'Video' %></div>
+                <div class="app-type-card-desc"><%= (stageSettings[5] && stageSettings[5].video_desc) || 'Record a short 1-3 minute introduction and paste the link.' %></div>
               </div>
               <div class="app-type-card" data-type="written" onclick="pickAppType('written',this)">
-                <div class="app-type-card-title">Written</div>
-                <div class="app-type-card-desc">Write at least 150 words covering who you are, your Minecraft experience, and what you would bring to this event that would make it more interesting for everyone playing.</div>
+                <div class="app-type-card-title"><%= (stageSettings[5] && stageSettings[5].written_title) || 'Written' %></div>
+                <div class="app-type-card-desc"><%= (stageSettings[5] && stageSettings[5].written_desc) || 'Write at least 150 words.' %></div>
               </div>
             </div>
             <div id="videoSection" class="cond-field" style="display:none">
@@ -317,27 +344,18 @@
           <div class="wizard-stage" id="stage-6">
             <div class="wizard-stage-hd">
               <div class="wizard-stage-num">Stage 6 of 6</div>
-              <h2>Final Agreement</h2>
-              <p class="muted">Confirm you understand the following before submitting.</p>
+              <h2><%= (stageSettings[6] && stageSettings[6].title) || 'Final Agreement' %></h2>
+              <% if (stageSettings[6] && stageSettings[6].subtitle) { %><p class="muted"><%= stageSettings[6].subtitle %></p><% } %>
             </div>
+            <%- (stageBlocks[6] || []).map(b => renderBlock(b)).join('') %>
             <input type="hidden" name="agreements" id="agreementsVal" value="" />
             <div class="agreement-list">
-              <label class="agreement-item">
-                <input type="checkbox" class="agr-check" />
-                <span class="agr-text">I understand this is not a 24/7 server and sessions are scheduled in advance</span>
-              </label>
-              <label class="agreement-item">
-                <input type="checkbox" class="agr-check" />
-                <span class="agr-text">I understand that if I am inactive or disruptive I may be removed from the event</span>
-              </label>
-              <label class="agreement-item">
-                <input type="checkbox" class="agr-check" />
-                <span class="agr-text">I understand that PvP, stealing, and betrayal are all allowed and part of the event</span>
-              </label>
-              <label class="agreement-item">
-                <input type="checkbox" class="agr-check" />
-                <span class="agr-text">I understand that my actions during the event may be recorded and used in future content</span>
-              </label>
+              <% for (const item of agreementItems) { %>
+                <label class="agreement-item">
+                  <input type="checkbox" class="agr-check" />
+                  <span class="agr-text"><%= item.item_text %></span>
+                </label>
+              <% } %>
             </div>
             <div class="wizard-nav">
               <button type="button" class="btn btn-ghost" onclick="goStage(5)">Back</button>
@@ -352,6 +370,17 @@
 </main>
 
 <script>
+// ── Timezone timestamps ──
+document.querySelectorAll('.tz-stamp').forEach(el => {
+  try {
+    const d = new Date(el.dataset.utc);
+    el.textContent = d.toLocaleString(undefined, {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+      hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
+    });
+  } catch(_) { el.textContent = el.dataset.utc; }
+});
+
 // ── Navigation ──
 function goStage(n) {
   document.querySelectorAll('.wizard-stage').forEach(s => s.classList.remove('active'));
@@ -475,7 +504,7 @@ function nextFrom(stage) {
     for (const name of ['scenario_1','scenario_2','scenario_3']) {
       if (!document.querySelector(`[name="${name}"]`).value.trim()) {
         document.querySelector(`[name="${name}"]`).scrollIntoView({ behavior: 'smooth', block: 'center' });
-        alert('Please answer all three scenarios.');
+        alert('Please answer all scenario questions.');
         return;
       }
     }

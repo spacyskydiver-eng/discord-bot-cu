@@ -15,7 +15,7 @@
       <!-- Tab nav -->
       <div class="admin-tabs">
         <button class="admin-tab active" data-tab="event">Event</button>
-        <button class="admin-tab" data-tab="questions">Eligibility</button>
+        <button class="admin-tab" data-tab="questions">Stages</button>
         <button class="admin-tab" data-tab="applications" id="applications">
           Applications<% const pendingCount = applications.filter(a=>a.status==='pending').length; if(pendingCount>0){ %><span class="tab-badge"><%= pendingCount %></span><% } %>
         </button>
@@ -88,57 +88,331 @@
         <% } %>
       </div>
 
-      <!-- ELIGIBILITY TAB -->
+      <!-- STAGES TAB -->
       <div class="admin-panel" id="tab-questions">
-        <div class="admin-card">
-          <h2>Eligibility Questions</h2>
-          <p class="muted" style="font-size:0.85rem;margin-bottom:1.5rem">These yes/no questions appear at Stage 1 of the application. <strong>Blocking</strong> means a wrong answer immediately disqualifies the applicant. Non-blocking questions are requirements but failing them alone does not disqualify.</p>
-          <% if (eligibilityQuestions.length > 0) { %>
-            <div class="questions-list">
-              <% for (const q of eligibilityQuestions) { %>
-                <div class="question-item">
-                  <span class="question-order">#<%= q.display_order %></span>
-                  <span class="question-text"><%= q.question_text %></span>
-                  <span class="question-type-badge" style="background:rgba(78,201,148,0.12);color:#4ec994"><%= q.required_yes ? 'Must say YES' : 'Must say NO' %></span>
-                  <span class="question-type-badge" style="<%= q.blocking ? 'background:rgba(220,50,50,0.12);color:#f87171' : 'background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.4)' %>"><%= q.blocking ? 'Blocking' : 'Optional' %></span>
-                  <form action="/admin/eligibility/delete" method="POST" style="display:inline">
-                    <input type="hidden" name="id" value="<%= q.id %>" />
-                    <button type="submit" class="btn-icon btn-delete" onclick="return confirm('Delete this question?')">✕</button>
+
+        <%
+          const stageLabelsAdmin = {
+            1: 'Eligibility Check',
+            2: 'Basic Information',
+            3: 'Playstyle',
+            4: 'Scenario Questions',
+            5: 'Your Application',
+            6: 'Final Agreement'
+          };
+        %>
+
+        <% for (let sn = 1; sn <= 6; sn++) { %>
+          <div class="stage-acc" id="stage-acc-<%= sn %>">
+            <button class="stage-acc-hd" onclick="toggleAcc(<%= sn %>)" type="button">
+              <span class="stage-acc-num">Stage <%= sn %></span>
+              <span class="stage-acc-name"><%= stageLabelsAdmin[sn] %></span>
+              <span class="stage-acc-arrow" id="acc-arrow-<%= sn %>">▶</span>
+            </button>
+            <div class="stage-acc-body" id="acc-body-<%= sn %>" style="display:none">
+
+              <% if (sn === 1) { %>
+                <!-- ── Stage 1: Eligibility questions ── -->
+                <div class="admin-card" style="margin:0;border-radius:0 0 var(--radius) var(--radius)">
+                  <p class="muted" style="font-size:0.85rem;margin-bottom:1.5rem"><strong>Blocking</strong> means a wrong answer immediately disqualifies the applicant.</p>
+                  <% if (eligibilityQuestions.length > 0) { %>
+                    <div class="questions-list">
+                      <% for (const q of eligibilityQuestions) { %>
+                        <div class="question-item">
+                          <span class="question-order">#<%= q.display_order %></span>
+                          <span class="question-text"><%= q.question_text %></span>
+                          <span class="question-type-badge" style="background:rgba(78,201,148,0.12);color:#4ec994"><%= q.required_yes ? 'Must say YES' : 'Must say NO' %></span>
+                          <span class="question-type-badge" style="<%= q.blocking ? 'background:rgba(220,50,50,0.12);color:#f87171' : 'background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.4)' %>"><%= q.blocking ? 'Blocking' : 'Optional' %></span>
+                          <form action="/admin/eligibility/delete" method="POST" style="display:inline">
+                            <input type="hidden" name="id" value="<%= q.id %>" />
+                            <button type="submit" class="btn-icon btn-delete" onclick="return confirm('Delete this question?')">✕</button>
+                          </form>
+                        </div>
+                      <% } %>
+                    </div>
+                    <hr class="divider" />
+                  <% } %>
+                  <h3 style="margin-bottom:1rem">Add Question</h3>
+                  <form action="/admin/eligibility/add" method="POST" class="admin-form">
+                    <div class="form-field">
+                      <label class="form-label">Question Text</label>
+                      <input type="text" name="question_text" class="form-input" placeholder="e.g. Are you 13 or older?" required />
+                    </div>
+                    <div class="form-row">
+                      <div class="form-field">
+                        <label class="form-label">Required Answer</label>
+                        <select name="required_yes" class="form-input">
+                          <option value="true">Must answer YES to pass</option>
+                          <option value="false">Must answer NO to pass</option>
+                        </select>
+                      </div>
+                      <div class="form-field">
+                        <label class="form-label">Blocking?</label>
+                        <select name="blocking" class="form-input">
+                          <option value="true">Yes — wrong answer disqualifies</option>
+                          <option value="false">No — optional requirement</option>
+                        </select>
+                      </div>
+                      <div class="form-field" style="flex:0.4">
+                        <label class="form-label">Order</label>
+                        <input type="number" name="display_order" class="form-input" value="<%= eligibilityQuestions.length %>" min="0" />
+                      </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Question</button>
                   </form>
+                </div>
+
+              <% } else { %>
+                <!-- ── Stages 2-6: Title / subtitle + content blocks + stage-specific ── -->
+                <div class="admin-card" style="margin:0;border-radius:0 0 var(--radius) var(--radius)">
+
+                  <!-- Title & subtitle -->
+                  <h3 style="margin-bottom:1rem">Stage Text</h3>
+                  <form action="/admin/stage/setting/save" method="POST" class="admin-form" style="margin-bottom:1.5rem">
+                    <input type="hidden" name="stage_number" value="<%= sn %>" />
+                    <input type="hidden" name="field_key" value="title" />
+                    <div class="form-field" style="margin:0">
+                      <label class="form-label">Stage Title</label>
+                      <div style="display:flex;gap:0.5rem">
+                        <input type="text" name="field_value" class="form-input" value="<%= (stageSettings[sn] && stageSettings[sn].title) || '' %>" placeholder="Stage title..." />
+                        <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                      </div>
+                    </div>
+                  </form>
+                  <form action="/admin/stage/setting/save" method="POST" class="admin-form" style="margin-bottom:1.5rem">
+                    <input type="hidden" name="stage_number" value="<%= sn %>" />
+                    <input type="hidden" name="field_key" value="subtitle" />
+                    <div class="form-field" style="margin:0">
+                      <label class="form-label">Stage Subtitle / Description</label>
+                      <div style="display:flex;gap:0.5rem;align-items:flex-start">
+                        <textarea name="field_value" class="form-textarea" rows="2" placeholder="Optional subtitle shown below the title..."><%= (stageSettings[sn] && stageSettings[sn].subtitle) || '' %></textarea>
+                        <button type="submit" class="btn btn-primary btn-sm" style="flex-shrink:0">Save</button>
+                      </div>
+                    </div>
+                  </form>
+
+                  <hr class="divider" />
+
+                  <!-- Stage-specific fields -->
+                  <% if (sn === 4) { %>
+                    <h3 style="margin-bottom:1rem">Scenario Questions</h3>
+                    <% for (let sc = 1; sc <= 3; sc++) { %>
+                      <div style="margin-bottom:1.25rem">
+                        <form action="/admin/stage/setting/save" method="POST" class="admin-form" style="margin-bottom:0.5rem">
+                          <input type="hidden" name="stage_number" value="4" />
+                          <input type="hidden" name="field_key" value="scenario_<%= sc %>_title" />
+                          <div class="form-field" style="margin:0">
+                            <label class="form-label" style="font-size:0.72rem">Scenario <%= sc %> Label</label>
+                            <div style="display:flex;gap:0.5rem">
+                              <input type="text" name="field_value" class="form-input" value="<%= (stageSettings[4] && stageSettings[4]['scenario_'+sc+'_title']) || 'Scenario '+sc %>" />
+                              <button type="submit" class="btn btn-ghost btn-sm">Save</button>
+                            </div>
+                          </div>
+                        </form>
+                        <form action="/admin/stage/setting/save" method="POST" class="admin-form">
+                          <input type="hidden" name="stage_number" value="4" />
+                          <input type="hidden" name="field_key" value="scenario_<%= sc %>_text" />
+                          <div class="form-field" style="margin:0">
+                            <label class="form-label" style="font-size:0.72rem">Scenario <%= sc %> Question</label>
+                            <div style="display:flex;gap:0.5rem;align-items:flex-start">
+                              <textarea name="field_value" class="form-textarea" rows="3"><%= (stageSettings[4] && stageSettings[4]['scenario_'+sc+'_text']) || '' %></textarea>
+                              <button type="submit" class="btn btn-primary btn-sm" style="flex-shrink:0">Save</button>
+                            </div>
+                          </div>
+                        </form>
+                      </div>
+                    <% } %>
+                    <hr class="divider" />
+                  <% } %>
+
+                  <% if (sn === 3) { %>
+                    <h3 style="margin-bottom:0.5rem">Playstyle Options</h3>
+                    <p class="muted" style="font-size:0.82rem;margin-bottom:1rem">These appear as clickable cards for applicants to choose their role. The ID (e.g. "warrior") determines the card colour — use existing IDs to keep colour coding.</p>
+                    <% for (const ps of playstyleOptions) { %>
+                      <div style="margin-bottom:0.75rem;padding:0.75rem;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid var(--border)">
+                        <form action="/admin/playstyle/update" method="POST" class="admin-form">
+                          <input type="hidden" name="id" value="<%= ps.id %>" />
+                          <div class="form-row" style="gap:0.5rem;align-items:flex-end">
+                            <div class="form-field" style="flex:0.6;margin:0">
+                              <label class="form-label" style="font-size:0.7rem">ID (colour key)</label>
+                              <input type="text" class="form-input" value="<%= ps.value_key %>" disabled style="opacity:0.5" />
+                            </div>
+                            <div class="form-field" style="flex:1;margin:0">
+                              <label class="form-label" style="font-size:0.7rem">Title</label>
+                              <input type="text" name="title" class="form-input" value="<%= ps.title %>" required />
+                            </div>
+                            <div class="form-field" style="flex:0.4;margin:0">
+                              <label class="form-label" style="font-size:0.7rem">Order</label>
+                              <input type="number" name="display_order" class="form-input" value="<%= ps.display_order %>" min="0" />
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                          </div>
+                          <div class="form-field" style="margin-top:0.5rem;margin-bottom:0">
+                            <label class="form-label" style="font-size:0.7rem">Description</label>
+                            <input type="text" name="description" class="form-input" value="<%= ps.description %>" placeholder="Short description shown on the card" />
+                          </div>
+                        </form>
+                        <form action="/admin/playstyle/delete" method="POST" style="margin-top:0.5rem">
+                          <input type="hidden" name="id" value="<%= ps.id %>" />
+                          <button type="submit" class="btn-icon btn-delete" onclick="return confirm('Delete this playstyle?')">✕ Delete</button>
+                        </form>
+                      </div>
+                    <% } %>
+                    <form action="/admin/playstyle/add" method="POST" class="admin-form" style="margin-top:1rem;padding:0.75rem;background:rgba(78,201,148,0.04);border-radius:8px;border:1px dashed rgba(78,201,148,0.2)">
+                      <p class="muted" style="font-size:0.75rem;margin-bottom:0.75rem">Add Playstyle Option</p>
+                      <div class="form-row" style="gap:0.5rem;align-items:flex-end">
+                        <div class="form-field" style="flex:0.6;margin:0">
+                          <label class="form-label" style="font-size:0.7rem">ID (e.g. warrior)</label>
+                          <input type="text" name="value_key" class="form-input" placeholder="warrior" required pattern="[a-z0-9_]+" />
+                        </div>
+                        <div class="form-field" style="flex:1;margin:0">
+                          <label class="form-label" style="font-size:0.7rem">Title</label>
+                          <input type="text" name="title" class="form-input" placeholder="Warrior" required />
+                        </div>
+                        <div class="form-field" style="flex:0.4;margin:0">
+                          <label class="form-label" style="font-size:0.7rem">Order</label>
+                          <input type="number" name="display_order" class="form-input" value="<%= playstyleOptions.length %>" min="0" />
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">Add</button>
+                      </div>
+                      <div class="form-field" style="margin-top:0.5rem;margin-bottom:0">
+                        <input type="text" name="description" class="form-input" placeholder="Description shown on the card..." />
+                      </div>
+                    </form>
+                    <hr class="divider" />
+                    <!-- Also save the playstyle description label -->
+                    <form action="/admin/stage/setting/save" method="POST" class="admin-form">
+                      <input type="hidden" name="stage_number" value="3" />
+                      <input type="hidden" name="field_key" value="playstyle_desc_label" />
+                      <div class="form-field">
+                        <label class="form-label">Description Field Label</label>
+                        <div style="display:flex;gap:0.5rem;align-items:flex-start">
+                          <input type="text" name="field_value" class="form-input" value="<%= (stageSettings[3] && stageSettings[3].playstyle_desc_label) || 'Describe in 2-3 sentences how you would actually play this event.' %>" />
+                          <button type="submit" class="btn btn-primary btn-sm" style="flex-shrink:0">Save</button>
+                        </div>
+                      </div>
+                    </form>
+                    <hr class="divider" />
+                  <% } %>
+
+                  <% if (sn === 5) { %>
+                    <h3 style="margin-bottom:1rem">Application Type Options</h3>
+                    <% for (const [key, label] of [['video_title','Video Card Title'],['video_desc','Video Card Description'],['written_title','Written Card Title'],['written_desc','Written Card Description']]) { %>
+                      <form action="/admin/stage/setting/save" method="POST" class="admin-form" style="margin-bottom:0.75rem">
+                        <input type="hidden" name="stage_number" value="5" />
+                        <input type="hidden" name="field_key" value="<%= key %>" />
+                        <div class="form-field" style="margin:0">
+                          <label class="form-label" style="font-size:0.72rem"><%= label %></label>
+                          <div style="display:flex;gap:0.5rem">
+                            <input type="text" name="field_value" class="form-input" value="<%= (stageSettings[5] && stageSettings[5][key]) || '' %>" />
+                            <button type="submit" class="btn btn-ghost btn-sm">Save</button>
+                          </div>
+                        </div>
+                      </form>
+                    <% } %>
+                    <hr class="divider" />
+                  <% } %>
+
+                  <% if (sn === 6) { %>
+                    <h3 style="margin-bottom:1rem">Agreement Items</h3>
+                    <% for (const ai of agreementItems) { %>
+                      <div style="display:flex;gap:0.5rem;align-items:flex-start;margin-bottom:0.5rem">
+                        <form action="/admin/agreement/update" method="POST" class="admin-form" style="flex:1;margin:0">
+                          <input type="hidden" name="id" value="<%= ai.id %>" />
+                          <div style="display:flex;gap:0.5rem">
+                            <input type="text" name="item_text" class="form-input" value="<%= ai.item_text %>" />
+                            <button type="submit" class="btn btn-ghost btn-sm">Save</button>
+                          </div>
+                        </form>
+                        <form action="/admin/agreement/delete" method="POST" style="margin:0">
+                          <input type="hidden" name="id" value="<%= ai.id %>" />
+                          <button type="submit" class="btn-icon btn-delete" onclick="return confirm('Delete this item?')">✕</button>
+                        </form>
+                      </div>
+                    <% } %>
+                    <form action="/admin/agreement/add" method="POST" class="admin-form" style="margin-top:0.75rem">
+                      <div style="display:flex;gap:0.5rem">
+                        <input type="text" name="item_text" class="form-input" placeholder="Add agreement item..." required />
+                        <input type="hidden" name="display_order" value="<%= agreementItems.length %>" />
+                        <button type="submit" class="btn btn-primary btn-sm">Add</button>
+                      </div>
+                    </form>
+                    <hr class="divider" />
+                  <% } %>
+
+                  <!-- Rich content blocks -->
+                  <h3 style="margin-bottom:0.5rem">Content Blocks</h3>
+                  <p class="muted" style="font-size:0.82rem;margin-bottom:1rem">Blocks appear above the form fields in this stage. Add images, videos, timestamps (auto-converts to each viewer's timezone), or styled text.</p>
+
+                  <% const sBlocks = stageBlocks[sn] || []; %>
+                  <% if (sBlocks.length > 0) { %>
+                    <% for (const blk of sBlocks) { %>
+                      <div class="sb-admin-row">
+                        <span class="sb-admin-type sb-admin-type--<%= blk.block_type %>"><%= blk.block_type %></span>
+                        <span class="sb-admin-preview">
+                          <% if (blk.block_type === 'image') { %>
+                            <img src="<%= blk.content %>" class="sb-admin-thumb" onerror="this.style.display='none'" /> <%= blk.label || blk.content.slice(0,60) %>
+                          <% } else if (blk.block_type === 'timestamp') { %>
+                            <span><%= blk.label || 'Timestamp' %>: <%= blk.content %></span>
+                          <% } else if (blk.block_type === 'video') { %>
+                            <span>Video: <%= blk.content.slice(0,60) %></span>
+                          <% } else { %>
+                            <span class="<%= blk.style_class === 'glow' ? 'glow-text' : blk.style_class === 'animated' ? 'sb-animated' : '' %>" style="font-size:0.85rem"><%= blk.content.slice(0,80) %></span>
+                          <% } %>
+                        </span>
+                        <form action="/admin/stage/block/delete" method="POST" style="margin:0">
+                          <input type="hidden" name="id" value="<%= blk.id %>" />
+                          <button type="submit" class="btn-icon btn-delete" onclick="return confirm('Delete this block?')">✕</button>
+                        </form>
+                      </div>
+                    <% } %>
+                    <hr class="divider" />
+                  <% } %>
+
+                  <!-- Add block form -->
+                  <form action="/admin/stage/block/add" method="POST" class="admin-form sb-add-form">
+                    <input type="hidden" name="stage_number" value="<%= sn %>" />
+                    <div class="form-row" style="gap:0.5rem;align-items:flex-end">
+                      <div class="form-field" style="flex:0.7;margin:0">
+                        <label class="form-label">Block Type</label>
+                        <select name="block_type" class="form-input" onchange="updateBlockForm(this)">
+                          <option value="text">Text</option>
+                          <option value="image">Image</option>
+                          <option value="video">Video</option>
+                          <option value="timestamp">Timestamp</option>
+                        </select>
+                      </div>
+                      <div class="form-field sb-style-field" style="flex:0.8;margin:0">
+                        <label class="form-label">Text Style</label>
+                        <select name="style_class" class="form-input">
+                          <option value="normal">Normal</option>
+                          <option value="glow">Glowing</option>
+                          <option value="animated">Animated</option>
+                          <option value="muted">Muted</option>
+                          <option value="heading">Heading</option>
+                        </select>
+                      </div>
+                      <div class="form-field" style="flex:0.4;margin:0">
+                        <label class="form-label">Order</label>
+                        <input type="number" name="display_order" class="form-input" value="<%= sBlocks.length %>" min="0" />
+                      </div>
+                    </div>
+                    <div class="form-field sb-content-field" style="margin-top:0.5rem">
+                      <label class="form-label sb-content-label">Content / Text</label>
+                      <textarea name="content" class="form-textarea" rows="2" placeholder="Enter text content..."></textarea>
+                    </div>
+                    <div class="form-field" style="margin-top:0.5rem;margin-bottom:0">
+                      <label class="form-label sb-label-label">Caption / Label</label>
+                      <input type="text" name="label" class="form-input" placeholder="Optional caption or label..." />
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm" style="margin-top:0.75rem">Add Block</button>
+                  </form>
+
                 </div>
               <% } %>
             </div>
-            <hr class="divider" />
-          <% } %>
-          <h3 style="margin-bottom:1rem">Add Question</h3>
-          <form action="/admin/eligibility/add" method="POST" class="admin-form">
-            <div class="form-field">
-              <label class="form-label">Question Text</label>
-              <input type="text" name="question_text" class="form-input" placeholder="e.g. Are you 13 or older?" required />
-            </div>
-            <div class="form-row">
-              <div class="form-field">
-                <label class="form-label">Required Answer</label>
-                <select name="required_yes" class="form-input">
-                  <option value="true">Must answer YES to pass</option>
-                  <option value="false">Must answer NO to pass</option>
-                </select>
-              </div>
-              <div class="form-field">
-                <label class="form-label">Blocking?</label>
-                <select name="blocking" class="form-input">
-                  <option value="true">Yes — wrong answer disqualifies</option>
-                  <option value="false">No — optional requirement</option>
-                </select>
-              </div>
-              <div class="form-field" style="flex:0.4">
-                <label class="form-label">Order</label>
-                <input type="number" name="display_order" class="form-input" value="<%= eligibilityQuestions.length %>" min="0" />
-              </div>
-            </div>
-            <button type="submit" class="btn btn-primary">Add Question</button>
-          </form>
-        </div>
+          </div>
+        <% } %>
       </div>
 
       <!-- APPLICATIONS TAB -->
@@ -477,7 +751,7 @@
   if (params.get('saved')) {
     const toast = document.createElement('div');
     const savedVal = params.get('saved');
-    const toastMessages = { levels: 'Levels saved!', veteran: 'Veteran role saved!', staffrole: 'Staff role saved!', staff: 'Staff page saved!', xp: 'XP settings saved!', access: 'Staff access updated!', eligibility: 'Eligibility question saved!' };
+    const toastMessages = { levels: 'Levels saved!', veteran: 'Veteran role saved!', staffrole: 'Staff role saved!', staff: 'Staff page saved!', xp: 'XP settings saved!', access: 'Staff access updated!', eligibility: 'Eligibility question saved!', stages: 'Stage saved!' };
     toast.textContent = toastMessages[savedVal] || 'Saved!';
     toast.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#4ec994;color:#000;padding:0.75rem 1.5rem;border-radius:8px;font-weight:600;font-size:0.9rem;z-index:999;box-shadow:0 4px 20px rgba(78,201,148,0.4)';
     document.body.appendChild(toast);
@@ -523,6 +797,62 @@
       ta.selectionEnd = start + before.length + 4;
     }
   }
+
+  // Stage accordion
+  function toggleAcc(sn) {
+    const body = document.getElementById('acc-body-' + sn);
+    const arrow = document.getElementById('acc-arrow-' + sn);
+    const open = body.style.display !== 'none';
+    body.style.display = open ? 'none' : 'block';
+    arrow.textContent = open ? '▶' : '▼';
+    if (!open) sessionStorage.setItem('openStage', sn);
+  }
+
+  // Open stage from URL param or saved
+  (function() {
+    const params = new URLSearchParams(window.location.search);
+    const stageParam = params.get('stage');
+    const savedStage = stageParam || sessionStorage.getItem('openStage') || '1';
+    const sn = parseInt(savedStage);
+    if (sn >= 1 && sn <= 6) {
+      const body = document.getElementById('acc-body-' + sn);
+      const arrow = document.getElementById('acc-arrow-' + sn);
+      if (body) { body.style.display = 'block'; arrow.textContent = '▼'; }
+    }
+  })();
+
+  // Block form: update labels based on type
+  function updateBlockForm(sel) {
+    const form = sel.closest('.sb-add-form');
+    const type = sel.value;
+    const styleField = form.querySelector('.sb-style-field');
+    const contentLabel = form.querySelector('.sb-content-label');
+    const labelLabel = form.querySelector('.sb-label-label');
+    const contentTa = form.querySelector('[name="content"]');
+    if (type === 'text') {
+      styleField.style.display = '';
+      contentLabel.textContent = 'Text Content';
+      contentTa.placeholder = 'Enter text to display...';
+      labelLabel.textContent = 'Caption (unused for text)';
+    } else if (type === 'image') {
+      styleField.style.display = 'none';
+      contentLabel.textContent = 'Image URL';
+      contentTa.placeholder = 'https://example.com/image.png';
+      labelLabel.textContent = 'Caption (shown below image)';
+    } else if (type === 'video') {
+      styleField.style.display = 'none';
+      contentLabel.textContent = 'Video URL (YouTube or direct)';
+      contentTa.placeholder = 'https://youtu.be/... or https://example.com/video.mp4';
+      labelLabel.textContent = 'Caption (shown below video)';
+    } else if (type === 'timestamp') {
+      styleField.style.display = 'none';
+      contentLabel.textContent = 'Date & Time (UTC)';
+      contentTa.placeholder = '2026-07-15T18:00:00Z';
+      labelLabel.textContent = 'Label (e.g. "Event Starts")';
+    }
+  }
+  // Init all block forms
+  document.querySelectorAll('.sb-add-form [name="block_type"]').forEach(sel => updateBlockForm(sel));
 
   function addLevelRow(guildId) {
     const container = document.getElementById('levels-list-' + guildId);

@@ -39,9 +39,26 @@ router.get('/', async (req, res) => {
     `SELECT discord_id, granted_at FROM staff_access ORDER BY granted_at DESC`
   )).rows;
 
+  // Stage customization data
+  const stageSettingsRows = (await db.query(`SELECT * FROM stage_settings`)).rows;
+  const stageSettings = {};
+  for (const r of stageSettingsRows) {
+    if (!stageSettings[r.stage_number]) stageSettings[r.stage_number] = {};
+    stageSettings[r.stage_number][r.field_key] = r.field_value;
+  }
+  const stageBlocksRows = (await db.query(`SELECT * FROM stage_blocks ORDER BY stage_number, display_order ASC, id ASC`)).rows;
+  const stageBlocks = {};
+  for (const b of stageBlocksRows) {
+    if (!stageBlocks[b.stage_number]) stageBlocks[b.stage_number] = [];
+    stageBlocks[b.stage_number].push(b);
+  }
+  const agreementItems = (await db.query(`SELECT * FROM agreement_items ORDER BY display_order ASC, id ASC`)).rows;
+  const playstyleOptions = (await db.query(`SELECT * FROM playstyle_options ORDER BY display_order ASC, id ASC`)).rows;
+
   res.render('admin', {
     event, eligibilityQuestions, applications,
-    guilds: guildRes.rows, levels, levelRoles, staffRoles, staffAccess
+    guilds: guildRes.rows, levels, levelRoles, staffRoles, staffAccess,
+    stageSettings, stageBlocks, agreementItems, playstyleOptions
   });
 });
 
@@ -247,6 +264,79 @@ router.post('/staff/access/add', async (req, res) => {
 router.post('/staff/access/remove', async (req, res) => {
   await db.query(`DELETE FROM staff_access WHERE discord_id = $1`, [req.body.discord_id]);
   res.redirect('/admin?saved=access#staff');
+});
+
+// ── Stage settings ──
+router.post('/stage/setting/save', async (req, res) => {
+  const { stage_number, field_key, field_value } = req.body;
+  await db.query(
+    `INSERT INTO stage_settings (stage_number, field_key, field_value) VALUES ($1,$2,$3)
+     ON CONFLICT (stage_number, field_key) DO UPDATE SET field_value=$3`,
+    [parseInt(stage_number), field_key, field_value || '']
+  );
+  res.redirect(`/admin?saved=stages#stages`);
+});
+
+// ── Stage blocks (rich content) ──
+router.post('/stage/block/add', async (req, res) => {
+  const { stage_number, block_type, content, label, style_class, display_order } = req.body;
+  await db.query(
+    `INSERT INTO stage_blocks (stage_number, block_type, content, label, style_class, display_order) VALUES ($1,$2,$3,$4,$5,$6)`,
+    [parseInt(stage_number), block_type, content || '', label || '', style_class || 'normal', parseInt(display_order) || 0]
+  );
+  res.redirect(`/admin?saved=stages&stage=${stage_number}#stages`);
+});
+
+router.post('/stage/block/delete', async (req, res) => {
+  const blockRes = await db.query(`SELECT stage_number FROM stage_blocks WHERE id=$1`, [req.body.id]);
+  const sn = blockRes.rows[0]?.stage_number || '';
+  await db.query(`DELETE FROM stage_blocks WHERE id=$1`, [req.body.id]);
+  res.redirect(`/admin?saved=stages&stage=${sn}#stages`);
+});
+
+// ── Agreement items (Stage 6) ──
+router.post('/agreement/add', async (req, res) => {
+  const { item_text, display_order } = req.body;
+  await db.query(
+    `INSERT INTO agreement_items (item_text, display_order) VALUES ($1,$2)`,
+    [item_text, parseInt(display_order) || 0]
+  );
+  res.redirect('/admin?saved=stages&stage=6#stages');
+});
+
+router.post('/agreement/update', async (req, res) => {
+  await db.query(`UPDATE agreement_items SET item_text=$1 WHERE id=$2`, [req.body.item_text, req.body.id]);
+  res.redirect('/admin?saved=stages&stage=6#stages');
+});
+
+router.post('/agreement/delete', async (req, res) => {
+  await db.query(`DELETE FROM agreement_items WHERE id=$1`, [req.body.id]);
+  res.redirect('/admin?saved=stages&stage=6#stages');
+});
+
+// ── Playstyle options (Stage 3) ──
+router.post('/playstyle/add', async (req, res) => {
+  const { value_key, title, description, display_order } = req.body;
+  const key = value_key.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
+  await db.query(
+    `INSERT INTO playstyle_options (value_key, title, description, display_order) VALUES ($1,$2,$3,$4) ON CONFLICT (value_key) DO NOTHING`,
+    [key, title, description || '', parseInt(display_order) || 0]
+  );
+  res.redirect('/admin?saved=stages&stage=3#stages');
+});
+
+router.post('/playstyle/update', async (req, res) => {
+  const { id, title, description, display_order } = req.body;
+  await db.query(
+    `UPDATE playstyle_options SET title=$1, description=$2, display_order=$3 WHERE id=$4`,
+    [title, description || '', parseInt(display_order) || 0, id]
+  );
+  res.redirect('/admin?saved=stages&stage=3#stages');
+});
+
+router.post('/playstyle/delete', async (req, res) => {
+  await db.query(`DELETE FROM playstyle_options WHERE id=$1`, [req.body.id]);
+  res.redirect('/admin?saved=stages&stage=3#stages');
 });
 
 module.exports = router;

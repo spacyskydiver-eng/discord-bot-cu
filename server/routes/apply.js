@@ -18,7 +18,26 @@ router.get('/', async (req, res) => {
     )).rows[0] || null;
   }
 
-  res.render('apply', { event, eligibilityQuestions, existing, submitted: req.query.submitted === '1' });
+  // Stage customization
+  const stageSettingsRows = (await db.query(`SELECT * FROM stage_settings`)).rows;
+  const stageSettings = {};
+  for (const r of stageSettingsRows) {
+    if (!stageSettings[r.stage_number]) stageSettings[r.stage_number] = {};
+    stageSettings[r.stage_number][r.field_key] = r.field_value;
+  }
+  const stageBlocksRows = (await db.query(`SELECT * FROM stage_blocks ORDER BY stage_number, display_order ASC, id ASC`)).rows;
+  const stageBlocks = {};
+  for (const b of stageBlocksRows) {
+    if (!stageBlocks[b.stage_number]) stageBlocks[b.stage_number] = [];
+    stageBlocks[b.stage_number].push(b);
+  }
+  const agreementItems = (await db.query(`SELECT * FROM agreement_items ORDER BY display_order ASC, id ASC`)).rows;
+  const playstyleOptions = (await db.query(`SELECT * FROM playstyle_options ORDER BY display_order ASC, id ASC`)).rows;
+
+  res.render('apply', {
+    event, eligibilityQuestions, existing, submitted: req.query.submitted === '1',
+    stageSettings, stageBlocks, agreementItems, playstyleOptions
+  });
 });
 
 router.post('/submit', async (req, res) => {
