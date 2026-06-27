@@ -35,9 +35,14 @@ client.on('messageCreate', require('./events/messageCreate'));
 client.on('interactionCreate', async interaction => {
   if (interaction.isButton()) {
     try {
-      const row = await db.query('SELECT response_text FROM button_responses WHERE custom_id = $1', [interaction.customId]);
+      const row = await db.query('SELECT response_text, response_payload FROM button_responses WHERE custom_id = $1', [interaction.customId]);
       if (row.rows.length) {
-        await interaction.reply({ content: row.rows[0].response_text, ephemeral: true });
+        const { response_text, response_payload } = row.rows[0];
+        if (response_payload) {
+          await interaction.reply({ ...response_payload, ephemeral: true });
+        } else if (response_text) {
+          await interaction.reply({ content: response_text, ephemeral: true });
+        }
       }
     } catch (err) {
       console.error('Button interaction error:', err);

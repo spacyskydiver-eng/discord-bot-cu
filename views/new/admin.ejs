@@ -245,6 +245,16 @@
 
 /* Save row */
 .wh-save-row{display:flex;gap:8px;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+
+/* Hidden message modal */
+.wh-hm-overlay{position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.78);overflow-y:auto;display:flex;align-items:flex-start;justify-content:center;padding:32px 16px}
+.wh-hm-box{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:28px;width:100%;max-width:700px}
+.wh-hm-box h2{font-family:"Baloo 2";font-weight:800;font-size:20px;color:#fff;margin:0 0 4px}
+.wh-hm-box p.wh-hm-sub{font-size:13px;color:var(--muted);margin:0 0 20px}
+.wh-hm-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+.wh-btn-hm-summary{font-size:12px;font-family:"Baloo 2";font-weight:700}
+.wh-btn-hm-summary.set{color:#4ec994}
+.wh-btn-hm-summary.unset{color:var(--muted)}
 </style>
 
 <main class="wrap nd-adm-wrap">
@@ -836,6 +846,106 @@
 
 </main>
 
+<!-- Hidden Message Modal -->
+<div id="wh-hm-overlay" class="wh-hm-overlay" style="display:none" onclick="if(event.target===this)closeHmModal()">
+  <div class="wh-hm-box">
+    <div class="wh-hm-head">
+      <div>
+        <h2>Configure Hidden Message</h2>
+        <p class="wh-hm-sub">This message is sent privately (ephemeral) to whoever clicks the button — only they can see it.</p>
+      </div>
+      <button class="nd-btn-icon" onclick="closeHmModal()" style="font-size:18px;flex-shrink:0;margin-left:16px">✕</button>
+    </div>
+
+    <!-- Content -->
+    <div class="wh-section" style="margin-top:0">Content</div>
+    <div class="wh-fmt-bar">
+      <button type="button" class="wh-fmt-b" onclick="whFmt('hm-content','**','**')" title="Bold"><b>B</b></button>
+      <button type="button" class="wh-fmt-b" onclick="whFmt('hm-content','*','*')" title="Italic"><i>I</i></button>
+      <button type="button" class="wh-fmt-b" onclick="whFmt('hm-content','__','__')" title="Underline"><u>U</u></button>
+      <button type="button" class="wh-fmt-b" onclick="whFmt('hm-content','~~','~~')" title="Strikethrough"><s>S</s></button>
+      <button type="button" class="wh-fmt-b" onclick="whFmt('hm-content','`','`')" title="Inline code"><code style="font-size:11px">`c`</code></button>
+      <button type="button" class="wh-fmt-b" onclick="whFmt('hm-content','||','||')" title="Spoiler">||</button>
+      <button type="button" class="wh-fmt-b" onclick="whFmt('hm-content','> ','')" title="Blockquote">›"</button>
+      <span class="wh-fmt-sep"></span>
+      <button type="button" class="wh-fmt-b wh-emoji-trigger" onclick="openEmoji('hm-content',this)" title="Emoji">😀</button>
+    </div>
+    <textarea id="hm-content" class="nd-textarea" rows="3" placeholder="Message content... supports **bold**, __underline__, *italic*, custom emojis etc."></textarea>
+
+    <!-- Embed toggle -->
+    <label style="display:flex;align-items:center;gap:10px;margin:18px 0 6px;cursor:pointer;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#e0e2ed">
+      <input type="checkbox" id="hm-embed-toggle" onchange="toggleHmEmbed()"> Include embed
+    </label>
+
+    <div id="hm-embed-section" style="display:none">
+      <!-- Colour -->
+      <div class="wh-color-row nd-form-field">
+        <input type="color" id="hm-color" value="#5865f2" oninput="document.getElementById('hm-color-hex').value=this.value">
+        <input type="text" id="hm-color-hex" class="nd-input nd-btn-sm" value="#5865f2" placeholder="#5865f2" style="max-width:110px" oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value.trim()))document.getElementById('hm-color').value=this.value.trim()">
+        <label class="nd-label" style="margin:0">Embed Colour</label>
+      </div>
+
+      <!-- Author -->
+      <div class="nd-form-row">
+        <div class="nd-form-field"><label class="nd-label">Author Name</label><input type="text" id="hm-author-name" class="nd-input nd-btn-sm"></div>
+        <div class="nd-form-field"><label class="nd-label">Author Icon URL</label><div class="wh-img-row"><input type="text" id="hm-author-icon" class="nd-input nd-btn-sm"><label class="wh-upload-btn" title="Upload"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><input type="file" accept="image/*" style="display:none" onchange="whUpload(this,'hm-author-icon')"></label></div></div>
+        <div class="nd-form-field"><label class="nd-label">Author URL</label><input type="text" id="hm-author-url" class="nd-input nd-btn-sm"></div>
+      </div>
+
+      <!-- Title -->
+      <div class="nd-form-row">
+        <div class="nd-form-field" style="flex:2"><label class="nd-label">Title</label><input type="text" id="hm-title" class="nd-input nd-btn-sm"></div>
+        <div class="nd-form-field" style="flex:1"><label class="nd-label">Title URL</label><input type="text" id="hm-title-url" class="nd-input nd-btn-sm"></div>
+      </div>
+
+      <!-- Description -->
+      <div class="nd-form-field">
+        <label class="nd-label">Description</label>
+        <div class="wh-fmt-bar">
+          <button type="button" class="wh-fmt-b" onclick="whFmt('hm-desc','**','**')" title="Bold"><b>B</b></button>
+          <button type="button" class="wh-fmt-b" onclick="whFmt('hm-desc','*','*')" title="Italic"><i>I</i></button>
+          <button type="button" class="wh-fmt-b" onclick="whFmt('hm-desc','__','__')" title="Underline"><u>U</u></button>
+          <button type="button" class="wh-fmt-b" onclick="whFmt('hm-desc','~~','~~')" title="Strikethrough"><s>S</s></button>
+          <button type="button" class="wh-fmt-b" onclick="whFmt('hm-desc','`','`')" title="Inline code"><code style="font-size:11px">`c`</code></button>
+          <button type="button" class="wh-fmt-b" onclick="whFmt('hm-desc','||','||')" title="Spoiler">||</button>
+          <button type="button" class="wh-fmt-b" onclick="whFmt('hm-desc','> ','')" title="Blockquote">›"</button>
+          <span class="wh-fmt-sep"></span>
+          <button type="button" class="wh-fmt-b wh-emoji-trigger" onclick="openEmoji('hm-desc',this)" title="Emoji">😀</button>
+        </div>
+        <textarea id="hm-desc" class="nd-textarea" rows="4" placeholder="Embed description... supports full Discord markdown"></textarea>
+      </div>
+
+      <!-- Thumbnail + Image -->
+      <div class="nd-form-row">
+        <div class="nd-form-field"><label class="nd-label">Thumbnail URL</label><div class="wh-img-row"><input type="text" id="hm-thumb" class="nd-input nd-btn-sm"><label class="wh-upload-btn" title="Upload"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><input type="file" accept="image/*" style="display:none" onchange="whUpload(this,'hm-thumb')"></label></div></div>
+        <div class="nd-form-field"><label class="nd-label">Image URL</label><div class="wh-img-row"><input type="text" id="hm-image" class="nd-input nd-btn-sm"><label class="wh-upload-btn" title="Upload"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><input type="file" accept="image/*" style="display:none" onchange="whUpload(this,'hm-image')"></label></div></div>
+      </div>
+
+      <!-- Fields -->
+      <div class="wh-section">Fields</div>
+      <div id="hm-fields-list"></div>
+      <button type="button" class="wh-add-field-btn" onclick="addHmField()">+ Add Field</button>
+
+      <!-- Footer -->
+      <div class="wh-section" style="margin-top:20px">Footer</div>
+      <div class="nd-form-row">
+        <div class="nd-form-field" style="flex:2"><label class="nd-label">Footer Text</label><input type="text" id="hm-footer-text" class="nd-input nd-btn-sm"></div>
+        <div class="nd-form-field" style="flex:1"><label class="nd-label">Footer Icon URL</label><div class="wh-img-row"><input type="text" id="hm-footer-icon" class="nd-input nd-btn-sm"><label class="wh-upload-btn" title="Upload"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><input type="file" accept="image/*" style="display:none" onchange="whUpload(this,'hm-footer-icon')"></label></div></div>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;margin-top:4px">
+        <input type="checkbox" id="hm-timestamp"> Include timestamp
+      </label>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex;gap:10px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">
+      <button class="nd-btn nd-btn-primary" onclick="applyHmModal()">Apply</button>
+      <button class="nd-btn nd-btn-ghost" onclick="closeHmModal()">Cancel</button>
+      <button class="nd-btn nd-btn-danger nd-btn-sm" onclick="clearHmModal()" style="margin-left:auto">Clear all</button>
+    </div>
+  </div>
+</div>
+
 <!-- Emoji picker panel -->
 <div id="wh-emoji-panel" class="wh-emoji-panel" style="display:none">
   <input type="text" id="wh-emoji-search" class="nd-input nd-btn-sm" placeholder="Search emojis… (custom: just paste <:name:id> in the text)" oninput="filterEmojis(this.value)" style="margin-bottom:10px">
@@ -1110,11 +1220,19 @@ function addButton(opts){
         <input type="text" class="nd-input nd-btn-sm wh-btn-url" placeholder="https://..." oninput="updatePreview()" value="${escH(opts.url||'')}">
       </div>
       <div class="wh-btn-msg-wrap"${isLink?' style="display:none"':''}>
-        <label class="nd-label" style="font-size:10px">Hidden message <span style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--muted)">(shown privately to whoever clicks)</span></label>
-        <textarea class="nd-textarea nd-btn-sm wh-btn-msg" rows="2" placeholder="Only the person who clicks this button will see this message...">${escH(opts.response_text||'')}</textarea>
+        <label class="nd-label" style="font-size:10px">Hidden message <span style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--muted)">(only visible to whoever clicks)</span></label>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+          <span class="wh-btn-hm-summary unset">Not configured</span>
+          <button type="button" class="nd-btn nd-btn-ghost nd-btn-sm" onclick="openHmModal('wh-btn-${id}')">Configure →</button>
+        </div>
       </div>
     </div>`;
   document.getElementById('wh-btns-list').appendChild(div);
+  if(opts.response_payload){
+    div.dataset.hmPayload=JSON.stringify(opts.response_payload);
+    const s=div.querySelector('.wh-btn-hm-summary');
+    if(s){s.textContent='✓ Message configured';s.className='wh-btn-hm-summary set';}
+  }
   updatePreview();
 }
 
@@ -1124,6 +1242,123 @@ function updateBtnStyle(select){
   row.querySelector('.wh-btn-url-wrap').style.display=isLink?'':'none';
   row.querySelector('.wh-btn-msg-wrap').style.display=isLink?'none':'';
   updatePreview();
+}
+
+/* ── Hidden Message Modal ── */
+let hmTargetRow=null;
+let hmFieldCount=0;
+
+function openHmModal(rowId){
+  hmTargetRow=document.getElementById(rowId);
+  const payload=hmTargetRow.dataset.hmPayload?JSON.parse(hmTargetRow.dataset.hmPayload):{};
+  fillHmFields(payload);
+  document.getElementById('wh-hm-overlay').style.display='flex';
+  document.body.style.overflow='hidden';
+}
+
+function closeHmModal(){
+  document.getElementById('wh-hm-overlay').style.display='none';
+  document.body.style.overflow='';
+  hmTargetRow=null;
+}
+
+function toggleHmEmbed(){
+  const on=document.getElementById('hm-embed-toggle').checked;
+  document.getElementById('hm-embed-section').style.display=on?'':'none';
+}
+
+function fillHmFields(p){
+  p=p||{};
+  document.getElementById('hm-content').value=p.content||'';
+  const emb=(p.embeds&&p.embeds[0])||{};
+  const hasEmb=!!(p.embeds&&p.embeds.length);
+  document.getElementById('hm-embed-toggle').checked=hasEmb;
+  document.getElementById('hm-embed-section').style.display=hasEmb?'':'none';
+  const color=emb.color?'#'+emb.color.toString(16).padStart(6,'0'):'#5865f2';
+  document.getElementById('hm-color').value=color;
+  document.getElementById('hm-color-hex').value=color;
+  document.getElementById('hm-author-name').value=(emb.author&&emb.author.name)||'';
+  document.getElementById('hm-author-icon').value=(emb.author&&emb.author.icon_url)||'';
+  document.getElementById('hm-author-url').value=(emb.author&&emb.author.url)||'';
+  document.getElementById('hm-title').value=emb.title||'';
+  document.getElementById('hm-title-url').value=emb.url||'';
+  document.getElementById('hm-desc').value=emb.description||'';
+  document.getElementById('hm-thumb').value=(emb.thumbnail&&emb.thumbnail.url)||'';
+  document.getElementById('hm-image').value=(emb.image&&emb.image.url)||'';
+  document.getElementById('hm-footer-text').value=(emb.footer&&emb.footer.text)||'';
+  document.getElementById('hm-footer-icon').value=(emb.footer&&emb.footer.icon_url)||'';
+  document.getElementById('hm-timestamp').checked=!!emb.timestamp;
+  document.getElementById('hm-fields-list').innerHTML='';
+  hmFieldCount=0;
+  (emb.fields||[]).forEach(f=>{
+    hmFieldCount++;
+    const fid=hmFieldCount;
+    const div=document.createElement('div');
+    div.className='wh-field-item';
+    div.id='hm-field-'+fid;
+    div.innerHTML=`<div><label class="nd-label" style="font-size:10px">Name</label><input type="text" class="nd-input nd-btn-sm hm-fn" value="${escH(f.name||'')}"></div><div><label class="nd-label" style="font-size:10px">Value</label><input type="text" class="nd-input nd-btn-sm hm-fv" value="${escH(f.value||'')}"></div><label style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--muted);cursor:pointer;padding-top:18px"><input type="checkbox" class="hm-fi"${f.inline?' checked':''}>Inline</label><button class="nd-btn-icon" style="padding-top:18px" onclick="document.getElementById('hm-field-${fid}').remove()">✕</button>`;
+    document.getElementById('hm-fields-list').appendChild(div);
+  });
+}
+
+function addHmField(){
+  hmFieldCount++;
+  const fid=hmFieldCount;
+  const div=document.createElement('div');
+  div.className='wh-field-item';
+  div.id='hm-field-'+fid;
+  div.innerHTML=`<div><label class="nd-label" style="font-size:10px">Name</label><input type="text" class="nd-input nd-btn-sm hm-fn"></div><div><label class="nd-label" style="font-size:10px">Value</label><input type="text" class="nd-input nd-btn-sm hm-fv"></div><label style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--muted);cursor:pointer;padding-top:18px"><input type="checkbox" class="hm-fi">Inline</label><button class="nd-btn-icon" style="padding-top:18px" onclick="document.getElementById('hm-field-${fid}').remove()">✕</button>`;
+  document.getElementById('hm-fields-list').appendChild(div);
+}
+
+function collectHmPayload(){
+  const payload={};
+  const content=document.getElementById('hm-content').value.trim();
+  if(content) payload.content=content;
+  if(document.getElementById('hm-embed-toggle').checked){
+    const colorHex=document.getElementById('hm-color').value;
+    const colorInt=parseInt(colorHex.replace('#',''),16);
+    const emb={color:colorInt};
+    const authorName=document.getElementById('hm-author-name').value.trim();
+    const authorIcon=document.getElementById('hm-author-icon').value.trim();
+    const authorUrl=document.getElementById('hm-author-url').value.trim();
+    if(authorName) emb.author={name:authorName,...(authorIcon?{icon_url:authorIcon}:{}),...(authorUrl?{url:authorUrl}:{})};
+    const title=document.getElementById('hm-title').value.trim();
+    const titleUrl=document.getElementById('hm-title-url').value.trim();
+    if(title){emb.title=title;if(titleUrl) emb.url=titleUrl;}
+    const desc=document.getElementById('hm-desc').value.trim();
+    if(desc) emb.description=desc;
+    const thumb=document.getElementById('hm-thumb').value.trim();
+    if(thumb) emb.thumbnail={url:thumb};
+    const img=document.getElementById('hm-image').value.trim();
+    if(img) emb.image={url:img};
+    const fields=Array.from(document.querySelectorAll('#hm-fields-list .wh-field-item')).map(el=>({name:el.querySelector('.hm-fn').value.trim(),value:el.querySelector('.hm-fv').value.trim(),inline:el.querySelector('.hm-fi').checked})).filter(f=>f.name&&f.value);
+    if(fields.length) emb.fields=fields;
+    const footerText=document.getElementById('hm-footer-text').value.trim();
+    const footerIcon=document.getElementById('hm-footer-icon').value.trim();
+    if(footerText||footerIcon) emb.footer={...(footerText?{text:footerText}:{}),...(footerIcon?{icon_url:footerIcon}:{})};
+    if(document.getElementById('hm-timestamp').checked) emb.timestamp=new Date().toISOString();
+    const hasEmbed=authorName||title||desc||thumb||img||footerText||fields.length>0||document.getElementById('hm-timestamp').checked;
+    if(hasEmbed) payload.embeds=[emb];
+  }
+  return payload;
+}
+
+function applyHmModal(){
+  if(!hmTargetRow) return;
+  const payload=collectHmPayload();
+  hmTargetRow.dataset.hmPayload=JSON.stringify(payload);
+  const summary=hmTargetRow.querySelector('.wh-btn-hm-summary');
+  const hasContent=payload.content||(payload.embeds&&payload.embeds.length);
+  if(summary){
+    summary.textContent=hasContent?'✓ Message configured':'Not configured';
+    summary.className='wh-btn-hm-summary '+(hasContent?'set':'unset');
+  }
+  closeHmModal();
+}
+
+function clearHmModal(){
+  fillHmFields({});
 }
 
 /* Fields */
@@ -1471,9 +1706,9 @@ function collectPayload(){
       discordBtns.push({type:2,style:5,label,url});
       buttonMeta.push({custom_id:customId,label,style:5,url});
     } else {
-      const responseText=r.querySelector('.wh-btn-msg')?.value.trim()||'';
+      const hmPayload=r.dataset.hmPayload?JSON.parse(r.dataset.hmPayload):null;
       discordBtns.push({type:2,style,label,custom_id:customId});
-      buttonMeta.push({custom_id:customId,label,style,response_text:responseText});
+      buttonMeta.push({custom_id:customId,label,style,response_payload:hmPayload});
     }
   });
 
@@ -1516,9 +1751,9 @@ async function sendWebhook(){
   showStatus('','Sending...');
   try{
     // Save non-link button responses so the bot can reply ephemerally
-    const hiddenBtns=(meta.buttons||[]).filter(b=>b.style!==5&&b.response_text);
+    const hiddenBtns=(meta.buttons||[]).filter(b=>b.style!==5);
     if(hiddenBtns.length){
-      await fetch('/admin/webhook/button-responses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({buttons:hiddenBtns.map(b=>({custom_id:b.custom_id,response_text:b.response_text}))})});
+      await fetch('/admin/webhook/button-responses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({buttons:hiddenBtns.map(b=>({custom_id:b.custom_id,response_payload:b.response_payload}))})});
     }
     const r=await fetch('/admin/webhook/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({webhook_url:url,payload})});
     const data=await r.json();

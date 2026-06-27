@@ -408,10 +408,14 @@ db.query(`
 db.query(`
   CREATE TABLE IF NOT EXISTS button_responses (
     custom_id TEXT PRIMARY KEY,
-    response_text TEXT NOT NULL,
+    response_text TEXT,
+    response_payload JSONB,
     created_at TIMESTAMPTZ DEFAULT NOW()
   )
 `).catch(console.error);
+// Migrate existing table if it only has response_text
+db.query(`ALTER TABLE button_responses ADD COLUMN IF NOT EXISTS response_payload JSONB`).catch(()=>{});
+db.query(`ALTER TABLE button_responses ALTER COLUMN response_text DROP NOT NULL`).catch(()=>{});
 
 // List all saved webhook messages
 router.get('/webhook/messages', async (req, res) => {
@@ -451,11 +455,11 @@ router.post('/webhook/button-responses', async (req, res) => {
   const { buttons } = req.body;
   if (!Array.isArray(buttons)) return res.json({ ok: false, error: 'buttons must be an array' });
   for (const b of buttons) {
-    if (!b.custom_id || !b.response_text) continue;
+    if (!b.custom_id) continue;
     await db.query(
-      `INSERT INTO button_responses (custom_id, response_text) VALUES ($1,$2)
-       ON CONFLICT (custom_id) DO UPDATE SET response_text=$2`,
-      [b.custom_id, b.response_text]
+      `INSERT INTO button_responses (custom_id, response_text, response_payload) VALUES ($1,$2,$3)
+       ON CONFLICT (custom_id) DO UPDATE SET response_text=$2, response_payload=$3`,
+      [b.custom_id, b.response_text || null, b.response_payload ? JSON.stringify(b.response_payload) : null]
     );
   }
   res.json({ ok: true });
@@ -468,13 +472,49 @@ router.post('/upload-image', upload.single('image'), (req, res) => {
   res.json({ ok: true, url });
 });
 
-// Webhook sender — forwards payload to Discord webhook URL
+// Webhook sender — uses bot API when components present (regular webhooks don't support buttons)
 router.post('/webhook/send', async (req, res) => {
   const { webhook_url, payload } = req.body;
   if (!webhook_url || !webhook_url.startsWith('https://discord.com/api/webhooks/')) {
     return res.json({ ok: false, error: 'Invalid webhook URL. Must start with https://discord.com/api/webhooks/' });
   }
+
+  const DISCORD_API = 'https://discord.com/api/v10';
+  const hasComponents = payload.components && payload.components.length > 0;
+
   try {
+    if (hasComponents) {
+      // Regular webhooks don't support buttons — use bot API via channel
+      if (!process.env.DISCORD_TOKEN) {
+        return res.json({ ok: false, error: 'DISCORD_TOKEN not set — required to send messages with buttons' });
+      }
+      // Extract webhook ID + token to look up channel ID
+      const match = webhook_url.match(/webhooks\/(\d+)\/([^?/]+)/);
+      if (!match) return res.json({ ok: false, error: 'Could not parse webhook URL' });
+      const [, whId, whToken] = match;
+
+      const whInfo = await fetch(`${DISCORD_API}/webhooks/${whId}/${whToken}`);
+      if (!whInfo.ok) return res.json({ ok: false, error: 'Could not look up webhook channel' });
+      const { channel_id } = await whInfo.json();
+
+      const botPayload = {
+        content: payload.content || undefined,
+        embeds: payload.embeds || undefined,
+        components: payload.components
+      };
+
+      const r = await fetch(`${DISCORD_API}/channels/${channel_id}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bot ${process.env.DISCORD_TOKEN}` },
+        body: JSON.stringify(botPayload)
+      });
+      if (r.ok) return res.json({ ok: true });
+      let errMsg = 'Bot API error';
+      try { errMsg = (await r.json()).message || errMsg; } catch(e) {}
+      return res.json({ ok: false, error: errMsg });
+    }
+
+    // No components — send via webhook URL directly
     const https = require('https');
     const body = JSON.stringify(payload);
     const url = new URL(webhook_url);
