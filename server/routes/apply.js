@@ -34,7 +34,8 @@ router.get('/', async (req, res) => {
   const agreementItems = (await db.query(`SELECT * FROM agreement_items ORDER BY display_order ASC, id ASC`)).rows;
   const playstyleOptions = (await db.query(`SELECT * FROM playstyle_options ORDER BY display_order ASC, id ASC`)).rows;
 
-  res.render('apply', {
+  const template = res.locals.designPreview ? 'new/apply' : 'apply';
+  res.render(template, {
     event, eligibilityQuestions, existing, submitted: req.query.submitted === '1',
     stageSettings, stageBlocks, agreementItems, playstyleOptions
   });

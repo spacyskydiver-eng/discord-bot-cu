@@ -1,0 +1,564 @@
+<%- include('partials/head', { pageTitle: 'Apply' }) %>
+<%- include('partials/header') %>
+
+<%
+function renderBlock(b) {
+  if (b.block_type === 'image') {
+    return `<div class="sb-image"><img src="${b.content}" alt="${b.label||''}" />${b.label ? `<p style="font-size:12px;color:var(--muted);margin:4px 0 0">${b.label}</p>` : ''}</div>`;
+  }
+  if (b.block_type === 'video') {
+    const ytMatch = b.content.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})/);
+    if (ytMatch) {
+      return `<div class="sb-video"><div class="sb-iframe-wrap"><iframe src="https://www.youtube.com/embed/${ytMatch[1]}" allowfullscreen></iframe></div>${b.label ? `<p style="font-size:12px;color:var(--muted);margin:4px 0 0">${b.label}</p>` : ''}</div>`;
+    }
+    return `<div class="sb-video"><video src="${b.content}" controls style="max-width:100%;border-radius:10px"></video></div>`;
+  }
+  if (b.block_type === 'timestamp') {
+    return `<div class="sb-timestamp"><span style="color:var(--muted)">${b.label||'Event time'}:</span> <span class="tz-stamp" data-utc="${b.content}">Loading...</span></div>`;
+  }
+  const cls = b.style_class || 'normal';
+  if (cls === 'heading') return `<p class="sb-heading">${b.content}</p>`;
+  if (cls === 'muted') return `<p class="sb-text" style="opacity:.7">${b.content}</p>`;
+  return `<p class="sb-text">${b.content}</p>`;
+}
+%>
+
+<main class="wrap">
+
+  <div class="page-head">
+    <a href="/applications" class="back">← Applications</a>
+    <div>
+      <h1 class="page-title">Apply</h1>
+      <% if (event) { %><p class="page-sub">Applying for: <strong><%= event.title %></strong></p><% } %>
+    </div>
+  </div>
+
+  <div class="apw-wrap">
+
+    <% if (!event) { %>
+      <div class="apw-status">
+        <div class="apw-status-icon">—</div>
+        <h2>No Active Event</h2>
+        <p>There are no events open for applications right now. Check back soon.</p>
+        <a href="/" class="apw-cta">Back to home</a>
+      </div>
+
+    <% } else if (existing && existing.status === 'disqualified') { %>
+      <div class="apw-status err">
+        <div class="apw-status-icon">✕</div>
+        <h2>Not Eligible</h2>
+        <p>You did not meet the eligibility requirements for <strong><%= event.title %></strong>. You cannot reapply for this event with this Discord account.</p>
+        <a href="/events" class="apw-cta">View events</a>
+      </div>
+
+    <% } else if (existing && existing.status === 'accepted') { %>
+      <div class="apw-status ok">
+        <div class="apw-status-icon">✓</div>
+        <h2>Application Accepted</h2>
+        <p>Congratulations — you've been accepted for <strong><%= event.title %></strong>. Watch your Discord for further instructions.</p>
+        <a href="https://discord.gg/cuevents" target="_blank" rel="noopener" class="apw-cta apw-cta-discord">Open Discord</a>
+      </div>
+
+    <% } else if (existing && existing.status === 'declined') { %>
+      <div class="apw-status err">
+        <div class="apw-status-icon">✕</div>
+        <h2>Application Declined</h2>
+        <% if (existing.declined_at_stage) { %>
+          <p>Your application was not successful at Stage <%= existing.declined_at_stage %>. You cannot reapply for this event with this Discord account.</p>
+        <% } else { %>
+          <p>Your application was not successful this time. We appreciate you applying and hope to see you at a future event.</p>
+        <% } %>
+        <a href="/events" class="apw-cta">View events</a>
+      </div>
+
+    <% } else if (existing && existing.status === 'pending') { %>
+      <div class="apw-status warn">
+        <div class="apw-status-icon">◎</div>
+        <h2>Under Review</h2>
+        <p>Your application for <strong><%= event.title %></strong> is being reviewed by staff. Track your progress below.</p>
+        <% const stageNameMap = {2:'Basic Info',3:'Playstyle',4:'Scenarios',5:'Application',6:'Agreement'}; %>
+        <% const reviewStage = existing.review_stage || 2; %>
+        <div class="apw-progress">
+          <% for (let s = 2; s <= 6; s++) { %>
+            <% const passed = reviewStage > s; const isCurrent = reviewStage === s; %>
+            <div class="apw-prog-row <%= passed ? 'passed' : isCurrent ? 'current' : '' %>">
+              <div class="apw-prog-dot"><%= passed ? '✓' : s %></div>
+              <div>
+                <div class="apw-prog-name">Stage <%= s %> — <%= stageNameMap[s] %></div>
+                <div class="apw-prog-stat"><%= passed ? 'Passed' : isCurrent ? 'Under Review' : 'Waiting' %></div>
+              </div>
+            </div>
+            <% if (s < 6) { %><div class="apw-prog-line <%= passed ? 'passed' : '' %>"></div><% } %>
+          <% } %>
+        </div>
+      </div>
+
+    <% } else if (submitted) { %>
+      <div class="apw-status ok">
+        <div class="apw-status-icon">✓</div>
+        <h2>Application Received</h2>
+        <p>Your application for <strong><%= event.title %></strong> has been submitted. We'll review it and reach out via Discord.</p>
+        <a href="/" class="apw-cta">Back to home</a>
+      </div>
+
+    <% } else if (!event.is_open && event.opens_at && new Date(event.opens_at) > new Date()) { %>
+      <div class="apw-status">
+        <div class="apw-status-icon">◷</div>
+        <h2>Not Open Yet</h2>
+        <p>Applications for <strong><%= event.title %></strong> aren't open yet. Come back at:</p>
+        <p style="font-family:'Baloo 2';font-weight:800;font-size:16px;color:var(--text);margin-bottom:22px" class="tz-stamp" data-utc="<%= new Date(event.opens_at).toISOString() %>">Loading...</p>
+        <a href="/events" class="apw-cta">View events</a>
+      </div>
+
+    <% } else if (!event.is_open) { %>
+      <div class="apw-status">
+        <div class="apw-status-icon">—</div>
+        <h2>Applications Closed</h2>
+        <p>Applications for <strong><%= event.title %></strong> are currently closed.</p>
+        <a href="/events" class="apw-cta">View events</a>
+      </div>
+
+    <% } else if (!locals.user) { %>
+      <div class="apw-status">
+        <div class="apw-status-icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor" style="color:#5865F2"><path d="M20 4.4A19 19 0 0 0 15.3 3l-.3.5a14 14 0 0 1 4 2 16 16 0 0 0-13.4 0 14 14 0 0 1 4-2L9.3 3A19 19 0 0 0 4.6 4.4 20 20 0 0 0 1 18.6 19 19 0 0 0 6.8 21l.6-1a13 13 0 0 1-2-1l.5-.3a13 13 0 0 0 11.2 0l.5.3a13 13 0 0 1-2 1l.6 1A19 19 0 0 0 23 18.6 20 20 0 0 0 20 4.4ZM8.6 15.3c-.9 0-1.7-.9-1.7-2s.8-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Zm6.8 0c-.9 0-1.7-.9-1.7-2s.8-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Z"/></svg>
+        </div>
+        <h2>Sign in to apply</h2>
+        <p>You need to sign in with Discord before you can submit your application.</p>
+        <a href="/auth/discord" class="apw-cta apw-cta-discord">Sign in with Discord</a>
+      </div>
+
+    <% } else { %>
+
+      <!-- Step bar -->
+      <div class="apw-steps" id="wizardHeader">
+        <% ['Eligibility','Basic Info','Playstyle','Scenarios','Application','Agreement'].forEach(function(name, i) { %>
+          <div class="wizard-step <%= i === 0 ? 'active' : '' %>" data-stage="<%= i+1 %>">
+            <div class="apw-step-num"><%= i+1 %></div>
+          </div>
+          <% if (i < 5) { %><div class="wizard-connector"></div><% } %>
+        <% }); %>
+      </div>
+
+      <!-- Wizard form -->
+      <div class="apw-panel">
+        <form id="applyForm" action="/apply/submit" method="POST">
+          <input type="hidden" name="eligibility_answers" id="eligAnswersInput" value="{}" />
+
+          <!-- ── STAGE 1: ELIGIBILITY ── -->
+          <div class="wizard-stage active apw-stage" id="stage-1">
+            <div class="apw-stage-num">Stage 1 of 6</div>
+            <h2><%= (stageSettings[1] && stageSettings[1].title) || 'Eligibility' %> Check</h2>
+            <% if (stageSettings[1] && stageSettings[1].subtitle) { %>
+              <p class="apw-stage-sub"><%= stageSettings[1].subtitle %></p>
+            <% } else { %>
+              <p class="apw-stage-sub">Confirm you meet the basic requirements. Takes about 30 seconds.</p>
+            <% } %>
+
+            <%- (stageBlocks[1] || []).map(b => renderBlock(b)).join('') %>
+
+            <div class="apw-elig-list" id="eligQList">
+              <% for (const q of eligibilityQuestions) { %>
+                <div class="elig-item" data-id="<%= q.id %>" data-req-yes="<%= q.required_yes %>" data-blocking="<%= q.blocking %>">
+                  <p class="elig-q"><%= q.question_text %></p>
+                  <div class="apw-yn">
+                    <button type="button" class="yn-btn" data-val="yes">Yes</button>
+                    <button type="button" class="yn-btn" data-val="no">No</button>
+                  </div>
+                </div>
+              <% } %>
+            </div>
+
+            <div class="apw-disq" id="disqMsg">
+              <div class="apw-disq-title">You don't meet the requirements</div>
+              <p class="apw-disq-body">Unfortunately you don't qualify for this event based on your answers. We hope to see you at a future one.</p>
+              <button type="button" class="apw-btn-ghost" onclick="resetEligibility()">Go Back</button>
+            </div>
+
+            <div class="apw-nav" id="stage1Nav">
+              <span></span>
+              <button type="button" id="eligCheckBtn" class="apw-btn-next" onclick="checkEligibility()" disabled>Check Eligibility</button>
+            </div>
+          </div>
+
+          <!-- ── STAGE 2: BASIC INFO ── -->
+          <div class="wizard-stage apw-stage" id="stage-2">
+            <div class="apw-stage-num">Stage 2 of 6</div>
+            <h2><%= (stageSettings[2] && stageSettings[2].title) || 'Basic Information' %></h2>
+            <% if (stageSettings[2] && stageSettings[2].subtitle) { %>
+              <p class="apw-stage-sub"><%= stageSettings[2].subtitle %></p>
+            <% } else { %><p class="apw-stage-sub"></p><% } %>
+
+            <%- (stageBlocks[2] || []).map(b => renderBlock(b)).join('') %>
+
+            <div class="apw-field">
+              <label class="apw-label">Minecraft In-Game Name <span class="req">*</span></label>
+              <input type="text" name="ign" class="apw-input" placeholder="Your exact IGN" />
+            </div>
+            <div class="apw-field">
+              <label class="apw-label">Discord Username <span class="req">*</span></label>
+              <input type="text" name="discord_username" class="apw-input" placeholder="e.g. spacey or spacey#0001" />
+            </div>
+            <div class="apw-row">
+              <div class="apw-field">
+                <label class="apw-label">Age <span class="req">*</span></label>
+                <input type="number" name="age" class="apw-input" min="13" max="99" placeholder="Your age" />
+              </div>
+              <div class="apw-field">
+                <label class="apw-label">Country <span class="req">*</span></label>
+                <input type="text" name="country" class="apw-input" placeholder="e.g. United Kingdom" />
+              </div>
+            </div>
+            <div class="apw-field">
+              <label class="apw-label">How did you hear about The Collective? <span class="req">*</span></label>
+              <input type="text" name="how_heard" class="apw-input" placeholder="e.g. YouTube, a friend, Discord" />
+            </div>
+            <div class="apw-field">
+              <label class="apw-label">Have you played civilisation-style events before?</label>
+              <input type="hidden" name="played_civ" id="playedCivVal" value="no" />
+              <div class="apw-toggle">
+                <button type="button" class="toggle-opt" onclick="setToggle('playedCivVal','yes',this,'civWrap')">Yes</button>
+                <button type="button" class="toggle-opt active" onclick="setToggle('playedCivVal','no',this,'civWrap')">No</button>
+              </div>
+              <div id="civWrap" class="apw-cond" style="display:none">
+                <div class="apw-field" style="margin-bottom:0">
+                  <label class="apw-label">Which events?</label>
+                  <input type="text" name="played_civ_details" class="apw-input" placeholder="e.g. Forged Alliance, MCC" />
+                </div>
+              </div>
+            </div>
+            <div class="apw-field">
+              <label class="apw-label">Do you create content? (YouTube, Twitch, etc.)</label>
+              <input type="hidden" name="creates_content" id="createsContentVal" value="no" />
+              <div class="apw-toggle">
+                <button type="button" class="toggle-opt" onclick="setToggle('createsContentVal','yes',this,'contentWrap')">Yes</button>
+                <button type="button" class="toggle-opt active" onclick="setToggle('createsContentVal','no',this,'contentWrap')">No</button>
+              </div>
+              <div id="contentWrap" class="apw-cond" style="display:none">
+                <div class="apw-field" style="margin-bottom:0">
+                  <label class="apw-label">Channel / Stream link</label>
+                  <input type="url" name="content_link" class="apw-input" placeholder="https://..." />
+                </div>
+              </div>
+            </div>
+
+            <div class="apw-nav">
+              <button type="button" class="apw-btn-ghost" onclick="goStage(1)">Back</button>
+              <button type="button" class="apw-btn-next" onclick="nextFrom(2)">Next</button>
+            </div>
+          </div>
+
+          <!-- ── STAGE 3: PLAYSTYLE ── -->
+          <div class="wizard-stage apw-stage" id="stage-3">
+            <div class="apw-stage-num">Stage 3 of 6</div>
+            <h2><%= (stageSettings[3] && stageSettings[3].title) || 'Playstyle' %></h2>
+            <% if (stageSettings[3] && stageSettings[3].subtitle) { %>
+              <p class="apw-stage-sub"><%= stageSettings[3].subtitle %></p>
+            <% } else { %><p class="apw-stage-sub"></p><% } %>
+
+            <%- (stageBlocks[3] || []).map(b => renderBlock(b)).join('') %>
+
+            <input type="hidden" name="playstyle" id="playstyleVal" />
+            <div class="apw-playstyle-grid">
+              <% for (const ps of playstyleOptions) { %>
+                <div class="playstyle-card" data-val="<%= ps.value_key %>" onclick="pickPlaystyle(this)">
+                  <div class="playstyle-card-title"><%= ps.title %></div>
+                  <div class="playstyle-card-desc"><%= ps.description %></div>
+                </div>
+              <% } %>
+            </div>
+            <div class="apw-field">
+              <label class="apw-label"><%= (stageSettings[3] && stageSettings[3].playstyle_desc_label) || 'Describe how you would actually play this event based on your chosen playstyle.' %> <span class="req">*</span></label>
+              <textarea name="playstyle_description" class="apw-textarea" rows="4" placeholder="Be specific. What would you actually do on Day 1?"></textarea>
+            </div>
+
+            <div class="apw-nav">
+              <button type="button" class="apw-btn-ghost" onclick="goStage(2)">Back</button>
+              <button type="button" class="apw-btn-next" onclick="nextFrom(3)">Next</button>
+            </div>
+          </div>
+
+          <!-- ── STAGE 4: SCENARIOS ── -->
+          <div class="wizard-stage apw-stage" id="stage-4">
+            <div class="apw-stage-num">Stage 4 of 6</div>
+            <h2><%= (stageSettings[4] && stageSettings[4].title) || 'Scenario Questions' %></h2>
+            <% if (stageSettings[4] && stageSettings[4].subtitle) { %>
+              <p class="apw-stage-sub"><%= stageSettings[4].subtitle %></p>
+            <% } else { %><p class="apw-stage-sub"></p><% } %>
+
+            <%- (stageBlocks[4] || []).map(b => renderBlock(b)).join('') %>
+
+            <div class="apw-scenario">
+              <div class="apw-scenario-num"><%= (stageSettings[4] && stageSettings[4].scenario_1_title) || 'Scenario 1' %></div>
+              <div class="apw-scenario-q"><%= (stageSettings[4] && stageSettings[4].scenario_1_text) || '' %></div>
+              <textarea name="scenario_1" class="apw-textarea" rows="5" placeholder="Your response..."></textarea>
+            </div>
+            <div class="apw-scenario">
+              <div class="apw-scenario-num"><%= (stageSettings[4] && stageSettings[4].scenario_2_title) || 'Scenario 2' %></div>
+              <div class="apw-scenario-q"><%= (stageSettings[4] && stageSettings[4].scenario_2_text) || '' %></div>
+              <textarea name="scenario_2" class="apw-textarea" rows="5" placeholder="Your response..."></textarea>
+            </div>
+            <div class="apw-scenario">
+              <div class="apw-scenario-num"><%= (stageSettings[4] && stageSettings[4].scenario_3_title) || 'Scenario 3' %></div>
+              <div class="apw-scenario-q"><%= (stageSettings[4] && stageSettings[4].scenario_3_text) || '' %></div>
+              <textarea name="scenario_3" class="apw-textarea" rows="5" placeholder="Your response..."></textarea>
+            </div>
+
+            <div class="apw-nav">
+              <button type="button" class="apw-btn-ghost" onclick="goStage(3)">Back</button>
+              <button type="button" class="apw-btn-next" onclick="nextFrom(4)">Next</button>
+            </div>
+          </div>
+
+          <!-- ── STAGE 5: APPLICATION TYPE ── -->
+          <div class="wizard-stage apw-stage" id="stage-5">
+            <div class="apw-stage-num">Stage 5 of 6</div>
+            <h2><%= (stageSettings[5] && stageSettings[5].title) || 'Your Application' %></h2>
+            <% if (stageSettings[5] && stageSettings[5].subtitle) { %>
+              <p class="apw-stage-sub"><%= stageSettings[5].subtitle %></p>
+            <% } else { %><p class="apw-stage-sub"></p><% } %>
+
+            <%- (stageBlocks[5] || []).map(b => renderBlock(b)).join('') %>
+
+            <input type="hidden" name="app_type" id="appTypeVal" />
+            <div class="apw-type-grid">
+              <div class="app-type-card" data-type="video" onclick="pickAppType('video',this)">
+                <div class="app-type-card-title"><%= (stageSettings[5] && stageSettings[5].video_title) || 'Video' %></div>
+                <div class="app-type-card-desc"><%= (stageSettings[5] && stageSettings[5].video_desc) || 'Record a short 1–3 minute introduction and paste the link.' %></div>
+              </div>
+              <div class="app-type-card" data-type="written" onclick="pickAppType('written',this)">
+                <div class="app-type-card-title"><%= (stageSettings[5] && stageSettings[5].written_title) || 'Written' %></div>
+                <div class="app-type-card-desc"><%= (stageSettings[5] && stageSettings[5].written_desc) || 'Write at least 150 words about yourself.' %></div>
+              </div>
+            </div>
+
+            <div id="videoSection" style="display:none" class="apw-cond">
+              <div class="apw-field">
+                <label class="apw-label">Video Link <span class="req">*</span></label>
+                <input type="url" name="video_link" id="videoLinkInput" class="apw-input" placeholder="https://youtu.be/... or Google Drive link" />
+              </div>
+            </div>
+            <div id="writtenSection" style="display:none" class="apw-cond">
+              <div class="apw-field">
+                <label class="apw-label">Written Application <span class="req">*</span></label>
+                <textarea name="written_app" id="writtenInput" class="apw-textarea" rows="10" oninput="updateWordCount(this)" placeholder="Tell us about yourself..."></textarea>
+                <div class="apw-wc" id="wordCounter"><span id="wordCountNum">0</span> words <span class="wc-min">(minimum 150)</span></div>
+              </div>
+            </div>
+
+            <div class="apw-nav">
+              <button type="button" class="apw-btn-ghost" onclick="goStage(4)">Back</button>
+              <button type="button" class="apw-btn-next" onclick="nextFrom(5)">Next</button>
+            </div>
+          </div>
+
+          <!-- ── STAGE 6: AGREEMENT ── -->
+          <div class="wizard-stage apw-stage" id="stage-6">
+            <div class="apw-stage-num">Stage 6 of 6</div>
+            <h2><%= (stageSettings[6] && stageSettings[6].title) || 'Final Agreement' %></h2>
+            <% if (stageSettings[6] && stageSettings[6].subtitle) { %>
+              <p class="apw-stage-sub"><%= stageSettings[6].subtitle %></p>
+            <% } else { %>
+              <p class="apw-stage-sub">Read and confirm each item to submit your application.</p>
+            <% } %>
+
+            <%- (stageBlocks[6] || []).map(b => renderBlock(b)).join('') %>
+
+            <input type="hidden" name="agreements" id="agreementsVal" value="" />
+            <div class="apw-agr-list">
+              <% for (const item of agreementItems) { %>
+                <label class="agr-item">
+                  <input type="checkbox" class="agr-check" />
+                  <span class="agr-text"><%= item.item_text %></span>
+                </label>
+              <% } %>
+            </div>
+
+            <div class="apw-nav">
+              <button type="button" class="apw-btn-ghost" onclick="goStage(5)">Back</button>
+              <button type="submit" class="apw-btn-submit" id="submitBtn" disabled>Submit Application</button>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+    <% } %>
+
+  </div>
+</main>
+
+<script>
+// Timestamp display
+document.querySelectorAll('.tz-stamp').forEach(function(el) {
+  try {
+    var d = new Date(el.dataset.utc);
+    el.textContent = d.toLocaleString(undefined, {
+      weekday:'long',year:'numeric',month:'long',day:'numeric',
+      hour:'2-digit',minute:'2-digit',timeZoneName:'short'
+    });
+  } catch(_) {}
+});
+
+// Stage navigation
+var currentStageNum = 1;
+function goStage(n) {
+  var goingForward = n > currentStageNum;
+  document.querySelectorAll('.wizard-stage').forEach(function(s) {
+    s.classList.remove('active');
+  });
+  document.getElementById('stage-' + n).classList.add('active');
+  currentStageNum = n;
+
+  document.querySelectorAll('.wizard-step').forEach(function(el, i) {
+    el.classList.toggle('done', i + 1 < n);
+    el.classList.toggle('active', i + 1 === n);
+  });
+  document.querySelectorAll('.wizard-connector').forEach(function(el, i) {
+    el.classList.toggle('done', i + 1 < n);
+  });
+
+  var hdr = document.getElementById('wizardHeader');
+  if (hdr) window.scrollTo({ top: hdr.offsetTop - 90, behavior: 'smooth' });
+}
+
+// Eligibility
+var eligAnswers = {};
+document.querySelectorAll('.yn-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    this.closest('.elig-item').querySelectorAll('.yn-btn').forEach(function(b) {
+      b.classList.remove('selected');
+    });
+    this.classList.add('selected');
+    eligAnswers[this.closest('.elig-item').dataset.id] = this.dataset.val;
+    var total = document.querySelectorAll('.elig-item').length;
+    document.getElementById('eligCheckBtn').disabled = Object.keys(eligAnswers).length < total;
+  });
+});
+
+function checkEligibility() {
+  var disq = false;
+  document.querySelectorAll('.elig-item').forEach(function(item) {
+    if (item.dataset.blocking !== 'true') return;
+    var ans = eligAnswers[item.dataset.id];
+    if (item.dataset.reqYes === 'true' && ans === 'no') disq = true;
+    if (item.dataset.reqYes === 'false' && ans === 'yes') disq = true;
+  });
+  document.getElementById('eligAnswersInput').value = JSON.stringify(eligAnswers);
+  if (disq) {
+    fetch('/apply/record-disqualified', {
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ answers: eligAnswers })
+    }).catch(function(){});
+    document.getElementById('eligQList').style.display = 'none';
+    document.getElementById('stage1Nav').style.display = 'none';
+    document.getElementById('disqMsg').style.display = 'block';
+  } else {
+    goStage(2);
+  }
+}
+
+function resetEligibility() {
+  document.getElementById('eligQList').style.display = '';
+  document.getElementById('stage1Nav').style.display = '';
+  document.getElementById('disqMsg').style.display = 'none';
+  document.querySelectorAll('.yn-btn').forEach(function(b) { b.classList.remove('selected'); });
+  Object.keys(eligAnswers).forEach(function(k) { delete eligAnswers[k]; });
+  document.getElementById('eligCheckBtn').disabled = true;
+}
+
+// Toggle opts (yes/no toggles)
+function setToggle(inputId, val, btn, wrapId) {
+  btn.parentElement.querySelectorAll('.toggle-opt').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  document.getElementById(inputId).value = val;
+  var wrap = document.getElementById(wrapId);
+  if (wrap) wrap.style.display = val === 'yes' ? 'block' : 'none';
+}
+
+// Playstyle selection
+function pickPlaystyle(card) {
+  document.querySelectorAll('.playstyle-card').forEach(function(c) { c.classList.remove('selected'); });
+  card.classList.add('selected');
+  document.getElementById('playstyleVal').value = card.dataset.val;
+}
+
+// App type selection
+function pickAppType(type, card) {
+  document.querySelectorAll('.app-type-card').forEach(function(c) { c.classList.remove('selected'); });
+  card.classList.add('selected');
+  document.getElementById('appTypeVal').value = type;
+  document.getElementById('videoSection').style.display = type === 'video' ? 'block' : 'none';
+  document.getElementById('writtenSection').style.display = type === 'written' ? 'block' : 'none';
+}
+
+function updateWordCount(ta) {
+  var n = ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0;
+  document.getElementById('wordCountNum').textContent = n;
+  document.getElementById('wordCounter').classList.toggle('ok', n >= 150);
+}
+
+// Agreement checkboxes
+document.querySelectorAll('.agr-check').forEach(function(cb) {
+  cb.addEventListener('change', function() {
+    var all = Array.from(document.querySelectorAll('.agr-check')).every(function(c) { return c.checked; });
+    document.getElementById('submitBtn').disabled = !all;
+    document.getElementById('agreementsVal').value = all ? 'confirmed' : '';
+  });
+});
+
+// Stage validation
+function nextFrom(stage) {
+  if (stage === 2) {
+    var required = ['ign','discord_username','age','country','how_heard'];
+    for (var i = 0; i < required.length; i++) {
+      var el = document.querySelector('[name="' + required[i] + '"]');
+      if (!el.value.trim()) {
+        el.classList.add('input-error');
+        el.scrollIntoView({ behavior:'smooth', block:'center' });
+        el.addEventListener('input', function() { this.classList.remove('input-error'); }, { once:true });
+        return;
+      }
+    }
+  }
+  if (stage === 3) {
+    if (!document.getElementById('playstyleVal').value) {
+      alert('Please select a playstyle to continue.');
+      return;
+    }
+    if (!document.querySelector('[name="playstyle_description"]').value.trim()) {
+      document.querySelector('[name="playstyle_description"]').focus();
+      return;
+    }
+  }
+  if (stage === 4) {
+    var scenarios = ['scenario_1','scenario_2','scenario_3'];
+    for (var i = 0; i < scenarios.length; i++) {
+      if (!document.querySelector('[name="' + scenarios[i] + '"]').value.trim()) {
+        document.querySelector('[name="' + scenarios[i] + '"]').scrollIntoView({ behavior:'smooth', block:'center' });
+        alert('Please answer all scenario questions.');
+        return;
+      }
+    }
+  }
+  if (stage === 5) {
+    var type = document.getElementById('appTypeVal').value;
+    if (!type) { alert('Please choose video or written.'); return; }
+    if (type === 'video' && !document.getElementById('videoLinkInput').value.trim()) {
+      document.getElementById('videoLinkInput').focus();
+      return;
+    }
+    if (type === 'written') {
+      var words = document.getElementById('writtenInput').value.trim()
+        ? document.getElementById('writtenInput').value.trim().split(/\s+/).length : 0;
+      if (words < 150) {
+        alert('Your written application needs at least 150 words. You have ' + words + '.');
+        return;
+      }
+    }
+  }
+  goStage(stage + 1);
+}
+</script>
+
+<%- include('partials/foot') %>
