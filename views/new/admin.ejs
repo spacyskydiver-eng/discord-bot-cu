@@ -207,6 +207,14 @@
 .wh-e-btn{background:none;border:none;font-size:20px;width:34px;height:34px;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .1s}
 .wh-e-btn:hover{background:rgba(255,255,255,.1)}
 .wh-emoji-custom{border-top:1px solid #3f4147;margin-top:10px;padding-top:10px}
+.wh-eg-code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:3px;font-size:10.5px;font-family:monospace;color:#cdd6f4}
+.wh-channel-note{
+  display:flex;align-items:flex-start;gap:7px;
+  font-size:12px;color:#949ba4;line-height:1.5;
+  background:rgba(88,101,242,.08);border:1px solid rgba(88,101,242,.2);
+  border-radius:8px;padding:9px 12px;margin-bottom:10px;
+}
+.wh-channel-note strong{color:#c9ccdb}
 </style>
 
 <main class="wrap nd-adm-wrap">
@@ -639,10 +647,14 @@
         <div class="nd-card" style="padding:24px">
 
           <div class="wh-section">Webhook URL</div>
-          <div style="display:flex;gap:8px;margin-bottom:10px">
+          <div style="display:flex;gap:8px;margin-bottom:6px">
             <input type="text" id="wh-url" class="nd-input" placeholder="https://discord.com/api/webhooks/..." />
             <button class="nd-btn nd-btn-ghost nd-btn-sm" onclick="saveWebhook()" style="white-space:nowrap">Save URL</button>
           </div>
+          <p class="wh-channel-note">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Each webhook URL posts to one specific channel. To get one: open the channel in Discord → <strong>Edit Channel → Integrations → Webhooks → New Webhook → Copy Webhook URL</strong>.
+          </p>
           <div id="wh-saved-list"></div>
 
           <div class="wh-section">Message</div>
@@ -773,12 +785,13 @@
   <input type="text" id="wh-emoji-search" class="nd-input nd-btn-sm" placeholder="Search emojis…" oninput="filterEmojis(this.value)" style="margin-bottom:10px">
   <div id="wh-emoji-grid" class="wh-emoji-grid"></div>
   <div class="wh-emoji-custom">
-    <p class="nd-label" style="margin-bottom:6px">Custom Discord emoji</p>
-    <p style="font-size:11px;color:var(--muted);margin-bottom:8px">In Discord type <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:3px">\:emojiname:</code> to get the ID</p>
+    <p class="nd-label" style="margin-bottom:4px">Custom server emoji</p>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.5">
+      Paste the full emoji code — e.g. <code class="wh-eg-code">&lt;:minecraft_red_1:1520515823402483733&gt;</code><br>
+      To get it: type <code class="wh-eg-code">\:emojiname:</code> in any Discord channel, then copy the result.
+    </p>
     <div style="display:flex;gap:6px;align-items:center">
-      <input type="text" id="wh-cust-name" class="nd-input nd-btn-sm" placeholder="name" style="flex:1">
-      <input type="text" id="wh-cust-id" class="nd-input nd-btn-sm" placeholder="123456789" style="flex:1.2">
-      <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);white-space:nowrap;cursor:pointer"><input type="checkbox" id="wh-cust-anim"> Animated</label>
+      <input type="text" id="wh-cust-full" class="nd-input nd-btn-sm" placeholder="<:name:id> or <a:name:id>" style="flex:1">
       <button type="button" class="nd-btn nd-btn-ghost nd-btn-sm" onclick="insertCustomEmoji()" style="white-space:nowrap">Insert</button>
     </div>
   </div>
@@ -1075,14 +1088,15 @@ function insertEmoji(emoji) {
 }
 
 function insertCustomEmoji() {
-  const name = document.getElementById('wh-cust-name').value.trim().replace(/\W/g,'');
-  const id = document.getElementById('wh-cust-id').value.trim().replace(/\D/g,'');
-  const anim = document.getElementById('wh-cust-anim').checked;
-  if (!name || !id) { alert('Enter both a name and an ID number'); return; }
-  const str = `<${anim?'a':''}:${name}:${id}>`;
-  insertEmoji(str);
-  document.getElementById('wh-cust-name').value = '';
-  document.getElementById('wh-cust-id').value = '';
+  const raw = document.getElementById('wh-cust-full').value.trim();
+  if (!raw) { alert('Paste the full emoji code first, e.g. <:minecraft_red_1:1520515823402483733>'); return; }
+  // Accept <:name:id>, <a:name:id>, or just :name: style
+  if (!/^<a?:\w+:\d+>$/.test(raw)) {
+    alert('Format must be <:name:id> or <a:name:id>\nExample: <:minecraft_red_1:1520515823402483733>');
+    return;
+  }
+  insertEmoji(raw);
+  document.getElementById('wh-cust-full').value = '';
 }
 
 // Close emoji panel when clicking outside
