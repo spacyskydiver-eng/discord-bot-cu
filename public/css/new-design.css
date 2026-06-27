@@ -130,7 +130,7 @@
 }
 .nd-home-grid {
   display: grid;
-  grid-template-columns: 380px 1fr;
+  grid-template-columns: 420px 1fr;
   width: 100%;
   min-height: calc(100vh - 80px);
 }
@@ -139,7 +139,7 @@
 .nd-home-left {
   background: #0e0e16;
   border-right: 1px solid rgba(255,255,255,0.06);
-  padding: 2.5rem 2rem;
+  padding: 3rem 2.5rem;
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -270,8 +270,8 @@
 .nd-home-right {
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
-  gap: 1rem;
+  padding: 2rem;
+  gap: 1.25rem;
   background: #05050a;
   justify-content: center;
 }
@@ -281,11 +281,11 @@
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
   text-decoration: none;
   flex: 1;
-  min-height: 120px;
+  min-height: 150px;
   transition: transform 0.2s, box-shadow 0.2s;
   border: 1px solid rgba(255,255,255,0.06);
 }
@@ -389,20 +389,20 @@
   position: relative;
   z-index: 1;
   flex: 1;
-  padding: 1.25rem 1rem 1.25rem 0;
+  padding: 1.5rem 1.5rem 1.5rem 0;
 }
 .nd-card-title {
   font-family: 'Press Start 2P', monospace;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   color: #ffffff;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-shadow: 0 2px 8px rgba(0,0,0,0.8);
-  margin-bottom: 0.5rem;
-  line-height: 1.4;
+  margin-bottom: 0.65rem;
+  line-height: 1.5;
 }
 .nd-card-sub {
   font-family: 'Press Start 2P', monospace;
-  font-size: 0.42rem;
+  font-size: 0.44rem;
   color: rgba(255,255,255,0.45);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -442,10 +442,40 @@
    EVENTS LIST PAGE
 ═══════════════════════════════════════════════════════════ */
 .nd-page {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 2.5rem 1.5rem 4rem;
+  padding: 3rem 2rem 5rem;
 }
+
+/* ── Page head row (back btn + title) ── */
+.nd-page-head {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
+}
+.nd-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  background: #16171c;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.75);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.65rem 1.1rem;
+  border-radius: 10px;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.nd-back:hover {
+  background: #1d1f26;
+  color: #fff;
+}
+.nd-back svg { opacity: 0.7; }
+
 .nd-page-header {
   margin-bottom: 2rem;
 }
@@ -467,8 +497,11 @@
 .nd-page-sub {
   font-size: 0.9rem;
   color: rgba(255,255,255,0.45);
-  margin-top: 0.5rem;
+  margin-top: 0.4rem;
+  margin-bottom: 0;
 }
+
+/* legacy inline back link (event hero) */
 .nd-back-link {
   display: inline-flex;
   align-items: center;
@@ -484,7 +517,7 @@
 .nd-event-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 1.25rem;
+  gap: 1.5rem;
 }
 
 .nd-event-card {
@@ -634,7 +667,7 @@
   position: relative;
   z-index: 3;
   width: 100%;
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
 }
@@ -661,7 +694,7 @@
 }
 
 .nd-event-body {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1.5rem 4rem;
   display: grid;
@@ -963,18 +996,19 @@
 /* ══════════════════════════════════════════════════════════
    RESPONSIVE
 ═══════════════════════════════════════════════════════════ */
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .nd-home-grid { grid-template-columns: 1fr; }
   .nd-home-left { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
-  .nd-home-right { padding: 1rem; }
-  .nd-action-card { min-height: 90px; }
+  .nd-home-right { padding: 1.25rem; gap: 1rem; }
+  .nd-action-card { min-height: 110px; }
   .nd-event-body { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
   .nd-header-inner { padding: 0 1rem; }
-  .nd-header-nav { display: none; }
-  .nd-home-left { padding: 1.5rem 1.25rem; }
-  .nd-page { padding: 1.5rem 1rem 3rem; }
+  .nd-home-left { padding: 2rem 1.5rem; }
+  .nd-page { padding: 1.75rem 1.25rem 3rem; }
+  .nd-page-head { gap: 0.85rem; margin-bottom: 1.75rem; }
+  .nd-page-title { font-size: 1.5rem; }
   .nd-event-hero-title { font-size: 1.6rem; }
   .nd-island-quad { grid-template-columns: 1fr; }
 }

@@ -3,8 +3,16 @@
 
 <% const theme = event.theme || 'default'; %>
 
+<!-- Back button row (above hero) -->
+<div style="max-width:1200px;margin:0 auto;padding:1.5rem 2rem 0;">
+  <a href="/events" class="nd-back">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    All Events
+  </a>
+</div>
+
 <!-- Hero -->
-<div class="nd-event-hero">
+<div class="nd-event-hero" style="margin-top:1.25rem;">
   <div class="nd-event-hero-bg nd-hero-<%= theme %>">
     <% if (event.card_image) { %>
       <img src="<%= event.card_image %>" alt="">
@@ -13,9 +21,6 @@
   </div>
   <div class="nd-event-hero-overlay"></div>
   <div class="nd-event-hero-content">
-    <a href="/events" class="nd-back-link" style="color:rgba(255,255,255,0.4);text-decoration:none;font-size:0.78rem;">
-      ← All Events
-    </a>
     <div class="nd-event-hero-tag">⚔ COLLECTIVE UNION EVENTS</div>
     <h1 class="nd-event-hero-title"><%= event.name %></h1>
     <div class="nd-event-hero-meta">
