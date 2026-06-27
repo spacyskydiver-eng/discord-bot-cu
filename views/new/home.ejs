@@ -117,15 +117,18 @@
     <p class="col-eyebrow">COMMUNITY SERVER · ALWAYS EVOLVING</p>
     <div class="col-head">
       <h2>The Collective</h2>
-      <span class="col-live"><span class="dot"></span>Building toward 24/7</span>
+      <span class="col-live"><span class="dot"></span>First session this Saturday</span>
     </div>
-    <p class="col-vision">Alongside our major civilisation events, we're building a permanent community server to keep things active and competitive all year round. Not a lobby to wait in. A fully featured mini-event server with a growing range of game modes, refined over time. From fast-paced PvP tournaments and battle royale modes to creative challenges and social events, there's always something happening.</p>
+    <p class="col-vision">We're building a community server to keep things competitive all year round. It starts with focused weekend tournaments and grows into a full 24/7 server where players create parties, set up their own matches, and compete between clans. Here is the plan.</p>
     <div class="col-modes">
       <span class="col-mode">Hunger Games</span>
-      <span class="col-mode">Survival Games</span>
       <span class="col-mode">Battle Royale</span>
       <span class="col-mode">Prop Hunt</span>
+      <span class="col-mode">Survival Games</span>
       <span class="col-mode">Random Item Challenge</span>
+      <span class="col-mode">Death Swap</span>
+      <span class="col-mode">PvP Tournaments</span>
+      <span class="col-mode">Party Matches</span>
       <span class="col-mode">1v1 Duels</span>
       <span class="col-mode">100 Player Events</span>
     </div>
@@ -133,23 +136,39 @@
     <div class="timeline">
       <div class="phase">
         <div class="node">1</div>
-        <div class="ptag">WEEKS 1–2</div>
+        <div class="ptag">WEEKS 1–3</div>
         <h4>Launch</h4>
-        <p>Weekend-only events, online during scheduled sessions. We start simple with Hunger Games to build the initial community and get things running smoothly.</p>
+        <p>Weekend sessions only. Three weeks, three game modes. Hunger Games first, then Battle Royale, then Prop Hunt. Focused and small — we let the community build naturally before scaling up.</p>
       </div>
       <div class="phase">
         <div class="node">2</div>
-        <div class="ptag">WEEKS 3–8</div>
+        <div class="ptag">MONTH 2</div>
         <h4>Expanding</h4>
-        <p>Events move to Wednesday, Friday and Sunday sessions. More modes arrive gradually including Survival Games, Battle Royale, Prop Hunt, Random Item Challenge and 1v1 Duels as the schedule gets more consistent.</p>
+        <p>Sessions move to 2 to 3 times a week. Survival Games, Random Item Challenge, Death Swap and PvP Tournaments join the schedule. The competitive scene starts to form.</p>
       </div>
       <div class="phase">
         <div class="node">3</div>
-        <div class="ptag">MONTH 3+</div>
+        <div class="ptag">POST-EVENT</div>
         <h4>Going 24/7</h4>
-        <p>Fully online 24/7 with every mode available any time. Weekly 100 player events run alongside hosted tournaments on a regular schedule, plus a planned MCPVP partnership for a cross-server duel queue.</p>
+        <p>After our 500 player event the server goes fully 24/7. Players create parties, pick from our full game mode selection and host their own matches scaled to their group size. Staff-run official tournaments with prizes every weekend. European PvP clans already in talks to compete in inter-clan tournaments.</p>
       </div>
     </div>
+
+    <!-- Countdown to first session -->
+    <div class="col-countdown">
+      <div class="col-cd-label">First session kicks off</div>
+      <div class="col-cd-time">
+        <div class="col-cd-seg"><span id="cdDays">--</span><small>days</small></div>
+        <div class="col-cd-dot">:</div>
+        <div class="col-cd-seg"><span id="cdHours">--</span><small>hrs</small></div>
+        <div class="col-cd-dot">:</div>
+        <div class="col-cd-seg"><span id="cdMins">--</span><small>min</small></div>
+        <div class="col-cd-dot">:</div>
+        <div class="col-cd-seg"><span id="cdSecs">--</span><small>sec</small></div>
+      </div>
+      <div class="col-cd-sub">Saturday 11 July · Hunger Games Tournament · Join our Discord for details</div>
+    </div>
+
   </div>
 
 </main>
@@ -164,4 +183,30 @@ document.getElementById('showMore').addEventListener('click', function() {
   this.querySelector('.t').textContent = open ? 'Show less' : 'Show more';
   this.setAttribute('aria-expanded', open);
 });
+
+// Countdown to Saturday 11 July 2026 7pm BST (18:00 UTC)
+(function() {
+  var target = new Date('2026-07-11T18:00:00Z').getTime();
+  function tick() {
+    var diff = target - Date.now();
+    if (diff <= 0) {
+      ['cdDays','cdHours','cdMins','cdSecs'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = '00';
+      });
+      return;
+    }
+    var d = Math.floor(diff / 86400000);
+    var h = Math.floor(diff / 3600000) % 24;
+    var m = Math.floor(diff / 60000) % 60;
+    var s = Math.floor(diff / 1000) % 60;
+    function pad(n) { return String(n).padStart(2, '0'); }
+    document.getElementById('cdDays').textContent  = d;
+    document.getElementById('cdHours').textContent = pad(h);
+    document.getElementById('cdMins').textContent  = pad(m);
+    document.getElementById('cdSecs').textContent  = pad(s);
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
 </script>

@@ -41,7 +41,7 @@
             VIP tag &amp; TAB priority + VIP role in Discord
           </li>
         </ul>
-        <button class="buy" onclick="window.open('https://discord.gg/cuevents','_blank')">Get VIP</button>
+        <button class="buy" onclick="showComingSoon()">Get VIP</button>
       </div>
     </div>
 
@@ -81,7 +81,7 @@
             Access to sneak peeks of future events
           </li>
         </ul>
-        <button class="buy" onclick="window.open('https://discord.gg/cuevents','_blank')">Get VIP+</button>
+        <button class="buy" onclick="showComingSoon()">Get VIP+</button>
       </div>
     </div>
 
@@ -93,4 +93,37 @@
 
 </main>
 
+<!-- Coming soon modal -->
+<div id="csModal" class="cs-modal" onclick="if(event.target===this)closeComingSoon()">
+  <div class="cs-box">
+    <button class="cs-close" onclick="closeComingSoon()">✕</button>
+    <div class="cs-icon">
+      <svg viewBox="0 0 100 100" width="56" height="56">
+        <polygon points="50,6 82,30 66,90 34,90 18,30" fill="#fff0c0"/>
+        <polygon points="50,6 82,30 50,46 18,30" fill="#ffe08a"/>
+        <polygon points="18,30 50,46 34,90" fill="#ffc63d"/>
+        <polygon points="82,30 50,46 66,90" fill="#d99a16"/>
+      </svg>
+    </div>
+    <h2 class="cs-title">Coming Soon</h2>
+    <p class="cs-body">The store is launching in around 3 days. Check back shortly and you'll be able to purchase VIP and VIP+ directly here.</p>
+    <a class="cs-disc" href="https://discord.gg/C63H8CFkm" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4.4A19 19 0 0 0 15.3 3l-.3.5a14 14 0 0 1 4 2 16 16 0 0 0-13.4 0 14 14 0 0 1 4-2L9.3 3A19 19 0 0 0 4.6 4.4 20 20 0 0 0 1 18.6 19 19 0 0 0 6.8 21l.6-1a13 13 0 0 1-2-1l.5-.3a13 13 0 0 0 11.2 0l.5.3a13 13 0 0 1-2 1l.6 1A19 19 0 0 0 23 18.6 20 20 0 0 0 20 4.4ZM8.6 15.3c-.9 0-1.7-.9-1.7-2s.8-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Zm6.8 0c-.9 0-1.7-.9-1.7-2s.8-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Z"/></svg>
+      Join our Discord for updates
+    </a>
+  </div>
+</div>
+
 <%- include('partials/foot') %>
+
+<script>
+function showComingSoon() {
+  document.getElementById('csModal').classList.add('open');
+}
+function closeComingSoon() {
+  document.getElementById('csModal').classList.remove('open');
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeComingSoon();
+});
+</script>
