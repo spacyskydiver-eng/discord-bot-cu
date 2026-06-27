@@ -1,0 +1,21 @@
+  <footer style="border-top:1px solid rgba(255,255,255,0.05);margin-top:auto;padding:2rem 1.5rem;text-align:center;">
+    <p style="font-family:'Press Start 2P',monospace;font-size:0.45rem;color:rgba(255,255,255,0.2);letter-spacing:0.1em;">
+      &copy; 2026 COLLECTIVE UNION EVENTS
+    </p>
+    <p style="font-size:0.75rem;color:rgba(255,255,255,0.15);margin-top:0.5rem;">
+      Not affiliated with Mojang Studios or Microsoft &nbsp;·&nbsp;
+      <a href="/rules" style="color:rgba(255,255,255,0.25);text-decoration:none;">Rules</a> &nbsp;·&nbsp;
+      <a href="/staff" style="color:rgba(255,255,255,0.25);text-decoration:none;">Staff</a>
+    </p>
+  </footer>
+
+  <% if (locals.designPreview) { %>
+  <div id="design-preview-badge">
+    <span class="dpb-dot"></span>
+    DESIGN PREVIEW
+    <a href="/design-preview/off?return=<%= encodeURIComponent(locals._url || '/') %>" class="dpb-off">✕ Exit</a>
+  </div>
+  <% } %>
+
+</body>
+</html>

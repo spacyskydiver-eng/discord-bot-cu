@@ -1,0 +1,74 @@
+<%- include('partials/head', { pageTitle: 'Store' }) %>
+<%- include('partials/header') %>
+
+<main style="min-height:calc(100vh - 80px);">
+  <div class="nd-page">
+
+    <div class="nd-page-header">
+      <div class="nd-page-label">👑 Cosmetics &amp; Ranks</div>
+      <h1 class="nd-page-title">Store</h1>
+      <p class="nd-page-sub">
+        Cosmetic-only ranks for our 24/7 server and events. No pay-to-win — all perks are purely visual.
+        In compliance with the <a href="https://www.minecraft.net/en-us/eula" target="_blank" rel="noopener" style="color:rgba(201,168,76,0.7);text-decoration:none;">Minecraft EULA</a>.
+      </p>
+    </div>
+
+    <div class="nd-store-grid">
+
+      <!-- VIP -->
+      <div class="nd-rank-card nd-rank-vip">
+        <div class="nd-rank-header">
+          <span class="nd-rank-badge">[VIP]</span>
+          <div class="nd-rank-price">£X <span>/ permanent</span></div>
+          <div class="nd-rank-tag">One-time purchase · Permanent access</div>
+        </div>
+        <div class="nd-rank-body">
+          <ul class="nd-rank-features">
+            <li><span class="nd-feat-check">✓</span> Custom armor trims exclusive to VIP</li>
+            <li><span class="nd-feat-check">✓</span> Custom shields and banner patterns</li>
+            <li><span class="nd-feat-check">✓</span> Cosmetic title prefix in chat</li>
+            <li><span class="nd-feat-check">✓</span> Exclusive Discord role &amp; access</li>
+            <li><span class="nd-feat-check">✓</span> Early access to event signups</li>
+          </ul>
+          <a href="https://discord.gg/cuevents" target="_blank" rel="noopener" class="nd-rank-buy">
+            Get VIP →
+          </a>
+          <div class="nd-rank-compare">Contact us on Discord to purchase</div>
+        </div>
+      </div>
+
+      <!-- VIP+ -->
+      <div class="nd-rank-card nd-rank-vip-plus">
+        <div class="nd-rank-header">
+          <span class="nd-rank-badge">[VIP+]</span>
+          <div class="nd-rank-price">£X <span>/ permanent</span></div>
+          <div class="nd-rank-tag">Includes everything in VIP</div>
+        </div>
+        <div class="nd-rank-body">
+          <ul class="nd-rank-features plus">
+            <li><span class="nd-feat-check">✓</span> Everything in VIP</li>
+            <li><span class="nd-feat-check">✓</span> Custom particle effects around player</li>
+            <li><span class="nd-feat-check">✓</span> Animated glowing name in chat</li>
+            <li><span class="nd-feat-check">✓</span> Exclusive VIP+ cosmetic kit</li>
+            <li><span class="nd-feat-check">✓</span> Custom death and respawn effects</li>
+            <li><span class="nd-feat-check">✓</span> Priority event application review</li>
+          </ul>
+          <a href="https://discord.gg/cuevents" target="_blank" rel="noopener" class="nd-rank-buy">
+            Get VIP+ →
+          </a>
+          <div class="nd-rank-compare">Contact us on Discord to purchase</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="margin-top:2.5rem;padding:1.25rem;border:1px solid rgba(255,255,255,0.06);border-radius:10px;background:rgba(255,255,255,0.02);">
+      <p style="font-size:0.78rem;color:rgba(255,255,255,0.3);margin:0;line-height:1.7;">
+        <strong style="color:rgba(255,255,255,0.45);">Important:</strong> All ranks are cosmetic only. No rank provides in-game advantages such as additional health, attack power, or gameplay resources not available to other players. Prices are displayed on purchase. By purchasing you agree to our terms of service. Collective Union Events complies with the Minecraft EULA and Mojang's commercial usage guidelines.
+      </p>
+    </div>
+
+  </div>
+</main>
+
+<%- include('partials/foot') %>

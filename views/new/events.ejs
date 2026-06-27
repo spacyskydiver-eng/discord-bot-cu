@@ -1,0 +1,55 @@
+<%- include('partials/head', { pageTitle: 'Upcoming Events' }) %>
+<%- include('partials/header') %>
+
+<main style="min-height:calc(100vh - 80px);">
+  <div class="nd-page">
+
+    <div class="nd-page-header">
+      <div class="nd-page-label">⚔ Seasons &amp; Matches</div>
+      <h1 class="nd-page-title">Upcoming Events</h1>
+      <p class="nd-page-sub">Click an event to view full details, island information and the application window.</p>
+    </div>
+
+    <% if (events.length === 0) { %>
+      <div class="nd-empty-state">
+        <div class="nd-empty-state-icon">🗓</div>
+        <p>No events scheduled yet. Check back soon.</p>
+      </div>
+    <% } else { %>
+    <div class="nd-event-grid">
+      <% events.forEach(function(ev) { %>
+        <a href="/events/<%= ev.id %>" class="nd-event-card nd-theme-<%= ev.theme || 'default' %>">
+          <div class="nd-event-card-thumb">
+            <% if (ev.card_image) { %>
+              <img src="<%= ev.card_image %>" alt="<%= ev.name %>" loading="lazy">
+            <% } else { %>
+              <span class="nd-event-card-thumb-label"><%= (ev.theme || 'default').toUpperCase() %></span>
+            <% } %>
+          </div>
+          <div class="nd-event-card-body">
+            <div class="nd-event-card-title"><%= ev.name %></div>
+            <% if (ev.description) { %>
+              <div class="nd-event-card-desc"><%= ev.description %></div>
+            <% } %>
+            <div class="nd-event-card-meta">
+              <% if (ev.is_open) { %>
+                <span class="nd-meta-chip open">✦ Applications Open</span>
+              <% } else if (ev.event_date) { %>
+                <span class="nd-meta-chip soon">📅 <%= new Date(ev.event_date).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}) %></span>
+              <% } else { %>
+                <span class="nd-meta-chip closed">Coming Soon</span>
+              <% } %>
+              <% if (ev.theme && ev.theme !== 'default') { %>
+                <span class="nd-meta-chip"><%= ev.theme.charAt(0).toUpperCase() + ev.theme.slice(1) %></span>
+              <% } %>
+            </div>
+          </div>
+        </a>
+      <% }); %>
+    </div>
+    <% } %>
+
+  </div>
+</main>
+
+<%- include('partials/foot') %>

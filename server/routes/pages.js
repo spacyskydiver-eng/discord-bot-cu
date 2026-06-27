@@ -12,6 +12,15 @@ function formatDesc(text) {
 }
 
 router.get('/', async (req, res) => {
+  if (res.locals.designPreview) {
+    const [eventsRes, appsRes] = await Promise.all([
+      db.query(`SELECT * FROM events WHERE is_open = true ORDER BY created_at DESC`),
+      db.query(`SELECT * FROM events ORDER BY created_at DESC`)
+    ]);
+    const openEventCount = eventsRes.rows.length;
+    const openAppCount = eventsRes.rows.length;
+    return res.render('new/home', { openEventCount, openAppCount });
+  }
   const eventRes = await db.query(
     `SELECT * FROM events ORDER BY created_at DESC LIMIT 1`
   );
@@ -43,6 +52,40 @@ router.get('/staff', async (req, res) => {
   res.render('staff', { staffRoles, isStaff, formatDesc });
 });
 router.get('/rules', (req, res) => res.render('rules'));
+
+// ── New design routes (designPreview only) ──────────────────────────────────
+
+router.get('/events', async (req, res) => {
+  if (!res.locals.designPreview) return res.redirect('/');
+  const events = (await db.query(`SELECT * FROM events ORDER BY event_date ASC NULLS LAST, created_at DESC`)).rows;
+  res.render('new/events', { events });
+});
+
+router.get('/events/:id', async (req, res) => {
+  if (!res.locals.designPreview) return res.redirect('/');
+  const evRes = await db.query(`SELECT * FROM events WHERE id = $1`, [req.params.id]);
+  if (!evRes.rows.length) return res.redirect('/events');
+  res.render('new/event', { event: evRes.rows[0] });
+});
+
+router.get('/applications', async (req, res) => {
+  if (!res.locals.designPreview) return res.redirect('/');
+  const events = (await db.query(`SELECT * FROM events ORDER BY is_open DESC, event_date ASC NULLS LAST`)).rows;
+  let userApp = null;
+  if (req.session.user) {
+    const appRes = await db.query(
+      `SELECT status, review_stage FROM structured_applications WHERE discord_id = $1`,
+      [req.session.user.id]
+    );
+    userApp = appRes.rows[0] || null;
+  }
+  res.render('new/applications', { events, userApp });
+});
+
+router.get('/store', (req, res) => {
+  if (!res.locals.designPreview) return res.redirect('/');
+  res.render('new/store');
+});
 
 // Design preview toggle — only works for admins
 router.get('/design-preview/on', (req, res) => {

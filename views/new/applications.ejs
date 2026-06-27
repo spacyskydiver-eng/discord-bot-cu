@@ -1,0 +1,113 @@
+<%- include('partials/head', { pageTitle: 'Applications' }) %>
+<%- include('partials/header') %>
+
+<main style="min-height:calc(100vh - 80px);">
+  <div class="nd-page">
+
+    <div class="nd-page-header">
+      <div class="nd-page-label">📜 Join the Civilisation</div>
+      <h1 class="nd-page-title">Applications</h1>
+      <p class="nd-page-sub">Apply to compete in an upcoming event. Applications are reviewed across multiple stages.</p>
+    </div>
+
+    <% if (!locals.user) { %>
+      <div class="nd-info-card" style="max-width:500px;text-align:center;margin:0 auto;padding:2.5rem;">
+        <div style="font-size:2.5rem;margin-bottom:1rem;">🔐</div>
+        <h2 style="font-size:1rem;font-weight:700;color:#fff;margin:0 0 0.5rem;">Login Required</h2>
+        <p style="font-size:0.85rem;color:rgba(255,255,255,0.45);margin:0 0 1.5rem;">You need to connect your Discord account to apply for events.</p>
+        <a href="/auth/login" class="nd-apply-btn" style="display:inline-block;padding:0.85rem 2rem;font-size:0.52rem;">
+          Login with Discord
+        </a>
+      </div>
+    <% } else if (events.length === 0) { %>
+      <div class="nd-empty-state">
+        <div class="nd-empty-state-icon">📭</div>
+        <p>No events with open or upcoming applications right now. Check back soon!</p>
+      </div>
+    <% } else { %>
+
+    <div class="nd-event-grid">
+      <% events.forEach(function(ev) { %>
+        <% const theme = ev.theme || 'default'; %>
+        <% const hasApplied = userApp && ev.is_open; %>
+        <% const appStatus = userApp ? userApp.status : null; %>
+
+        <% if (ev.is_open) { %>
+          <!-- Open application -->
+          <a href="<%= (!locals.user || hasApplied) ? '#' : '/apply' %>" class="nd-app-card nd-app-card-open nd-theme-<%= theme %>" style="<%= hasApplied || !locals.user ? 'cursor:default;' : '' %>">
+            <div class="nd-app-card-header nd-theme-<%= theme %>">
+              <div class="nd-card-bg" style="position:absolute;inset:0;"></div>
+              <div class="nd-app-card-header-title">
+                APPLY NOW<br>↓
+              </div>
+              <% if (ev.card_image) { %>
+                <img src="<%= ev.card_image %>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.35;">
+              <% } %>
+            </div>
+            <div class="nd-app-card-body">
+              <div class="nd-app-card-name"><%= ev.name %></div>
+              <div class="nd-app-card-status-row">
+                <span class="nd-meta-chip open">✦ Open Now</span>
+                <% if (ev.event_date) { %>
+                  <span class="nd-meta-chip" style="font-size:0.68rem;color:rgba(255,255,255,0.35);">
+                    📅 <%= new Date(ev.event_date).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) %>
+                  </span>
+                <% } %>
+              </div>
+              <% if (hasApplied) { %>
+                <div style="font-size:0.8rem;color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:0.5rem 0.75rem;border-radius:6px;">
+                  You've applied — Status: <strong style="color:<%= appStatus === 'accepted' ? '#4ade80' : appStatus === 'declined' || appStatus === 'disqualified' ? '#f87171' : '#facc15' %>"><%= appStatus %></strong>
+                </div>
+              <% } else { %>
+                <div style="font-size:0.82rem;color:rgba(255,255,255,0.35);">Multi-stage review process</div>
+              <% } %>
+            </div>
+          </a>
+        <% } else { %>
+          <!-- Not open yet / countdown -->
+          <div class="nd-app-card" style="opacity:0.75;cursor:default;">
+            <div class="nd-app-card-header nd-theme-<%= theme %>" style="justify-content:center;flex-direction:column;gap:0.5rem;text-align:center;">
+              <% if (ev.card_image) { %>
+                <img src="<%= ev.card_image %>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.2;">
+              <% } %>
+              <div class="nd-app-card-header-title" style="position:relative;z-index:1;">COMING SOON</div>
+            </div>
+            <div class="nd-app-card-body">
+              <div class="nd-app-card-name"><%= ev.name %></div>
+              <div class="nd-app-card-status-row">
+                <% if (ev.app_open_date) { %>
+                  <div class="nd-countdown-inline" data-opens="<%= ev.app_open_date %>">Loading...</div>
+                <% } else { %>
+                  <span class="nd-meta-chip closed">Applications Not Open</span>
+                <% } %>
+              </div>
+              <div style="font-size:0.8rem;color:rgba(255,255,255,0.3);">Check back when applications open</div>
+            </div>
+          </div>
+        <% } %>
+      <% }); %>
+    </div>
+    <% } %>
+
+  </div>
+</main>
+
+<%- include('partials/foot') %>
+
+<script>
+// Countdown timers
+document.querySelectorAll('[data-opens]').forEach(function(el) {
+  const target = new Date(el.dataset.opens);
+  function update() {
+    const diff = target - Date.now();
+    if (diff <= 0) { el.textContent = 'Opening soon…'; return; }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    el.textContent = (d > 0 ? d + 'd ' : '') + h + 'h ' + m + 'm ' + s + 's';
+  }
+  update();
+  setInterval(update, 1000);
+});
+</script>

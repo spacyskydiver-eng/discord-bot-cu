@@ -1,0 +1,31 @@
+<header class="nd-header">
+  <div class="nd-header-inner">
+    <a href="/" class="nd-header-brand">
+      <span class="nd-header-name">CUE</span>
+    </a>
+    <nav class="nd-header-nav">
+      <a href="/events">Events</a>
+      <a href="/applications">Apply</a>
+      <a href="/store">Store</a>
+      <a href="/rules">Rules</a>
+      <a href="/staff">Staff</a>
+    </nav>
+    <div class="nd-header-right">
+      <% if (locals.user) { %>
+        <div class="nd-header-user">
+          <% if (locals.user.avatar) { %>
+            <img class="nd-header-avatar" src="https://cdn.discordapp.com/avatars/<%= locals.user.id %>/<%= locals.user.avatar %>.png" alt="">
+          <% } %>
+          <span><%= locals.user.globalName || locals.user.username %></span>
+        </div>
+        <% if (locals.isAdmin) { %>
+          <a href="/admin" class="nd-header-login" style="background:rgba(168,30,30,0.25);border-color:rgba(168,30,30,0.4);">Admin</a>
+        <% } %>
+        <a href="/auth/logout" class="nd-header-login">Logout</a>
+      <% } else { %>
+        <a href="/auth/login" class="nd-header-login">Login with Discord</a>
+      <% } %>
+    </div>
+  </div>
+  <span class="nd-header-edge"></span>
+</header>

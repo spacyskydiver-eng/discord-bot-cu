@@ -1,0 +1,98 @@
+<%- include('partials/head', { pageTitle: event.name }) %>
+<%- include('partials/header') %>
+
+<% const theme = event.theme || 'default'; %>
+
+<!-- Hero -->
+<div class="nd-event-hero">
+  <div class="nd-event-hero-bg nd-hero-<%= theme %>">
+    <% if (event.card_image) { %>
+      <img src="<%= event.card_image %>" alt="">
+    <% } %>
+    <div class="nd-hero-particles"></div>
+  </div>
+  <div class="nd-event-hero-overlay"></div>
+  <div class="nd-event-hero-content">
+    <a href="/events" class="nd-back-link" style="color:rgba(255,255,255,0.4);text-decoration:none;font-size:0.78rem;">
+      ← All Events
+    </a>
+    <div class="nd-event-hero-tag">⚔ COLLECTIVE UNION EVENTS</div>
+    <h1 class="nd-event-hero-title"><%= event.name %></h1>
+    <div class="nd-event-hero-meta">
+      <% if (event.is_open) { %>
+        <span class="nd-meta-chip open">✦ Applications Open</span>
+      <% } else { %>
+        <span class="nd-meta-chip closed">Applications Closed</span>
+      <% } %>
+      <% if (event.event_date) { %>
+        <span class="nd-meta-chip soon">📅 <%= new Date(event.event_date).toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'}) %></span>
+      <% } %>
+      <% if (theme !== 'default') { %>
+        <span class="nd-meta-chip"><%= theme.charAt(0).toUpperCase() + theme.slice(1) %></span>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<div class="nd-event-body">
+  <!-- Main content -->
+  <div>
+    <% if (event.description) { %>
+      <div class="nd-event-desc"><%= event.description %></div>
+    <% } %>
+
+    <% if (theme === '4island') { %>
+    <!-- 4-Island special layout -->
+    <h2 style="font-size:0.9rem;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.12em;margin:2rem 0 0.85rem;font-family:'Press Start 2P',monospace;font-size:0.52rem;">The Four Islands</h2>
+    <div class="nd-island-quad">
+      <div class="nd-island-tile nd-island-tile-jungle">
+        <div class="nd-island-tile-name">🌿 Jungle</div>
+        <div class="nd-island-tile-desc">Dense canopy, hidden temples, abundant wood and food. High risk, high reward.</div>
+      </div>
+      <div class="nd-island-tile nd-island-tile-snow">
+        <div class="nd-island-tile-name">❄ Snow</div>
+        <div class="nd-island-tile-desc">Frozen tundra with scarce food but rich ore veins beneath the ice.</div>
+      </div>
+      <div class="nd-island-tile nd-island-tile-badlands">
+        <div class="nd-island-tile-name">🏜 Badlands</div>
+        <div class="nd-island-tile-desc">Arid red mesas hiding gold and terracotta. Harsh survival conditions.</div>
+      </div>
+      <div class="nd-island-tile nd-island-tile-forest">
+        <div class="nd-island-tile-name">🌲 Forest / Plains</div>
+        <div class="nd-island-tile-desc">Balanced biome with fertile land and diverse resources — the starter island.</div>
+      </div>
+    </div>
+    <% } %>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="nd-event-sidebar">
+    <div class="nd-info-card">
+      <h3>Event Info</h3>
+      <% if (event.event_date) { %>
+      <div class="nd-info-row">
+        <span class="nd-info-key">Date</span>
+        <span class="nd-info-val"><%= new Date(event.event_date).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}) %></span>
+      </div>
+      <% } %>
+      <div class="nd-info-row">
+        <span class="nd-info-key">Theme</span>
+        <span class="nd-info-val"><%= theme.charAt(0).toUpperCase() + theme.slice(1) %></span>
+      </div>
+      <div class="nd-info-row">
+        <span class="nd-info-key">Applications</span>
+        <span class="nd-info-val" style="color:<%= event.is_open ? '#4ade80' : 'rgba(255,255,255,0.4)' %>">
+          <%= event.is_open ? 'Open' : 'Closed' %>
+        </span>
+      </div>
+    </div>
+
+    <% if (event.is_open) { %>
+      <a href="/apply" class="nd-apply-btn">Apply Now →</a>
+    <% } else { %>
+      <span class="nd-apply-btn disabled">Applications Not Open</span>
+    <% } %>
+  </aside>
+</div>
+
+<%- include('partials/foot') %>
