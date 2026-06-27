@@ -44,4 +44,18 @@ router.get('/staff', async (req, res) => {
 });
 router.get('/rules', (req, res) => res.render('rules'));
 
+// Design preview toggle — only works for admins
+router.get('/design-preview/on', (req, res) => {
+  const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(s => s.trim());
+  if (req.session.user && adminIds.includes(req.session.user.id)) {
+    req.session.designPreview = true;
+  }
+  res.redirect(req.query.return || '/');
+});
+
+router.get('/design-preview/off', (req, res) => {
+  req.session.designPreview = false;
+  res.redirect(req.query.return || '/');
+});
+
 module.exports = router;
