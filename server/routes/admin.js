@@ -393,7 +393,7 @@ router.post('/playstyle/delete', async (req, res) => {
   res.redirect('/admin?saved=stages&stage=3#stages');
 });
 
-// Ensure webhook_messages table exists
+// Ensure webhook tables exist
 db.query(`
   CREATE TABLE IF NOT EXISTS webhook_messages (
     id SERIAL PRIMARY KEY,
@@ -402,6 +402,14 @@ db.query(`
     payload JSONB NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
+  )
+`).catch(console.error);
+
+db.query(`
+  CREATE TABLE IF NOT EXISTS button_responses (
+    custom_id TEXT PRIMARY KEY,
+    response_text TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
   )
 `).catch(console.error);
 
@@ -435,6 +443,21 @@ router.post('/webhook/save', async (req, res) => {
 // Delete a saved webhook message
 router.delete('/webhook/message/:id', async (req, res) => {
   await db.query(`DELETE FROM webhook_messages WHERE id=$1`, [req.params.id]);
+  res.json({ ok: true });
+});
+
+// Save button ephemeral responses so the bot can look them up
+router.post('/webhook/button-responses', async (req, res) => {
+  const { buttons } = req.body;
+  if (!Array.isArray(buttons)) return res.json({ ok: false, error: 'buttons must be an array' });
+  for (const b of buttons) {
+    if (!b.custom_id || !b.response_text) continue;
+    await db.query(
+      `INSERT INTO button_responses (custom_id, response_text) VALUES ($1,$2)
+       ON CONFLICT (custom_id) DO UPDATE SET response_text=$2`,
+      [b.custom_id, b.response_text]
+    );
+  }
   res.json({ ok: true });
 });
 

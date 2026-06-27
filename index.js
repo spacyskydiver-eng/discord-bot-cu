@@ -1,5 +1,6 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, Collection } = require('discord.js');
+const db = require('./db');
 const fs = require('fs');
 const path = require('path');
 const startServer = require('./server/app');
@@ -32,6 +33,18 @@ client.once('ready', () => {
 client.on('messageCreate', require('./events/messageCreate'));
 
 client.on('interactionCreate', async interaction => {
+  if (interaction.isButton()) {
+    try {
+      const row = await db.query('SELECT response_text FROM button_responses WHERE custom_id = $1', [interaction.customId]);
+      if (row.rows.length) {
+        await interaction.reply({ content: row.rows[0].response_text, ephemeral: true });
+      }
+    } catch (err) {
+      console.error('Button interaction error:', err);
+    }
+    return;
+  }
+
   if (!interaction.isChatInputCommand()) return;
   const command = client.commands.get(interaction.commandName);
   if (!command) return;

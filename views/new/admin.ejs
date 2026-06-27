@@ -228,14 +228,20 @@
 
 /* Button builder */
 .wh-btn-builder{border:1px solid rgba(88,101,242,.2);border-radius:8px;background:rgba(88,101,242,.04);padding:14px;margin-top:8px}
-.wh-btn-row{display:grid;grid-template-columns:1fr 1.5fr auto;gap:8px;align-items:end;padding:8px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;margin-bottom:6px}
-.wh-btn-row:last-of-type{margin-bottom:0}
+.wh-btn-row{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px}
+.wh-btn-row-top{display:grid;grid-template-columns:1fr 160px auto;gap:8px;align-items:end;margin-bottom:8px}
+.wh-btn-row-bottom{margin-top:0}
+.wh-btn-row-bottom .nd-label{font-size:10px}
 .wh-add-btn-btn{display:flex;align-items:center;gap:6px;background:rgba(88,101,242,.08);border:1px dashed rgba(88,101,242,.3);color:#7289da;font-family:"Baloo 2";font-weight:700;font-size:13px;border-radius:8px;padding:8px 14px;cursor:pointer;width:100%;justify-content:center;margin-top:8px}
 
 /* Discord button preview */
 .wh-disc-buttons{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .wh-disc-btn{display:inline-flex;align-items:center;gap:6px;border-radius:4px;padding:5px 14px;font-size:14px;font-weight:600;cursor:default;min-height:32px;font-family:inherit;border:none;color:#fff}
 .wh-disc-btn-link{background:#4e5058}
+.wh-disc-btn-primary{background:#5865f2}
+.wh-disc-btn-secondary{background:#4e5058}
+.wh-disc-btn-success{background:#248046}
+.wh-disc-btn-danger{background:#da3633}
 
 /* Save row */
 .wh-save-row{display:flex;gap:8px;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
@@ -1024,12 +1030,17 @@ function loadMessage(id){
   document.getElementById('wh-fields-list').innerHTML='';
   fieldCount=0;
   (emb.fields||[]).forEach(f=>{fieldCount++;const id=fieldCount;const div=document.createElement('div');div.className='wh-field-item';div.id='wh-field-'+id;div.innerHTML=`<div><label class="nd-label" style="font-size:10px">Field Name</label><input type="text" class="nd-input nd-btn-sm wh-fn" oninput="updatePreview()" value="${escH(f.name)}"></div><div><label class="nd-label" style="font-size:10px">Field Value</label><input type="text" class="nd-input nd-btn-sm wh-fv" oninput="updatePreview()" value="${escH(f.value)}"></div><label style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--muted);cursor:pointer;padding-top:18px"><input type="checkbox" class="wh-fi" onchange="updatePreview()"${f.inline?' checked':''}>Inline</label><button class="nd-btn-icon" style="padding-top:18px" onclick="document.getElementById('wh-field-${id}').remove();updatePreview()">✕</button>`;document.getElementById('wh-fields-list').appendChild(div);});
-  // Buttons
+  // Buttons — restore from _meta (has styles + hidden messages), fall back to components
   document.getElementById('wh-btns-list').innerHTML='';
   btnCount=0;
-  const comps=p.components||[];
-  const btns=comps.length&&comps[0].components?comps[0].components:[];
-  btns.forEach(b=>addButton(b.label||'',b.url||''));
+  const metaBtns=(p._meta&&p._meta.buttons)||[];
+  if(metaBtns.length){
+    metaBtns.forEach(b=>addButton(b));
+  } else {
+    const comps=p.components||[];
+    const btns=comps.length&&comps[0].components?comps[0].components:[];
+    btns.forEach(b=>addButton({label:b.label||'',style:b.style||5,url:b.url||'',custom_id:b.custom_id}));
+  }
   document.getElementById('wh-editing-badge').style.display='inline';
   updatePreview();
   showStatus('ok','Message loaded — edit and save or send.');
@@ -1065,15 +1076,53 @@ loadMessages();
 
 /* Buttons */
 let btnCount=0;
-function addButton(label,url){
+const BTN_STYLES={1:'primary',2:'secondary',3:'success',4:'danger',5:'link'};
+
+function addButton(opts){
+  opts=opts||{};
   if(document.querySelectorAll('.wh-btn-row').length>=5){alert('Maximum 5 buttons per message.');return;}
   btnCount++;
   const id=btnCount;
+  const customId=opts.custom_id||('btn_'+Date.now()+'_'+Math.random().toString(36).slice(2,6));
+  const style=opts.style||5;
+  const isLink=style===5;
   const div=document.createElement('div');
   div.className='wh-btn-row';
   div.id='wh-btn-'+id;
-  div.innerHTML=`<div><label class="nd-label" style="font-size:10px">Button Label</label><input type="text" class="nd-input nd-btn-sm wh-btn-lbl" placeholder="Click here" oninput="updatePreview()" value="${escH(label||'')}"></div><div><label class="nd-label" style="font-size:10px">URL</label><input type="text" class="nd-input nd-btn-sm wh-btn-url" placeholder="https://..." oninput="updatePreview()" value="${escH(url||'')}"></div><button class="nd-btn-icon" style="align-self:flex-end;padding-bottom:2px" onclick="document.getElementById('wh-btn-${id}').remove();updatePreview()" title="Remove">✕</button>`;
+  div.dataset.customId=customId;
+  div.innerHTML=`
+    <div class="wh-btn-row-top">
+      <div><label class="nd-label" style="font-size:10px">Button Label</label><input type="text" class="nd-input nd-btn-sm wh-btn-lbl" placeholder="Click here" oninput="updatePreview()" value="${escH(opts.label||'')}"></div>
+      <div><label class="nd-label" style="font-size:10px">Style / Colour</label>
+        <select class="nd-select nd-btn-sm wh-btn-style" onchange="updateBtnStyle(this)">
+          <option value="5"${style===5?' selected':''}>Link (URL)</option>
+          <option value="1"${style===1?' selected':''}>Primary — Blurple</option>
+          <option value="2"${style===2?' selected':''}>Secondary — Grey</option>
+          <option value="3"${style===3?' selected':''}>Success — Green</option>
+          <option value="4"${style===4?' selected':''}>Danger — Red</option>
+        </select>
+      </div>
+      <button class="nd-btn-icon" style="align-self:flex-end" onclick="document.getElementById('wh-btn-${id}').remove();updatePreview()" title="Remove">✕</button>
+    </div>
+    <div class="wh-btn-row-bottom">
+      <div class="wh-btn-url-wrap"${!isLink?' style="display:none"':''}>
+        <label class="nd-label" style="font-size:10px">URL</label>
+        <input type="text" class="nd-input nd-btn-sm wh-btn-url" placeholder="https://..." oninput="updatePreview()" value="${escH(opts.url||'')}">
+      </div>
+      <div class="wh-btn-msg-wrap"${isLink?' style="display:none"':''}>
+        <label class="nd-label" style="font-size:10px">Hidden message <span style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--muted)">(shown privately to whoever clicks)</span></label>
+        <textarea class="nd-textarea nd-btn-sm wh-btn-msg" rows="2" placeholder="Only the person who clicks this button will see this message...">${escH(opts.response_text||'')}</textarea>
+      </div>
+    </div>`;
   document.getElementById('wh-btns-list').appendChild(div);
+  updatePreview();
+}
+
+function updateBtnStyle(select){
+  const row=select.closest('.wh-btn-row');
+  const isLink=select.value==='5';
+  row.querySelector('.wh-btn-url-wrap').style.display=isLink?'':'none';
+  row.querySelector('.wh-btn-msg-wrap').style.display=isLink?'none':'';
   updatePreview();
 }
 
@@ -1368,15 +1417,24 @@ function updatePreview(){
   const btnRows=Array.from(document.querySelectorAll('.wh-btn-row'));
   const btnsEl=document.getElementById('wh-prev-buttons');
   btnsEl.innerHTML='';
-  const validBtns=btnRows.map(r=>({label:r.querySelector('.wh-btn-lbl').value.trim(),url:r.querySelector('.wh-btn-url').value.trim()})).filter(b=>b.label||b.url);
+  const validBtns=btnRows.map(r=>{
+    const label=r.querySelector('.wh-btn-lbl').value.trim();
+    const style=parseInt(r.querySelector('.wh-btn-style')?.value||5);
+    const url=r.querySelector('.wh-btn-url')?.value.trim()||'';
+    const msg=r.querySelector('.wh-btn-msg')?.value.trim()||'';
+    return{label,style,url,msg};
+  }).filter(b=>b.label);
   if(validBtns.length){
     btnsEl.style.display='flex';
     validBtns.forEach(b=>{
       const a=document.createElement('a');
-      a.className='wh-disc-btn wh-disc-btn-link';
+      const cls=BTN_STYLES[b.style]||'secondary';
+      a.className='wh-disc-btn wh-disc-btn-'+cls;
       a.href='#';
+      a.title=b.style===5?(b.url||''):'Hidden message: '+b.msg;
       a.onclick=e=>e.preventDefault();
-      a.innerHTML=(b.url?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="opacity:.6"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>':'')+escH(b.label||'Button');
+      const linkIcon=b.style===5?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="opacity:.6"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>':'';
+      a.innerHTML=linkIcon+escH(b.label);
       btnsEl.appendChild(a);
     });
   } else {
@@ -1400,7 +1458,24 @@ function collectPayload(){
   const footerIcon=document.getElementById('wh-footer-icon').value.trim();
   const hasTimestamp=document.getElementById('wh-timestamp').checked;
   const fields=Array.from(document.querySelectorAll('.wh-field-item')).map(el=>({name:el.querySelector('.wh-fn').value.trim(),value:el.querySelector('.wh-fv').value.trim(),inline:el.querySelector('.wh-fi').checked})).filter(f=>f.name&&f.value);
-  const buttons=Array.from(document.querySelectorAll('.wh-btn-row')).map(r=>({label:r.querySelector('.wh-btn-lbl').value.trim(),url:r.querySelector('.wh-btn-url').value.trim()})).filter(b=>b.label&&b.url);
+  const buttonMeta=[];
+  const discordBtns=[];
+  Array.from(document.querySelectorAll('.wh-btn-row')).forEach(r=>{
+    const label=r.querySelector('.wh-btn-lbl').value.trim();
+    if(!label) return;
+    const style=parseInt(r.querySelector('.wh-btn-style')?.value||5);
+    const customId=r.dataset.customId||('btn_'+Date.now()+'_'+Math.random().toString(36).slice(2,6));
+    if(style===5){
+      const url=r.querySelector('.wh-btn-url')?.value.trim()||'';
+      if(!url) return;
+      discordBtns.push({type:2,style:5,label,url});
+      buttonMeta.push({custom_id:customId,label,style:5,url});
+    } else {
+      const responseText=r.querySelector('.wh-btn-msg')?.value.trim()||'';
+      discordBtns.push({type:2,style,label,custom_id:customId});
+      buttonMeta.push({custom_id:customId,label,style,response_text:responseText});
+    }
+  });
 
   const embed={color:colorInt};
   if(authorName) embed.author={name:authorName,...(authorIcon?{icon_url:authorIcon}:{}),...(authorUrl?{url:authorUrl}:{})};
@@ -1421,7 +1496,8 @@ function collectPayload(){
   if(avatarUrl) payload.avatar_url=avatarUrl;
   if(content) payload.content=content;
   if(hasEmbedContent) payload.embeds=[embed];
-  if(buttons.length) payload.components=[{type:1,components:buttons.map(b=>({type:2,style:5,label:b.label,url:b.url}))}];
+  if(discordBtns.length) payload.components=[{type:1,components:discordBtns}];
+  payload._meta={buttons:buttonMeta};
   return payload;
 }
 
@@ -1432,11 +1508,18 @@ async function sendWebhook(){
     showStatus('err','Webhook URL must start with https://discord.com/api/webhooks/');return;
   }
   const payload=collectPayload();
+  const meta=payload._meta||{};
+  delete payload._meta;
   if(!payload.content&&!payload.embeds&&!payload.components){
     showStatus('err','Add some content or an embed before sending.');return;
   }
   showStatus('','Sending...');
   try{
+    // Save non-link button responses so the bot can reply ephemerally
+    const hiddenBtns=(meta.buttons||[]).filter(b=>b.style!==5&&b.response_text);
+    if(hiddenBtns.length){
+      await fetch('/admin/webhook/button-responses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({buttons:hiddenBtns.map(b=>({custom_id:b.custom_id,response_text:b.response_text}))})});
+    }
     const r=await fetch('/admin/webhook/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({webhook_url:url,payload})});
     const data=await r.json();
     if(data.ok) showStatus('ok','Message sent successfully!');
