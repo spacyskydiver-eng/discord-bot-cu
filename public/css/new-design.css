@@ -168,7 +168,7 @@
 .page-title{font-family:"Baloo 2";font-weight:800;font-size:30px;margin:0}
 .page-sub{color:var(--muted);margin:2px 0 0;font-size:14px}
 
-/* ---------- EVENT / APP CARDS ---------- */
+/* ---------- EVENT / APP CARDS (apps list) ---------- */
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
 .card{
   position:relative;overflow:hidden;border-radius:var(--radius);
@@ -193,6 +193,52 @@
 .pill.soon{background:rgba(255,198,61,.14);color:#ffd56b;border:1px solid rgba(255,198,61,.4)}
 .pill.closed{background:rgba(139,143,153,.14);color:#aeb2bb;border:1px solid rgba(139,143,153,.3)}
 .countdown{font-family:"Baloo 2";font-weight:800;font-size:18px;color:#ffd56b;letter-spacing:1px}
+
+/* ---------- EVENT LIST — large feature cards ---------- */
+.event-list{display:flex;flex-direction:column;gap:24px}
+.efeat{
+  position:relative;overflow:hidden;border-radius:var(--radius);
+  border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow);
+  text-decoration:none;color:var(--text);display:block;
+  transition:transform .15s,border-color .15s,box-shadow .15s;
+}
+.efeat:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.22);box-shadow:0 20px 50px rgba(0,0,0,.6)}
+.efeat-art{
+  width:100%;height:460px;position:relative;overflow:hidden;
+  background:#0c0d10;
+}
+.efeat-art img{
+  width:100%;height:100%;object-fit:cover;
+  display:block;
+}
+/* scrim so button is always readable */
+.efeat-art::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(8,9,12,.75) 0%,rgba(8,9,12,.1) 40%,transparent 100%);
+  pointer-events:none;
+}
+/* placeholder art (no image yet) */
+.efeat-art-placeholder{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.efeat-foot{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:22px 26px;display:flex;align-items:flex-end;justify-content:space-between;
+  z-index:2;
+}
+.efeat-name{
+  font-family:"Baloo 2";font-weight:800;font-size:clamp(20px,2.5vw,28px);
+  color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.8);margin:0 0 4px;
+}
+.efeat-meta{font-size:13px;color:rgba(255,255,255,.55)}
+.efeat-cta{
+  display:inline-flex;align-items:center;gap:8px;flex-shrink:0;
+  background:#fff;color:#111;font-family:"Baloo 2";font-weight:800;font-size:15px;
+  padding:11px 20px;border-radius:12px;transition:transform .12s,filter .12s;
+  white-space:nowrap;
+}
+.efeat:hover .efeat-cta{transform:translateY(-2px);filter:brightness(1.06)}
 
 /* ---------- EVENT DETAIL ---------- */
 .detail{position:relative;border-radius:var(--radius);overflow:hidden;
