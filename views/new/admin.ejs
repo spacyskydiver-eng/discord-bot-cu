@@ -155,6 +155,16 @@
 .wh-saved-item code{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:240px;display:block}
 .wh-color-row{display:flex;align-items:center;gap:10px}
 .wh-color-row input[type=color]{width:44px;height:36px;border:1px solid var(--border);border-radius:6px;background:none;cursor:pointer;padding:2px}
+.wh-img-row{display:flex;gap:6px;align-items:center}
+.wh-img-row .nd-input{flex:1;min-width:0}
+.wh-upload-btn{
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  width:34px;height:34px;border-radius:8px;cursor:pointer;
+  background:rgba(151,117,250,.12);border:1px solid rgba(151,117,250,.3);
+  color:#b3a0ff;transition:background .15s;
+}
+.wh-upload-btn:hover{background:rgba(151,117,250,.22)}
+.wh-upload-btn.loading{opacity:.5;pointer-events:none}
 </style>
 
 <main class="wrap nd-adm-wrap">
@@ -596,7 +606,7 @@
           <div class="wh-section">Message</div>
           <div class="nd-form-row">
             <div class="nd-form-field"><label class="nd-label">Username Override</label><input type="text" id="wh-username" class="nd-input" placeholder="CUE Bot" oninput="updatePreview()"></div>
-            <div class="nd-form-field"><label class="nd-label">Avatar URL Override</label><input type="text" id="wh-avatar" class="nd-input" placeholder="https://..." oninput="updatePreview()"></div>
+            <div class="nd-form-field"><label class="nd-label">Avatar URL Override</label><div class="wh-img-row"><input type="text" id="wh-avatar" class="nd-input" placeholder="https://... or upload →" oninput="updatePreview()"><label class="wh-upload-btn" title="Upload image"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><input type="file" accept="image/*" style="display:none" onchange="whUpload(this,'wh-avatar')"></label></div></div>
           </div>
           <div class="nd-form-field"><label class="nd-label">Content (plain text)</label><textarea id="wh-content" class="nd-textarea" rows="3" placeholder="Type a message..." oninput="updatePreview()"></textarea></div>
 
@@ -609,7 +619,7 @@
 
           <div class="nd-form-row">
             <div class="nd-form-field"><label class="nd-label">Author Name</label><input type="text" id="wh-author-name" class="nd-input nd-btn-sm" oninput="updatePreview()"></div>
-            <div class="nd-form-field"><label class="nd-label">Author Icon URL</label><input type="text" id="wh-author-icon" class="nd-input nd-btn-sm" oninput="updatePreview()"></div>
+            <div class="nd-form-field"><label class="nd-label">Author Icon URL</label><div class="wh-img-row"><input type="text" id="wh-author-icon" class="nd-input nd-btn-sm" oninput="updatePreview()"><label class="wh-upload-btn" title="Upload image"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><input type="file" accept="image/*" style="display:none" onchange="whUpload(this,'wh-author-icon')"></label></div></div>
             <div class="nd-form-field"><label class="nd-label">Author URL</label><input type="text" id="wh-author-url" class="nd-input nd-btn-sm" oninput="updatePreview()"></div>
           </div>
 
@@ -621,8 +631,8 @@
           <div class="nd-form-field"><label class="nd-label">Description</label><textarea id="wh-desc" class="nd-textarea" rows="4" oninput="updatePreview()"></textarea></div>
 
           <div class="nd-form-row">
-            <div class="nd-form-field"><label class="nd-label">Thumbnail URL</label><input type="text" id="wh-thumb" class="nd-input nd-btn-sm" oninput="updatePreview()"></div>
-            <div class="nd-form-field"><label class="nd-label">Image URL</label><input type="text" id="wh-image" class="nd-input nd-btn-sm" oninput="updatePreview()"></div>
+            <div class="nd-form-field"><label class="nd-label">Thumbnail URL</label><div class="wh-img-row"><input type="text" id="wh-thumb" class="nd-input nd-btn-sm" oninput="updatePreview()"><label class="wh-upload-btn" title="Upload image"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><input type="file" accept="image/*" style="display:none" onchange="whUpload(this,'wh-thumb')"></label></div></div>
+            <div class="nd-form-field"><label class="nd-label">Image URL</label><div class="wh-img-row"><input type="text" id="wh-image" class="nd-input nd-btn-sm" oninput="updatePreview()"><label class="wh-upload-btn" title="Upload image"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><input type="file" accept="image/*" style="display:none" onchange="whUpload(this,'wh-image')"></label></div></div>
           </div>
 
           <div class="wh-section">Fields</div>
@@ -632,7 +642,7 @@
           <div class="wh-section" style="margin-top:20px">Footer</div>
           <div class="nd-form-row">
             <div class="nd-form-field" style="flex:2"><label class="nd-label">Footer Text</label><input type="text" id="wh-footer-text" class="nd-input nd-btn-sm" oninput="updatePreview()"></div>
-            <div class="nd-form-field" style="flex:1"><label class="nd-label">Footer Icon URL</label><input type="text" id="wh-footer-icon" class="nd-input nd-btn-sm" oninput="updatePreview()"></div>
+            <div class="nd-form-field" style="flex:1"><label class="nd-label">Footer Icon URL</label><div class="wh-img-row"><input type="text" id="wh-footer-icon" class="nd-input nd-btn-sm" oninput="updatePreview()"><label class="wh-upload-btn" title="Upload image"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><input type="file" accept="image/*" style="display:none" onchange="whUpload(this,'wh-footer-icon')"></label></div></div>
           </div>
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer">
             <input type="checkbox" id="wh-timestamp" onchange="updatePreview()"> Include current timestamp
@@ -839,6 +849,31 @@ function syncColorPicker(){
   const hex=document.getElementById('wh-color-hex').value.trim();
   if(/^#[0-9a-fA-F]{6}$/.test(hex)) document.getElementById('wh-color').value=hex;
   updatePreview();
+}
+
+/* Image upload */
+async function whUpload(fileInput, targetId) {
+  const file = fileInput.files[0];
+  if (!file) return;
+  const label = fileInput.closest('.wh-upload-btn');
+  label.classList.add('loading');
+  const fd = new FormData();
+  fd.append('image', file);
+  try {
+    const r = await fetch('/admin/upload-image', { method: 'POST', body: fd });
+    const data = await r.json();
+    if (data.ok) {
+      document.getElementById(targetId).value = window.location.origin + data.url;
+      updatePreview();
+    } else {
+      alert('Upload failed: ' + data.error);
+    }
+  } catch(e) {
+    alert('Upload error: ' + e.message);
+  } finally {
+    label.classList.remove('loading');
+    fileInput.value = '';
+  }
 }
 
 /* Update live preview */

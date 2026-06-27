@@ -1,6 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../../db');
+const multer = require('multer');
+const path = require('path');
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: path.join(__dirname, '../../public/img/uploads'),
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname) || '.png';
+      cb(null, `wh-${Date.now()}${ext}`);
+    }
+  }),
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) cb(null, true);
+    else cb(new Error('Images only'));
+  }
+});
 
 function requireAdmin(req, res, next) {
   const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(s => s.trim());
@@ -375,6 +392,13 @@ router.post('/playstyle/update', async (req, res) => {
 router.post('/playstyle/delete', async (req, res) => {
   await db.query(`DELETE FROM playstyle_options WHERE id=$1`, [req.body.id]);
   res.redirect('/admin?saved=stages&stage=3#stages');
+});
+
+// Image upload — saves to public/img/uploads, returns public URL
+router.post('/upload-image', upload.single('image'), (req, res) => {
+  if (!req.file) return res.json({ ok: false, error: 'No file received' });
+  const url = `/img/uploads/${req.file.filename}`;
+  res.json({ ok: true, url });
 });
 
 // Webhook sender — forwards payload to Discord webhook URL
