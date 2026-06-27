@@ -192,6 +192,7 @@
 .pill.open{background:rgba(47,217,107,.16);color:#5be38f;border:1px solid rgba(47,217,107,.4)}
 .pill.soon{background:rgba(255,198,61,.14);color:#ffd56b;border:1px solid rgba(255,198,61,.4)}
 .pill.closed{background:rgba(139,143,153,.14);color:#aeb2bb;border:1px solid rgba(139,143,153,.3)}
+.admin-bypass{background:rgba(255,198,61,.1);color:#ffc63d;border:1px solid rgba(255,198,61,.35);text-decoration:none;}
 .countdown{font-family:"Baloo 2";font-weight:800;font-size:18px;color:#ffd56b;letter-spacing:1px}
 
 /* ---------- EVENT LIST — large feature cards ---------- */

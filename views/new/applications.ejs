@@ -84,7 +84,9 @@ function miniArt(theme) {
             <% } %>
           <% } else { %>
             <div class="desc">Applications not open yet.</div>
-            <% if (ev.opens_at) { %>
+            <% if (locals.designPreview) { %>
+              <a href="/apply" class="pill admin-bypass">↗ Preview apply page</a>
+            <% } else if (ev.opens_at) { %>
               <span class="pill soon">Opens</span>
               <div class="countdown" data-countdown="<%= new Date(ev.opens_at).getTime() %>">--:--:--</div>
             <% } else { %>
