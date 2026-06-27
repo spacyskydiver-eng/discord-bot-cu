@@ -50,7 +50,7 @@ function miniArt(theme) {
   <% if (!locals.user) { %>
     <div style="text-align:center;padding:60px 20px;">
       <p style="font-family:'Baloo 2';font-size:18px;color:var(--muted);margin:0 0 20px">Log in with Discord to apply for events.</p>
-      <a href="/auth/login" style="display:inline-flex;align-items:center;gap:10px;background:#5865F2;color:#fff;font-family:'Baloo 2';font-weight:800;font-size:16px;padding:13px 24px;border-radius:12px;text-decoration:none;">Login with Discord</a>
+      <a href="/auth/discord" style="display:inline-flex;align-items:center;gap:10px;background:#5865F2;color:#fff;font-family:'Baloo 2';font-weight:800;font-size:16px;padding:13px 24px;border-radius:12px;text-decoration:none;">Login with Discord</a>
     </div>
   <% } else if (events.length === 0) { %>
     <p style="color:var(--muted);font-size:15px;text-align:center;padding:60px 0;">No applications open right now — check back soon!</p>
