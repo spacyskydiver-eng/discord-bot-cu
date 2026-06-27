@@ -273,6 +273,10 @@
   border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:10px 14px;
   font-family:"Baloo 2";font-weight:700;font-size:14px}
 .island-chip svg{width:30px;height:30px;flex:0 0 auto}
+.ev-desc{max-width:660px;margin-top:16px}
+.ev-desc p{font-size:15px;color:#dde0e8;line-height:1.75;margin:0 0 14px}
+.ev-desc p:last-child{margin-bottom:0}
+.ev-desc strong{color:#fff;font-weight:700}
 .detail .cta{display:inline-flex;align-items:center;gap:10px;margin-top:30px;
   background:#fff;color:#111;font-family:"Baloo 2";font-weight:800;font-size:16px;
   padding:13px 22px;border-radius:12px;transition:transform .12s;text-decoration:none}

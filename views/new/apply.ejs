@@ -101,7 +101,7 @@ function renderBlock(b) {
         <a href="/" class="apw-cta">Back to home</a>
       </div>
 
-    <% } else if (!event.is_open && event.opens_at && new Date(event.opens_at) > new Date()) { %>
+    <% } else if (!event.is_open && event.opens_at && new Date(event.opens_at) > new Date() && !locals.designPreview) { %>
       <div class="apw-status">
         <div class="apw-status-icon">◷</div>
         <h2>Not Open Yet</h2>
@@ -110,7 +110,7 @@ function renderBlock(b) {
         <a href="/events" class="apw-cta">View events</a>
       </div>
 
-    <% } else if (!event.is_open) { %>
+    <% } else if (!event.is_open && !locals.designPreview) { %>
       <div class="apw-status">
         <div class="apw-status-icon">—</div>
         <h2>Applications Closed</h2>

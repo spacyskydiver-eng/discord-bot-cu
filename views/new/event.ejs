@@ -64,7 +64,7 @@ function themeBg(t) {
       <% } %>
       <h2><%= event.title %></h2>
       <% if (event.description) { %>
-        <p class="lead"><%= event.description %></p>
+        <div class="ev-desc"><%- event.description %></div>
       <% } %>
       <% if (eventIslands.length > 0) { %>
       <div class="islands">
