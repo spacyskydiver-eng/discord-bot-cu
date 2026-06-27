@@ -84,7 +84,7 @@ function miniArt(theme) {
             <% } %>
           <% } else { %>
             <div class="desc">Applications not open yet.</div>
-            <% if (locals.designPreview) { %>
+            <% if (locals.isAdmin) { %>
               <a href="/apply" class="pill admin-bypass">↗ Preview apply page</a>
             <% } else if (ev.opens_at) { %>
               <span class="pill soon">Opens</span>

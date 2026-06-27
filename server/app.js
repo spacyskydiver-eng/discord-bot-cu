@@ -28,8 +28,7 @@ module.exports = function startServer() {
       ? (process.env.ADMIN_DISCORD_IDS || '').split(',').map(s => s.trim()).includes(req.session.user.id)
       : false;
     res.locals.staffRoleId = null; // set per-route where needed
-    // Design preview flag — only honoured when the session user is an admin
-    res.locals.designPreview = res.locals.isAdmin && !!req.session.designPreview;
+    res.locals.designPreview = true;
     res.locals._url = req.originalUrl;
     next();
   });
