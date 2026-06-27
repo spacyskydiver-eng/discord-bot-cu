@@ -393,6 +393,51 @@ router.post('/playstyle/delete', async (req, res) => {
   res.redirect('/admin?saved=stages&stage=3#stages');
 });
 
+// Ensure webhook_messages table exists
+db.query(`
+  CREATE TABLE IF NOT EXISTS webhook_messages (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    webhook_url TEXT,
+    payload JSONB NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+  )
+`).catch(console.error);
+
+// List all saved webhook messages
+router.get('/webhook/messages', async (req, res) => {
+  const rows = (await db.query(
+    `SELECT id, name, webhook_url, payload, updated_at FROM webhook_messages ORDER BY updated_at DESC`
+  )).rows;
+  res.json(rows);
+});
+
+// Save (create or update) a webhook message
+router.post('/webhook/save', async (req, res) => {
+  const { id, name, webhook_url, payload } = req.body;
+  if (!name) return res.json({ ok: false, error: 'Name is required' });
+  if (id) {
+    await db.query(
+      `UPDATE webhook_messages SET name=$1, webhook_url=$2, payload=$3, updated_at=NOW() WHERE id=$4`,
+      [name, webhook_url || null, JSON.stringify(payload), id]
+    );
+    res.json({ ok: true, id: parseInt(id) });
+  } else {
+    const r = await db.query(
+      `INSERT INTO webhook_messages (name, webhook_url, payload) VALUES ($1,$2,$3) RETURNING id`,
+      [name, webhook_url || null, JSON.stringify(payload)]
+    );
+    res.json({ ok: true, id: r.rows[0].id });
+  }
+});
+
+// Delete a saved webhook message
+router.delete('/webhook/message/:id', async (req, res) => {
+  await db.query(`DELETE FROM webhook_messages WHERE id=$1`, [req.params.id]);
+  res.json({ ok: true });
+});
+
 // Image upload — saves to public/img/uploads, returns public URL
 router.post('/upload-image', upload.single('image'), (req, res) => {
   if (!req.file) return res.json({ ok: false, error: 'No file received' });

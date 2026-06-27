@@ -215,6 +215,32 @@
   border-radius:8px;padding:9px 12px;margin-bottom:10px;
 }
 .wh-channel-note strong{color:#c9ccdb}
+
+/* Saved messages panel */
+.wh-msg-panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.wh-msg-panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.wh-msg-panel-head h3{font-family:"Baloo 2";font-weight:800;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:0}
+.wh-msg-list{display:flex;flex-direction:column;gap:6px}
+.wh-msg-item{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:10px 14px;transition:border-color .15s}
+.wh-msg-item:hover{border-color:rgba(212,73,61,.3)}
+.wh-msg-name{font-family:"Baloo 2";font-weight:700;font-size:14px;color:#e0e2ed}
+.wh-msg-date{font-size:11px;color:var(--muted);white-space:nowrap;margin-right:4px}
+.wh-msg-empty{font-size:13px;color:var(--muted);text-align:center;padding:20px 0}
+.wh-msg-editing{font-size:11px;color:#fbbf24;font-family:"Baloo 2";font-weight:700;background:rgba(251,191,36,.1);border-radius:4px;padding:2px 8px}
+
+/* Button builder */
+.wh-btn-builder{border:1px solid rgba(88,101,242,.2);border-radius:8px;background:rgba(88,101,242,.04);padding:14px;margin-top:8px}
+.wh-btn-row{display:grid;grid-template-columns:1fr 1.5fr auto;gap:8px;align-items:end;padding:8px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;margin-bottom:6px}
+.wh-btn-row:last-of-type{margin-bottom:0}
+.wh-add-btn-btn{display:flex;align-items:center;gap:6px;background:rgba(88,101,242,.08);border:1px dashed rgba(88,101,242,.3);color:#7289da;font-family:"Baloo 2";font-weight:700;font-size:13px;border-radius:8px;padding:8px 14px;cursor:pointer;width:100%;justify-content:center;margin-top:8px}
+
+/* Discord button preview */
+.wh-disc-buttons{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.wh-disc-btn{display:inline-flex;align-items:center;gap:6px;border-radius:4px;padding:5px 14px;font-size:14px;font-weight:600;cursor:default;min-height:32px;font-family:inherit;border:none;color:#fff}
+.wh-disc-btn-link{background:#4e5058}
+
+/* Save row */
+.wh-save-row{display:flex;gap:8px;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
 </style>
 
 <main class="wrap nd-adm-wrap">
@@ -641,6 +667,17 @@
       <p style="font-size:13px;color:var(--muted);margin:0">Build and send fully custom Discord messages with embeds, colours, and fields. Paste a Discord webhook URL to get started.</p>
     </div>
 
+    <!-- Saved Messages -->
+    <div class="wh-msg-panel">
+      <div class="wh-msg-panel-head">
+        <h3>Saved Messages</h3>
+        <button class="nd-btn nd-btn-ghost nd-btn-sm" onclick="loadMessages()">↻ Refresh</button>
+      </div>
+      <div id="wh-msg-list" class="wh-msg-list">
+        <div class="wh-msg-empty">Loading...</div>
+      </div>
+    </div>
+
     <div class="wh-split">
       <!-- Left: form -->
       <div>
@@ -730,6 +767,12 @@
             <input type="checkbox" id="wh-timestamp" onchange="updatePreview()"> Include current timestamp
           </label>
 
+          <div class="wh-section" style="margin-top:20px">Buttons <span style="font-weight:500;font-size:11px;color:var(--muted);text-transform:none;letter-spacing:0">— link buttons (up to 5)</span></div>
+          <div class="wh-btn-builder">
+            <div id="wh-btns-list"></div>
+            <button type="button" class="wh-add-btn-btn" onclick="addButton()" id="wh-add-btn-trigger">+ Add Button</button>
+          </div>
+
           <div class="wh-send-row">
             <button class="nd-btn nd-btn-primary" onclick="sendWebhook()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
@@ -737,6 +780,14 @@
             </button>
             <button class="nd-btn nd-btn-ghost nd-btn-sm" onclick="clearAll()">Clear</button>
             <div id="wh-status" class="wh-status"></div>
+          </div>
+          <div class="wh-save-row">
+            <input type="text" id="wh-msg-name" class="nd-input nd-btn-sm" placeholder="Message name (e.g. Partnership Announcement)" style="flex:1">
+            <button class="nd-btn nd-btn-ghost nd-btn-sm" onclick="saveMessage()" style="white-space:nowrap">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Save Message
+            </button>
+            <span id="wh-editing-badge" style="display:none" class="wh-msg-editing">editing</span>
           </div>
         </div>
       </div>
@@ -771,6 +822,7 @@
                   </div>
                 </div>
               </div>
+              <div id="wh-prev-buttons" class="wh-disc-buttons" style="display:none"></div>
             </div>
           </div>
         </div>
@@ -903,7 +955,9 @@ function addLevelRow(guildId){
    WEBHOOK BUILDER
 ════════════════════════════════════════ */
 
-/* Saved webhooks (localStorage) */
+let currentMsgId = null;
+
+/* ── Saved webhook URLs (localStorage) ── */
 function loadSavedWebhooks(){
   const saved=JSON.parse(localStorage.getItem('wh_saved')||'[]');
   const list=document.getElementById('wh-saved-list');
@@ -930,6 +984,111 @@ function deleteWebhook(i){
   loadSavedWebhooks();
 }
 loadSavedWebhooks();
+
+/* ── Saved Messages (database) ── */
+const _msgCache={};
+async function loadMessages(){
+  const list=document.getElementById('wh-msg-list');
+  list.innerHTML='<div class="wh-msg-empty">Loading...</div>';
+  try{
+    const r=await fetch('/admin/webhook/messages');
+    const msgs=await r.json();
+    list.innerHTML='';
+    if(!msgs.length){list.innerHTML='<div class="wh-msg-empty">No saved messages yet. Fill in the form and click Save Message.</div>';return;}
+    msgs.forEach(msg=>{
+      _msgCache[msg.id]=msg;
+      const d=document.createElement('div');
+      d.className='wh-msg-item';
+      const date=new Date(msg.updated_at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      d.innerHTML=`<span class="wh-msg-name">${escH(msg.name)}</span><span class="wh-msg-date">${date}</span><div style="display:flex;gap:6px"><button class="nd-btn nd-btn-ghost nd-btn-sm" onclick="loadMessage(${msg.id})">Load</button><button class="nd-btn-icon" onclick="deleteMessage(${msg.id})" title="Delete">✕</button></div>`;
+      list.appendChild(d);
+    });
+  }catch(e){list.innerHTML='<div class="wh-msg-empty" style="color:#f87171">Failed to load messages.</div>';}
+}
+
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function loadMessage(id){
+  const msg=_msgCache[id];
+  if(!msg){alert('Message not found — try refreshing.');return;}
+  currentMsgId=msg.id;
+  const p=msg.payload||{};
+  document.getElementById('wh-msg-name').value=msg.name||'';
+  if(msg.webhook_url) document.getElementById('wh-url').value=msg.webhook_url;
+  document.getElementById('wh-username').value=p.username||'';
+  document.getElementById('wh-avatar').value=p.avatar_url||'';
+  document.getElementById('wh-content').value=p.content||'';
+  const emb=(p.embeds&&p.embeds[0])||{};
+  const color=emb.color?'#'+emb.color.toString(16).padStart(6,'0'):'#5865f2';
+  document.getElementById('wh-color').value=color;
+  document.getElementById('wh-color-hex').value=color;
+  document.getElementById('wh-author-name').value=(emb.author&&emb.author.name)||'';
+  document.getElementById('wh-author-icon').value=(emb.author&&emb.author.icon_url)||'';
+  document.getElementById('wh-author-url').value=(emb.author&&emb.author.url)||'';
+  document.getElementById('wh-title').value=emb.title||'';
+  document.getElementById('wh-title-url').value=emb.url||'';
+  document.getElementById('wh-desc').value=emb.description||'';
+  document.getElementById('wh-thumb').value=(emb.thumbnail&&emb.thumbnail.url)||'';
+  document.getElementById('wh-image').value=(emb.image&&emb.image.url)||'';
+  document.getElementById('wh-footer-text').value=(emb.footer&&emb.footer.text)||'';
+  document.getElementById('wh-footer-icon').value=(emb.footer&&emb.footer.icon_url)||'';
+  document.getElementById('wh-timestamp').checked=!!emb.timestamp;
+  // Fields
+  document.getElementById('wh-fields-list').innerHTML='';
+  fieldCount=0;
+  (emb.fields||[]).forEach(f=>{fieldCount++;const id=fieldCount;const div=document.createElement('div');div.className='wh-field-item';div.id='wh-field-'+id;div.innerHTML=`<div><label class="nd-label" style="font-size:10px">Field Name</label><input type="text" class="nd-input nd-btn-sm wh-fn" oninput="updatePreview()" value="${escH(f.name)}"></div><div><label class="nd-label" style="font-size:10px">Field Value</label><input type="text" class="nd-input nd-btn-sm wh-fv" oninput="updatePreview()" value="${escH(f.value)}"></div><label style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--muted);cursor:pointer;padding-top:18px"><input type="checkbox" class="wh-fi" onchange="updatePreview()"${f.inline?' checked':''}>Inline</label><button class="nd-btn-icon" style="padding-top:18px" onclick="document.getElementById('wh-field-${id}').remove();updatePreview()">✕</button>`;document.getElementById('wh-fields-list').appendChild(div);});
+  // Buttons
+  document.getElementById('wh-btns-list').innerHTML='';
+  btnCount=0;
+  const comps=p.components||[];
+  const btns=comps.length&&comps[0].components?comps[0].components:[];
+  btns.forEach(b=>addButton(b.label||'',b.url||''));
+  document.getElementById('wh-editing-badge').style.display='inline';
+  updatePreview();
+  showStatus('ok','Message loaded — edit and save or send.');
+  setTimeout(()=>showStatus('',''),3000);
+}
+
+async function saveMessage(){
+  const name=document.getElementById('wh-msg-name').value.trim();
+  if(!name){alert('Enter a name for this message first.');document.getElementById('wh-msg-name').focus();return;}
+  const webhook_url=document.getElementById('wh-url').value.trim()||null;
+  const payload=collectPayload();
+  try{
+    const r=await fetch('/admin/webhook/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:currentMsgId,name,webhook_url,payload})});
+    const data=await r.json();
+    if(data.ok){
+      currentMsgId=data.id;
+      document.getElementById('wh-editing-badge').style.display='inline';
+      showStatus('ok','Message saved!');
+      setTimeout(()=>showStatus('',''),3000);
+      loadMessages();
+    }else{showStatus('err','Save failed: '+(data.error||'unknown error'));}
+  }catch(e){showStatus('err','Network error: '+e.message);}
+}
+
+async function deleteMessage(id){
+  if(!confirm('Delete this saved message?')) return;
+  await fetch('/admin/webhook/message/'+id,{method:'DELETE'});
+  if(currentMsgId===id){currentMsgId=null;document.getElementById('wh-editing-badge').style.display='none';}
+  loadMessages();
+}
+
+loadMessages();
+
+/* Buttons */
+let btnCount=0;
+function addButton(label,url){
+  if(document.querySelectorAll('.wh-btn-row').length>=5){alert('Maximum 5 buttons per message.');return;}
+  btnCount++;
+  const id=btnCount;
+  const div=document.createElement('div');
+  div.className='wh-btn-row';
+  div.id='wh-btn-'+id;
+  div.innerHTML=`<div><label class="nd-label" style="font-size:10px">Button Label</label><input type="text" class="nd-input nd-btn-sm wh-btn-lbl" placeholder="Click here" oninput="updatePreview()" value="${escH(label||'')}"></div><div><label class="nd-label" style="font-size:10px">URL</label><input type="text" class="nd-input nd-btn-sm wh-btn-url" placeholder="https://..." oninput="updatePreview()" value="${escH(url||'')}"></div><button class="nd-btn-icon" style="align-self:flex-end;padding-bottom:2px" onclick="document.getElementById('wh-btn-${id}').remove();updatePreview()" title="Remove">✕</button>`;
+  document.getElementById('wh-btns-list').appendChild(div);
+  updatePreview();
+}
 
 /* Fields */
 let fieldCount=0;
@@ -1229,17 +1388,31 @@ function updatePreview(){
     if(footerIcon){footerIconEl.src=footerIcon;footerIconEl.style.display='inline';}
     else footerIconEl.style.display='none';
   } else footerEl.style.display='none';
+
+  // Buttons (preview outside embed)
+  const btnRows=Array.from(document.querySelectorAll('.wh-btn-row'));
+  const btnsEl=document.getElementById('wh-prev-buttons');
+  btnsEl.innerHTML='';
+  const validBtns=btnRows.map(r=>({label:r.querySelector('.wh-btn-lbl').value.trim(),url:r.querySelector('.wh-btn-url').value.trim()})).filter(b=>b.label||b.url);
+  if(validBtns.length){
+    btnsEl.style.display='flex';
+    validBtns.forEach(b=>{
+      const a=document.createElement('a');
+      a.className='wh-disc-btn wh-disc-btn-link';
+      a.href='#';
+      a.onclick=e=>e.preventDefault();
+      a.innerHTML=(b.url?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="opacity:.6"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>':'')+escH(b.label||'Button');
+      btnsEl.appendChild(a);
+    });
+  } else {
+    btnsEl.style.display='none';
+  }
 }
 
-/* Send webhook */
-async function sendWebhook(){
-  const url=document.getElementById('wh-url').value.trim();
-  if(!url.startsWith('https://discord.com/api/webhooks/')){
-    showStatus('err','Webhook URL must start with https://discord.com/api/webhooks/');return;
-  }
+/* Collect current form state into a Discord payload object */
+function collectPayload(){
   const colorHex=document.getElementById('wh-color').value;
   const colorInt=parseInt(colorHex.replace('#',''),16);
-
   const authorName=document.getElementById('wh-author-name').value.trim();
   const authorIcon=document.getElementById('wh-author-icon').value.trim();
   const authorUrl=document.getElementById('wh-author-url').value.trim();
@@ -1252,10 +1425,11 @@ async function sendWebhook(){
   const footerIcon=document.getElementById('wh-footer-icon').value.trim();
   const hasTimestamp=document.getElementById('wh-timestamp').checked;
   const fields=Array.from(document.querySelectorAll('.wh-field-item')).map(el=>({name:el.querySelector('.wh-fn').value.trim(),value:el.querySelector('.wh-fv').value.trim(),inline:el.querySelector('.wh-fi').checked})).filter(f=>f.name&&f.value);
+  const buttons=Array.from(document.querySelectorAll('.wh-btn-row')).map(r=>({label:r.querySelector('.wh-btn-lbl').value.trim(),url:r.querySelector('.wh-btn-url').value.trim()})).filter(b=>b.label&&b.url);
 
   const embed={color:colorInt};
   if(authorName) embed.author={name:authorName,...(authorIcon?{icon_url:authorIcon}:{}),...(authorUrl?{url:authorUrl}:{})};
-  if(title) {embed.title=title;if(titleUrl) embed.url=titleUrl;}
+  if(title){embed.title=title;if(titleUrl) embed.url=titleUrl;}
   if(desc) embed.description=desc;
   if(thumb) embed.thumbnail={url:thumb};
   if(img) embed.image={url:img};
@@ -1264,7 +1438,6 @@ async function sendWebhook(){
   if(hasTimestamp) embed.timestamp=new Date().toISOString();
 
   const hasEmbedContent=authorName||title||desc||thumb||img||footerText||fields.length>0||hasTimestamp;
-
   const payload={};
   const username=document.getElementById('wh-username').value.trim();
   const avatarUrl=document.getElementById('wh-avatar').value.trim();
@@ -1273,11 +1446,20 @@ async function sendWebhook(){
   if(avatarUrl) payload.avatar_url=avatarUrl;
   if(content) payload.content=content;
   if(hasEmbedContent) payload.embeds=[embed];
+  if(buttons.length) payload.components=[{type:1,components:buttons.map(b=>({type:2,style:5,label:b.label,url:b.url}))}];
+  return payload;
+}
 
-  if(!payload.content&&!payload.embeds){
+/* Send webhook */
+async function sendWebhook(){
+  const url=document.getElementById('wh-url').value.trim();
+  if(!url.startsWith('https://discord.com/api/webhooks/')){
+    showStatus('err','Webhook URL must start with https://discord.com/api/webhooks/');return;
+  }
+  const payload=collectPayload();
+  if(!payload.content&&!payload.embeds&&!payload.components){
     showStatus('err','Add some content or an embed before sending.');return;
   }
-
   showStatus('','Sending...');
   try{
     const r=await fetch('/admin/webhook/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({webhook_url:url,payload})});
@@ -1295,12 +1477,16 @@ function showStatus(type,msg){
 }
 
 function clearAll(){
-  ['wh-username','wh-avatar','wh-content','wh-author-name','wh-author-icon','wh-author-url','wh-title','wh-title-url','wh-desc','wh-thumb','wh-image','wh-footer-text','wh-footer-icon'].forEach(id=>{const el=document.getElementById(id);if(el) el.value='';});
+  ['wh-username','wh-avatar','wh-content','wh-author-name','wh-author-icon','wh-author-url','wh-title','wh-title-url','wh-desc','wh-thumb','wh-image','wh-footer-text','wh-footer-icon','wh-msg-name'].forEach(id=>{const el=document.getElementById(id);if(el) el.value='';});
   document.getElementById('wh-timestamp').checked=false;
   document.getElementById('wh-color').value='#5865f2';
   document.getElementById('wh-color-hex').value='#5865f2';
   document.getElementById('wh-fields-list').innerHTML='';
+  document.getElementById('wh-btns-list').innerHTML='';
   fieldCount=0;
+  btnCount=0;
+  currentMsgId=null;
+  document.getElementById('wh-editing-badge').style.display='none';
   updatePreview();
 }
 
