@@ -595,6 +595,8 @@
 .sb-timestamp{font-family:"Baloo 2";font-size:12.5px;color:var(--muted);margin-bottom:12px}
 
 /* ---------- RESPONSIVE ---------- */
+/* ===================== RESPONSIVE ===================== */
+
 @media (max-width:880px){
   .home{grid-template-columns:1fr}
   .brand{font-size:11px}
@@ -602,6 +604,79 @@
   .timeline::before{display:none}
   .phase{padding:0 0 0 4px}
   .collective{padding:24px 20px 28px}
+  .store-grid{grid-template-columns:1fr;max-width:420px}
+}
+
+/* ---- Phone (≤ 600px) ---- */
+@media (max-width:600px){
+  /* Layout */
+  .wrap{padding:20px 14px 60px}
+
+  /* Banner */
+  .banner-inner{padding:10px 14px;gap:10px}
+  .brand{font-size:10px;gap:8px}
+  .brand .cube{width:20px;height:20px}
+  .banner-user span{display:none}
+  .banner-btn{font-size:12px;padding:6px 10px}
+  .banner-login{font-size:12px;padding:6px 12px}
+
+  /* Page headers */
+  .page-head{flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:18px}
+  .page-title{font-size:22px}
+
+  /* Home */
+  .sidebar{padding:22px 18px}
+  .logo{font-size:clamp(18px,7vw,28px)}
+  .lede{font-size:14px}
+  .discord{font-size:14px;padding:12px}
+  .tiles{gap:12px}
+  .tile{min-height:110px;padding:16px 18px;gap:14px}
+  .tile h3{font-size:18px}
+  .tile p{font-size:11px}
+  .tile .ico{width:56px;height:56px}
+
+  /* Event feature cards */
+  .efeat-art{height:200px}
+  .efeat-foot{padding:14px 16px 16px;flex-direction:column;align-items:flex-start;gap:8px}
+  .efeat-name{font-size:17px}
+  .efeat-cta{font-size:12px}
+
+  /* Event detail */
+  .detail .content{padding:28px 20px}
+  .detail h2{font-size:24px}
+  .detail .lead,.ev-desc p{font-size:14px}
+  .islands{gap:8px}
+  .island-chip{font-size:12px;padding:7px 10px}
+  .island-chip svg{width:22px;height:22px}
+  .detail .cta{font-size:14px;padding:11px 18px;margin-top:20px}
+
+  /* Cards (applications) */
+  .cards{grid-template-columns:1fr}
+  .card .cardart{height:110px}
+  .card h3{font-size:17px}
+
+  /* Store */
+  .store-grid{grid-template-columns:1fr;max-width:100%}
+  .rank .price{font-size:24px}
+
+  /* Apply wizard */
+  .apw-panel{padding:20px 16px}
+  .apw-steps{gap:0}
+  .apw-step-num{width:26px;height:26px;font-size:11px}
+  .apw-stage h2{font-size:18px}
+  .apw-row{flex-direction:column;gap:0}
+  .apw-row .apw-field:first-child,.apw-row .apw-field:last-child{flex:1}
+  .apw-type-grid{grid-template-columns:1fr}
+  .apw-playstyle-grid{grid-template-columns:1fr 1fr}
+  .apw-nav{margin-top:18px}
+  .apw-status{padding:28px 20px}
+
+  /* Collective */
+  .collective{padding:22px 16px 26px}
+  .col-head h2{font-size:22px}
+  .col-vision{font-size:14px}
+  .phase h4{font-size:16px}
+  .col-rail{margin:22px 0 12px}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important}

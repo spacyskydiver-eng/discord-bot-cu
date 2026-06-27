@@ -8,7 +8,7 @@
       <% if (locals.user) { %>
         <div class="banner-user">
           <% if (locals.user.avatar) { %>
-            <img class="banner-avatar" src="https://cdn.discordapp.com/avatars/<%= locals.user.id %>/<%= locals.user.avatar %>.png" alt="">
+            <img class="banner-avatar" src="<%= locals.user.avatar %>" alt="">
           <% } %>
           <span><%= locals.user.globalName || locals.user.username %></span>
         </div>
