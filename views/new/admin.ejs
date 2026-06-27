@@ -165,6 +165,48 @@
 }
 .wh-upload-btn:hover{background:rgba(151,117,250,.22)}
 .wh-upload-btn.loading{opacity:.5;pointer-events:none}
+
+/* Format toolbar */
+.wh-fmt-bar{display:flex;align-items:center;gap:3px;margin-bottom:6px;flex-wrap:wrap}
+.wh-fmt-b{
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  color:#c9ccdb;border-radius:5px;padding:3px 8px;cursor:pointer;
+  font-size:13px;line-height:1.4;font-family:inherit;transition:background .12s;
+}
+.wh-fmt-b:hover{background:rgba(151,117,250,.2);border-color:rgba(151,117,250,.4);color:#fff}
+.wh-fmt-b.wh-emoji-trigger{font-size:15px;padding:2px 7px}
+.wh-fmt-sep{width:1px;height:18px;background:rgba(255,255,255,.12);margin:0 3px}
+
+/* Discord markdown preview styles */
+.wh-disc-text strong,.wh-emb-desc strong,.wh-emb-field-val strong{font-weight:700;color:#fff}
+.wh-disc-text em,.wh-emb-desc em,.wh-emb-field-val em{font-style:italic}
+.wh-disc-text u,.wh-emb-desc u,.wh-emb-field-val u{text-decoration:underline}
+.wh-disc-text del,.wh-emb-desc del,.wh-emb-field-val del{text-decoration:line-through;opacity:.7}
+.wh-inline-code{background:rgba(255,255,255,.1);border-radius:3px;padding:1px 5px;font-family:monospace;font-size:13px;color:#e0e2ed}
+.wh-code-block{background:#1e1e2e;border-radius:6px;padding:10px 14px;font-family:monospace;font-size:13px;color:#cdd6f4;margin:6px 0;white-space:pre-wrap;word-break:break-all}
+.wh-spoiler{background:#202225;color:transparent;border-radius:3px;padding:0 3px;cursor:pointer;transition:color .15s,background .15s}
+.wh-spoiler:hover{background:rgba(255,255,255,.15);color:#dcddde}
+.wh-blockquote{border-left:3px solid #4f5660;padding-left:10px;margin:4px 0;color:#b9bbbe}
+.wh-h1{font-size:20px;font-weight:700;color:#fff;margin:6px 0 2px}
+.wh-h2{font-size:17px;font-weight:700;color:#fff;margin:5px 0 2px}
+.wh-h3{font-size:15px;font-weight:700;color:#fff;margin:4px 0 2px}
+.wh-custom-emoji{display:inline-block;background:rgba(255,255,255,.06);border-radius:3px;padding:0 4px;font-size:13px;color:#7289da;font-weight:600}
+
+/* Emoji picker */
+.wh-emoji-panel{
+  position:fixed;z-index:2000;
+  background:#2b2d31;border:1px solid #3f4147;border-radius:12px;
+  padding:14px;width:320px;max-height:380px;overflow:hidden;
+  display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.5);
+}
+.wh-emoji-grid{flex:1;overflow-y:auto;display:flex;flex-wrap:wrap;gap:2px}
+.wh-emoji-grid::-webkit-scrollbar{width:4px}
+.wh-emoji-grid::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
+.wh-e-cat{width:100%;font-family:"Baloo 2";font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#72767d;padding:6px 2px 2px;margin-top:4px}
+.wh-e-cat:first-child{margin-top:0}
+.wh-e-btn{background:none;border:none;font-size:20px;width:34px;height:34px;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .1s}
+.wh-e-btn:hover{background:rgba(255,255,255,.1)}
+.wh-emoji-custom{border-top:1px solid #3f4147;margin-top:10px;padding-top:10px}
 </style>
 
 <main class="wrap nd-adm-wrap">
@@ -608,7 +650,21 @@
             <div class="nd-form-field"><label class="nd-label">Username Override</label><input type="text" id="wh-username" class="nd-input" placeholder="CUE Bot" oninput="updatePreview()"></div>
             <div class="nd-form-field"><label class="nd-label">Avatar URL Override</label><div class="wh-img-row"><input type="text" id="wh-avatar" class="nd-input" placeholder="https://... or upload →" oninput="updatePreview()"><label class="wh-upload-btn" title="Upload image"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><input type="file" accept="image/*" style="display:none" onchange="whUpload(this,'wh-avatar')"></label></div></div>
           </div>
-          <div class="nd-form-field"><label class="nd-label">Content (plain text)</label><textarea id="wh-content" class="nd-textarea" rows="3" placeholder="Type a message..." oninput="updatePreview()"></textarea></div>
+          <div class="nd-form-field">
+            <label class="nd-label">Content</label>
+            <div class="wh-fmt-bar">
+              <button type="button" class="wh-fmt-b" onclick="whFmt('wh-content','**','**')" title="Bold"><b>B</b></button>
+              <button type="button" class="wh-fmt-b" onclick="whFmt('wh-content','*','*')" title="Italic"><i>I</i></button>
+              <button type="button" class="wh-fmt-b" onclick="whFmt('wh-content','__','__')" title="Underline"><u>U</u></button>
+              <button type="button" class="wh-fmt-b" onclick="whFmt('wh-content','~~','~~')" title="Strikethrough"><s>S</s></button>
+              <button type="button" class="wh-fmt-b" onclick="whFmt('wh-content','`','`')" title="Inline code"><code style="font-size:11px">`c`</code></button>
+              <button type="button" class="wh-fmt-b" onclick="whFmt('wh-content','||','||')" title="Spoiler">||</button>
+              <button type="button" class="wh-fmt-b" onclick="whFmt('wh-content','> ','')" title="Blockquote">›"</button>
+              <span class="wh-fmt-sep"></span>
+              <button type="button" class="wh-fmt-b wh-emoji-trigger" onclick="openEmoji('wh-content',this)" title="Emoji">😀</button>
+            </div>
+            <textarea id="wh-content" class="nd-textarea" rows="3" placeholder="Type a message... (supports **bold**, __underline__, *italic*, ~~strike~~, ||spoiler||, > quote)" oninput="updatePreview()"></textarea>
+          </div>
 
           <div class="wh-section">Embed <span style="font-weight:500;font-size:11px;color:var(--muted);text-transform:none;letter-spacing:0">— optional</span></div>
           <div class="wh-color-row nd-form-field">
@@ -628,7 +684,21 @@
             <div class="nd-form-field" style="flex:1"><label class="nd-label">Title URL</label><input type="text" id="wh-title-url" class="nd-input nd-btn-sm" oninput="updatePreview()"></div>
           </div>
 
-          <div class="nd-form-field"><label class="nd-label">Description</label><textarea id="wh-desc" class="nd-textarea" rows="4" oninput="updatePreview()"></textarea></div>
+          <div class="nd-form-field">
+            <label class="nd-label">Description</label>
+            <div class="wh-fmt-bar">
+              <button type="button" class="wh-fmt-b" onclick="whFmt('wh-desc','**','**')" title="Bold"><b>B</b></button>
+              <button type="button" class="wh-fmt-b" onclick="whFmt('wh-desc','*','*')" title="Italic"><i>I</i></button>
+              <button type="button" class="wh-fmt-b" onclick="whFmt('wh-desc','__','__')" title="Underline"><u>U</u></button>
+              <button type="button" class="wh-fmt-b" onclick="whFmt('wh-desc','~~','~~')" title="Strikethrough"><s>S</s></button>
+              <button type="button" class="wh-fmt-b" onclick="whFmt('wh-desc','`','`')" title="Inline code"><code style="font-size:11px">`c`</code></button>
+              <button type="button" class="wh-fmt-b" onclick="whFmt('wh-desc','||','||')" title="Spoiler">||</button>
+              <button type="button" class="wh-fmt-b" onclick="whFmt('wh-desc','> ','')" title="Blockquote">›"</button>
+              <span class="wh-fmt-sep"></span>
+              <button type="button" class="wh-fmt-b wh-emoji-trigger" onclick="openEmoji('wh-desc',this)" title="Emoji">😀</button>
+            </div>
+            <textarea id="wh-desc" class="nd-textarea" rows="4" oninput="updatePreview()"></textarea>
+          </div>
 
           <div class="nd-form-row">
             <div class="nd-form-field"><label class="nd-label">Thumbnail URL</label><div class="wh-img-row"><input type="text" id="wh-thumb" class="nd-input nd-btn-sm" oninput="updatePreview()"><label class="wh-upload-btn" title="Upload image"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><input type="file" accept="image/*" style="display:none" onchange="whUpload(this,'wh-thumb')"></label></div></div>
@@ -697,6 +767,22 @@
   </div>
 
 </main>
+
+<!-- Emoji picker panel -->
+<div id="wh-emoji-panel" class="wh-emoji-panel" style="display:none">
+  <input type="text" id="wh-emoji-search" class="nd-input nd-btn-sm" placeholder="Search emojis…" oninput="filterEmojis(this.value)" style="margin-bottom:10px">
+  <div id="wh-emoji-grid" class="wh-emoji-grid"></div>
+  <div class="wh-emoji-custom">
+    <p class="nd-label" style="margin-bottom:6px">Custom Discord emoji</p>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:8px">In Discord type <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:3px">\:emojiname:</code> to get the ID</p>
+    <div style="display:flex;gap:6px;align-items:center">
+      <input type="text" id="wh-cust-name" class="nd-input nd-btn-sm" placeholder="name" style="flex:1">
+      <input type="text" id="wh-cust-id" class="nd-input nd-btn-sm" placeholder="123456789" style="flex:1.2">
+      <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);white-space:nowrap;cursor:pointer"><input type="checkbox" id="wh-cust-anim"> Animated</label>
+      <button type="button" class="nd-btn nd-btn-ghost nd-btn-sm" onclick="insertCustomEmoji()" style="white-space:nowrap">Insert</button>
+    </div>
+  </div>
+</div>
 
 <%- include('partials/foot') %>
 
@@ -851,6 +937,163 @@ function syncColorPicker(){
   updatePreview();
 }
 
+/* ── Discord markdown parser ── */
+function parseDiscord(raw) {
+  if (!raw) return '';
+  // Escape HTML
+  let s = raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  // Fenced code blocks (preserve content)
+  const codeBlocks = [];
+  s = s.replace(/```(?:[a-zA-Z]*\n)?([\s\S]*?)```/g, (_, code) => {
+    const i = codeBlocks.length;
+    codeBlocks.push(`<div class="wh-code-block">${code.trim()}</div>`);
+    return `\x00cb${i}\x00`;
+  });
+  // Inline code
+  const inlineCodes = [];
+  s = s.replace(/`([^`\n]+)`/g, (_, code) => {
+    const i = inlineCodes.length;
+    inlineCodes.push(`<span class="wh-inline-code">${code}</span>`);
+    return `\x00ic${i}\x00`;
+  });
+
+  // Spoiler
+  s = s.replace(/\|\|(.+?)\|\|/g, '<span class="wh-spoiler">$1</span>');
+  // Bold+italic
+  s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  // Bold
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Underline+bold
+  s = s.replace(/__\*\*(.+?)\*\*__/g, '<u><strong>$1</strong></u>');
+  // Underline
+  s = s.replace(/__(.+?)__/g, '<u>$1</u>');
+  // Italic * and _
+  s = s.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+  s = s.replace(/(?<![a-zA-Z0-9])_([^_\n]+)_(?![a-zA-Z0-9])/g, '<em>$1</em>');
+  // Strikethrough
+  s = s.replace(/~~(.+?)~~/g, '<del>$1</del>');
+
+  // Headings (line-start)
+  s = s.replace(/^### (.+)$/gm, '<span class="wh-h3">$1</span>');
+  s = s.replace(/^## (.+)$/gm, '<span class="wh-h2">$1</span>');
+  s = s.replace(/^# (.+)$/gm, '<span class="wh-h1">$1</span>');
+  // Blockquotes (multi-line)
+  s = s.replace(/^&gt; (.+)$/gm, '<span class="wh-blockquote">$1</span>');
+
+  // Custom Discord emojis  <:name:id>  or  <a:name:id>
+  s = s.replace(/&lt;(a?):(\w+):(\d+)&gt;/g, '<span class="wh-custom-emoji" title="$2">:$2:</span>');
+
+  // Newlines → <br>
+  s = s.replace(/\n/g, '<br>');
+
+  // Restore code blocks
+  codeBlocks.forEach((b, i) => { s = s.replace(`\x00cb${i}\x00`, b); });
+  inlineCodes.forEach((c, i) => { s = s.replace(`\x00ic${i}\x00`, c); });
+
+  return s;
+}
+
+/* ── Formatting toolbar ── */
+function whFmt(taId, before, after) {
+  const ta = document.getElementById(taId);
+  const s = ta.selectionStart, e = ta.selectionEnd;
+  const sel = ta.value.slice(s, e);
+  const rep = before + (sel || 'text') + after;
+  ta.setRangeText(rep, s, e, 'select');
+  ta.focus();
+  if (!sel) { ta.selectionStart = s + before.length; ta.selectionEnd = s + before.length + 4; }
+  updatePreview();
+}
+
+/* ── Emoji picker ── */
+const EMOJI_DATA = {
+  'Smileys': ['😀','😁','😂','🤣','😊','😇','🥰','😍','🤩','😘','😗','😎','🥳','😏','😒','😞','😔','😟','😕','🙁','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🫢','🫣','🤫','🤥','😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🫠','🤐','🥴','🤢','🤮','🤧','😷','🤒','🤕'],
+  'Gestures': ['👍','👎','👊','✊','🤛','🤜','🤞','✌️','🤟','🤘','🤙','👈','👉','👆','👇','☝️','👋','🤚','🖐️','✋','🖖','💪','🦾','🙏','🤲','👐','🫶','🤝','🫰','🫵'],
+  'People': ['👶','🧒','👦','👧','🧑','👱','🧔','👩','🧓','👴','👵','🧙','🧝','🧛','🧟','🧞','🧜','🧚','👼','🤶','🎅','🦸','🦹','🧑‍💻','🧑‍🎨','🧑‍🎤','🧑‍🏫','🧑‍🍳','🧑‍⚕️','🧑‍⚖️','🧑‍✈️','🧑‍🚀'],
+  'Gaming & Combat': ['⚔️','🗡️','🏹','🛡️','🔮','🪄','🎲','🃏','♟️','🎯','🎮','🕹️','👾','🤺','🏆','🥇','🎖️','🏅','🎗️','🎪'],
+  'Nature': ['🌊','🌋','⛰️','🏔️','🌲','🌳','🌴','🎋','🎄','🌹','🌺','🌸','🌼','🌻','🍀','🌿','🌱','🍃','☁️','⛅','🌤️','🌈','⚡','❄️','🌙','☀️','🌟','⭐','🌠','🌌'],
+  'Food': ['🍕','🍔','🍟','🌮','🌯','🍜','🍱','🍣','🍩','🎂','🍰','🧁','🍫','🍬','🍭','🥤','🧃','🍺','🥂','🍾'],
+  'Objects': ['💎','💰','💵','🪙','🏦','🔑','🗝️','🔐','🔒','🔓','⚙️','🔧','🔨','⚒️','🛠️','⛏️','🔩','🧲','💡','🔦','🕯️','📦','📫','📱','💻','🖥️','⌨️','🖱️','💾','💿','📷','📸','🎥','📡','📻','🎙️','🎚️','🎛️'],
+  'Symbols': ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','❤️‍🔥','💔','❣️','💕','💞','💓','💗','💖','💘','💝','♾️','✅','❌','⭕','❗','❓','💯','🔴','🟠','🟡','🟢','🔵','🟣','⚫','⚪','🔶','🔷','🔸','🔹','▶️','⏸️','⏹️','⏺️','🔁','🔀','📌','📍','🏁','🚩','🎌','🏴'],
+  'Travel': ['🚀','✈️','🛸','🛩️','🚁','🛶','⛵','🚢','🚂','🚃','🚆','🚇','🚊','🚝','🚗','🚕','🏎️','🚙','🚌','🚎','🏍️','🛵','🛺','🚲','🛴','🛹','🛼','🚏','🛣️','🗺️','🏖️','🏝️','🏕️','🗻','🌉']
+};
+
+let emojiTarget = null;
+let allEmojiButtons = null;
+
+function buildEmojiGrid(filter) {
+  const grid = document.getElementById('wh-emoji-grid');
+  grid.innerHTML = '';
+  const q = (filter || '').toLowerCase();
+  Object.entries(EMOJI_DATA).forEach(([cat, emojis]) => {
+    const matching = q ? emojis.filter(e => e.toLowerCase().includes(q)) : emojis;
+    if (!matching.length) return;
+    const catEl = document.createElement('div');
+    catEl.className = 'wh-e-cat';
+    catEl.textContent = cat;
+    grid.appendChild(catEl);
+    matching.forEach(emoji => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'wh-e-btn';
+      btn.textContent = emoji;
+      btn.title = emoji;
+      btn.onclick = () => insertEmoji(emoji);
+      grid.appendChild(btn);
+    });
+  });
+}
+
+function filterEmojis(val) { buildEmojiGrid(val); }
+
+function openEmoji(targetId, triggerBtn) {
+  emojiTarget = targetId;
+  const panel = document.getElementById('wh-emoji-panel');
+  const rect = triggerBtn.getBoundingClientRect();
+  panel.style.display = 'flex';
+  // Position above or below button
+  const spaceBelow = window.innerHeight - rect.bottom;
+  if (spaceBelow < 400) {
+    panel.style.top = (window.scrollY + rect.top - 400) + 'px';
+  } else {
+    panel.style.top = (window.scrollY + rect.bottom + 4) + 'px';
+  }
+  panel.style.left = Math.min(rect.left, window.innerWidth - 340) + 'px';
+  document.getElementById('wh-emoji-search').value = '';
+  buildEmojiGrid('');
+  setTimeout(() => document.getElementById('wh-emoji-search').focus(), 50);
+}
+
+function insertEmoji(emoji) {
+  if (!emojiTarget) return;
+  const ta = document.getElementById(emojiTarget);
+  const s = ta.selectionStart, e = ta.selectionEnd;
+  ta.setRangeText(emoji, s, e, 'end');
+  ta.focus();
+  updatePreview();
+}
+
+function insertCustomEmoji() {
+  const name = document.getElementById('wh-cust-name').value.trim().replace(/\W/g,'');
+  const id = document.getElementById('wh-cust-id').value.trim().replace(/\D/g,'');
+  const anim = document.getElementById('wh-cust-anim').checked;
+  if (!name || !id) { alert('Enter both a name and an ID number'); return; }
+  const str = `<${anim?'a':''}:${name}:${id}>`;
+  insertEmoji(str);
+  document.getElementById('wh-cust-name').value = '';
+  document.getElementById('wh-cust-id').value = '';
+}
+
+// Close emoji panel when clicking outside
+document.addEventListener('click', e => {
+  const panel = document.getElementById('wh-emoji-panel');
+  if (!panel || panel.style.display === 'none') return;
+  if (!panel.contains(e.target) && !e.target.classList.contains('wh-emoji-trigger')) {
+    panel.style.display = 'none';
+  }
+});
+
 /* Image upload */
 async function whUpload(fileInput, targetId) {
   const file = fileInput.files[0];
@@ -893,7 +1136,7 @@ function updatePreview(){
   // Content
   const content=document.getElementById('wh-content').value;
   const contentEl=document.getElementById('wh-prev-content');
-  contentEl.textContent=content;
+  contentEl.innerHTML=parseDiscord(content);
   contentEl.style.display=content?'block':'none';
 
   // Check if embed has any content
@@ -937,7 +1180,7 @@ function updatePreview(){
 
   // Description
   const descEl=document.getElementById('wh-prev-desc');
-  if(desc){descEl.style.display='block';descEl.textContent=desc;}
+  if(desc){descEl.style.display='block';descEl.innerHTML=parseDiscord(desc);}
   else descEl.style.display='none';
 
   // Fields
@@ -946,7 +1189,7 @@ function updatePreview(){
   fields.forEach(f=>{
     const d=document.createElement('div');
     d.className='wh-emb-field'+(f.inline?' inline':'');
-    d.innerHTML=`<div class="wh-emb-field-name">${f.name}</div><div class="wh-emb-field-val">${f.value}</div>`;
+    d.innerHTML=`<div class="wh-emb-field-name">${parseDiscord(f.name)}</div><div class="wh-emb-field-val">${parseDiscord(f.value)}</div>`;
     fieldsEl.appendChild(d);
   });
 
