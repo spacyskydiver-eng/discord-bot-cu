@@ -207,19 +207,31 @@
   width:100%;height:460px;position:relative;overflow:hidden;
   background:#0c0d10;
 }
+/* Blurred fill layer — stretches image to fill, heavily blurred + darkened */
+.efeat-art-blur{
+  position:absolute;inset:-30px;z-index:0;
+  background-size:cover;background-position:center;
+  filter:blur(24px) brightness(0.35) saturate(1.4);
+  transform:scale(1.08);
+}
+/* Sharp contained image sits on top */
 .efeat-art img{
-  width:100%;height:100%;object-fit:cover;
-  display:block;
+  position:relative;z-index:1;
+  width:100%;height:100%;
+  object-fit:contain;object-position:center;
+  display:block;padding:20px;
 }
 /* scrim so button is always readable */
 .efeat-art::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(to top,rgba(8,9,12,.75) 0%,rgba(8,9,12,.1) 40%,transparent 100%);
+  content:'';position:absolute;inset:0;z-index:2;
+  background:linear-gradient(to top,rgba(8,9,12,.82) 0%,rgba(8,9,12,.05) 45%,transparent 100%);
   pointer-events:none;
 }
+/* the footer sits above the scrim */
+.efeat-foot{ z-index:3; }
 /* placeholder art (no image yet) */
 .efeat-art-placeholder{
-  position:absolute;inset:0;
+  position:absolute;inset:0;z-index:1;
   display:flex;align-items:center;justify-content:center;
 }
 .efeat-foot{

@@ -1,4 +1,4 @@
-<%- include('partials/head', { pageTitle: event.name }) %>
+<%- include('partials/head', { pageTitle: event.title }) %>
 <%- include('partials/header') %>
 
 <%
@@ -62,7 +62,7 @@ function themeBg(t) {
       <% } else { %>
         <span class="tag">Coming Soon</span>
       <% } %>
-      <h2><%= event.name %></h2>
+      <h2><%= event.title %></h2>
       <% if (event.description) { %>
         <p class="lead"><%= event.description %></p>
       <% } %>

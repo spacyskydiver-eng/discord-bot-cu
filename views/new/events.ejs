@@ -38,7 +38,8 @@ const ISLAND = {
       <a href="/events/<%= ev.id %>" class="efeat">
         <div class="efeat-art">
           <% if (ev.card_image) { %>
-            <img src="<%= ev.card_image %>" alt="<%= ev.name %>">
+            <div class="efeat-art-blur" style="background-image:url('<%= ev.card_image %>')"></div>
+            <img src="<%= ev.card_image %>" alt="<%= ev.title %>">
           <% } else { %>
             <!-- Placeholder art until image is provided -->
             <div class="efeat-art-placeholder">
@@ -66,7 +67,7 @@ const ISLAND = {
         </div>
         <div class="efeat-foot">
           <div>
-            <div class="efeat-name"><%= ev.name %></div>
+            <div class="efeat-name"><%= ev.title %></div>
             <div class="efeat-meta">
               <% if (ev.event_date) { %>
                 Starts <%= new Date(ev.event_date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'}) %>
