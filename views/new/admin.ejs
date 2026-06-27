@@ -206,8 +206,6 @@
 .wh-e-cat:first-child{margin-top:0}
 .wh-e-btn{background:none;border:none;font-size:20px;width:34px;height:34px;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .1s}
 .wh-e-btn:hover{background:rgba(255,255,255,.1)}
-.wh-emoji-custom{border-top:1px solid #3f4147;margin-top:10px;padding-top:10px}
-.wh-eg-code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:3px;font-size:10.5px;font-family:monospace;color:#cdd6f4}
 .wh-channel-note{
   display:flex;align-items:flex-start;gap:7px;
   font-size:12px;color:#949ba4;line-height:1.5;
@@ -834,19 +832,8 @@
 
 <!-- Emoji picker panel -->
 <div id="wh-emoji-panel" class="wh-emoji-panel" style="display:none">
-  <input type="text" id="wh-emoji-search" class="nd-input nd-btn-sm" placeholder="Search emojis…" oninput="filterEmojis(this.value)" style="margin-bottom:10px">
+  <input type="text" id="wh-emoji-search" class="nd-input nd-btn-sm" placeholder="Search emojis… (custom: just paste <:name:id> in the text)" oninput="filterEmojis(this.value)" style="margin-bottom:10px">
   <div id="wh-emoji-grid" class="wh-emoji-grid"></div>
-  <div class="wh-emoji-custom">
-    <p class="nd-label" style="margin-bottom:4px">Custom server emoji</p>
-    <p style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.5">
-      Paste the full emoji code — e.g. <code class="wh-eg-code">&lt;:minecraft_red_1:1520515823402483733&gt;</code><br>
-      To get it: type <code class="wh-eg-code">\:emojiname:</code> in any Discord channel, then copy the result.
-    </p>
-    <div style="display:flex;gap:6px;align-items:center">
-      <input type="text" id="wh-cust-full" class="nd-input nd-btn-sm" placeholder="<:name:id> or <a:name:id>" style="flex:1">
-      <button type="button" class="nd-btn nd-btn-ghost nd-btn-sm" onclick="insertCustomEmoji()" style="white-space:nowrap">Insert</button>
-    </div>
-  </div>
 </div>
 
 <%- include('partials/foot') %>
@@ -1244,18 +1231,6 @@ function insertEmoji(emoji) {
   ta.setRangeText(emoji, s, e, 'end');
   ta.focus();
   updatePreview();
-}
-
-function insertCustomEmoji() {
-  const raw = document.getElementById('wh-cust-full').value.trim();
-  if (!raw) { alert('Paste the full emoji code first, e.g. <:minecraft_red_1:1520515823402483733>'); return; }
-  // Accept <:name:id>, <a:name:id>, or just :name: style
-  if (!/^<a?:\w+:\d+>$/.test(raw)) {
-    alert('Format must be <:name:id> or <a:name:id>\nExample: <:minecraft_red_1:1520515823402483733>');
-    return;
-  }
-  insertEmoji(raw);
-  document.getElementById('wh-cust-full').value = '';
 }
 
 // Close emoji panel when clicking outside
