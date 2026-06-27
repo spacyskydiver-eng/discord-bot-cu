@@ -55,7 +55,8 @@ router.get('/', async (req, res) => {
   const agreementItems = (await db.query(`SELECT * FROM agreement_items ORDER BY display_order ASC, id ASC`)).rows;
   const playstyleOptions = (await db.query(`SELECT * FROM playstyle_options ORDER BY display_order ASC, id ASC`)).rows;
 
-  res.render('admin', {
+  const template = res.locals.designPreview ? 'new/admin' : 'admin';
+  res.render(template, {
     event, eligibilityQuestions, applications,
     guilds: guildRes.rows, levels, levelRoles, staffRoles, staffAccess,
     stageSettings, stageBlocks, agreementItems, playstyleOptions
@@ -374,6 +375,44 @@ router.post('/playstyle/update', async (req, res) => {
 router.post('/playstyle/delete', async (req, res) => {
   await db.query(`DELETE FROM playstyle_options WHERE id=$1`, [req.body.id]);
   res.redirect('/admin?saved=stages&stage=3#stages');
+});
+
+// Webhook sender — forwards payload to Discord webhook URL
+router.post('/webhook/send', async (req, res) => {
+  const { webhook_url, payload } = req.body;
+  if (!webhook_url || !webhook_url.startsWith('https://discord.com/api/webhooks/')) {
+    return res.json({ ok: false, error: 'Invalid webhook URL. Must start with https://discord.com/api/webhooks/' });
+  }
+  try {
+    const https = require('https');
+    const body = JSON.stringify(payload);
+    const url = new URL(webhook_url);
+    const options = {
+      hostname: url.hostname,
+      path: url.pathname + url.search,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
+    };
+    const result = await new Promise((resolve, reject) => {
+      const req2 = https.request(options, r => {
+        let data = '';
+        r.on('data', c => data += c);
+        r.on('end', () => resolve({ status: r.statusCode, body: data }));
+      });
+      req2.on('error', reject);
+      req2.write(body);
+      req2.end();
+    });
+    if (result.status >= 200 && result.status < 300) {
+      res.json({ ok: true });
+    } else {
+      let errMsg = result.body;
+      try { errMsg = JSON.parse(result.body).message || errMsg; } catch(e) {}
+      res.json({ ok: false, error: `Discord returned ${result.status}: ${errMsg}` });
+    }
+  } catch (e) {
+    res.json({ ok: false, error: e.message });
+  }
 });
 
 module.exports = router;

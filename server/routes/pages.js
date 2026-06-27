@@ -49,7 +49,8 @@ router.get('/staff', async (req, res) => {
 
   const isStaff = isAdmin || hasManualAccess || (staffRoleId && userRoleIds.includes(staffRoleId));
 
-  res.render('staff', { staffRoles, isStaff, formatDesc });
+  const template = res.locals.designPreview ? 'new/staff' : 'staff';
+  res.render(template, { staffRoles, isStaff, formatDesc });
 });
 router.get('/rules', (req, res) => res.render('rules'));
 

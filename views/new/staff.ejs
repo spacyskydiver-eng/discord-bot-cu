@@ -1,0 +1,51 @@
+<%- include('partials/head', { pageTitle: 'Staff' }) %>
+<%- include('partials/header') %>
+
+<main class="wrap">
+
+  <div class="page-head">
+    <a href="/" class="back">← Home</a>
+    <div>
+      <h1 class="page-title">The Team</h1>
+      <p class="page-sub">The people building Collective Union Events.</p>
+    </div>
+  </div>
+
+  <% if (!isStaff && staffRoles.some(r => r.blur_pay || r.blur_description)) { %>
+    <div class="nd-staff-gate">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Some details are staff-only.
+      <% if (!locals.user) { %>
+        <a href="/auth/login" class="nd-inline-link">Sign in with Discord</a> to check your access.
+      <% } %>
+    </div>
+  <% } %>
+
+  <% if (staffRoles.length === 0) { %>
+    <p style="text-align:center;color:var(--muted);padding:60px 0">No staff roles added yet.</p>
+  <% } else { %>
+    <div class="nd-staff-grid">
+      <% for (const sr of staffRoles) { %>
+        <div class="nd-staff-card">
+          <div class="nd-staff-top">
+            <h3 class="nd-staff-title"><%= sr.title %></h3>
+            <div class="nd-staff-pay <%= (!isStaff && sr.blur_pay) ? 'nd-blurred' : '' %>">
+              <span class="nd-pay-label">Pay</span>
+              <span><%= sr.pay || 'Not specified' %></span>
+            </div>
+          </div>
+          <% if (sr.description) { %>
+            <div class="nd-staff-desc<%= (!isStaff && sr.blur_description) ? ' nd-blurred' : '' %>">
+              <%- formatDesc(sr.description) %>
+            </div>
+          <% } %>
+        </div>
+      <% } %>
+    </div>
+  <% } %>
+
+  <p class="nd-staff-note">Want to join the team? Reach out in our <a href="https://discord.gg/C63H8CFkm" target="_blank" rel="noopener" class="nd-inline-link">Discord server</a>.</p>
+
+</main>
+
+<%- include('partials/foot') %>

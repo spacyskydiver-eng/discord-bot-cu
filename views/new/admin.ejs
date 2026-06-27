@@ -1,0 +1,1018 @@
+<%- include('partials/head', { pageTitle: 'Control Centre' }) %>
+<%- include('partials/header') %>
+
+<style>
+/* ── Admin panel scoped styles ── */
+.nd-adm-wrap{max-width:1100px;margin:0 auto;padding-bottom:60px}
+.nd-adm-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:28px}
+.nd-adm-head h1{font-family:"Baloo 2";font-weight:800;font-size:clamp(22px,3vw,32px);margin:0;color:#fff}
+.nd-adm-head p{font-size:14px;color:var(--muted);margin:4px 0 0}
+
+/* Tabs */
+.nd-tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:0;margin-bottom:24px}
+.nd-tab{font-family:"Baloo 2";font-weight:700;font-size:14px;color:var(--muted);background:none;border:none;cursor:pointer;padding:10px 16px;border-radius:8px 8px 0 0;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s}
+.nd-tab:hover{color:#fff}
+.nd-tab.active{color:#fff;border-bottom-color:var(--banner-1)}
+.nd-tab-badge{display:inline-flex;align-items:center;justify-content:center;background:var(--banner-1);color:#fff;font-size:10px;font-weight:800;border-radius:99px;padding:1px 6px;margin-left:5px}
+.nd-panel{display:none}
+.nd-panel.active{display:block}
+
+/* Cards */
+.nd-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-bottom:20px}
+.nd-card h2{font-family:"Baloo 2";font-weight:800;font-size:20px;margin:0 0 20px;color:#fff}
+.nd-card h3{font-family:"Baloo 2";font-weight:700;font-size:16px;margin:0 0 12px;color:#e0e2ed}
+
+/* Form elements */
+.nd-form-field{margin-bottom:16px}
+.nd-form-field:last-child{margin-bottom:0}
+.nd-label{display:block;font-family:"Baloo 2";font-weight:700;font-size:12px;letter-spacing:.5px;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.nd-input,.nd-textarea,.nd-select{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:10px 13px;font-family:"Baloo 2";font-weight:600;font-size:14px;color:#fff;outline:none;transition:border-color .15s;box-sizing:border-box}
+.nd-input:focus,.nd-textarea:focus,.nd-select:focus{border-color:rgba(212,73,61,.6)}
+.nd-textarea{resize:vertical;min-height:80px}
+.nd-select option{background:#1a1b21}
+.nd-form-row{display:flex;gap:12px;flex-wrap:wrap}
+.nd-form-row .nd-form-field{flex:1;min-width:140px}
+.nd-divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+
+/* Buttons */
+.nd-btn{display:inline-flex;align-items:center;gap:7px;font-family:"Baloo 2";font-weight:700;font-size:14px;border:none;border-radius:8px;padding:9px 18px;cursor:pointer;text-decoration:none;transition:opacity .15s}
+.nd-btn:hover{opacity:.85}
+.nd-btn-primary{background:var(--banner-1);color:#fff}
+.nd-btn-ghost{background:rgba(255,255,255,.07);color:#e0e2ed;border:1px solid var(--border)}
+.nd-btn-danger{background:rgba(220,50,50,.15);color:#f87171;border:1px solid rgba(220,50,50,.3)}
+.nd-btn-sm{padding:6px 13px;font-size:13px}
+.nd-btn-icon{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:4px 8px;border-radius:6px}
+.nd-btn-icon:hover{color:#f87171;background:rgba(220,50,50,.1)}
+
+/* Stage accordion */
+.nd-acc{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden}
+.nd-acc-hd{width:100%;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.03);border:none;padding:14px 20px;cursor:pointer;text-align:left}
+.nd-acc-num{font-family:"Press Start 2P";font-size:9px;color:var(--banner-1);flex-shrink:0}
+.nd-acc-name{font-family:"Baloo 2";font-weight:700;font-size:15px;color:#e0e2ed;flex:1}
+.nd-acc-arrow{margin-left:auto;color:var(--muted);font-size:11px}
+.nd-acc-body{padding:20px;border-top:1px solid var(--border);display:none}
+
+/* App list */
+.nd-app-stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.nd-app-stat{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:14px 20px;text-align:center;flex:1;min-width:80px}
+.nd-app-stat span:first-child{display:block;font-family:"Baloo 2";font-weight:800;font-size:28px;color:#fff}
+.nd-app-stat span:last-child{font-size:12px;color:var(--muted)}
+.nd-app-stat.pending span:first-child{color:#fbbf24}
+.nd-app-stat.accepted span:first-child{color:#4ec994}
+.nd-app-stat.declined span:first-child{color:#f87171}
+.nd-filter-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.nd-filter-btn{font-family:"Baloo 2";font-weight:700;font-size:12px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);border-radius:99px;padding:5px 13px;cursor:pointer}
+.nd-filter-btn.active{background:rgba(212,73,61,.15);color:#e87168;border-color:rgba(212,73,61,.4)}
+.nd-search{flex:1;min-width:160px}
+.nd-app-head,.nd-app-row{display:grid;grid-template-columns:2fr 1.2fr 1fr 1fr 1.2fr auto;gap:12px;align-items:center;padding:12px 20px}
+.nd-app-head{font-family:"Baloo 2";font-weight:700;font-size:12px;color:var(--muted);background:rgba(255,255,255,.02);letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border)}
+.nd-app-row{border-bottom:1px solid rgba(255,255,255,.04);font-size:14px}
+.nd-app-row:last-child{border-bottom:none}
+.nd-app-avatar{width:28px;height:28px;border-radius:50%;margin-right:8px;vertical-align:middle}
+.nd-status{display:inline-block;font-family:"Baloo 2";font-weight:700;font-size:11px;padding:2px 9px;border-radius:99px;text-transform:uppercase;letter-spacing:.5px}
+.nd-status-pending{background:rgba(251,191,36,.15);color:#fbbf24}
+.nd-status-accepted{background:rgba(78,201,148,.15);color:#4ec994}
+.nd-status-declined{background:rgba(248,113,113,.15);color:#f87171}
+.nd-status-disqualified{background:rgba(255,255,255,.07);color:var(--muted)}
+.nd-stage-chip{font-family:"Press Start 2P";font-size:8px;background:rgba(151,117,250,.2);color:#b3a0ff;border-radius:4px;padding:2px 5px;margin-left:5px}
+.nd-roster{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
+.nd-roster-card{display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:12px;text-decoration:none;color:inherit;width:80px}
+.nd-roster-card img{width:44px;height:44px;border-radius:50%}
+.nd-roster-card span{font-size:11px;text-align:center;color:#e0e2ed;word-break:break-all}
+.nd-playstyle-badge{font-size:11px;font-weight:700;font-family:"Baloo 2";padding:1px 7px;border-radius:99px;background:rgba(151,117,250,.2);color:#b3a0ff}
+
+/* Level rows */
+.nd-level-head,.nd-level-row{display:grid;grid-template-columns:80px 1fr 120px 160px 36px;gap:8px;align-items:center;margin-bottom:6px}
+.nd-level-head{font-family:"Baloo 2";font-weight:700;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding-bottom:4px;border-bottom:1px solid var(--border);margin-bottom:10px}
+
+/* Staff access */
+.nd-access-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.nd-access-id{font-family:"Baloo 2";font-weight:700;color:#e0e2ed;flex:1}
+
+/* Content blocks */
+.nd-block-row{display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;margin-bottom:6px}
+.nd-block-type{font-family:"Press Start 2P";font-size:8px;padding:3px 7px;border-radius:4px;background:rgba(151,117,250,.2);color:#b3a0ff;flex-shrink:0}
+.nd-block-preview{flex:1;font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nd-block-thumb{height:24px;width:auto;border-radius:3px;margin-right:6px;vertical-align:middle}
+
+/* Playstyle rows */
+.nd-ps-row{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px}
+
+/* Questions list */
+.nd-q-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.nd-q-num{font-family:"Press Start 2P";font-size:8px;color:var(--muted)}
+.nd-q-text{flex:1;font-size:14px;color:#e0e2ed}
+.nd-badge{display:inline-block;font-family:"Baloo 2";font-weight:700;font-size:11px;padding:2px 8px;border-radius:99px}
+
+/* Fmt toolbar */
+.nd-fmt-bar{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.nd-fmt-btn{background:rgba(255,255,255,.07);border:1px solid var(--border);color:#e0e2ed;border-radius:5px;padding:3px 9px;cursor:pointer;font-size:13px}
+.nd-fmt-hint{font-size:11px;color:var(--muted)}
+
+/* ── Webhook Builder ── */
+.wh-split{display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start}
+@media(max-width:900px){.wh-split{grid-template-columns:1fr}}
+.wh-section{font-family:"Baloo 2";font-weight:800;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--banner-1);margin:22px 0 10px}
+.wh-section:first-child{margin-top:0}
+.wh-field-row{display:flex;gap:10px}
+.wh-field-row .nd-form-field{flex:1}
+.wh-add-field-btn{display:flex;align-items:center;gap:6px;background:rgba(151,117,250,.08);border:1px dashed rgba(151,117,250,.3);color:#b3a0ff;font-family:"Baloo 2";font-weight:700;font-size:13px;border-radius:8px;padding:8px 14px;cursor:pointer;width:100%;justify-content:center}
+.wh-field-item{display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px;align-items:start;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px}
+.wh-send-row{display:flex;align-items:center;gap:12px;margin-top:24px}
+.wh-status{font-family:"Baloo 2";font-weight:700;font-size:13px;padding:6px 14px;border-radius:8px;display:none}
+.wh-status.ok{display:block;background:rgba(78,201,148,.15);color:#4ec994}
+.wh-status.err{display:block;background:rgba(248,113,113,.15);color:#f87171}
+
+/* Discord preview */
+.wh-disc{background:#313338;border-radius:12px;padding:20px;font-family:"gg sans","Helvetica Neue",Helvetica,Arial,sans-serif;min-height:200px}
+.wh-disc-msg{display:flex;gap:16px}
+.wh-disc-avi{width:40px;height:40px;border-radius:50%;flex-shrink:0;object-fit:cover;background:#5865f2}
+.wh-disc-body{flex:1;min-width:0}
+.wh-disc-meta{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+.wh-disc-name{font-size:15px;font-weight:600;color:#fff}
+.wh-disc-time{font-size:11px;color:#949ba4}
+.wh-disc-text{font-size:14px;color:#dcddde;margin:4px 0 6px;white-space:pre-wrap;word-break:break-word}
+.wh-disc-embed{border-left:4px solid #5865f2;background:#2b2d31;border-radius:4px;padding:12px 16px;margin-top:4px;max-width:440px}
+.wh-emb-author{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.wh-emb-author-icon{width:20px;height:20px;border-radius:50%}
+.wh-emb-author-name{font-size:13px;font-weight:600;color:#fff}
+.wh-emb-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:6px}
+.wh-emb-desc{font-size:14px;color:#dcddde;line-height:1.5;margin-bottom:8px;white-space:pre-wrap}
+.wh-emb-fields{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.wh-emb-field{min-width:120px}
+.wh-emb-field.inline{flex:1}
+.wh-emb-field-name{font-size:13px;font-weight:700;color:#fff;margin-bottom:2px}
+.wh-emb-field-val{font-size:13px;color:#dcddde}
+.wh-emb-image{width:100%;border-radius:4px;margin-top:8px;display:block}
+.wh-emb-thumb{width:80px;height:80px;border-radius:4px;float:right;margin-left:12px;object-fit:cover}
+.wh-emb-footer{display:flex;align-items:center;gap:8px;margin-top:8px}
+.wh-emb-footer-icon{width:18px;height:18px;border-radius:50%}
+.wh-emb-footer-text{font-size:12px;color:#949ba4}
+.wh-preview-label{font-family:"Baloo 2";font-weight:700;font-size:12px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.wh-saved-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.wh-saved-item{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;color:#e0e2ed;cursor:pointer;flex:1}
+.wh-saved-item:hover{border-color:rgba(212,73,61,.4)}
+.wh-saved-item code{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:240px;display:block}
+.wh-color-row{display:flex;align-items:center;gap:10px}
+.wh-color-row input[type=color]{width:44px;height:36px;border:1px solid var(--border);border-radius:6px;background:none;cursor:pointer;padding:2px}
+</style>
+
+<main class="wrap nd-adm-wrap">
+
+  <div class="nd-adm-head">
+    <div>
+      <h1>Control Centre</h1>
+      <p>Manage events, applications, bot settings, staff, and webhooks.</p>
+    </div>
+    <a href="/admin/preview-apply" target="_blank" class="nd-btn nd-btn-ghost nd-btn-sm">👁 Preview Application</a>
+  </div>
+
+  <!-- Tabs -->
+  <div class="nd-tabs">
+    <button class="nd-tab active" data-tab="event">Event</button>
+    <button class="nd-tab" data-tab="stages">Stages</button>
+    <button class="nd-tab" data-tab="applications">
+      Applications<% const pendingCount = applications.filter(a=>a.status==='pending').length; if(pendingCount>0){ %><span class="nd-tab-badge"><%= pendingCount %></span><% } %>
+    </button>
+    <button class="nd-tab" data-tab="bot">Bot</button>
+    <button class="nd-tab" data-tab="stafftab">Staff Roles</button>
+    <button class="nd-tab" data-tab="webhook">Webhook Builder</button>
+  </div>
+
+  <!-- ═══ EVENT TAB ═══ -->
+  <div class="nd-panel active" id="tab-event">
+    <div class="nd-card">
+      <% if (!event) { %>
+        <h2>Create Event</h2>
+        <form action="/admin/event/create" method="POST">
+          <div class="nd-form-field"><label class="nd-label">Event Title</label><input type="text" name="title" class="nd-input" value="500 Player Civilisation Event: 4 Island Experiment" required /></div>
+          <div class="nd-form-field"><label class="nd-label">Description (HTML allowed)</label><textarea name="description" class="nd-textarea" rows="5"></textarea></div>
+          <div class="nd-form-row">
+            <div class="nd-form-field"><label class="nd-label">Applications Open At</label><input type="datetime-local" name="opens_at" class="nd-input" /></div>
+            <div class="nd-form-field"><label class="nd-label">Applications Close At</label><input type="datetime-local" name="closes_at" class="nd-input" /></div>
+          </div>
+          <div class="nd-form-field"><label class="nd-label">Card Image URL</label><input type="text" name="card_image" class="nd-input" placeholder="https://..." /></div>
+          <button type="submit" class="nd-btn nd-btn-primary">Create Event</button>
+        </form>
+      <% } else { %>
+        <h2>Edit Event</h2>
+        <form action="/admin/event/update" method="POST">
+          <input type="hidden" name="id" value="<%= event.id %>" />
+          <div class="nd-form-field"><label class="nd-label">Event Title</label><input type="text" name="title" class="nd-input" value="<%= event.title %>" required /></div>
+          <div class="nd-form-field"><label class="nd-label">Description (HTML allowed)</label><textarea name="description" class="nd-textarea" rows="6"><%= event.description || '' %></textarea></div>
+          <div class="nd-form-row">
+            <div class="nd-form-field"><label class="nd-label">Opens At</label><input type="datetime-local" name="opens_at" class="nd-input" value="<%= event.opens_at ? new Date(event.opens_at).toISOString().slice(0,16) : '' %>" /></div>
+            <div class="nd-form-field"><label class="nd-label">Closes At</label><input type="datetime-local" name="closes_at" class="nd-input" value="<%= event.closes_at ? new Date(event.closes_at).toISOString().slice(0,16) : '' %>" /></div>
+          </div>
+          <div class="nd-form-row">
+            <div class="nd-form-field"><label class="nd-label">Applications Status</label><select name="is_open" class="nd-select"><option value="true" <%= event.is_open ? 'selected' : '' %>>Open</option><option value="false" <%= !event.is_open ? 'selected' : '' %>>Closed</option></select></div>
+            <div class="nd-form-field"><label class="nd-label">Card Image URL</label><input type="text" name="card_image" class="nd-input" value="<%= event.card_image || '' %>" placeholder="https://..." /></div>
+          </div>
+          <button type="submit" class="nd-btn nd-btn-primary">Save Changes</button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- ═══ STAGES TAB ═══ -->
+  <div class="nd-panel" id="tab-stages">
+    <%
+      const stageLabelsAdmin = { 1:'Eligibility Check', 2:'Basic Information', 3:'Playstyle', 4:'Scenario Questions', 5:'Your Application', 6:'Final Agreement' };
+    %>
+    <% for (let sn = 1; sn <= 6; sn++) { %>
+      <div class="nd-acc" id="nd-acc-<%= sn %>">
+        <button class="nd-acc-hd" onclick="toggleAcc(<%= sn %>)" type="button">
+          <span class="nd-acc-num">Stage <%= sn %></span>
+          <span class="nd-acc-name"><%= stageLabelsAdmin[sn] %></span>
+          <span class="nd-acc-arrow" id="nd-arr-<%= sn %>">▶</span>
+        </button>
+        <div class="nd-acc-body" id="nd-body-<%= sn %>">
+
+          <% if (sn === 1) { %>
+            <!-- Eligibility questions -->
+            <p style="font-size:13px;color:var(--muted);margin-bottom:16px"><strong style="color:#e0e2ed">Blocking</strong> = wrong answer immediately disqualifies the applicant.</p>
+            <% if (eligibilityQuestions.length > 0) { %>
+              <% for (const q of eligibilityQuestions) { %>
+                <div class="nd-q-item">
+                  <span class="nd-q-num">#<%= q.display_order %></span>
+                  <span class="nd-q-text"><%= q.question_text %></span>
+                  <span class="nd-badge" style="background:rgba(78,201,148,.12);color:#4ec994"><%= q.required_yes ? 'Must YES' : 'Must NO' %></span>
+                  <span class="nd-badge" style="<%= q.blocking ? 'background:rgba(220,50,50,.12);color:#f87171' : 'background:rgba(255,255,255,.06);color:var(--muted)' %>"><%= q.blocking ? 'Blocking' : 'Optional' %></span>
+                  <form action="/admin/eligibility/delete" method="POST" style="margin:0">
+                    <input type="hidden" name="id" value="<%= q.id %>" />
+                    <button type="submit" class="nd-btn-icon" onclick="return confirm('Delete this question?')">✕</button>
+                  </form>
+                </div>
+              <% } %>
+              <hr class="nd-divider">
+            <% } %>
+            <h3>Add Question</h3>
+            <form action="/admin/eligibility/add" method="POST">
+              <div class="nd-form-field"><label class="nd-label">Question Text</label><input type="text" name="question_text" class="nd-input" placeholder="e.g. Are you 13 or older?" required /></div>
+              <div class="nd-form-row">
+                <div class="nd-form-field"><label class="nd-label">Required Answer</label><select name="required_yes" class="nd-select"><option value="true">Must YES to pass</option><option value="false">Must NO to pass</option></select></div>
+                <div class="nd-form-field"><label class="nd-label">Blocking?</label><select name="blocking" class="nd-select"><option value="true">Yes — disqualifies</option><option value="false">No — optional</option></select></div>
+                <div class="nd-form-field" style="flex:0.4;min-width:80px"><label class="nd-label">Order</label><input type="number" name="display_order" class="nd-input" value="<%= eligibilityQuestions.length %>" min="0" /></div>
+              </div>
+              <button type="submit" class="nd-btn nd-btn-primary nd-btn-sm">Add Question</button>
+            </form>
+
+          <% } else { %>
+            <!-- Stage title/subtitle + content blocks + stage-specific -->
+
+            <h3>Stage Text</h3>
+            <form action="/admin/stage/setting/save" method="POST" style="margin-bottom:10px">
+              <input type="hidden" name="stage_number" value="<%= sn %>" /><input type="hidden" name="field_key" value="title" />
+              <div class="nd-form-field" style="margin:0"><label class="nd-label">Stage Title</label><div style="display:flex;gap:8px"><input type="text" name="field_value" class="nd-input" value="<%= (stageSettings[sn]&&stageSettings[sn].title)||'' %>" placeholder="Stage title..." /><button type="submit" class="nd-btn nd-btn-primary nd-btn-sm" style="white-space:nowrap">Save</button></div></div>
+            </form>
+            <form action="/admin/stage/setting/save" method="POST">
+              <input type="hidden" name="stage_number" value="<%= sn %>" /><input type="hidden" name="field_key" value="subtitle" />
+              <div class="nd-form-field" style="margin:0"><label class="nd-label">Subtitle</label><div style="display:flex;gap:8px;align-items:flex-start"><textarea name="field_value" class="nd-textarea" rows="2" placeholder="Optional description..."><%= (stageSettings[sn]&&stageSettings[sn].subtitle)||'' %></textarea><button type="submit" class="nd-btn nd-btn-primary nd-btn-sm" style="white-space:nowrap;flex-shrink:0">Save</button></div></div>
+            </form>
+            <hr class="nd-divider">
+
+            <% if (sn === 4) { %>
+              <h3>Scenario Questions</h3>
+              <% for (let sc = 1; sc <= 3; sc++) { %>
+                <div style="margin-bottom:12px">
+                  <form action="/admin/stage/setting/save" method="POST" style="margin-bottom:6px">
+                    <input type="hidden" name="stage_number" value="4" /><input type="hidden" name="field_key" value="scenario_<%= sc %>_title" />
+                    <div style="display:flex;gap:8px"><label class="nd-label" style="white-space:nowrap;padding-top:8px">S<%= sc %> Label</label><input type="text" name="field_value" class="nd-input" value="<%= (stageSettings[4]&&stageSettings[4]['scenario_'+sc+'_title'])||'Scenario '+sc %>" /><button type="submit" class="nd-btn nd-btn-ghost nd-btn-sm" style="white-space:nowrap">Save</button></div>
+                  </form>
+                  <form action="/admin/stage/setting/save" method="POST">
+                    <input type="hidden" name="stage_number" value="4" /><input type="hidden" name="field_key" value="scenario_<%= sc %>_text" />
+                    <div style="display:flex;gap:8px;align-items:flex-start"><label class="nd-label" style="white-space:nowrap;padding-top:8px">S<%= sc %> Question</label><textarea name="field_value" class="nd-textarea" rows="3"><%= (stageSettings[4]&&stageSettings[4]['scenario_'+sc+'_text'])||'' %></textarea><button type="submit" class="nd-btn nd-btn-primary nd-btn-sm" style="white-space:nowrap;flex-shrink:0">Save</button></div>
+                  </form>
+                </div>
+              <% } %>
+              <hr class="nd-divider">
+            <% } %>
+
+            <% if (sn === 3) { %>
+              <h3>Playstyle Options</h3>
+              <% for (const ps of playstyleOptions) { %>
+                <div class="nd-ps-row">
+                  <form action="/admin/playstyle/update" method="POST">
+                    <input type="hidden" name="id" value="<%= ps.id %>" />
+                    <div class="nd-form-row" style="align-items:flex-end;gap:8px">
+                      <div class="nd-form-field" style="flex:0.5;min-width:80px;margin:0"><label class="nd-label" style="font-size:10px">ID</label><input type="text" class="nd-input nd-btn-sm" value="<%= ps.value_key %>" disabled style="opacity:.5" /></div>
+                      <div class="nd-form-field" style="flex:1;margin:0"><label class="nd-label" style="font-size:10px">Title</label><input type="text" name="title" class="nd-input nd-btn-sm" value="<%= ps.title %>" required /></div>
+                      <div class="nd-form-field" style="flex:0.4;min-width:60px;margin:0"><label class="nd-label" style="font-size:10px">Order</label><input type="number" name="display_order" class="nd-input nd-btn-sm" value="<%= ps.display_order %>" min="0" /></div>
+                      <button type="submit" class="nd-btn nd-btn-primary nd-btn-sm">Save</button>
+                    </div>
+                    <div class="nd-form-field" style="margin-top:8px;margin-bottom:0"><input type="text" name="description" class="nd-input nd-btn-sm" value="<%= ps.description %>" placeholder="Description on the card" /></div>
+                  </form>
+                  <form action="/admin/playstyle/delete" method="POST" style="margin-top:8px">
+                    <input type="hidden" name="id" value="<%= ps.id %>" />
+                    <button type="submit" class="nd-btn nd-btn-danger nd-btn-sm" onclick="return confirm('Delete?')">✕ Delete</button>
+                  </form>
+                </div>
+              <% } %>
+              <form action="/admin/playstyle/add" method="POST" style="margin-top:10px;padding:12px;background:rgba(78,201,148,.04);border:1px dashed rgba(78,201,148,.25);border-radius:8px">
+                <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Add Playstyle Option</p>
+                <div class="nd-form-row" style="align-items:flex-end;gap:8px">
+                  <div class="nd-form-field" style="flex:0.5;min-width:80px;margin:0"><label class="nd-label" style="font-size:10px">ID</label><input type="text" name="value_key" class="nd-input nd-btn-sm" placeholder="warrior" required pattern="[a-z0-9_]+" /></div>
+                  <div class="nd-form-field" style="flex:1;margin:0"><label class="nd-label" style="font-size:10px">Title</label><input type="text" name="title" class="nd-input nd-btn-sm" placeholder="Warrior" required /></div>
+                  <div class="nd-form-field" style="flex:0.4;min-width:60px;margin:0"><label class="nd-label" style="font-size:10px">Order</label><input type="number" name="display_order" class="nd-input nd-btn-sm" value="<%= playstyleOptions.length %>" min="0" /></div>
+                  <button type="submit" class="nd-btn nd-btn-primary nd-btn-sm">Add</button>
+                </div>
+                <input type="text" name="description" class="nd-input nd-btn-sm" placeholder="Description..." style="margin-top:8px" />
+              </form>
+              <hr class="nd-divider">
+              <form action="/admin/stage/setting/save" method="POST">
+                <input type="hidden" name="stage_number" value="3" /><input type="hidden" name="field_key" value="playstyle_desc_label" />
+                <div class="nd-form-field"><label class="nd-label">Description Field Label</label><div style="display:flex;gap:8px"><input type="text" name="field_value" class="nd-input" value="<%= (stageSettings[3]&&stageSettings[3].playstyle_desc_label)||'Describe in 2-3 sentences how you would actually play this event.' %>" /><button type="submit" class="nd-btn nd-btn-primary nd-btn-sm" style="white-space:nowrap">Save</button></div></div>
+              </form>
+              <hr class="nd-divider">
+            <% } %>
+
+            <% if (sn === 5) { %>
+              <h3>Application Type Options</h3>
+              <% for (const [key, label] of [['video_title','Video Card Title'],['video_desc','Video Card Description'],['written_title','Written Card Title'],['written_desc','Written Card Description']]) { %>
+                <form action="/admin/stage/setting/save" method="POST" style="margin-bottom:8px">
+                  <input type="hidden" name="stage_number" value="5" /><input type="hidden" name="field_key" value="<%= key %>" />
+                  <div class="nd-form-field" style="margin:0"><label class="nd-label" style="font-size:10px"><%= label %></label><div style="display:flex;gap:8px"><input type="text" name="field_value" class="nd-input nd-btn-sm" value="<%= (stageSettings[5]&&stageSettings[5][key])||'' %>" /><button type="submit" class="nd-btn nd-btn-ghost nd-btn-sm" style="white-space:nowrap">Save</button></div></div>
+                </form>
+              <% } %>
+              <hr class="nd-divider">
+            <% } %>
+
+            <% if (sn === 6) { %>
+              <h3>Agreement Items</h3>
+              <% for (const ai of agreementItems) { %>
+                <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+                  <form action="/admin/agreement/update" method="POST" style="flex:1;margin:0"><input type="hidden" name="id" value="<%= ai.id %>" /><div style="display:flex;gap:8px"><input type="text" name="item_text" class="nd-input nd-btn-sm" value="<%= ai.item_text %>" /><button type="submit" class="nd-btn nd-btn-ghost nd-btn-sm">Save</button></div></form>
+                  <form action="/admin/agreement/delete" method="POST" style="margin:0"><input type="hidden" name="id" value="<%= ai.id %>" /><button type="submit" class="nd-btn-icon" onclick="return confirm('Delete?')">✕</button></form>
+                </div>
+              <% } %>
+              <form action="/admin/agreement/add" method="POST" style="margin-top:8px"><div style="display:flex;gap:8px"><input type="text" name="item_text" class="nd-input" placeholder="Add agreement item..." required /><input type="hidden" name="display_order" value="<%= agreementItems.length %>" /><button type="submit" class="nd-btn nd-btn-primary nd-btn-sm" style="white-space:nowrap">Add</button></div></form>
+              <hr class="nd-divider">
+            <% } %>
+
+            <!-- Content Blocks -->
+            <h3>Content Blocks</h3>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Blocks appear above the form fields in this stage — images, videos, timestamps, or styled text.</p>
+            <% const sBlocks = stageBlocks[sn] || []; %>
+            <% for (const blk of sBlocks) { %>
+              <div class="nd-block-row">
+                <span class="nd-block-type"><%= blk.block_type %></span>
+                <span class="nd-block-preview">
+                  <% if (blk.block_type === 'image') { %><img src="<%= blk.content %>" class="nd-block-thumb" onerror="this.style.display='none'"><% } %>
+                  <%= (blk.label || blk.content).slice(0,70) %>
+                </span>
+                <form action="/admin/stage/block/delete" method="POST" style="margin:0"><input type="hidden" name="id" value="<%= blk.id %>" /><button type="submit" class="nd-btn-icon" onclick="return confirm('Delete block?')">✕</button></form>
+              </div>
+            <% } %>
+            <form action="/admin/stage/block/add" method="POST" class="sb-add-form" style="margin-top:10px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:8px;padding:12px">
+              <input type="hidden" name="stage_number" value="<%= sn %>" />
+              <div class="nd-form-row" style="gap:8px;align-items:flex-end">
+                <div class="nd-form-field" style="flex:0.8;margin:0"><label class="nd-label" style="font-size:10px">Block Type</label><select name="block_type" class="nd-select nd-btn-sm" onchange="updateBlockForm(this)"><option value="text">Text</option><option value="image">Image</option><option value="video">Video</option><option value="timestamp">Timestamp</option></select></div>
+                <div class="nd-form-field sb-style-field" style="flex:0.8;margin:0"><label class="nd-label" style="font-size:10px">Text Style</label><select name="style_class" class="nd-select nd-btn-sm"><option value="normal">Normal</option><option value="glow">Glowing</option><option value="animated">Animated</option><option value="muted">Muted</option><option value="heading">Heading</option></select></div>
+                <div class="nd-form-field" style="flex:0.3;min-width:60px;margin:0"><label class="nd-label" style="font-size:10px">Order</label><input type="number" name="display_order" class="nd-input nd-btn-sm" value="<%= sBlocks.length %>" min="0" /></div>
+              </div>
+              <div class="nd-form-field sb-content-field" style="margin-top:8px"><label class="nd-label sb-content-label" style="font-size:10px">Content</label><textarea name="content" class="nd-textarea" rows="2"></textarea></div>
+              <div class="nd-form-field" style="margin-bottom:0"><label class="nd-label sb-label-label" style="font-size:10px">Caption / Label</label><input type="text" name="label" class="nd-input nd-btn-sm" placeholder="Optional..." /></div>
+              <button type="submit" class="nd-btn nd-btn-primary nd-btn-sm" style="margin-top:10px">Add Block</button>
+            </form>
+          <% } %>
+        </div>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- ═══ APPLICATIONS TAB ═══ -->
+  <div class="nd-panel" id="tab-applications">
+    <% const statTotal = applications.filter(a=>a.status!=='disqualified').length; %>
+    <% const statPending = applications.filter(a=>a.status==='pending').length; %>
+    <% const statAccepted = applications.filter(a=>a.status==='accepted').length; %>
+    <% const statDeclined = applications.filter(a=>a.status==='declined').length; %>
+    <% const statDisq = applications.filter(a=>a.status==='disqualified').length; %>
+    <div class="nd-app-stats">
+      <div class="nd-app-stat"><span><%= statTotal %></span><span>Applied</span></div>
+      <div class="nd-app-stat pending"><span><%= statPending %></span><span>Pending</span></div>
+      <div class="nd-app-stat accepted"><span><%= statAccepted %></span><span>Accepted</span></div>
+      <div class="nd-app-stat declined"><span><%= statDeclined %></span><span>Declined</span></div>
+      <% if (statDisq > 0) { %><div class="nd-app-stat"><span><%= statDisq %></span><span>Disqualified</span></div><% } %>
+    </div>
+
+    <div class="nd-filter-row">
+      <button class="nd-filter-btn active" onclick="filterApps('all',this)">All (<%= statTotal %>)</button>
+      <button class="nd-filter-btn" onclick="filterApps('pending',this)">Pending (<%= statPending %>)</button>
+      <% for (let s = 2; s <= 6; s++) { const stageLabels = {2:'Basic',3:'Playstyle',4:'Scenarios',5:'Application',6:'Agreement'}; const sn2 = applications.filter(a=>a.status==='pending'&&(a.review_stage||2)===s).length; if(sn2>0){ %><button class="nd-filter-btn" onclick="filterApps('stage<%= s %>',this)">S<%= s %>: <%= stageLabels[s] %> (<%= sn2 %>)</button><% } } %>
+      <button class="nd-filter-btn" onclick="filterApps('accepted',this)">Accepted (<%= statAccepted %>)</button>
+      <button class="nd-filter-btn" onclick="filterApps('declined',this)">Declined (<%= statDeclined %>)</button>
+      <input type="text" class="nd-input nd-search" id="appSearch" placeholder="Search IGN or Discord..." oninput="filterApps(null,null)">
+    </div>
+
+    <% const listedApps = applications.filter(a=>a.status!=='disqualified'); %>
+    <% if (listedApps.length === 0) { %>
+      <div class="nd-card"><p style="color:var(--muted)">No applications yet.</p></div>
+    <% } else { %>
+      <div class="nd-card" style="padding:0;overflow:hidden">
+        <div class="nd-app-head"><span>Applicant</span><span>IGN</span><span>Playstyle</span><span>Submitted</span><span>Status</span><span></span></div>
+        <div id="appList">
+          <% for (const a of listedApps) { %>
+            <div class="nd-app-row" data-status="<%= a.status %>" data-stage="stage<%= a.review_stage||2 %>" data-search="<%= ((a.ign||'')+(a.discord_tag||'')).toLowerCase() %>">
+              <span><img src="<%= a.discord_avatar||'' %>" class="nd-app-avatar" onerror="this.style.display='none'"><span style="font-size:13px;color:var(--muted)">@<%= a.discord_tag||'—' %></span></span>
+              <span style="font-size:14px;color:#e0e2ed"><%= a.ign||'—' %></span>
+              <span><% if(a.playstyle){ %><span class="nd-playstyle-badge"><%= a.playstyle %></span><% }else{ %>—<% } %></span>
+              <span style="font-size:13px;color:var(--muted)"><%= new Date(a.submitted_at).toLocaleDateString('en-GB') %></span>
+              <span><span class="nd-status nd-status-<%= a.status %>"><%= a.status %></span><% if(a.status==='pending'){ %><span class="nd-stage-chip">S<%= a.review_stage||2 %></span><% } %></span>
+              <span><a href="/admin/application/<%= a.id %>" class="nd-btn nd-btn-ghost nd-btn-sm">Review</a></span>
+            </div>
+          <% } %>
+        </div>
+        <div id="appEmptyMsg" style="display:none;padding:30px;text-align:center;color:var(--muted)">No applications match your search.</div>
+      </div>
+    <% } %>
+
+    <% const accepted = applications.filter(a=>a.status==='accepted'); %>
+    <% if (accepted.length > 0) { %>
+      <div class="nd-card" style="margin-top:20px">
+        <h3>Accepted Players (<%= accepted.length %>)</h3>
+        <div class="nd-roster">
+          <% for (const a of accepted) { %>
+            <a href="/admin/application/<%= a.id %>" class="nd-roster-card">
+              <img src="<%= a.discord_avatar||'' %>" onerror="this.style.display='none'">
+              <span><%= a.ign||a.discord_tag %></span>
+              <% if(a.playstyle){ %><span class="nd-playstyle-badge" style="font-size:10px"><%= a.playstyle %></span><% } %>
+            </a>
+          <% } %>
+        </div>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- ═══ BOT TAB ═══ -->
+  <div class="nd-panel" id="tab-bot">
+    <% if (guilds.length === 0) { %>
+      <div class="nd-card"><h2>Bot Settings</h2><p style="color:var(--muted)">The bot hasn't been active in any server yet. Once it receives its first message, the server will appear here.</p></div>
+    <% } else { %>
+      <% for (const guild of guilds) { %>
+        <div class="nd-card">
+          <h2>Server: <code style="font-size:14px;background:rgba(255,255,255,.08);padding:2px 8px;border-radius:5px"><%= guild.guild_id %></code></h2>
+          <form action="/admin/bot/xp" method="POST">
+            <input type="hidden" name="guild_id" value="<%= guild.guild_id %>" />
+            <div class="nd-form-row">
+              <div class="nd-form-field"><label class="nd-label">XP per Message</label><input type="number" name="xp_per_message" class="nd-input" value="<%= guild.xp_per_message %>" min="1" /></div>
+              <div class="nd-form-field"><label class="nd-label">Cooldown (seconds)</label><input type="number" name="xp_cooldown_seconds" class="nd-input" value="<%= guild.xp_cooldown_seconds %>" min="0" /></div>
+              <div class="nd-form-field"><label class="nd-label">Level-Up Channel ID</label><input type="text" name="level_up_channel_id" class="nd-input" value="<%= guild.level_up_channel_id||'' %>" /></div>
+            </div>
+            <button type="submit" class="nd-btn nd-btn-primary">Save XP Settings</button>
+          </form>
+          <hr class="nd-divider">
+          <h3>Veteran Role</h3>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Automatically gives a role to members who joined 6+ months ago.</p>
+          <form action="/admin/bot/veteran" method="POST">
+            <input type="hidden" name="guild_id" value="<%= guild.guild_id %>" />
+            <div class="nd-form-row">
+              <div class="nd-form-field"><label class="nd-label">Veteran Role ID</label><input type="text" name="veteran_role_id" class="nd-input" value="<%= guild.veteran_role_id||'' %>" placeholder="Right-click role → Copy ID" /></div>
+              <div class="nd-form-field" style="flex:0.4;min-width:100px"><label class="nd-label">Months Threshold</label><input type="number" name="veteran_months" class="nd-input" value="<%= guild.veteran_months||6 %>" min="1" max="60" /></div>
+            </div>
+            <button type="submit" class="nd-btn nd-btn-primary">Save Veteran Role</button>
+          </form>
+          <hr class="nd-divider">
+          <h3>Staff Page Role</h3>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Members with this role can see unblurred content on the Staff page.</p>
+          <form action="/admin/bot/staff-role" method="POST">
+            <input type="hidden" name="guild_id" value="<%= guild.guild_id %>" />
+            <div class="nd-form-field" style="max-width:360px"><label class="nd-label">Staff Role ID</label><input type="text" name="staff_role_id" class="nd-input" value="<%= guild.staff_role_id||'' %>" placeholder="Right-click role → Copy ID" /></div>
+            <button type="submit" class="nd-btn nd-btn-primary">Save Staff Role</button>
+          </form>
+          <hr class="nd-divider">
+          <h3>Levels &amp; Roles</h3>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Role ID is optional — bot assigns it when user hits that level.</p>
+          <form action="/admin/bot/levels" method="POST">
+            <input type="hidden" name="guild_id" value="<%= guild.guild_id %>" />
+            <div id="nd-levels-<%= guild.guild_id %>">
+              <div class="nd-level-head"><span>Level #</span><span>Name</span><span>XP Required</span><span>Role ID (optional)</span><span></span></div>
+              <% const gLevels = levels.filter(l=>l.guild_id===guild.guild_id); %>
+              <% const gLevelRoles = levelRoles.filter(l=>l.guild_id===guild.guild_id); %>
+              <% for (const lv of gLevels) { const lr = gLevelRoles.find(r=>r.level_number===lv.level_number); %>
+                <div class="nd-level-row">
+                  <input type="number" name="level_numbers" class="nd-input nd-btn-sm" value="<%= lv.level_number %>" min="1" />
+                  <input type="text" name="level_names" class="nd-input nd-btn-sm" value="<%= lv.level_name %>" />
+                  <input type="number" name="level_xp" class="nd-input nd-btn-sm" value="<%= lv.xp_required %>" min="0" />
+                  <input type="text" name="level_role_ids" class="nd-input nd-btn-sm" value="<%= lr?lr.role_id:'' %>" placeholder="Role ID" />
+                  <button type="button" class="nd-btn-icon" onclick="this.closest('.nd-level-row').remove()">✕</button>
+                </div>
+              <% } %>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button type="button" class="nd-btn nd-btn-ghost nd-btn-sm" onclick="addLevelRow('<%= guild.guild_id %>')">+ Add Level</button>
+              <button type="submit" class="nd-btn nd-btn-primary nd-btn-sm">Save Levels</button>
+            </div>
+          </form>
+        </div>
+      <% } %>
+    <% } %>
+  </div>
+
+  <!-- ═══ STAFF ROLES TAB ═══ -->
+  <div class="nd-panel" id="tab-stafftab">
+    <div class="nd-card">
+      <h2>Staff Roles</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px">Positions shown on the public Staff page. Tick "Blur" to hide that field from non-staff visitors.</p>
+      <% for (const sr of staffRoles) { %>
+        <form action="/admin/staff/update" method="POST">
+          <input type="hidden" name="id" value="<%= sr.id %>" />
+          <div class="nd-form-row" style="align-items:flex-end;gap:10px">
+            <div class="nd-form-field" style="flex:0.3;min-width:60px;margin:0"><label class="nd-label">Order</label><input type="number" name="display_order" class="nd-input nd-btn-sm" value="<%= sr.display_order %>" min="0" /></div>
+            <div class="nd-form-field" style="flex:2;margin:0"><label class="nd-label">Title</label><input type="text" name="title" class="nd-input" value="<%= sr.title %>" required /></div>
+            <div class="nd-form-field" style="flex:1.2;margin:0"><label class="nd-label">Pay</label><input type="text" name="pay" class="nd-input" value="<%= sr.pay %>" placeholder="e.g. $10/hr" /></div>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);white-space:nowrap;cursor:pointer;padding-bottom:2px"><input type="checkbox" name="blur_pay" <%= sr.blur_pay?'checked':'' %>> Blur pay</label>
+          </div>
+          <div class="nd-form-field" style="margin-top:12px">
+            <label class="nd-label">Description</label>
+            <div class="nd-fmt-bar"><button type="button" class="nd-fmt-btn" onclick="fmtWrap(this,'**','**')"><b>B</b></button><button type="button" class="nd-fmt-btn" onclick="fmtWrap(this,'__','__')"><u>U</u></button><span class="nd-fmt-hint">**bold** &nbsp; __underline__</span></div>
+            <textarea name="description" class="nd-textarea" rows="4"><%= sr.description %></textarea>
+          </div>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;margin-bottom:10px"><input type="checkbox" name="blur_description" <%= sr.blur_description?'checked':'' %>> Blur description</label>
+          <div style="display:flex;gap:8px">
+            <button type="submit" class="nd-btn nd-btn-primary nd-btn-sm">Save</button>
+            <button type="button" class="nd-btn nd-btn-danger nd-btn-sm" onclick="if(confirm('Delete this staff role?')){document.getElementById('del-sr-<%= sr.id %>').submit()}">Delete</button>
+          </div>
+        </form>
+        <form id="del-sr-<%= sr.id %>" action="/admin/staff/delete" method="POST" style="display:none"><input type="hidden" name="id" value="<%= sr.id %>" /></form>
+        <hr class="nd-divider">
+      <% } %>
+      <h3><%= staffRoles.length ? 'Add Another' : 'Add First Staff Role' %></h3>
+      <form action="/admin/staff/add" method="POST">
+        <div class="nd-form-row" style="align-items:flex-end;gap:10px">
+          <div class="nd-form-field" style="flex:0.3;min-width:60px;margin:0"><label class="nd-label">Order</label><input type="number" name="display_order" class="nd-input nd-btn-sm" value="<%= staffRoles.length %>" min="0" /></div>
+          <div class="nd-form-field" style="flex:2;margin:0"><label class="nd-label">Title</label><input type="text" name="title" class="nd-input" placeholder="e.g. Event Director" required /></div>
+          <div class="nd-form-field" style="flex:1.2;margin:0"><label class="nd-label">Pay</label><input type="text" name="pay" class="nd-input" placeholder="e.g. $10/hr or Volunteer" /></div>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);white-space:nowrap;cursor:pointer;padding-bottom:2px"><input type="checkbox" name="blur_pay"> Blur pay</label>
+        </div>
+        <div class="nd-form-field" style="margin-top:12px">
+          <label class="nd-label">Description</label>
+          <div class="nd-fmt-bar"><button type="button" class="nd-fmt-btn" onclick="fmtWrap(this,'**','**')"><b>B</b></button><button type="button" class="nd-fmt-btn" onclick="fmtWrap(this,'__','__')"><u>U</u></button><span class="nd-fmt-hint">**bold** &nbsp; __underline__</span></div>
+          <textarea name="description" class="nd-textarea" rows="4" placeholder="What does this role do?"></textarea>
+        </div>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;margin-bottom:12px"><input type="checkbox" name="blur_description"> Blur description</label>
+        <button type="submit" class="nd-btn nd-btn-primary">Add Staff Role</button>
+      </form>
+    </div>
+
+    <div class="nd-card">
+      <h2>Staff Page Access</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px">Grant people access to see blurred content by their Discord User ID. Enable Developer Mode in Discord, then right-click their name and Copy User ID.</p>
+      <% if (staffAccess.length > 0) { %>
+        <% for (const sa of staffAccess) { %>
+          <div class="nd-access-row">
+            <code class="nd-access-id"><%= sa.discord_id %></code>
+            <span style="font-size:12px;color:var(--muted)">Added <%= new Date(sa.granted_at).toLocaleDateString() %></span>
+            <form action="/admin/staff/access/remove" method="POST" style="margin:0"><input type="hidden" name="discord_id" value="<%= sa.discord_id %>" /><button type="submit" class="nd-btn nd-btn-danger nd-btn-sm" onclick="return confirm('Remove access?')">Remove</button></form>
+          </div>
+        <% } %>
+        <hr class="nd-divider">
+      <% } %>
+      <form action="/admin/staff/access/add" method="POST" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+        <div class="nd-form-field" style="flex:1;min-width:200px;margin:0"><label class="nd-label">Discord User ID</label><input type="text" name="discord_id" class="nd-input" placeholder="e.g. 933421117211815987" required pattern="[0-9]+" /></div>
+        <button type="submit" class="nd-btn nd-btn-primary">Grant Access</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══ WEBHOOK BUILDER TAB ═══ -->
+  <div class="nd-panel" id="tab-webhook">
+    <div class="nd-card" style="margin-bottom:16px">
+      <h2>Discord Webhook Builder</h2>
+      <p style="font-size:13px;color:var(--muted);margin:0">Build and send fully custom Discord messages with embeds, colours, and fields. Paste a Discord webhook URL to get started.</p>
+    </div>
+
+    <div class="wh-split">
+      <!-- Left: form -->
+      <div>
+        <div class="nd-card" style="padding:24px">
+
+          <div class="wh-section">Webhook URL</div>
+          <div style="display:flex;gap:8px;margin-bottom:10px">
+            <input type="text" id="wh-url" class="nd-input" placeholder="https://discord.com/api/webhooks/..." />
+            <button class="nd-btn nd-btn-ghost nd-btn-sm" onclick="saveWebhook()" style="white-space:nowrap">Save URL</button>
+          </div>
+          <div id="wh-saved-list"></div>
+
+          <div class="wh-section">Message</div>
+          <div class="nd-form-row">
+            <div class="nd-form-field"><label class="nd-label">Username Override</label><input type="text" id="wh-username" class="nd-input" placeholder="CUE Bot" oninput="updatePreview()"></div>
+            <div class="nd-form-field"><label class="nd-label">Avatar URL Override</label><input type="text" id="wh-avatar" class="nd-input" placeholder="https://..." oninput="updatePreview()"></div>
+          </div>
+          <div class="nd-form-field"><label class="nd-label">Content (plain text)</label><textarea id="wh-content" class="nd-textarea" rows="3" placeholder="Type a message..." oninput="updatePreview()"></textarea></div>
+
+          <div class="wh-section">Embed <span style="font-weight:500;font-size:11px;color:var(--muted);text-transform:none;letter-spacing:0">— optional</span></div>
+          <div class="wh-color-row nd-form-field">
+            <input type="color" id="wh-color" value="#5865f2" oninput="updatePreview()">
+            <input type="text" id="wh-color-hex" class="nd-input nd-btn-sm" value="#5865f2" placeholder="#5865f2" style="max-width:110px" oninput="syncColorPicker()">
+            <label class="nd-label" style="margin:0">Embed Colour</label>
+          </div>
+
+          <div class="nd-form-row">
+            <div class="nd-form-field"><label class="nd-label">Author Name</label><input type="text" id="wh-author-name" class="nd-input nd-btn-sm" oninput="updatePreview()"></div>
+            <div class="nd-form-field"><label class="nd-label">Author Icon URL</label><input type="text" id="wh-author-icon" class="nd-input nd-btn-sm" oninput="updatePreview()"></div>
+            <div class="nd-form-field"><label class="nd-label">Author URL</label><input type="text" id="wh-author-url" class="nd-input nd-btn-sm" oninput="updatePreview()"></div>
+          </div>
+
+          <div class="nd-form-row">
+            <div class="nd-form-field" style="flex:2"><label class="nd-label">Title</label><input type="text" id="wh-title" class="nd-input nd-btn-sm" oninput="updatePreview()"></div>
+            <div class="nd-form-field" style="flex:1"><label class="nd-label">Title URL</label><input type="text" id="wh-title-url" class="nd-input nd-btn-sm" oninput="updatePreview()"></div>
+          </div>
+
+          <div class="nd-form-field"><label class="nd-label">Description</label><textarea id="wh-desc" class="nd-textarea" rows="4" oninput="updatePreview()"></textarea></div>
+
+          <div class="nd-form-row">
+            <div class="nd-form-field"><label class="nd-label">Thumbnail URL</label><input type="text" id="wh-thumb" class="nd-input nd-btn-sm" oninput="updatePreview()"></div>
+            <div class="nd-form-field"><label class="nd-label">Image URL</label><input type="text" id="wh-image" class="nd-input nd-btn-sm" oninput="updatePreview()"></div>
+          </div>
+
+          <div class="wh-section">Fields</div>
+          <div id="wh-fields-list"></div>
+          <button class="wh-add-field-btn" onclick="addField()">+ Add Field</button>
+
+          <div class="wh-section" style="margin-top:20px">Footer</div>
+          <div class="nd-form-row">
+            <div class="nd-form-field" style="flex:2"><label class="nd-label">Footer Text</label><input type="text" id="wh-footer-text" class="nd-input nd-btn-sm" oninput="updatePreview()"></div>
+            <div class="nd-form-field" style="flex:1"><label class="nd-label">Footer Icon URL</label><input type="text" id="wh-footer-icon" class="nd-input nd-btn-sm" oninput="updatePreview()"></div>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer">
+            <input type="checkbox" id="wh-timestamp" onchange="updatePreview()"> Include current timestamp
+          </label>
+
+          <div class="wh-send-row">
+            <button class="nd-btn nd-btn-primary" onclick="sendWebhook()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+              Send Message
+            </button>
+            <button class="nd-btn nd-btn-ghost nd-btn-sm" onclick="clearAll()">Clear</button>
+            <div id="wh-status" class="wh-status"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: live preview -->
+      <div style="position:sticky;top:20px">
+        <div class="wh-preview-label">Live Preview</div>
+        <div class="wh-disc">
+          <div class="wh-disc-msg">
+            <img class="wh-disc-avi" id="wh-prev-avi" src="/img/collective-union.png" onerror="this.style.background='#5865f2'">
+            <div class="wh-disc-body">
+              <div class="wh-disc-meta">
+                <span class="wh-disc-name" id="wh-prev-name">CUE Bot</span>
+                <span class="wh-disc-time">Today at <span id="wh-prev-time">12:00 PM</span></span>
+              </div>
+              <div class="wh-disc-text" id="wh-prev-content" style="display:none"></div>
+              <div id="wh-prev-embed" style="display:none">
+                <div class="wh-disc-embed" id="wh-prev-embed-inner">
+                  <div class="wh-emb-thumb" id="wh-prev-thumb-wrap" style="display:none"><img id="wh-prev-thumb" style="width:80px;height:80px;border-radius:4px;object-fit:cover;float:right;margin-left:12px"></div>
+                  <div class="wh-emb-author" id="wh-prev-author" style="display:none">
+                    <img class="wh-emb-author-icon" id="wh-prev-author-icon" style="display:none">
+                    <span class="wh-emb-author-name" id="wh-prev-author-name"></span>
+                  </div>
+                  <div class="wh-emb-title" id="wh-prev-title" style="display:none"></div>
+                  <div class="wh-emb-desc" id="wh-prev-desc" style="display:none"></div>
+                  <div class="wh-emb-fields" id="wh-prev-fields"></div>
+                  <div style="clear:both"></div>
+                  <img class="wh-emb-image" id="wh-prev-image" style="display:none">
+                  <div class="wh-emb-footer" id="wh-prev-footer" style="display:none">
+                    <img class="wh-emb-footer-icon" id="wh-prev-footer-icon" style="display:none">
+                    <span class="wh-emb-footer-text" id="wh-prev-footer-text"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<%- include('partials/foot') %>
+
+<script>
+/* ── Tab switching ── */
+function switchTab(name) {
+  document.querySelectorAll('.nd-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nd-panel').forEach(p=>p.classList.remove('active'));
+  const tab = document.querySelector(`[data-tab="${name}"]`);
+  const panel = document.getElementById('tab-'+name);
+  if(tab) tab.classList.add('active');
+  if(panel) panel.classList.add('active');
+  sessionStorage.setItem('adminTab',name);
+}
+document.querySelectorAll('.nd-tab').forEach(t=>t.addEventListener('click',()=>switchTab(t.dataset.tab)));
+const hashTab = window.location.hash.replace('#','');
+switchTab(hashTab || sessionStorage.getItem('adminTab') || 'event');
+if(hashTab) history.replaceState(null,'','/admin');
+
+/* ── Toast ── */
+const params = new URLSearchParams(window.location.search);
+if(params.get('saved')){
+  const msgs={levels:'Levels saved!',veteran:'Veteran role saved!',staffrole:'Staff role saved!',staff:'Staff page saved!',xp:'XP settings saved!',access:'Staff access updated!',eligibility:'Question saved!',stages:'Stage saved!'};
+  const toast=document.createElement('div');
+  toast.textContent=msgs[params.get('saved')]||'Saved!';
+  toast.style.cssText='position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#4ec994;color:#000;padding:10px 20px;border-radius:8px;font-weight:700;font-size:14px;z-index:999;box-shadow:0 4px 20px rgba(78,201,148,.4);font-family:"Baloo 2"';
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.remove(),3000);
+  history.replaceState(null,'','/admin');
+}
+
+/* ── Application filter ── */
+let currentFilter='all';
+function filterApps(filter,btn){
+  if(filter) currentFilter=filter;
+  if(btn){document.querySelectorAll('.nd-filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+  const search=(document.getElementById('appSearch')?.value||'').toLowerCase().trim();
+  const rows=document.querySelectorAll('#appList .nd-app-row');
+  let visible=0;
+  rows.forEach(row=>{
+    let sm;
+    if(currentFilter==='all') sm=true;
+    else if(currentFilter.startsWith('stage')) sm=row.dataset.status==='pending'&&row.dataset.stage===currentFilter;
+    else sm=row.dataset.status===currentFilter;
+    const qm=!search||(row.dataset.search||'').includes(search);
+    const show=sm&&qm;
+    row.style.display=show?'':'none';
+    if(show) visible++;
+  });
+  const empty=document.getElementById('appEmptyMsg');
+  if(empty) empty.style.display=visible===0&&rows.length>0?'block':'none';
+}
+
+/* ── Stage accordion ── */
+function toggleAcc(sn){
+  const body=document.getElementById('nd-body-'+sn);
+  const arrow=document.getElementById('nd-arr-'+sn);
+  const open=body.style.display!=='none';
+  body.style.display=open?'none':'block';
+  arrow.textContent=open?'▶':'▼';
+  if(!open) sessionStorage.setItem('openStage',sn);
+}
+(function(){
+  const sp=new URLSearchParams(window.location.search).get('stage')||sessionStorage.getItem('openStage')||'1';
+  const sn=parseInt(sp);
+  if(sn>=1&&sn<=6){const b=document.getElementById('nd-body-'+sn);const a=document.getElementById('nd-arr-'+sn);if(b){b.style.display='block';a.textContent='▼';}}
+})();
+
+/* ── Block form labels ── */
+function updateBlockForm(sel){
+  const form=sel.closest('.sb-add-form');
+  const type=sel.value;
+  const sf=form.querySelector('.sb-style-field');
+  const cl=form.querySelector('.sb-content-label');
+  const ll=form.querySelector('.sb-label-label');
+  const ta=form.querySelector('[name="content"]');
+  if(type==='text'){sf.style.display='';cl.textContent='Text Content';ta.placeholder='Enter text...';ll.textContent='Caption (unused for text)'}
+  else if(type==='image'){sf.style.display='none';cl.textContent='Image URL';ta.placeholder='https://example.com/image.png';ll.textContent='Caption (shown below image)'}
+  else if(type==='video'){sf.style.display='none';cl.textContent='Video URL (YouTube or direct)';ta.placeholder='https://youtu.be/...';ll.textContent='Caption (shown below video)'}
+  else if(type==='timestamp'){sf.style.display='none';cl.textContent='Date & Time (UTC)';ta.placeholder='2026-07-15T18:00:00Z';ll.textContent='Label (e.g. "Event Starts")'}
+}
+document.querySelectorAll('.sb-add-form [name="block_type"]').forEach(sel=>updateBlockForm(sel));
+
+/* ── Format helpers ── */
+function fmtWrap(btn,before,after){
+  const ta=btn.closest('.nd-form-field').querySelector('textarea');
+  const s=ta.selectionStart,e=ta.selectionEnd;
+  const sel=ta.value.slice(s,e);
+  const rep=before+(sel||'text')+after;
+  ta.setRangeText(rep,s,e,'select');
+  ta.focus();
+  if(!sel){ta.selectionStart=s+before.length;ta.selectionEnd=s+before.length+4;}
+}
+
+/* ── Level rows ── */
+function addLevelRow(guildId){
+  const container=document.getElementById('nd-levels-'+guildId);
+  const row=document.createElement('div');
+  row.className='nd-level-row';
+  row.innerHTML=`<input type="number" name="level_numbers" class="nd-input nd-btn-sm" placeholder="#" min="1"><input type="text" name="level_names" class="nd-input nd-btn-sm" placeholder="Level name"><input type="number" name="level_xp" class="nd-input nd-btn-sm" placeholder="XP" min="0"><input type="text" name="level_role_ids" class="nd-input nd-btn-sm" placeholder="Role ID"><button type="button" class="nd-btn-icon" onclick="this.closest('.nd-level-row').remove()">✕</button>`;
+  container.appendChild(row);
+}
+
+/* ════════════════════════════════════════
+   WEBHOOK BUILDER
+════════════════════════════════════════ */
+
+/* Saved webhooks (localStorage) */
+function loadSavedWebhooks(){
+  const saved=JSON.parse(localStorage.getItem('wh_saved')||'[]');
+  const list=document.getElementById('wh-saved-list');
+  list.innerHTML='';
+  saved.forEach((url,i)=>{
+    const row=document.createElement('div');
+    row.className='wh-saved-row';
+    row.innerHTML=`<div class="wh-saved-item" onclick="document.getElementById('wh-url').value='${url.replace(/'/g,"\\'")}';updatePreview()"><code>${url}</code></div><button class="nd-btn-icon" onclick="deleteWebhook(${i})" title="Remove">✕</button>`;
+    list.appendChild(row);
+  });
+}
+function saveWebhook(){
+  const url=document.getElementById('wh-url').value.trim();
+  if(!url.startsWith('https://discord.com/api/webhooks/')&&!url.startsWith('https://discord.gg/')) return alert('Please enter a valid Discord webhook URL (https://discord.com/api/webhooks/...)');
+  const saved=JSON.parse(localStorage.getItem('wh_saved')||'[]');
+  if(!saved.includes(url)) saved.push(url);
+  localStorage.setItem('wh_saved',JSON.stringify(saved));
+  loadSavedWebhooks();
+}
+function deleteWebhook(i){
+  const saved=JSON.parse(localStorage.getItem('wh_saved')||'[]');
+  saved.splice(i,1);
+  localStorage.setItem('wh_saved',JSON.stringify(saved));
+  loadSavedWebhooks();
+}
+loadSavedWebhooks();
+
+/* Fields */
+let fieldCount=0;
+function addField(){
+  fieldCount++;
+  const id=fieldCount;
+  const div=document.createElement('div');
+  div.className='wh-field-item';
+  div.id='wh-field-'+id;
+  div.innerHTML=`<div><label class="nd-label" style="font-size:10px">Field Name</label><input type="text" class="nd-input nd-btn-sm wh-fn" oninput="updatePreview()"></div><div><label class="nd-label" style="font-size:10px">Field Value</label><input type="text" class="nd-input nd-btn-sm wh-fv" oninput="updatePreview()"></div><label style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--muted);cursor:pointer;padding-top:18px"><input type="checkbox" class="wh-fi" onchange="updatePreview()">Inline</label><button class="nd-btn-icon" style="padding-top:18px" onclick="document.getElementById('wh-field-${id}').remove();updatePreview()">✕</button>`;
+  document.getElementById('wh-fields-list').appendChild(div);
+}
+
+/* Color sync */
+function syncColorPicker(){
+  const hex=document.getElementById('wh-color-hex').value.trim();
+  if(/^#[0-9a-fA-F]{6}$/.test(hex)) document.getElementById('wh-color').value=hex;
+  updatePreview();
+}
+
+/* Update live preview */
+function updatePreview(){
+  const name=document.getElementById('wh-username').value.trim()||'CUE Bot';
+  const avatarUrl=document.getElementById('wh-avatar').value.trim();
+  document.getElementById('wh-prev-name').textContent=name;
+  const avi=document.getElementById('wh-prev-avi');
+  avi.src=avatarUrl||'/img/collective-union.png';
+  const now=new Date();
+  document.getElementById('wh-prev-time').textContent=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+
+  // Update color hex from picker
+  const colorHex=document.getElementById('wh-color').value;
+  document.getElementById('wh-color-hex').value=colorHex;
+
+  // Content
+  const content=document.getElementById('wh-content').value;
+  const contentEl=document.getElementById('wh-prev-content');
+  contentEl.textContent=content;
+  contentEl.style.display=content?'block':'none';
+
+  // Check if embed has any content
+  const authorName=document.getElementById('wh-author-name').value.trim();
+  const authorIcon=document.getElementById('wh-author-icon').value.trim();
+  const title=document.getElementById('wh-title').value.trim();
+  const titleUrl=document.getElementById('wh-title-url').value.trim();
+  const desc=document.getElementById('wh-desc').value.trim();
+  const thumb=document.getElementById('wh-thumb').value.trim();
+  const img=document.getElementById('wh-image').value.trim();
+  const footerText=document.getElementById('wh-footer-text').value.trim();
+  const footerIcon=document.getElementById('wh-footer-icon').value.trim();
+  const hasTimestamp=document.getElementById('wh-timestamp').checked;
+  const fields=Array.from(document.querySelectorAll('.wh-field-item')).map(el=>({name:el.querySelector('.wh-fn').value.trim(),value:el.querySelector('.wh-fv').value.trim(),inline:el.querySelector('.wh-fi').checked})).filter(f=>f.name||f.value);
+
+  const hasEmbed=authorName||title||desc||thumb||img||footerText||fields.length>0||hasTimestamp;
+  const embedWrap=document.getElementById('wh-prev-embed');
+  embedWrap.style.display=hasEmbed?'block':'none';
+  if(!hasEmbed) return;
+
+  document.getElementById('wh-prev-embed-inner').style.borderLeftColor=colorHex;
+
+  // Author
+  const authorEl=document.getElementById('wh-prev-author');
+  const authorNameEl=document.getElementById('wh-prev-author-name');
+  const authorIconEl=document.getElementById('wh-prev-author-icon');
+  if(authorName){
+    authorEl.style.display='flex';
+    authorNameEl.textContent=authorName;
+    if(authorIcon){authorIconEl.src=authorIcon;authorIconEl.style.display='inline';}
+    else authorIconEl.style.display='none';
+  } else {authorEl.style.display='none';}
+
+  // Title
+  const titleEl=document.getElementById('wh-prev-title');
+  if(title){
+    titleEl.style.display='block';
+    if(titleUrl) titleEl.innerHTML=`<a href="${titleUrl}" style="color:#fff;text-decoration:none" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${title}</a>`;
+    else titleEl.textContent=title;
+  } else titleEl.style.display='none';
+
+  // Description
+  const descEl=document.getElementById('wh-prev-desc');
+  if(desc){descEl.style.display='block';descEl.textContent=desc;}
+  else descEl.style.display='none';
+
+  // Fields
+  const fieldsEl=document.getElementById('wh-prev-fields');
+  fieldsEl.innerHTML='';
+  fields.forEach(f=>{
+    const d=document.createElement('div');
+    d.className='wh-emb-field'+(f.inline?' inline':'');
+    d.innerHTML=`<div class="wh-emb-field-name">${f.name}</div><div class="wh-emb-field-val">${f.value}</div>`;
+    fieldsEl.appendChild(d);
+  });
+
+  // Thumbnail
+  const thumbWrap=document.getElementById('wh-prev-thumb-wrap');
+  if(thumb){thumbWrap.style.display='block';document.getElementById('wh-prev-thumb').src=thumb;}
+  else thumbWrap.style.display='none';
+
+  // Image
+  const imgEl=document.getElementById('wh-prev-image');
+  if(img){imgEl.src=img;imgEl.style.display='block';}
+  else imgEl.style.display='none';
+
+  // Footer
+  const footerEl=document.getElementById('wh-prev-footer');
+  const footerIconEl=document.getElementById('wh-prev-footer-icon');
+  let footerParts=[];
+  if(footerText) footerParts.push(footerText);
+  if(hasTimestamp) footerParts.push(new Date().toLocaleString('en-GB',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}));
+  if(footerParts.length||footerIcon){
+    footerEl.style.display='flex';
+    document.getElementById('wh-prev-footer-text').textContent=footerParts.join(' • ');
+    if(footerIcon){footerIconEl.src=footerIcon;footerIconEl.style.display='inline';}
+    else footerIconEl.style.display='none';
+  } else footerEl.style.display='none';
+}
+
+/* Send webhook */
+async function sendWebhook(){
+  const url=document.getElementById('wh-url').value.trim();
+  if(!url.startsWith('https://discord.com/api/webhooks/')){
+    showStatus('err','Webhook URL must start with https://discord.com/api/webhooks/');return;
+  }
+  const colorHex=document.getElementById('wh-color').value;
+  const colorInt=parseInt(colorHex.replace('#',''),16);
+
+  const authorName=document.getElementById('wh-author-name').value.trim();
+  const authorIcon=document.getElementById('wh-author-icon').value.trim();
+  const authorUrl=document.getElementById('wh-author-url').value.trim();
+  const title=document.getElementById('wh-title').value.trim();
+  const titleUrl=document.getElementById('wh-title-url').value.trim();
+  const desc=document.getElementById('wh-desc').value.trim();
+  const thumb=document.getElementById('wh-thumb').value.trim();
+  const img=document.getElementById('wh-image').value.trim();
+  const footerText=document.getElementById('wh-footer-text').value.trim();
+  const footerIcon=document.getElementById('wh-footer-icon').value.trim();
+  const hasTimestamp=document.getElementById('wh-timestamp').checked;
+  const fields=Array.from(document.querySelectorAll('.wh-field-item')).map(el=>({name:el.querySelector('.wh-fn').value.trim(),value:el.querySelector('.wh-fv').value.trim(),inline:el.querySelector('.wh-fi').checked})).filter(f=>f.name&&f.value);
+
+  const embed={color:colorInt};
+  if(authorName) embed.author={name:authorName,...(authorIcon?{icon_url:authorIcon}:{}),...(authorUrl?{url:authorUrl}:{})};
+  if(title) {embed.title=title;if(titleUrl) embed.url=titleUrl;}
+  if(desc) embed.description=desc;
+  if(thumb) embed.thumbnail={url:thumb};
+  if(img) embed.image={url:img};
+  if(fields.length) embed.fields=fields;
+  if(footerText||footerIcon) embed.footer={...(footerText?{text:footerText}:{}),...(footerIcon?{icon_url:footerIcon}:{})};
+  if(hasTimestamp) embed.timestamp=new Date().toISOString();
+
+  const hasEmbedContent=authorName||title||desc||thumb||img||footerText||fields.length>0||hasTimestamp;
+
+  const payload={};
+  const username=document.getElementById('wh-username').value.trim();
+  const avatarUrl=document.getElementById('wh-avatar').value.trim();
+  const content=document.getElementById('wh-content').value.trim();
+  if(username) payload.username=username;
+  if(avatarUrl) payload.avatar_url=avatarUrl;
+  if(content) payload.content=content;
+  if(hasEmbedContent) payload.embeds=[embed];
+
+  if(!payload.content&&!payload.embeds){
+    showStatus('err','Add some content or an embed before sending.');return;
+  }
+
+  showStatus('','Sending...');
+  try{
+    const r=await fetch('/admin/webhook/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({webhook_url:url,payload})});
+    const data=await r.json();
+    if(data.ok) showStatus('ok','Message sent successfully!');
+    else showStatus('err','Error: '+data.error);
+  }catch(e){showStatus('err','Network error: '+e.message);}
+}
+
+function showStatus(type,msg){
+  const el=document.getElementById('wh-status');
+  el.className='wh-status'+(type?' '+type:'');
+  el.textContent=msg;
+  el.style.display=msg?'block':'none';
+}
+
+function clearAll(){
+  ['wh-username','wh-avatar','wh-content','wh-author-name','wh-author-icon','wh-author-url','wh-title','wh-title-url','wh-desc','wh-thumb','wh-image','wh-footer-text','wh-footer-icon'].forEach(id=>{const el=document.getElementById(id);if(el) el.value='';});
+  document.getElementById('wh-timestamp').checked=false;
+  document.getElementById('wh-color').value='#5865f2';
+  document.getElementById('wh-color-hex').value='#5865f2';
+  document.getElementById('wh-fields-list').innerHTML='';
+  fieldCount=0;
+  updatePreview();
+}
+
+// Init preview time
+updatePreview();
+setInterval(()=>{document.getElementById('wh-prev-time').textContent=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});},30000);
+</script>

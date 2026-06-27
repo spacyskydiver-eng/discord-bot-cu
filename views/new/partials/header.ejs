@@ -5,6 +5,7 @@
       CUE
     </a>
     <div class="banner-right">
+      <a href="/staff" class="banner-btn staff-nav">Staff</a>
       <% if (locals.user) { %>
         <div class="banner-user">
           <% if (locals.user.avatar) { %>
@@ -13,7 +14,7 @@
           <span><%= locals.user.globalName || locals.user.username %></span>
         </div>
         <% if (locals.isAdmin) { %>
-          <a href="/admin" class="banner-btn admin">Admin</a>
+          <a href="/admin" class="banner-btn admin">Control Centre</a>
         <% } %>
         <a href="/auth/logout" class="banner-btn">Logout</a>
       <% } else { %>

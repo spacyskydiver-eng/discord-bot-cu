@@ -86,6 +86,7 @@
 }
 .banner-btn:hover{background:rgba(0,0,0,.35)}
 .banner-btn.admin{background:rgba(168,30,30,.3);border-color:rgba(255,100,100,.2)}
+.banner-btn.staff-nav{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15)}
 .banner-login{
   font-family:"Baloo 2";font-weight:800;font-size:13px;
   color:#fff;padding:8px 16px;border-radius:10px;
@@ -458,6 +459,30 @@
   font-size:14px;padding:11px 22px;border-radius:10px;text-decoration:none;
 }
 .cs-disc:hover{background:#4752c4}
+
+/* ---------- STAFF PAGE ---------- */
+.nd-staff-gate{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(212,73,61,.08);border:1px solid rgba(212,73,61,.25);
+  border-radius:10px;padding:14px 18px;font-size:14px;color:#e0e2ed;
+  margin-bottom:24px;
+}
+.nd-staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:32px}
+.nd-staff-card{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:var(--radius);padding:24px;
+}
+.nd-staff-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px;flex-wrap:wrap}
+.nd-staff-title{font-family:"Baloo 2";font-weight:800;font-size:18px;color:#fff;margin:0}
+.nd-staff-pay{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.nd-pay-label{font-family:"Baloo 2";font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.nd-staff-pay span:last-child{font-family:"Baloo 2";font-weight:700;font-size:14px;color:#fff}
+.nd-staff-desc{font-size:14px;color:#bcc0cf;line-height:1.6}
+.nd-staff-desc strong{color:#e0e2ed}
+.nd-blurred{filter:blur(5px);user-select:none;opacity:.7}
+.nd-staff-note{text-align:center;color:var(--muted);font-size:14px;padding:8px 0 20px}
+.nd-inline-link{color:var(--banner-1);text-decoration:none;font-weight:700}
+.nd-inline-link:hover{text-decoration:underline}
 
 /* ---------- APPLY WIZARD ---------- */
 .apw-wrap{max-width:640px;margin:0 auto;padding-bottom:60px}
