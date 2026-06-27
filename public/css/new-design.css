@@ -397,6 +397,39 @@
 .phase h4{font-family:"Baloo 2";font-weight:800;font-size:19px;margin:0 0 7px;color:#fff}
 .phase p{font-size:14px;color:#bcc0cf;margin:0;line-height:1.5}
 
+/* Collective countdown */
+.col-countdown{
+  margin-top:32px;padding-top:28px;
+  border-top:1px solid rgba(151,117,250,.2);
+  display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;
+}
+.col-cd-label{
+  font-family:"Baloo 2";font-weight:800;font-size:12px;letter-spacing:2px;
+  text-transform:uppercase;color:#b3a0ff;
+}
+.col-cd-time{
+  display:flex;align-items:center;gap:6px;
+}
+.col-cd-seg{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  background:rgba(151,117,250,.1);border:1px solid rgba(151,117,250,.25);
+  border-radius:10px;padding:10px 16px;min-width:64px;
+}
+.col-cd-seg span{
+  font-family:"Baloo 2";font-weight:800;font-size:30px;color:#fff;line-height:1;
+}
+.col-cd-seg small{
+  font-family:"Baloo 2";font-size:10px;font-weight:700;color:#b3a0ff;
+  letter-spacing:1px;text-transform:uppercase;
+}
+.col-cd-dot{
+  font-family:"Baloo 2";font-weight:800;font-size:24px;color:rgba(151,117,250,.5);
+  margin-bottom:16px;
+}
+.col-cd-sub{
+  font-size:13px;color:#8b8f99;
+}
+
 /* ---------- APPLY WIZARD ---------- */
 .apw-wrap{max-width:640px;margin:0 auto;padding-bottom:60px}
 
