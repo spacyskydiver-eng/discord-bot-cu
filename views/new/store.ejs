@@ -1,76 +1,105 @@
 <%- include('partials/head', { pageTitle: 'Store' }) %>
 <%- include('partials/header') %>
 
-<main style="min-height:calc(100vh - 80px);">
-  <div class="nd-page">
+<main class="wrap">
 
-    <div class="nd-page-head">
-      <a href="/" class="nd-back">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-        Home
-      </a>
-      <div>
-        <h1 class="nd-page-title">Store</h1>
-        <p class="nd-page-sub">Cosmetic-only ranks. No pay-to-win — all perks are purely visual. EULA compliant.</p>
+  <div class="page-head">
+    <a href="/" class="back">← Home</a>
+    <div>
+      <h1 class="page-title">Store</h1>
+      <p class="page-sub">Two ranks. One-time purchase. Cosmetics that work in events and on the 24/7 server.</p>
+    </div>
+  </div>
+
+  <div class="store-grid">
+
+    <!-- VIP -->
+    <div class="rank vip">
+      <div class="top">
+        <svg viewBox="0 0 100 100">
+          <polygon points="50,6 82,30 66,90 34,90 18,30" fill="#d6ecff"/>
+          <polygon points="50,6 82,30 50,46 18,30" fill="#a5d8ff"/>
+          <polygon points="18,30 50,46 34,90" fill="#74c0fc"/>
+          <polygon points="82,30 50,46 66,90" fill="#3a7bd5"/>
+        </svg>
+      </div>
+      <div class="b">
+        <h3>VIP</h3>
+        <div class="price">TBC <small>/ permanent</small></div>
+        <div class="once">One-time purchase · unlocked forever</div>
+        <ul>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#74c0fc" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
+            Custom armor trims in events &amp; the 24/7 server
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#74c0fc" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
+            Custom shield patterns
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#74c0fc" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
+            VIP tag in chat &amp; Discord
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#74c0fc" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
+            Priority queue when the server is full
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#74c0fc" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
+            Early access to event signups
+          </li>
+        </ul>
+        <button class="buy" onclick="window.open('https://discord.gg/cuevents','_blank')">Get VIP</button>
       </div>
     </div>
 
-    <div class="nd-store-grid">
-
-      <!-- VIP -->
-      <div class="nd-rank-card nd-rank-vip">
-        <div class="nd-rank-header">
-          <span class="nd-rank-badge">[VIP]</span>
-          <div class="nd-rank-price">£X <span>/ permanent</span></div>
-          <div class="nd-rank-tag">One-time purchase · Permanent access</div>
-        </div>
-        <div class="nd-rank-body">
-          <ul class="nd-rank-features">
-            <li><span class="nd-feat-check">✓</span> Custom armor trims exclusive to VIP</li>
-            <li><span class="nd-feat-check">✓</span> Custom shields and banner patterns</li>
-            <li><span class="nd-feat-check">✓</span> Cosmetic title prefix in chat</li>
-            <li><span class="nd-feat-check">✓</span> Exclusive Discord role &amp; access</li>
-            <li><span class="nd-feat-check">✓</span> Early access to event signups</li>
-          </ul>
-          <a href="https://discord.gg/cuevents" target="_blank" rel="noopener" class="nd-rank-buy">
-            Get VIP →
-          </a>
-          <div class="nd-rank-compare">Contact us on Discord to purchase</div>
-        </div>
+    <!-- VIP+ -->
+    <div class="rank plus">
+      <div class="ribbon">POPULAR</div>
+      <div class="top">
+        <svg viewBox="0 0 100 100">
+          <polygon points="50,6 82,30 66,90 34,90 18,30" fill="#fff0c0"/>
+          <polygon points="50,6 82,30 50,46 18,30" fill="#ffe08a"/>
+          <polygon points="18,30 50,46 34,90" fill="#ffc63d"/>
+          <polygon points="82,30 50,46 66,90" fill="#d99a16"/>
+        </svg>
       </div>
-
-      <!-- VIP+ -->
-      <div class="nd-rank-card nd-rank-vip-plus">
-        <div class="nd-rank-header">
-          <span class="nd-rank-badge">[VIP+]</span>
-          <div class="nd-rank-price">£X <span>/ permanent</span></div>
-          <div class="nd-rank-tag">Includes everything in VIP</div>
-        </div>
-        <div class="nd-rank-body">
-          <ul class="nd-rank-features plus">
-            <li><span class="nd-feat-check">✓</span> Everything in VIP</li>
-            <li><span class="nd-feat-check">✓</span> Custom particle effects around player</li>
-            <li><span class="nd-feat-check">✓</span> Animated glowing name in chat</li>
-            <li><span class="nd-feat-check">✓</span> Exclusive VIP+ cosmetic kit</li>
-            <li><span class="nd-feat-check">✓</span> Custom death and respawn effects</li>
-            <li><span class="nd-feat-check">✓</span> Priority event application review</li>
-          </ul>
-          <a href="https://discord.gg/cuevents" target="_blank" rel="noopener" class="nd-rank-buy">
-            Get VIP+ →
-          </a>
-          <div class="nd-rank-compare">Contact us on Discord to purchase</div>
-        </div>
+      <div class="b">
+        <h3>VIP+</h3>
+        <div class="price">TBC <small>/ permanent</small></div>
+        <div class="once">Includes everything in VIP</div>
+        <ul>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffc63d" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
+            Everything in VIP
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffc63d" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
+            Custom particle &amp; trail effects
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffc63d" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
+            Exclusive cosmetic features &amp; emotes
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffc63d" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
+            Early access to event applications
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffc63d" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
+            Animated name tag
+          </li>
+        </ul>
+        <button class="buy" onclick="window.open('https://discord.gg/cuevents','_blank')">Get VIP+</button>
       </div>
-
-    </div>
-
-    <div style="margin-top:2.5rem;padding:1.25rem;border:1px solid rgba(255,255,255,0.06);border-radius:10px;background:rgba(255,255,255,0.02);">
-      <p style="font-size:0.78rem;color:rgba(255,255,255,0.3);margin:0;line-height:1.7;">
-        <strong style="color:rgba(255,255,255,0.45);">Important:</strong> All ranks are cosmetic only. No rank provides in-game advantages such as additional health, attack power, or gameplay resources not available to other players. Prices are displayed on purchase. By purchasing you agree to our terms of service. Collective Union Events complies with the Minecraft EULA and Mojang's commercial usage guidelines.
-      </p>
     </div>
 
   </div>
+
+  <p style="text-align:center;color:var(--muted);font-size:13px;margin-top:32px;max-width:600px;margin-left:auto;margin-right:auto;">
+    All ranks are cosmetic only — no gameplay advantages. Compliant with the Minecraft EULA. Contact us on Discord to purchase.
+  </p>
+
 </main>
 
 <%- include('partials/foot') %>

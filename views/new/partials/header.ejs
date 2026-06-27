@@ -1,24 +1,24 @@
-<header class="nd-header">
-  <div class="nd-header-inner">
-    <a href="/" class="nd-header-brand">
-      <span class="nd-header-name">CUE</span>
+<header class="banner">
+  <div class="banner-inner">
+    <a href="/" class="brand">
+      <span class="cube"></span>
+      CUE
     </a>
-    <div class="nd-header-right">
+    <div class="banner-right">
       <% if (locals.user) { %>
-        <div class="nd-header-user">
+        <div class="banner-user">
           <% if (locals.user.avatar) { %>
-            <img class="nd-header-avatar" src="https://cdn.discordapp.com/avatars/<%= locals.user.id %>/<%= locals.user.avatar %>.png" alt="">
+            <img class="banner-avatar" src="https://cdn.discordapp.com/avatars/<%= locals.user.id %>/<%= locals.user.avatar %>.png" alt="">
           <% } %>
           <span><%= locals.user.globalName || locals.user.username %></span>
         </div>
         <% if (locals.isAdmin) { %>
-          <a href="/admin" class="nd-header-login" style="background:rgba(168,30,30,0.25);border-color:rgba(168,30,30,0.4);">Admin</a>
+          <a href="/admin" class="banner-btn admin">Admin</a>
         <% } %>
-        <a href="/auth/logout" class="nd-header-login">Logout</a>
+        <a href="/auth/logout" class="banner-btn">Logout</a>
       <% } else { %>
-        <a href="/auth/login" class="nd-header-login">Login with Discord</a>
+        <a href="/auth/login" class="banner-login">Login with Discord</a>
       <% } %>
     </div>
   </div>
-  <span class="nd-header-edge"></span>
 </header>
