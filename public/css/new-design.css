@@ -214,12 +214,12 @@
   filter:blur(24px) brightness(0.35) saturate(1.4);
   transform:scale(1.08);
 }
-/* Sharp contained image sits on top */
+/* Sharp image fills the panel */
 .efeat-art img{
   position:relative;z-index:1;
   width:100%;height:100%;
-  object-fit:contain;object-position:center;
-  display:block;padding:20px;
+  object-fit:cover;object-position:center;
+  display:block;
 }
 /* scrim so button is always readable */
 .efeat-art::after{

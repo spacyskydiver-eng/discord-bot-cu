@@ -38,7 +38,6 @@ const ISLAND = {
       <a href="/events/<%= ev.id %>" class="efeat">
         <div class="efeat-art">
           <% if (ev.card_image) { %>
-            <div class="efeat-art-blur" style="background-image:url('<%= ev.card_image %>')"></div>
             <img src="<%= ev.card_image %>" alt="<%= ev.title %>">
           <% } else { %>
             <!-- Placeholder art until image is provided -->
