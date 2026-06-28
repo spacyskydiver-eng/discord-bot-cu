@@ -48,7 +48,7 @@
             VIP tag &amp; TAB priority + VIP role in Discord
           </li>
         </ul>
-        <button class="buy" id="btn-vip" onclick="startCheckout(7526228, 'btn-vip')">Get VIP</button>
+        <a class="buy" href="https://collective-union.tebex.io/package/7526228" target="_blank" rel="noopener">Get VIP</a>
       </div>
     </div>
 
@@ -88,7 +88,7 @@
             Access to sneak peeks of future events
           </li>
         </ul>
-        <button class="buy" id="btn-vipp" onclick="startCheckout(7526241, 'btn-vipp')">Get VIP+</button>
+        <a class="buy" href="https://collective-union.tebex.io/package/7526241" target="_blank" rel="noopener">Get VIP+</a>
       </div>
     </div>
 
@@ -101,33 +101,3 @@
 </main>
 
 <%- include('partials/foot') %>
-
-<script>
-async function startCheckout(packageId, btnId) {
-  const btn = document.getElementById(btnId);
-  const orig = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = 'Loading…';
-
-  try {
-    const res = await fetch('/store/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ package_id: packageId })
-    });
-    const data = await res.json();
-
-    if (data.checkout_url) {
-      window.location.href = data.checkout_url;
-    } else {
-      alert(data.error || 'Checkout unavailable, please try again.');
-      btn.disabled = false;
-      btn.textContent = orig;
-    }
-  } catch (err) {
-    alert('Something went wrong. Please try again.');
-    btn.disabled = false;
-    btn.textContent = orig;
-  }
-}
-</script>

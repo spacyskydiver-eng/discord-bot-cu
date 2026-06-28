@@ -308,7 +308,8 @@
 .rank li{display:flex;gap:10px;font-size:14.5px;color:#d6d9e0}
 .rank li svg{flex:0 0 auto;margin-top:3px}
 .buy{font-family:"Baloo 2";font-weight:800;font-size:16px;padding:13px;border-radius:12px;
-  color:#0c0d10;width:100%;border:none;cursor:pointer;transition:transform .12s,filter .12s}
+  color:#0c0d10;width:100%;border:none;cursor:pointer;transition:transform .12s,filter .12s;
+  display:block;text-align:center;text-decoration:none}
 .buy:hover{transform:translateY(-2px);filter:brightness(1.05)}
 .rank.vip .buy{background:#74c0fc}
 .rank.plus .buy{background:#ffc63d}
