@@ -573,6 +573,19 @@ async function createTranslationThread(channelId, messageId, payload, languages)
     try {
       const translatedContent = payload.content ? await translateText(payload.content, lang) : null;
       const translatedEmbed = embed ? await translateEmbed(embed, lang) : null;
+
+      // Translate button labels, keep urls/custom_ids unchanged
+      let translatedComponents;
+      if (payload.components?.length) {
+        translatedComponents = await Promise.all(payload.components.map(async row => ({
+          ...row,
+          components: await Promise.all((row.components || []).map(async btn => ({
+            ...btn,
+            label: btn.label ? await translateText(btn.label, lang) : btn.label
+          })))
+        })));
+      }
+
       const threadMsg = {};
       if (translatedContent) threadMsg.content = translatedContent;
       if (translatedEmbed) {
@@ -584,10 +597,11 @@ async function createTranslationThread(channelId, messageId, payload, languages)
           }
         }];
       } else {
-        // No embed — add a simple header
         threadMsg.content = `${info.flag} **${info.name}**\n${translatedContent || ''}`;
         delete threadMsg.embeds;
       }
+      if (translatedComponents) threadMsg.components = translatedComponents;
+
       await fetch(`${DISCORD_API}/channels/${threadId}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bot ${process.env.DISCORD_TOKEN}` },
