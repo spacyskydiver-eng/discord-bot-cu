@@ -48,7 +48,7 @@
             VIP tag &amp; TAB priority + VIP role in Discord
           </li>
         </ul>
-        <button class="buy" onclick="openBuy(7526228, 'VIP', '$4.99')">Get VIP</button>
+        <button class="buy" id="btn-vip" onclick="startCheckout(7526228, 'btn-vip')">Get VIP</button>
       </div>
     </div>
 
@@ -88,7 +88,7 @@
             Access to sneak peeks of future events
           </li>
         </ul>
-        <button class="buy" onclick="openBuy(7526241, 'VIP+', '$9.99')">Get VIP+</button>
+        <button class="buy" id="btn-vipp" onclick="startCheckout(7526241, 'btn-vipp')">Get VIP+</button>
       </div>
     </div>
 
@@ -100,57 +100,12 @@
 
 </main>
 
-<!-- Buy modal -->
-<div id="buyModal" class="cs-modal" onclick="if(event.target===this)closeBuy()">
-  <div class="cs-box" style="max-width:420px">
-    <button class="cs-close" onclick="closeBuy()">✕</button>
-    <h2 class="cs-title" id="buy-title">Get VIP</h2>
-    <p class="cs-body" style="margin-bottom:20px">Enter your Minecraft username so your rank gets applied to the right account.</p>
-    <input id="mc-username" type="text" placeholder="Minecraft username" autocomplete="off" spellcheck="false"
-      style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);color:#fff;font-size:15px;outline:none;margin-bottom:8px"
-      onkeydown="if(event.key==='Enter')proceedCheckout()">
-    <div id="buy-error" style="color:#f87171;font-size:13px;min-height:18px;margin-bottom:10px"></div>
-    <button id="checkout-btn" class="buy" style="width:100%" onclick="proceedCheckout()">Proceed to Checkout</button>
-  </div>
-</div>
-
 <%- include('partials/foot') %>
 
-<script src="https://js.tebex.io/v1.js"></script>
 <script>
-let pendingPackageId = null;
-
-function openBuy(packageId, name, price) {
-  pendingPackageId = packageId;
-  document.getElementById('buy-title').textContent = 'Get ' + name + ' — ' + price;
-  document.getElementById('buy-error').textContent = '';
-  document.getElementById('mc-username').value = '';
-  document.getElementById('checkout-btn').disabled = false;
-  document.getElementById('checkout-btn').textContent = 'Proceed to Checkout';
-  document.getElementById('buyModal').classList.add('open');
-  setTimeout(() => document.getElementById('mc-username').focus(), 50);
-}
-
-function closeBuy() {
-  document.getElementById('buyModal').classList.remove('open');
-  pendingPackageId = null;
-}
-
-async function proceedCheckout() {
-  const username = document.getElementById('mc-username').value.trim();
-  const errEl = document.getElementById('buy-error');
-  errEl.textContent = '';
-
-  if (!username) {
-    errEl.textContent = 'Please enter your Minecraft username.';
-    return;
-  }
-  if (!/^[a-zA-Z0-9_]{1,16}$/.test(username)) {
-    errEl.textContent = 'That doesn\'t look like a valid Minecraft username.';
-    return;
-  }
-
-  const btn = document.getElementById('checkout-btn');
+async function startCheckout(packageId, btnId) {
+  const btn = document.getElementById(btnId);
+  const orig = btn.textContent;
   btn.disabled = true;
   btn.textContent = 'Loading…';
 
@@ -158,35 +113,21 @@ async function proceedCheckout() {
     const res = await fetch('/store/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ package_id: pendingPackageId, username })
+      body: JSON.stringify({ package_id: packageId })
     });
     const data = await res.json();
 
-    if (data.error) {
-      errEl.textContent = data.error;
-      btn.disabled = false;
-      btn.textContent = 'Proceed to Checkout';
-      return;
-    }
-
-    closeBuy();
-
-    if (data.basket_ident && typeof Tebex !== 'undefined') {
-      Tebex.checkout.init({ ident: data.basket_ident, theme: 'dark' });
-      Tebex.checkout.launch();
-    } else if (data.checkout_url) {
+    if (data.checkout_url) {
       window.location.href = data.checkout_url;
     } else {
-      errEl.textContent = 'Checkout unavailable, please try again.';
+      alert(data.error || 'Checkout unavailable, please try again.');
+      btn.disabled = false;
+      btn.textContent = orig;
     }
   } catch (err) {
-    errEl.textContent = 'Something went wrong. Please try again.';
+    alert('Something went wrong. Please try again.');
     btn.disabled = false;
-    btn.textContent = 'Proceed to Checkout';
+    btn.textContent = orig;
   }
 }
-
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeBuy();
-});
 </script>

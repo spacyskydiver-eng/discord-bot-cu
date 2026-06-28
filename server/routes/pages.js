@@ -75,8 +75,8 @@ router.get('/store', (req, res) => {
 });
 
 router.post('/store/checkout', async (req, res) => {
-  const { package_id, username } = req.body;
-  if (!package_id || !username) return res.status(400).json({ error: 'Missing package or username' });
+  const { package_id } = req.body;
+  if (!package_id) return res.status(400).json({ error: 'Missing package' });
 
   const IDENT = process.env.TEBEX_PUBLIC_TOKEN;
   const base = `https://headless.tebex.io/api/accounts/${IDENT}`;
@@ -87,7 +87,6 @@ router.post('/store/checkout', async (req, res) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        username,
         return_url: `${host}/store`,
         complete_url: `${host}/store?success=1`
       })
@@ -102,7 +101,8 @@ router.post('/store/checkout', async (req, res) => {
       body: JSON.stringify({ package_id: parseInt(package_id), quantity: 1 })
     });
 
-    res.json({ basket_ident: basketIdent, checkout_url: basketData.data?.links?.checkout });
+    const checkoutUrl = basketData.data?.links?.checkout;
+    res.json({ checkout_url: checkoutUrl });
   } catch (err) {
     console.error('Tebex checkout error:', err);
     res.status(500).json({ error: 'Checkout unavailable, please try again' });
