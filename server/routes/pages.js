@@ -70,7 +70,43 @@ router.get('/applications', async (req, res) => {
 });
 
 router.get('/store', (req, res) => {
-  res.render('new/store');
+  const success = req.query.success === '1';
+  res.render('new/store', { success });
+});
+
+router.post('/store/checkout', async (req, res) => {
+  const { package_id, username } = req.body;
+  if (!package_id || !username) return res.status(400).json({ error: 'Missing package or username' });
+
+  const IDENT = process.env.TEBEX_PUBLIC_TOKEN;
+  const base = `https://headless.tebex.io/api/accounts/${IDENT}`;
+  const host = `${req.protocol}://${req.get('host')}`;
+
+  try {
+    const basketRes = await fetch(`${base}/baskets`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username,
+        return_url: `${host}/store`,
+        complete_url: `${host}/store?success=1`
+      })
+    });
+    const basketData = await basketRes.json();
+    const basketIdent = basketData.data?.ident;
+    if (!basketIdent) return res.status(500).json({ error: 'Could not create basket', detail: basketData });
+
+    await fetch(`${base}/baskets/${basketIdent}/packages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ package_id: parseInt(package_id), quantity: 1 })
+    });
+
+    res.json({ basket_ident: basketIdent, checkout_url: basketData.data?.links?.checkout });
+  } catch (err) {
+    console.error('Tebex checkout error:', err);
+    res.status(500).json({ error: 'Checkout unavailable, please try again' });
+  }
 });
 
 // Design preview toggle — only works for admins
