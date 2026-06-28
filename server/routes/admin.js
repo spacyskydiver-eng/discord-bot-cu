@@ -472,75 +472,186 @@ router.post('/upload-image', upload.single('image'), (req, res) => {
   res.json({ ok: true, url });
 });
 
-// Webhook sender — uses bot API when components present (regular webhooks don't support buttons)
+const DISCORD_API = 'https://discord.com/api/v10';
+
+const LANG_INFO = {
+  'es':    { name:'Español',    flag:'🇪🇸' },
+  'fr':    { name:'Français',   flag:'🇫🇷' },
+  'de':    { name:'Deutsch',    flag:'🇩🇪' },
+  'pt':    { name:'Português',  flag:'🇧🇷' },
+  'it':    { name:'Italiano',   flag:'🇮🇹' },
+  'nl':    { name:'Nederlands', flag:'🇳🇱' },
+  'pl':    { name:'Polski',     flag:'🇵🇱' },
+  'ru':    { name:'Русский',    flag:'🇷🇺' },
+  'tr':    { name:'Türkçe',     flag:'🇹🇷' },
+  'sv':    { name:'Svenska',    flag:'🇸🇪' },
+  'ar':    { name:'العربية',    flag:'🇸🇦' },
+  'ja':    { name:'日本語',      flag:'🇯🇵' },
+  'ko':    { name:'한국어',      flag:'🇰🇷' },
+  'zh-CN': { name:'中文',        flag:'🇨🇳' },
+};
+
+async function translateText(text, targetLang) {
+  if (!text || !text.trim()) return text;
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+    const r = await fetch(url);
+    const data = await r.json();
+    return data[0].map(x => x[0]).join('');
+  } catch (_) {
+    return text; // fall back to original on error
+  }
+}
+
+async function translateEmbed(embed, lang) {
+  const t = s => translateText(s, lang);
+  const out = { ...embed };
+  if (embed.author?.name) out.author = { ...embed.author, name: await t(embed.author.name) };
+  if (embed.title)        out.title = await t(embed.title);
+  if (embed.description)  out.description = await t(embed.description);
+  if (embed.footer?.text) out.footer = { ...embed.footer, text: await t(embed.footer.text) };
+  if (embed.fields?.length) {
+    out.fields = await Promise.all(embed.fields.map(async f => ({
+      ...f,
+      name:  await t(f.name),
+      value: await t(f.value),
+    })));
+  }
+  return out;
+}
+
+async function getChannelIdFromWebhook(webhookUrl) {
+  const match = webhookUrl.match(/webhooks\/(\d+)\/([^?/]+)/);
+  if (!match) return null;
+  const [, whId, whToken] = match;
+  const r = await fetch(`${DISCORD_API}/webhooks/${whId}/${whToken}`);
+  if (!r.ok) return null;
+  return (await r.json()).channel_id || null;
+}
+
+async function sendViaWebhookUrl(webhookUrl, payload) {
+  // Add ?wait=true so Discord returns the message (we need the ID for threads)
+  const sep = webhookUrl.includes('?') ? '&' : '?';
+  const url = `${webhookUrl}${sep}wait=true`;
+  const https = require('https');
+  const body = JSON.stringify(payload);
+  const parsed = new URL(url);
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: parsed.hostname,
+      path: parsed.pathname + parsed.search,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
+    };
+    const req2 = https.request(options, r => {
+      let data = '';
+      r.on('data', c => data += c);
+      r.on('end', () => resolve({ status: r.statusCode, body: data }));
+    });
+    req2.on('error', reject);
+    req2.write(body);
+    req2.end();
+  });
+}
+
+async function createTranslationThread(channelId, messageId, payload, languages) {
+  if (!process.env.DISCORD_TOKEN) return false;
+  // Create thread on the message
+  const threadRes = await fetch(`${DISCORD_API}/channels/${channelId}/messages/${messageId}/threads`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bot ${process.env.DISCORD_TOKEN}` },
+    body: JSON.stringify({ name: '🌍 Translations', auto_archive_duration: 1440 })
+  });
+  if (!threadRes.ok) return false;
+  const { id: threadId } = await threadRes.json();
+
+  const embed = payload.embeds?.[0] || null;
+
+  for (const lang of languages) {
+    const info = LANG_INFO[lang];
+    if (!info) continue;
+    try {
+      const translatedContent = payload.content ? await translateText(payload.content, lang) : null;
+      const translatedEmbed = embed ? await translateEmbed(embed, lang) : null;
+      const threadMsg = {};
+      if (translatedContent) threadMsg.content = translatedContent;
+      if (translatedEmbed) {
+        threadMsg.embeds = [{
+          ...translatedEmbed,
+          author: {
+            ...(translatedEmbed.author || {}),
+            name: `${info.flag} ${info.name}${translatedEmbed.author?.name ? '  ·  ' + translatedEmbed.author.name : ''}`
+          }
+        }];
+      } else {
+        // No embed — add a simple header
+        threadMsg.content = `${info.flag} **${info.name}**\n${translatedContent || ''}`;
+        delete threadMsg.embeds;
+      }
+      await fetch(`${DISCORD_API}/channels/${threadId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bot ${process.env.DISCORD_TOKEN}` },
+        body: JSON.stringify(threadMsg)
+      });
+    } catch (_) {}
+  }
+  return true;
+}
+
+// Webhook sender — supports buttons (via bot API) and translation threads
 router.post('/webhook/send', async (req, res) => {
-  const { webhook_url, payload } = req.body;
+  const { webhook_url, payload, languages = [] } = req.body;
   if (!webhook_url || !webhook_url.startsWith('https://discord.com/api/webhooks/')) {
     return res.json({ ok: false, error: 'Invalid webhook URL. Must start with https://discord.com/api/webhooks/' });
   }
 
-  const DISCORD_API = 'https://discord.com/api/v10';
-  const hasComponents = payload.components && payload.components.length > 0;
+  const hasComponents = !!(payload.components?.length);
+  const hasTranslations = languages.length > 0;
 
   try {
+    let messageId = null;
+    let channelId = null;
+
     if (hasComponents) {
-      // Regular webhooks don't support buttons — use bot API via channel
       if (!process.env.DISCORD_TOKEN) {
         return res.json({ ok: false, error: 'DISCORD_TOKEN not set — required to send messages with buttons' });
       }
-      // Extract webhook ID + token to look up channel ID
-      const match = webhook_url.match(/webhooks\/(\d+)\/([^?/]+)/);
-      if (!match) return res.json({ ok: false, error: 'Could not parse webhook URL' });
-      const [, whId, whToken] = match;
+      channelId = await getChannelIdFromWebhook(webhook_url);
+      if (!channelId) return res.json({ ok: false, error: 'Could not look up webhook channel' });
 
-      const whInfo = await fetch(`${DISCORD_API}/webhooks/${whId}/${whToken}`);
-      if (!whInfo.ok) return res.json({ ok: false, error: 'Could not look up webhook channel' });
-      const { channel_id } = await whInfo.json();
-
-      const botPayload = {
-        content: payload.content || undefined,
-        embeds: payload.embeds || undefined,
-        components: payload.components
-      };
-
-      const r = await fetch(`${DISCORD_API}/channels/${channel_id}/messages`, {
+      const r = await fetch(`${DISCORD_API}/channels/${channelId}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bot ${process.env.DISCORD_TOKEN}` },
-        body: JSON.stringify(botPayload)
+        body: JSON.stringify({ content: payload.content || undefined, embeds: payload.embeds || undefined, components: payload.components })
       });
-      if (r.ok) return res.json({ ok: true });
-      let errMsg = 'Bot API error';
-      try { errMsg = (await r.json()).message || errMsg; } catch(e) {}
-      return res.json({ ok: false, error: errMsg });
+      if (!r.ok) {
+        let errMsg = 'Bot API error';
+        try { errMsg = (await r.json()).message || errMsg; } catch(e) {}
+        return res.json({ ok: false, error: errMsg });
+      }
+      const msg = await r.json();
+      messageId = msg.id;
+    } else {
+      const result = await sendViaWebhookUrl(webhook_url, payload);
+      if (result.status < 200 || result.status >= 300) {
+        let errMsg = result.body;
+        try { errMsg = JSON.parse(result.body).message || errMsg; } catch(e) {}
+        return res.json({ ok: false, error: `Discord returned ${result.status}: ${errMsg}` });
+      }
+      try {
+        const msg = JSON.parse(result.body);
+        messageId = msg.id;
+        channelId = msg.channel_id;
+      } catch(_) {}
     }
 
-    // No components — send via webhook URL directly
-    const https = require('https');
-    const body = JSON.stringify(payload);
-    const url = new URL(webhook_url);
-    const options = {
-      hostname: url.hostname,
-      path: url.pathname + url.search,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
-    };
-    const result = await new Promise((resolve, reject) => {
-      const req2 = https.request(options, r => {
-        let data = '';
-        r.on('data', c => data += c);
-        r.on('end', () => resolve({ status: r.statusCode, body: data }));
-      });
-      req2.on('error', reject);
-      req2.write(body);
-      req2.end();
-    });
-    if (result.status >= 200 && result.status < 300) {
-      res.json({ ok: true });
-    } else {
-      let errMsg = result.body;
-      try { errMsg = JSON.parse(result.body).message || errMsg; } catch(e) {}
-      res.json({ ok: false, error: `Discord returned ${result.status}: ${errMsg}` });
+    // Create translation thread if languages selected
+    let threadCreated = false;
+    if (hasTranslations && messageId && (channelId || (channelId = await getChannelIdFromWebhook(webhook_url)))) {
+      threadCreated = await createTranslationThread(channelId, messageId, payload, languages);
     }
+
+    res.json({ ok: true, threadCreated });
   } catch (e) {
     res.json({ ok: false, error: e.message });
   }

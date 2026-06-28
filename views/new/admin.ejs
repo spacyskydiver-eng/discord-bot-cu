@@ -246,6 +246,13 @@
 /* Save row */
 .wh-save-row{display:flex;gap:8px;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
 
+/* Translations */
+.wh-lang-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.wh-lang-label{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:"Baloo 2";font-weight:600;font-size:13px;color:#e0e2ed;user-select:none;transition:border-color .15s,background .15s}
+.wh-lang-label:hover{background:rgba(255,255,255,.08)}
+.wh-lang-label input{display:none}
+.wh-lang-label.selected{background:rgba(88,101,242,.15);border-color:rgba(88,101,242,.5);color:#c9d0f5}
+
 /* Hidden message modal */
 .wh-hm-overlay{position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.78);overflow-y:auto;display:flex;align-items:flex-start;justify-content:center;padding:32px 16px}
 .wh-hm-box{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:28px;width:100%;max-width:700px}
@@ -787,6 +794,28 @@
             <button type="button" class="wh-add-btn-btn" onclick="addButton()" id="wh-add-btn-trigger">+ Add Button</button>
           </div>
 
+          <div class="wh-section" style="margin-top:20px">🌍 Translations <span style="font-weight:500;font-size:11px;color:var(--muted);text-transform:none;letter-spacing:0">— auto-thread with translated versions</span></div>
+          <p class="wh-channel-note" style="margin-bottom:8px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Tick languages below. After sending, the bot creates a <strong>🌍 Translations</strong> thread on the message and posts each language there automatically.
+          </p>
+          <div class="wh-lang-grid" id="wh-lang-grid">
+            <label class="wh-lang-label" onclick="toggleLang(this)"><input type="checkbox" value="es">🇪🇸 Español</label>
+            <label class="wh-lang-label" onclick="toggleLang(this)"><input type="checkbox" value="fr">🇫🇷 Français</label>
+            <label class="wh-lang-label" onclick="toggleLang(this)"><input type="checkbox" value="de">🇩🇪 Deutsch</label>
+            <label class="wh-lang-label" onclick="toggleLang(this)"><input type="checkbox" value="pt">🇧🇷 Português</label>
+            <label class="wh-lang-label" onclick="toggleLang(this)"><input type="checkbox" value="it">🇮🇹 Italiano</label>
+            <label class="wh-lang-label" onclick="toggleLang(this)"><input type="checkbox" value="nl">🇳🇱 Nederlands</label>
+            <label class="wh-lang-label" onclick="toggleLang(this)"><input type="checkbox" value="pl">🇵🇱 Polski</label>
+            <label class="wh-lang-label" onclick="toggleLang(this)"><input type="checkbox" value="ru">🇷🇺 Русский</label>
+            <label class="wh-lang-label" onclick="toggleLang(this)"><input type="checkbox" value="tr">🇹🇷 Türkçe</label>
+            <label class="wh-lang-label" onclick="toggleLang(this)"><input type="checkbox" value="sv">🇸🇪 Svenska</label>
+            <label class="wh-lang-label" onclick="toggleLang(this)"><input type="checkbox" value="ar">🇸🇦 العربية</label>
+            <label class="wh-lang-label" onclick="toggleLang(this)"><input type="checkbox" value="ja">🇯🇵 日本語</label>
+            <label class="wh-lang-label" onclick="toggleLang(this)"><input type="checkbox" value="ko">🇰🇷 한국어</label>
+            <label class="wh-lang-label" onclick="toggleLang(this)"><input type="checkbox" value="zh-CN">🇨🇳 中文</label>
+          </div>
+
           <div class="wh-send-row">
             <button class="nd-btn nd-btn-primary" onclick="sendWebhook()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
@@ -1151,6 +1180,7 @@ function loadMessage(id){
     const btns=comps.length&&comps[0].components?comps[0].components:[];
     btns.forEach(b=>addButton({label:b.label||'',style:b.style||5,url:b.url||'',custom_id:b.custom_id}));
   }
+  setSelectedLangs((p._meta&&p._meta.languages)||[]);
   document.getElementById('wh-editing-badge').style.display='inline';
   updatePreview();
   showStatus('ok','Message loaded — edit and save or send.');
@@ -1732,7 +1762,7 @@ function collectPayload(){
   if(content) payload.content=content;
   if(hasEmbedContent) payload.embeds=[embed];
   if(discordBtns.length) payload.components=[{type:1,components:discordBtns}];
-  payload._meta={buttons:buttonMeta};
+  payload._meta={buttons:buttonMeta,languages:getSelectedLangs()};
   return payload;
 }
 
@@ -1755,10 +1785,13 @@ async function sendWebhook(){
     if(hiddenBtns.length){
       await fetch('/admin/webhook/button-responses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({buttons:hiddenBtns.map(b=>({custom_id:b.custom_id,response_payload:b.response_payload}))})});
     }
-    const r=await fetch('/admin/webhook/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({webhook_url:url,payload})});
+    const languages=meta.languages||[];
+    const r=await fetch('/admin/webhook/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({webhook_url:url,payload,languages})});
     const data=await r.json();
-    if(data.ok) showStatus('ok','Message sent successfully!');
-    else showStatus('err','Error: '+data.error);
+    if(data.ok){
+      const threadNote=data.threadCreated?' Thread created with translations.':'';
+      showStatus('ok','Message sent!'+threadNote);
+    } else showStatus('err','Error: '+data.error);
   }catch(e){showStatus('err','Network error: '+e.message);}
 }
 
@@ -1769,6 +1802,25 @@ function showStatus(type,msg){
   el.style.display=msg?'block':'none';
 }
 
+function toggleLang(label){
+  const cb=label.querySelector('input');
+  cb.checked=!cb.checked;
+  label.classList.toggle('selected',cb.checked);
+}
+
+function getSelectedLangs(){
+  return Array.from(document.querySelectorAll('#wh-lang-grid input:checked')).map(c=>c.value);
+}
+
+function setSelectedLangs(langs){
+  document.querySelectorAll('#wh-lang-grid .wh-lang-label').forEach(label=>{
+    const cb=label.querySelector('input');
+    const on=langs.includes(cb.value);
+    cb.checked=on;
+    label.classList.toggle('selected',on);
+  });
+}
+
 function clearAll(){
   ['wh-username','wh-avatar','wh-content','wh-author-name','wh-author-icon','wh-author-url','wh-title','wh-title-url','wh-desc','wh-thumb','wh-image','wh-footer-text','wh-footer-icon','wh-msg-name'].forEach(id=>{const el=document.getElementById(id);if(el) el.value='';});
   document.getElementById('wh-timestamp').checked=false;
@@ -1776,6 +1828,7 @@ function clearAll(){
   document.getElementById('wh-color-hex').value='#5865f2';
   document.getElementById('wh-fields-list').innerHTML='';
   document.getElementById('wh-btns-list').innerHTML='';
+  setSelectedLangs([]);
   fieldCount=0;
   btnCount=0;
   currentMsgId=null;
