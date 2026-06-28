@@ -48,7 +48,7 @@
             VIP tag &amp; TAB priority + VIP role in Discord
           </li>
         </ul>
-        <a class="buy" href="https://collective-union.tebex.io/checkout/packages/add/7526228/single" target="_blank" rel="noopener">Get VIP</a>
+        <a class="buy" href="#" onclick="tebexPopup('https://collective-union.tebex.io/checkout/packages/add/7526228/single');return false;">Get VIP</a>
       </div>
     </div>
 
@@ -88,7 +88,7 @@
             Access to sneak peeks of future events
           </li>
         </ul>
-        <a class="buy" href="https://collective-union.tebex.io/checkout/packages/add/7526241/single" target="_blank" rel="noopener">Get VIP+</a>
+        <a class="buy" href="#" onclick="tebexPopup('https://collective-union.tebex.io/checkout/packages/add/7526241/single');return false;">Get VIP+</a>
       </div>
     </div>
 
@@ -101,3 +101,11 @@
 </main>
 
 <%- include('partials/foot') %>
+<script>
+function tebexPopup(url) {
+  const w = 480, h = 700;
+  const left = Math.round(screen.width / 2 - w / 2);
+  const top = Math.round(screen.height / 2 - h / 2);
+  window.open(url, 'tebex', `width=${w},height=${h},left=${left},top=${top},scrollbars=yes,resizable=yes`);
+}
+</script>
