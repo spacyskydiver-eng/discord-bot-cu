@@ -45,7 +45,10 @@ router.post('/submit', async (req, res) => {
 
   const eventRes = await db.query(`SELECT * FROM events ORDER BY created_at DESC LIMIT 1`);
   const event = eventRes.rows[0];
-  if (!event || !event.is_open) return res.redirect('/apply');
+  const VIP_ROLE_IDS = ['1449004906433351881', '1449030965576990720'];
+  const userRoleIds = req.session.user?.guildRoleIds || [];
+  const hasVipAccess = userRoleIds.some(id => VIP_ROLE_IDS.includes(id));
+  if (!event || (!event.is_open && !hasVipAccess)) return res.redirect('/apply');
 
   const existing = (await db.query(
     `SELECT id FROM structured_applications WHERE discord_id = $1`, [req.session.user.id]

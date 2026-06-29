@@ -61,12 +61,13 @@ function miniArt(theme) {
       <% const isl = ISLAND[theme]; %>
       <% const color = isl ? isl.color : (theme==='4island'?'#2fd96b':'#888'); %>
       <% const open = ev.is_open; %>
-      <% const hasApplied = userApp && open; %>
+      <% const canApply = open || hasVipAccess; %>
+      <% const hasApplied = userApp && canApply; %>
 
-      <% if (open && !hasApplied) { %>
+      <% if (canApply && !hasApplied) { %>
         <a href="/apply" class="card">
       <% } else { %>
-        <div class="card<%= !open ? ' locked' : '' %>">
+        <div class="card<%= !canApply ? ' locked' : '' %>">
       <% } %>
         <div class="cardart"><%- miniArt(theme) %></div>
         <div class="cardbody">
@@ -74,10 +75,13 @@ function miniArt(theme) {
           <% if (ev.event_date) { %>
             <div class="meta">Starts <%= new Date(ev.event_date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'}) %></div>
           <% } %>
-          <% if (open) { %>
+          <% if (open || hasVipAccess) { %>
             <% if (hasApplied) { %>
               <div class="desc">You've applied — Status: <strong style="color:<%= userApp.status==='accepted'?'#5be38f':userApp.status==='declined'||userApp.status==='disqualified'?'#f87171':'#ffd56b' %>"><%= userApp.status %></strong></div>
               <span class="pill open">Application submitted</span>
+            <% } else if (!open && hasVipAccess) { %>
+              <div class="desc">You have early access — apply before it opens to everyone.</div>
+              <span class="pill open" style="background:rgba(255,198,61,0.15);color:#ffc63d;">★ VIP Early Access</span>
             <% } else { %>
               <div class="desc">Applications are open — click to apply.</div>
               <span class="pill open">● Open now</span>
@@ -94,7 +98,7 @@ function miniArt(theme) {
             <% } %>
           <% } %>
         </div>
-      <% if (open && !hasApplied) { %>
+      <% if (canApply && !hasApplied) { %>
         </a>
       <% } else { %>
         </div>

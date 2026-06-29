@@ -59,6 +59,9 @@ router.get('/events/:id', async (req, res) => {
 router.get('/applications', async (req, res) => {
   const events = (await db.query(`SELECT * FROM events ORDER BY is_open DESC, event_date ASC NULLS LAST`)).rows;
   let userApp = null;
+  const VIP_ROLE_IDS = ['1449004906433351881', '1449030965576990720'];
+  const userRoleIds = req.session.user?.guildRoleIds || [];
+  const hasVipAccess = userRoleIds.some(id => VIP_ROLE_IDS.includes(id));
   if (req.session.user) {
     const appRes = await db.query(
       `SELECT status, review_stage FROM structured_applications WHERE discord_id = $1`,
@@ -66,7 +69,7 @@ router.get('/applications', async (req, res) => {
     );
     userApp = appRes.rows[0] || null;
   }
-  res.render('new/applications', { events, userApp });
+  res.render('new/applications', { events, userApp, hasVipAccess });
 });
 
 router.get('/store', (req, res) => {
