@@ -469,6 +469,7 @@
   border-radius:10px;padding:10px 12px;min-width:70px;
 }
 .col-kit svg{width:26px;height:26px}
+.col-kit-img{width:26px;height:26px;object-fit:contain;image-rendering:crisp-edges}
 .col-kit span{font-family:"Baloo 2";font-weight:700;font-size:11px;color:#c9ccdb;white-space:nowrap}
 .col-kit-custom{border-color:rgba(151,117,250,.35);background:rgba(151,117,250,.07)}
 .col-kit-custom span{color:#b3a0ff}
