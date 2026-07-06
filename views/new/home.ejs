@@ -205,48 +205,66 @@
       <!-- Kit progression chain -->
       <div class="col-kits">
 
-        <!-- Sword -->
+        <!-- Sword: rotated 45° like Minecraft inventory — blade bottom-left to top-right -->
         <div class="col-kit">
           <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <polygon points="11,0.5 12.5,1.5 11,14 9.5,1.5" fill="#b8d8f0"/>
-            <rect x="6" y="14" width="10" height="2.5" fill="#c8a84b" rx="0.5"/>
-            <rect x="9.5" y="16.5" width="3" height="5" fill="#c8a84b" rx="0.5"/>
-            <rect x="10.3" y="19.5" width="1.4" height="2" fill="#a07830" rx="0.3"/>
+            <g transform="rotate(45,11,11)">
+              <polygon points="9.5,2 12.5,2 11,0.5" fill="#3aadcf"/>
+              <rect x="9.5" y="2" width="3" height="11" fill="#5cc8e8"/>
+              <rect x="9.5" y="2" width="1.5" height="11" fill="#9de5ff" opacity="0.38"/>
+              <rect x="5" y="13" width="12" height="2.5" rx="0.4" fill="#c8a84b"/>
+              <rect x="9.5" y="15.5" width="3" height="5" rx="0.4" fill="#7a4820"/>
+              <rect x="8" y="20.5" width="6" height="1.5" rx="0.4" fill="#c8a84b"/>
+            </g>
           </svg>
           <span>Sword</span>
         </div>
         <span class="col-kit-arr">→</span>
 
-        <!-- Axe -->
+        <!-- Axe: head upper-left, handle lower-right -->
         <div class="col-kit">
           <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <line x1="4.5" y1="18.5" x2="16" y2="4" stroke="#c8a84b" stroke-width="2.5" stroke-linecap="round"/>
-            <polygon points="12.5,4 19.5,4 19.5,11 13,8.5" fill="#b8d8f0"/>
-            <polygon points="16.5,2 19.5,4 19.5,6.5 17.5,3" fill="#d4ebff"/>
+            <!-- Handle/stick -->
+            <polygon points="8,9.5 10,7.5 19.5,17 17.5,19" fill="#7a4820"/>
+            <!-- Head body -->
+            <polygon points="1.5,1.5 13,1.5 13,12 1.5,12" fill="#5cc8e8"/>
+            <!-- Head sheen -->
+            <polygon points="1.5,1.5 13,1.5 12,3.5 2.5,3.5" fill="#9de5ff" opacity="0.4"/>
+            <!-- Bit (blade edge, right side of head) -->
+            <polygon points="12,3.5 17,2 18.5,7.5 12,10.5" fill="#3aadcf"/>
           </svg>
           <span>Axe</span>
         </div>
         <span class="col-kit-arr">→</span>
 
-        <!-- UHC Heart -->
+        <!-- UHC Heart: Minecraft-style red heart with pixel highlight -->
         <div class="col-kit">
           <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M11 19C11 19 2.5 12.5 2.5 7.2A4.4 4.4 0 0 1 11 6.1 4.4 4.4 0 0 1 19.5 7.2C19.5 12.5 11 19 11 19Z" fill="#e03131"/>
-            <rect x="4.5" y="5.5" width="2.5" height="2.5" fill="#ff8787" rx="0.3"/>
-            <rect x="4.5" y="8" width="1.5" height="1.5" fill="#ff8787" rx="0.2" opacity="0.6"/>
+            <path d="M11 19.5C11 19.5 2 12.5 2 7.2A4.8 4.8 0 0 1 11 6A4.8 4.8 0 0 1 20 7.2C20 12.5 11 19.5 11 19.5Z" fill="#c92a2a"/>
+            <path d="M11 19.5C11 19.5 2 12.5 2 7.2A4.8 4.8 0 0 1 11 6" fill="#e03131"/>
+            <rect x="3.5" y="5.5" width="3" height="3" rx="0.3" fill="#ff6b6b" opacity="0.7"/>
+            <rect x="3.5" y="8.5" width="2" height="1.5" rx="0.2" fill="#ff6b6b" opacity="0.4"/>
           </svg>
           <span>UHC</span>
         </div>
         <span class="col-kit-arr">→</span>
 
-        <!-- Mace -->
+        <!-- Mace: Minecraft 1.21 mace — large square block head with flanges, wooden handle -->
         <div class="col-kit">
           <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="10.2" y="11" width="1.8" height="10" fill="#c8a84b" rx="0.5"/>
-            <circle cx="11" cy="8" r="5.5" fill="#7a8290"/>
-            <rect x="4" y="5.8" width="2.5" height="4" fill="#555e6a" rx="0.4"/>
-            <rect x="15.5" y="5.8" width="2.5" height="4" fill="#555e6a" rx="0.4"/>
-            <rect x="8.8" y="1.5" width="4.4" height="2.5" fill="#555e6a" rx="0.4"/>
+            <!-- Handle -->
+            <rect x="10" y="13" width="2.5" height="9" rx="0.5" fill="#7a4820"/>
+            <!-- Head main block -->
+            <rect x="5.5" y="4" width="11" height="10" rx="1" fill="#868c96"/>
+            <!-- Head sheen (top-left) -->
+            <rect x="5.5" y="4" width="5.5" height="4" rx="0.5" fill="#a8b0bb" opacity="0.55"/>
+            <!-- Top flange -->
+            <rect x="7.5" y="1" width="7" height="4" rx="0.5" fill="#6c737e"/>
+            <rect x="7.5" y="1" width="3.5" height="1.5" rx="0.3" fill="#8a929d" opacity="0.6"/>
+            <!-- Left flange -->
+            <rect x="2.5" y="5.5" width="3.5" height="6" rx="0.5" fill="#6c737e"/>
+            <!-- Right flange -->
+            <rect x="16" y="5.5" width="3.5" height="6" rx="0.5" fill="#6c737e"/>
           </svg>
           <span>Spear Mace</span>
         </div>
@@ -264,9 +282,23 @@
       </div>
 
       <div class="col-week-prizes">
-        <span>🏆 Win your round — win Nitro</span>
+        <span class="col-prize-item">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style="flex-shrink:0">
+            <path d="M4 1.5h6v5a3 3 0 0 1-6 0v-5Z" fill="#ffc63d"/>
+            <path d="M4 3H2.5a1.5 1.5 0 0 0 0 3L4 6" stroke="#ffc63d" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+            <path d="M10 3h1.5a1.5 1.5 0 0 1 0 3L10 6" stroke="#ffc63d" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+            <rect x="5.5" y="9" width="3" height="2" rx="0.3" fill="#c8a84b"/>
+            <rect x="4" y="11" width="6" height="1.5" rx="0.4" fill="#c8a84b"/>
+          </svg>
+          Win your round — win Nitro
+        </span>
         <span class="col-week-prize-sep">·</span>
-        <span>🗳️ Most upvoted custom kit — wins Nitro</span>
+        <span class="col-prize-item">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" style="flex-shrink:0">
+            <path d="M7 1.5L11.5 7H9V12.5H5V7H2.5L7 1.5Z" fill="#74c0fc"/>
+          </svg>
+          Most upvoted custom kit — wins Nitro
+        </span>
       </div>
 
       <div class="col-cd-time">

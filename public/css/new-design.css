@@ -480,6 +480,7 @@
   font-size:13px;color:#c9ccdb;margin-bottom:22px;
 }
 .col-week-prize-sep{color:rgba(255,255,255,.15)}
+.col-prize-item{display:inline-flex;align-items:center;gap:6px}
 
 /* Next week teaser */
 .col-next{
