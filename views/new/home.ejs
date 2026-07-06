@@ -117,9 +117,9 @@
     <p class="col-eyebrow">COMMUNITY SERVER · ALWAYS EVOLVING</p>
     <div class="col-head">
       <h2>The Collective</h2>
-      <span class="col-live"><span class="dot"></span>First session this Saturday</span>
+      <span class="col-live"><span class="dot"></span>Mini events running</span>
     </div>
-    <p class="col-vision">We're building a community server to keep things competitive all year round. It starts with focused weekend tournaments and grows into a full 24/7 server where players create parties, set up their own matches, and compete between clans. Here is the plan.</p>
+    <p class="col-vision">We're building a community server to keep things competitive all year round. It starts with focused weekend tournaments and grows into a full 24/7 server where players create parties, set up their own matches, and compete between clans.</p>
     <div class="col-modes">
       <span class="col-mode">Hunger Games</span>
       <span class="col-mode">Battle Royale</span>
@@ -132,31 +132,143 @@
       <span class="col-mode">1v1 Duels</span>
       <span class="col-mode">100 Player Events</span>
     </div>
-    <div class="col-rail">Progression plan</div>
-    <div class="timeline">
-      <div class="phase">
-        <div class="node">1</div>
-        <div class="ptag">WEEKS 1–3</div>
-        <h4>Launch</h4>
-        <p>Weekend sessions only. Three weeks, three game modes. Hunger Games first, then Battle Royale, then Prop Hunt. Focused and small — we let the community build naturally before scaling up.</p>
-      </div>
-      <div class="phase">
-        <div class="node">2</div>
-        <div class="ptag">MONTH 2</div>
-        <h4>Expanding</h4>
-        <p>Sessions move to 2 to 3 times a week. Survival Games, Random Item Challenge, Death Swap and PvP Tournaments join the schedule. The competitive scene starts to form.</p>
-      </div>
-      <div class="phase">
-        <div class="node">3</div>
-        <div class="ptag">POST-EVENT</div>
-        <h4>Going 24/7</h4>
-        <p>After our 500 player event the server goes fully 24/7. Players create parties, pick from our full game mode selection and host their own matches scaled to their group size. Staff-run official tournaments with prizes every weekend. European PvP clans already in talks to compete in inter-clan tournaments.</p>
+
+    <button class="col-plan-toggle" id="planToggle" aria-expanded="false">
+      Progression Plan
+      <svg class="col-plan-chev" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l5 5 5-5"/></svg>
+    </button>
+    <div class="col-plan-body" id="planBody">
+      <div class="timeline">
+        <div class="phase">
+          <div class="node">1</div>
+          <div class="ptag">WEEKS 1–3</div>
+          <h4>Launch</h4>
+          <p>Weekend sessions only. Three weeks, three game modes. Hunger Games first, then Battle Royale, then Prop Hunt. Focused and small — we let the community build naturally before scaling up.</p>
+        </div>
+        <div class="phase">
+          <div class="node">2</div>
+          <div class="ptag">MONTH 2</div>
+          <h4>Expanding</h4>
+          <p>Sessions move to 2 to 3 times a week. Survival Games, Random Item Challenge, Death Swap and PvP Tournaments join the schedule. The competitive scene starts to form.</p>
+        </div>
+        <div class="phase">
+          <div class="node">3</div>
+          <div class="ptag">POST-EVENT</div>
+          <h4>Going 24/7</h4>
+          <p>After our 500 player event the server goes fully 24/7. Players create parties, pick from our full game mode selection and host their own matches scaled to their group size. Staff-run official tournaments with prizes every weekend. European PvP clans already in talks to compete in inter-clan tournaments.</p>
+        </div>
       </div>
     </div>
 
-    <!-- Countdown to first session -->
-    <div class="col-countdown">
-      <div class="col-cd-label">First session kicks off</div>
+    <!-- This week's events -->
+    <div class="col-week">
+      <div class="col-week-eyebrow">THIS SATURDAY · 11 JULY · 17:00 BST</div>
+
+      <div class="col-week-events">
+
+        <!-- Hunger Games card -->
+        <div class="col-week-ev">
+          <div class="col-week-ev-ico">
+            <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 5Q1 14 7 23" stroke="#74c0fc" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="7.5" y1="5.5" x2="7.5" y2="22.5" stroke="#74c0fc" stroke-width="1" stroke-dasharray="2 1.5" stroke-linecap="round" opacity="0.5"/>
+              <line x1="9" y1="14" x2="24" y2="14" stroke="#c9a84c" stroke-width="2" stroke-linecap="round"/>
+              <polygon points="24,14 19.5,11.5 19.5,16.5" fill="#c9a84c"/>
+              <path d="M10.5 14L8.5 11M10.5 14L8.5 17" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="col-week-ev-name">Hunger Games</div>
+            <div class="col-week-ev-meta">Free For All · 40+ players</div>
+          </div>
+        </div>
+
+        <!-- PvP Tournament card -->
+        <div class="col-week-ev">
+          <div class="col-week-ev-ico">
+            <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <line x1="5" y1="22" x2="18" y2="9" stroke="#ffc63d" stroke-width="2.2" stroke-linecap="round"/>
+              <polygon points="18,9 22,5 23,9 19.5,8.5" fill="#ffc63d"/>
+              <rect x="3.5" y="20" width="4" height="2" rx="1" fill="#ffc63d" transform="rotate(-45 5.5 21)"/>
+              <line x1="23" y1="5" x2="19" y2="9" stroke="#ffd56b" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="5.5" cy="22.5" r="2" fill="none" stroke="#ffc63d" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <div>
+            <div class="col-week-ev-name">PvP Tournaments</div>
+            <div class="col-week-ev-meta">32 players · Win your round, win Nitro</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Kit progression chain -->
+      <div class="col-kits">
+
+        <!-- Sword -->
+        <div class="col-kit">
+          <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="11,0.5 12.5,1.5 11,14 9.5,1.5" fill="#b8d8f0"/>
+            <rect x="6" y="14" width="10" height="2.5" fill="#c8a84b" rx="0.5"/>
+            <rect x="9.5" y="16.5" width="3" height="5" fill="#c8a84b" rx="0.5"/>
+            <rect x="10.3" y="19.5" width="1.4" height="2" fill="#a07830" rx="0.3"/>
+          </svg>
+          <span>Sword</span>
+        </div>
+        <span class="col-kit-arr">→</span>
+
+        <!-- Axe -->
+        <div class="col-kit">
+          <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="4.5" y1="18.5" x2="16" y2="4" stroke="#c8a84b" stroke-width="2.5" stroke-linecap="round"/>
+            <polygon points="12.5,4 19.5,4 19.5,11 13,8.5" fill="#b8d8f0"/>
+            <polygon points="16.5,2 19.5,4 19.5,6.5 17.5,3" fill="#d4ebff"/>
+          </svg>
+          <span>Axe</span>
+        </div>
+        <span class="col-kit-arr">→</span>
+
+        <!-- UHC Heart -->
+        <div class="col-kit">
+          <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11 19C11 19 2.5 12.5 2.5 7.2A4.4 4.4 0 0 1 11 6.1 4.4 4.4 0 0 1 19.5 7.2C19.5 12.5 11 19 11 19Z" fill="#e03131"/>
+            <rect x="4.5" y="5.5" width="2.5" height="2.5" fill="#ff8787" rx="0.3"/>
+            <rect x="4.5" y="8" width="1.5" height="1.5" fill="#ff8787" rx="0.2" opacity="0.6"/>
+          </svg>
+          <span>UHC</span>
+        </div>
+        <span class="col-kit-arr">→</span>
+
+        <!-- Mace -->
+        <div class="col-kit">
+          <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10.2" y="11" width="1.8" height="10" fill="#c8a84b" rx="0.5"/>
+            <circle cx="11" cy="8" r="5.5" fill="#7a8290"/>
+            <rect x="4" y="5.8" width="2.5" height="4" fill="#555e6a" rx="0.4"/>
+            <rect x="15.5" y="5.8" width="2.5" height="4" fill="#555e6a" rx="0.4"/>
+            <rect x="8.8" y="1.5" width="4.4" height="2.5" fill="#555e6a" rx="0.4"/>
+          </svg>
+          <span>Spear Mace</span>
+        </div>
+        <span class="col-kit-arr">→</span>
+
+        <!-- Custom Kit -->
+        <div class="col-kit col-kit-custom">
+          <svg viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1.5" y="1.5" width="19" height="19" rx="4" fill="rgba(151,117,250,0.12)" stroke="#9775fa" stroke-width="1.5"/>
+            <text x="11" y="15.5" text-anchor="middle" font-family="Baloo 2" font-weight="800" font-size="13" fill="#b3a0ff">?</text>
+          </svg>
+          <span>Custom Kit</span>
+        </div>
+
+      </div>
+
+      <div class="col-week-prizes">
+        <span>🏆 Win your round — win Nitro</span>
+        <span class="col-week-prize-sep">·</span>
+        <span>🗳️ Most upvoted custom kit — wins Nitro</span>
+      </div>
+
       <div class="col-cd-time">
         <div class="col-cd-seg"><span id="cdDays">--</span><small>days</small></div>
         <div class="col-cd-dot">:</div>
@@ -166,7 +278,13 @@
         <div class="col-cd-dot">:</div>
         <div class="col-cd-seg"><span id="cdSecs">--</span><small>sec</small></div>
       </div>
-      <div class="col-cd-sub">Saturday 4 July · Hunger Games Tournament · Join our Discord for details</div>
+      <div class="col-cd-sub" style="margin-top:8px">Saturday 11 July · Join our Discord for details</div>
+
+      <div class="col-next">
+        <span class="col-next-eyebrow">NEXT WEEK · 18 JULY</span>
+        <p>Another round of Hunger Games and the full kit tournament — featuring a brand new custom kit voted on by you in Discord.</p>
+      </div>
+
     </div>
 
   </div>
@@ -184,9 +302,16 @@ document.getElementById('showMore').addEventListener('click', function() {
   this.setAttribute('aria-expanded', open);
 });
 
-// Countdown to Saturday 4 July 2026 7pm BST (18:00 UTC)
+document.getElementById('planToggle').addEventListener('click', function() {
+  var body = document.getElementById('planBody');
+  var expanded = this.getAttribute('aria-expanded') === 'true';
+  this.setAttribute('aria-expanded', !expanded);
+  body.classList.toggle('open', !expanded);
+});
+
+// Countdown to Saturday 11 July 2026 17:00 BST (16:00 UTC)
 (function() {
-  var target = new Date('2026-07-04T18:00:00Z').getTime();
+  var target = new Date('2026-07-11T16:00:00Z').getTime();
   function tick() {
     var diff = target - Date.now();
     if (diff <= 0) {

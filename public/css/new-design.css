@@ -432,6 +432,67 @@
   font-size:13px;color:#8b8f99;
 }
 
+/* ---------- COLLAPSIBLE PLAN ---------- */
+.col-plan-toggle{
+  display:flex;align-items:center;gap:8px;
+  font-family:"Baloo 2";font-weight:800;letter-spacing:1px;font-size:13px;
+  color:#8b8f99;text-transform:uppercase;margin:30px 0 0;
+  background:none;border:none;cursor:pointer;padding:0;transition:color .15s;
+}
+.col-plan-toggle:hover{color:#b3a0ff}
+.col-plan-toggle[aria-expanded="true"] .col-plan-chev{transform:rotate(180deg)}
+.col-plan-chev{transition:transform .2s}
+.col-plan-body{display:none;padding-top:14px}
+.col-plan-body.open{display:block}
+
+/* ---------- THIS WEEK'S EVENTS ---------- */
+.col-week{margin-top:32px;padding-top:28px;border-top:1px solid rgba(151,117,250,.2)}
+.col-week-eyebrow{
+  font-family:"Baloo 2";font-weight:800;font-size:12px;letter-spacing:2px;
+  text-transform:uppercase;color:#b3a0ff;margin-bottom:18px;
+}
+.col-week-events{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+.col-week-ev{
+  display:flex;align-items:center;gap:14px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:14px 18px;flex:1;min-width:200px;
+}
+.col-week-ev-ico{width:34px;height:34px;flex-shrink:0}
+.col-week-ev-name{font-family:"Baloo 2";font-weight:800;font-size:16px;color:#fff}
+.col-week-ev-meta{font-size:13px;color:#8b8f99;margin-top:2px}
+
+/* Kit chain */
+.col-kits{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 18px}
+.col-kit{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;padding:10px 12px;min-width:70px;
+}
+.col-kit svg{width:26px;height:26px}
+.col-kit span{font-family:"Baloo 2";font-weight:700;font-size:11px;color:#c9ccdb;white-space:nowrap}
+.col-kit-custom{border-color:rgba(151,117,250,.35);background:rgba(151,117,250,.07)}
+.col-kit-custom span{color:#b3a0ff}
+.col-kit-arr{color:rgba(255,255,255,.2);font-size:16px;flex-shrink:0}
+
+/* Prizes */
+.col-week-prizes{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  font-size:13px;color:#c9ccdb;margin-bottom:22px;
+}
+.col-week-prize-sep{color:rgba(255,255,255,.15)}
+
+/* Next week teaser */
+.col-next{
+  margin-top:22px;padding:14px 18px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+  border-radius:12px;
+}
+.col-next-eyebrow{
+  display:block;font-family:"Baloo 2";font-weight:800;font-size:11px;
+  letter-spacing:2px;text-transform:uppercase;color:#b3a0ff;margin-bottom:6px;
+}
+.col-next p{font-size:13px;color:#8b8f99;margin:0;line-height:1.5}
+
 /* ---------- COMING SOON MODAL ---------- */
 .cs-modal{
   display:none;position:fixed;inset:0;z-index:1000;
