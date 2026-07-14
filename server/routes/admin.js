@@ -40,7 +40,14 @@ router.get('/', async (req, res) => {
   )).rows;
 
   const applications = (await db.query(
-    `SELECT * FROM structured_applications ORDER BY submitted_at DESC`
+    `SELECT id, submitted_at, status, review_stage, accepted_at, declined_at_stage,
+            discord_id, discord_tag, discord_avatar, ign, playstyle, app_type,
+            island_choices, island_assignment, friend_requests,
+            CASE WHEN written_app IS NOT NULL AND trim(written_app) != ''
+                 THEN array_length(regexp_split_to_array(trim(written_app), '\\s+'), 1)
+                 ELSE 0 END AS word_count
+     FROM structured_applications
+     ORDER BY submitted_at DESC NULLS LAST`
   )).rows;
 
   const guildRes = await db.query(`SELECT * FROM guild_config LIMIT 10`);
@@ -117,15 +124,56 @@ router.get('/preview-apply', async (req, res) => {
   });
 });
 
+async function logEvent(appId, type, stage, user) {
+  try {
+    await db.query(
+      `INSERT INTO application_events (application_id, event_type, stage_number, done_by_discord_id, done_by_discord_tag)
+       VALUES ($1,$2,$3,$4,$5)`,
+      [appId, type, stage || null, user?.id || null, user?.username || null]
+    );
+  } catch (_) {}
+}
+
 // View single application
 router.get('/application/:id', async (req, res) => {
   const appRes = await db.query(`SELECT * FROM structured_applications WHERE id = $1`, [req.params.id]);
   if (!appRes.rows.length) return res.redirect('/admin');
   const app = appRes.rows[0];
-  const eligibilityQuestions = (await db.query(
-    `SELECT * FROM eligibility_questions ORDER BY display_order ASC, id ASC`
-  )).rows;
-  res.render('admin-application', { app, eligibilityQuestions });
+
+  const [eligRes, histRes] = await Promise.all([
+    db.query(`SELECT * FROM eligibility_questions ORDER BY display_order ASC, id ASC`),
+    db.query(`SELECT * FROM application_events WHERE application_id = $1 ORDER BY done_at ASC`, [req.params.id])
+  ]);
+  const eligibilityQuestions = eligRes.rows;
+  const eventHistory = histRes.rows;
+
+  // Look up friend applications by IGN
+  const friendNames = (app.friend_requests || '').split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+  let friendApps = [];
+  if (friendNames.length > 0) {
+    const fRes = await db.query(
+      `SELECT id, ign, discord_tag, discord_avatar, status, review_stage,
+              island_choices, island_assignment, friend_requests
+       FROM structured_applications WHERE LOWER(ign) = ANY($1::text[])`,
+      [friendNames.map(n => n.toLowerCase())]
+    );
+    friendApps = fRes.rows;
+  }
+  const foundIgnsLower = friendApps.map(f => f.ign.toLowerCase());
+  const notApplied = friendNames.filter(n => !foundIgnsLower.includes(n.toLowerCase()));
+
+  // Split view — load friend app side by side
+  let splitApp = null;
+  if (req.query.split) {
+    const sRes = await db.query(`SELECT * FROM structured_applications WHERE id = $1`, [req.query.split]);
+    splitApp = sRes.rows[0] || null;
+  }
+
+  res.render('admin-application', {
+    app, eligibilityQuestions, eventHistory,
+    friendApps, notApplied,
+    splitApp
+  });
 });
 
 // Update application status (manual override / reset)
@@ -138,11 +186,13 @@ router.post('/application/:id/status', async (req, res) => {
       `UPDATE structured_applications SET status='pending', accepted_at=NULL, declined_at_stage=NULL, review_stage=2 WHERE id=$1`,
       [req.params.id]
     );
+    logEvent(req.params.id, 'reset_to_pending', null, req.session.user);
   } else if (status === 'accepted') {
     await db.query(
       `UPDATE structured_applications SET status='accepted', accepted_at=$1 WHERE id=$2`,
       [new Date(), req.params.id]
     );
+    logEvent(req.params.id, 'accepted', null, req.session.user);
     if (app) sendDiscordDM(app.discord_id,
       `**Your application has been accepted!**\n\nCongratulations ${app.ign || ''} — you've been accepted into **The Collective**. Keep an eye out for further details on what happens next.`
     );
@@ -151,6 +201,7 @@ router.post('/application/:id/status', async (req, res) => {
       `UPDATE structured_applications SET status='declined' WHERE id=$1`,
       [req.params.id]
     );
+    logEvent(req.params.id, 'declined', null, req.session.user);
     if (app) sendDiscordDM(app.discord_id,
       `**Application update — The Collective**\n\nHi ${app.ign || ''}, unfortunately your application has not been successful this time. Thank you for applying.`
     );
@@ -169,6 +220,7 @@ router.post('/application/:id/pass-stage', async (req, res) => {
       `UPDATE structured_applications SET status='accepted', accepted_at=$1 WHERE id=$2`,
       [new Date(), req.params.id]
     );
+    logEvent(req.params.id, 'accepted', stage, req.session.user);
     sendDiscordDM(discord_id,
       `**Your application has been accepted!**\n\nCongratulations ${ign || ''} — you've been accepted into **The Collective**. Keep an eye out for further details on what happens next.`
     );
@@ -177,6 +229,7 @@ router.post('/application/:id/pass-stage', async (req, res) => {
       `UPDATE structured_applications SET review_stage=$1 WHERE id=$2`,
       [stage + 1, req.params.id]
     );
+    logEvent(req.params.id, 'pass_stage', stage, req.session.user);
   }
   res.redirect(`/admin/application/${req.params.id}`);
 });
@@ -191,6 +244,7 @@ router.post('/application/:id/decline-stage', async (req, res) => {
     `UPDATE structured_applications SET status='declined', declined_at_stage=$1 WHERE id=$2`,
     [stage, req.params.id]
   );
+  logEvent(req.params.id, 'decline_stage', stage, req.session.user);
   sendDiscordDM(discord_id,
     `**Application update — The Collective**\n\nHi ${ign || ''}, unfortunately your application has not been successful at this stage. Thank you for taking the time to apply.`
   );

@@ -1,6 +1,42 @@
 <%- include('partials/head', { title: 'Review Application' }) %>
 <%- include('partials/nav') %>
 
+<style>
+.split-banner{display:flex;align-items:center;gap:10px;padding:10px 18px;background:rgba(116,192,252,.08);border-bottom:1px solid rgba(116,192,252,.2);font-size:13px;color:#74c0fc;font-family:'Baloo 2',sans-serif;font-weight:700}
+.split-banner a{color:#74c0fc;text-decoration:none;margin-left:auto;opacity:.7}
+.split-banner a:hover{opacity:1}
+.review-dual{display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:0}
+.review-dual .review-main{border-right:1px solid rgba(255,255,255,.08)}
+.review-dual .review-main:last-child{border-right:none}
+.review-dual-header{padding:12px 20px;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.08);font-family:'Baloo 2',sans-serif;font-weight:800;font-size:13px;color:#e0e2ed;display:flex;align-items:center;gap:8px}
+.review-dual-actions{display:flex;gap:8px;padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02)}
+/* History timeline */
+.ev-timeline{display:flex;flex-direction:column;gap:0}
+.ev-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px}
+.ev-item:last-child{border-bottom:none}
+.ev-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.ev-dot-pass{background:#5be38f}
+.ev-dot-accept{background:#74c0fc}
+.ev-dot-decline{background:#f87171}
+.ev-dot-reset{background:#fbbf24}
+.ev-body{flex:1}
+.ev-who{font-weight:700;color:#e0e2ed}
+.ev-what{color:#9ca3af}
+.ev-when{color:#6b7280;font-size:11px;margin-top:1px}
+/* Friend cards */
+.friend-card{display:flex;flex-direction:column;gap:6px;padding:12px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;margin-bottom:10px}
+.friend-card-head{display:flex;align-items:center;gap:8px}
+.friend-card-ign{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:14px;color:#e0e2ed}
+.friend-card-tag{font-size:12px;color:#6b7280}
+.friend-not-applied{padding:10px 14px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:8px;font-size:13px;color:#fbbf24;margin-bottom:8px}
+.friend-choices{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+.friend-choice-badge{font-size:11px;padding:2px 9px;border-radius:99px;background:rgba(255,255,255,.07);color:#c9ccdb}
+.friend-choice-badge.rank1{background:rgba(116,192,252,.15);color:#74c0fc}
+.friend-mutual-note{font-size:11px;color:#5be38f;margin-top:4px}
+.friend-no-mutual{font-size:11px;color:#f87171;margin-top:4px}
+@media(max-width:900px){.review-dual{grid-template-columns:1fr}}
+</style>
+
 <main class="page-main admin-page">
   <section class="section" style="padding-top:calc(var(--nav-h) + 1.5rem)">
     <div class="container">
@@ -32,12 +68,6 @@
               <button type="submit" class="btn btn-decline" onclick="return confirm('Decline at Stage <%= stage %>?')">Decline Stage <%= stage %></button>
             </form>
           <% } %>
-          <% if (app.status === 'accepted') { %>
-            <span class="muted" style="font-size:0.8rem;align-self:center">Accepted</span>
-          <% } %>
-          <% if (app.status === 'declined') { %>
-            <span class="muted" style="font-size:0.8rem;align-self:center">Declined</span>
-          <% } %>
           <% if (app.status !== 'pending') { %>
             <form action="/admin/application/<%= app.id %>/status" method="POST" style="display:inline">
               <input type="hidden" name="status" value="pending" />
@@ -47,29 +77,143 @@
         </div>
       </div>
 
-      <!-- Two-column layout -->
-      <div class="review-layout">
+      <% if (splitApp) { %>
+      <!-- ── SPLIT VIEW BANNER ── -->
+      <div class="split-banner">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="8" height="18" rx="2"/><rect x="13" y="3" width="8" height="18" rx="2"/></svg>
+        Split view — comparing with <strong style="margin-left:4px"><%= splitApp.ign || splitApp.discord_tag %></strong>
+        <a href="/admin/application/<%= app.id %>">Exit split view ✕</a>
+      </div>
+      <% } %>
 
-        <!-- ── Main content ── -->
-        <div class="review-main">
+      <!-- Stage track -->
+      <% if (app.status === 'pending' || app.status === 'declined') { %>
+      <div class="review-stage-track">
+        <% const stageNames = ['Eligibility','Basic Info','Playstyle','Scenarios','Application','Agreement']; %>
+        <% const currentStage = app.review_stage || 2; %>
+        <% const declinedStage = app.declined_at_stage || null; %>
+        <% for (let s = 1; s <= 6; s++) { %>
+          <% const isPassed = app.status === 'pending' ? s < currentStage : (declinedStage ? s < declinedStage : s < currentStage); %>
+          <% const isCurrent = app.status === 'pending' && s === currentStage; %>
+          <% const isDeclined = app.status === 'declined' && s === declinedStage; %>
+          <div class="rst-step <%= isPassed ? 'rst-passed' : isCurrent ? 'rst-current' : isDeclined ? 'rst-declined' : 'rst-waiting' %>">
+            <div class="rst-dot"><%= isPassed ? '✓' : isDeclined ? '✕' : s %></div>
+            <div class="rst-label">S<%= s %></div>
+          </div>
+          <% if (s < 6) { %><div class="rst-line <%= isPassed ? 'rst-passed' : '' %>"></div><% } %>
+        <% } %>
+      </div>
+      <% } %>
 
-          <% if (app.status === 'pending' || app.status === 'declined') { %>
-          <div class="review-stage-track">
-            <% const stageNames = ['Eligibility','Basic Info','Playstyle','Scenarios','Application','Agreement']; %>
-            <% const currentStage = app.review_stage || 2; %>
-            <% const declinedStage = app.declined_at_stage || null; %>
-            <% for (let s = 1; s <= 6; s++) { %>
-              <% const isPassed = app.status === 'pending' ? s < currentStage : (declinedStage ? s < declinedStage : s < currentStage); %>
-              <% const isCurrent = app.status === 'pending' && s === currentStage; %>
-              <% const isDeclined = app.status === 'declined' && s === declinedStage; %>
-              <div class="rst-step <%= isPassed ? 'rst-passed' : isCurrent ? 'rst-current' : isDeclined ? 'rst-declined' : 'rst-waiting' %>">
-                <div class="rst-dot"><%= isPassed ? '✓' : isDeclined ? '✕' : s %></div>
-                <div class="rst-label">S<%= s %></div>
-              </div>
-              <% if (s < 6) { %><div class="rst-line <%= isPassed ? 'rst-passed' : '' %>"></div><% } %>
+      <% if (splitApp) { %>
+      <!-- ── DUAL PANEL LAYOUT ── -->
+      <div class="review-dual">
+
+        <!-- Left: current app -->
+        <div class="review-main" style="padding:0">
+          <div class="review-dual-header">
+            <img src="<%= app.discord_avatar||'' %>" style="width:22px;height:22px;border-radius:50%;object-fit:cover" onerror="this.style.display='none'">
+            <%= app.ign || app.discord_tag %>
+            <span class="status-badge status-<%= app.status %>" style="font-size:10px;padding:1px 7px;margin-left:4px"><%= app.status %></span>
+          </div>
+          <div class="review-dual-actions">
+            <% if (app.status === 'pending') { %>
+              <% const ds = app.review_stage || 2; %>
+              <form action="/admin/application/<%= app.id %>/pass-stage" method="POST" style="display:inline">
+                <button type="submit" class="btn btn-accept btn-sm"><%= ds >= 6 ? 'Accept' : 'Pass S' + ds %></button>
+              </form>
+              <form action="/admin/application/<%= app.id %>/decline-stage" method="POST" style="display:inline">
+                <button type="submit" class="btn btn-decline btn-sm">Decline</button>
+              </form>
             <% } %>
           </div>
-          <% } %>
+          <%- include('partials/_app-content', { a: app, eligibilityQuestions }) %>
+        </div>
+
+        <!-- Right: friend app -->
+        <div class="review-main" style="padding:0">
+          <div class="review-dual-header">
+            <img src="<%= splitApp.discord_avatar||'' %>" style="width:22px;height:22px;border-radius:50%;object-fit:cover" onerror="this.style.display='none'">
+            <%= splitApp.ign || splitApp.discord_tag %>
+            <span class="status-badge status-<%= splitApp.status %>" style="font-size:10px;padding:1px 7px;margin-left:4px"><%= splitApp.status %></span>
+          </div>
+          <div class="review-dual-actions">
+            <% if (splitApp.status === 'pending') { %>
+              <% const ss = splitApp.review_stage || 2; %>
+              <form action="/admin/application/<%= splitApp.id %>/pass-stage" method="POST" style="display:inline">
+                <button type="submit" class="btn btn-accept btn-sm"><%= ss >= 6 ? 'Accept' : 'Pass S' + ss %></button>
+              </form>
+              <form action="/admin/application/<%= splitApp.id %>/decline-stage" method="POST" style="display:inline">
+                <button type="submit" class="btn btn-decline btn-sm">Decline</button>
+              </form>
+            <% } %>
+            <a href="/admin/application/<%= splitApp.id %>" class="btn btn-ghost btn-sm" style="margin-left:auto">Full review →</a>
+          </div>
+          <div style="padding:20px 24px">
+
+            <div class="review-section">
+              <div class="review-section-label">Basic Info</div>
+              <div class="review-info-grid">
+                <div class="review-info-cell"><span class="ric-key">IGN</span><span><%= splitApp.ign||'—' %></span></div>
+                <div class="review-info-cell"><span class="ric-key">Age</span><span><%= splitApp.age||'—' %></span></div>
+                <div class="review-info-cell"><span class="ric-key">Country</span><span><%= splitApp.country||'—' %></span></div>
+                <div class="review-info-cell"><span class="ric-key">Playstyle</span><span><% if(splitApp.playstyle){%><span class="playstyle-badge playstyle-<%= splitApp.playstyle %>"><%= splitApp.playstyle %></span><%}else{%>—<%}%></span></div>
+                <div class="review-info-cell"><span class="ric-key">App type</span><span><%= splitApp.app_type||'—' %></span></div>
+              </div>
+            </div>
+
+            <div class="review-section">
+              <div class="review-section-label">Island Preferences</div>
+              <% if(splitApp.island_choices&&splitApp.island_choices.length){%>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  <%splitApp.island_choices.forEach(function(isle,i){if(isle){%>
+                    <span style="font-size:12px;padding:3px 10px;background:rgba(255,255,255,.07);border-radius:99px;color:#e0e2ed"><span style="color:var(--muted);font-size:10px">#<%=i+1%> </span><%=isle.charAt(0).toUpperCase()+isle.slice(1)%></span>
+                  <%}}); %>
+                </div>
+              <%}else{%><p class="muted">None submitted.</p><%}%>
+            </div>
+
+            <% if(splitApp.app_type==='video'&&splitApp.video_link){%>
+            <div class="review-section">
+              <div class="review-section-label">Video Application</div>
+              <a href="<%= splitApp.video_link %>" target="_blank" class="legal-link" style="word-break:break-all"><%= splitApp.video_link %></a>
+            </div>
+            <%}else if(splitApp.written_app){%>
+            <div class="review-section">
+              <div class="review-section-label">Written Application</div>
+              <p class="review-freetext"><%= splitApp.written_app %></p>
+            </div>
+            <%}%>
+
+            <div class="review-section">
+              <div class="review-section-label">Scenarios</div>
+              <p class="review-freetext" style="font-size:0.8rem;color:var(--muted);margin-bottom:3px">Scenario 1</p>
+              <p class="review-freetext"><%= splitApp.scenario_1||'—' %></p>
+              <p class="review-freetext" style="font-size:0.8rem;color:var(--muted);margin-bottom:3px;margin-top:10px">Scenario 2</p>
+              <p class="review-freetext"><%= splitApp.scenario_2||'—' %></p>
+              <p class="review-freetext" style="font-size:0.8rem;color:var(--muted);margin-bottom:3px;margin-top:10px">Scenario 3</p>
+              <p class="review-freetext"><%= splitApp.scenario_3||'—' %></p>
+            </div>
+
+            <div class="review-section" style="border-bottom:none">
+              <div class="review-section-label">Their Friend Requests</div>
+              <p class="review-freetext"><%= splitApp.friend_requests||'None listed.' %></p>
+              <% const splitListedUs = (splitApp.friend_requests||'').toLowerCase().includes((app.ign||'').toLowerCase()); %>
+              <% if(app.ign){%>
+                <% if(splitListedUs){%><p style="font-size:12px;color:#5be38f;margin-top:6px">They listed <%= app.ign %> — mutual confirmed.</p>
+                <%}else{%><p style="font-size:12px;color:#f87171;margin-top:6px">They did not list <%= app.ign %>.</p><%}%>
+              <%}%>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <% } else { %>
+      <!-- ── NORMAL SINGLE LAYOUT ── -->
+      <div class="review-layout">
+
+        <!-- Main content -->
+        <div class="review-main">
 
           <div class="review-section">
             <div class="review-section-label">Stage 1 — Eligibility</div>
@@ -101,14 +245,8 @@
               </div>
               <div class="review-info-cell">
                 <span class="ric-key">Content creator</span>
-                <span><%= app.creates_content ? 'Yes' : 'No' %></span>
+                <span><%= app.creates_content ? 'Yes' : 'No' %><% if(app.content_link){%> — <a href="<%= app.content_link %>" target="_blank" class="legal-link"><%= app.content_link %></a><%}%></span>
               </div>
-              <% if (app.content_link) { %>
-                <div class="review-info-cell">
-                  <span class="ric-key">Channel</span>
-                  <span><a href="<%= app.content_link %>" target="_blank" class="legal-link"><%= app.content_link %></a></span>
-                </div>
-              <% } %>
             </div>
           </div>
 
@@ -150,7 +288,7 @@
           <div class="review-section">
             <div class="review-section-label">Stage 6 — Agreements</div>
             <p class="<%= app.agreements_confirmed ? '' : 'muted' %>">
-              <%= app.agreements_confirmed ? 'All four agreements confirmed.' : 'Agreements not confirmed.' %>
+              <%= app.agreements_confirmed ? 'All agreements confirmed.' : 'Agreements not confirmed.' %>
             </p>
           </div>
 
@@ -159,31 +297,78 @@
             <% const choices = app.island_choices; %>
             <% if (choices && choices.length) { %>
               <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <% choices.forEach(function(isle, i) { %>
-                  <% if (isle) { %>
-                    <span style="font-size:13px;padding:4px 12px;background:rgba(255,255,255,.07);border-radius:99px;color:#e0e2ed">
-                      <span style="color:var(--muted);font-size:11px">#<%= i+1 %> </span><%= isle.charAt(0).toUpperCase()+isle.slice(1) %>
-                    </span>
-                  <% } %>
-                <% }); %>
+                <% choices.forEach(function(isle, i) { if (isle) { %>
+                  <span style="font-size:13px;padding:4px 12px;background:rgba(255,255,255,.07);border-radius:99px;color:#e0e2ed">
+                    <span style="color:var(--muted);font-size:11px">#<%= i+1 %> </span><%= isle.charAt(0).toUpperCase()+isle.slice(1) %>
+                  </span>
+                <% } }); %>
               </div>
             <% } else { %>
               <p class="muted">No island preferences submitted.</p>
             <% } %>
           </div>
 
+          <!-- Friend requests with lookup -->
           <div class="review-section" style="border-bottom:none">
             <div class="review-section-label">Friend Requests</div>
-            <% if (app.friend_requests && app.friend_requests.trim()) { %>
-              <p style="white-space:pre-wrap"><%= app.friend_requests %></p>
-              <p class="muted" style="font-size:0.78rem;margin-top:4px">Check that these players have also listed <%= app.ign %> in their own friend requests.</p>
-            <% } else { %>
+
+            <% if (notApplied.length > 0) { %>
+              <% for (const name of notApplied) { %>
+                <div class="friend-not-applied">
+                  <strong><%= name %></strong> — has not submitted an application yet.
+                </div>
+              <% } %>
+            <% } %>
+
+            <% if (friendApps.length > 0) { %>
+              <% for (const f of friendApps) { %>
+                <%
+                  const fChoices = Array.isArray(f.island_choices) ? f.islandchoices : (f.island_choices || []);
+                  const fChoicesArr = Array.isArray(f.island_choices) ? f.island_choices : [];
+                  const fListedUs = (f.friend_requests||'').toLowerCase().includes((app.ign||'').toLowerCase());
+                  const statusColour = f.status==='accepted'?'#5be38f':f.status==='declined'?'#f87171':f.status==='pending'?'#fbbf24':'#9ca3af';
+                %>
+                <div class="friend-card">
+                  <div class="friend-card-head">
+                    <img src="<%= f.discord_avatar||'' %>" style="width:28px;height:28px;border-radius:50%;object-fit:cover" onerror="this.style.display='none'">
+                    <div>
+                      <div class="friend-card-ign"><%= f.ign||f.discord_tag %></div>
+                      <div class="friend-card-tag">@<%= f.discord_tag %></div>
+                    </div>
+                    <span style="margin-left:auto;font-size:11px;font-family:'Baloo 2',sans-serif;font-weight:800;padding:2px 10px;border-radius:99px;background:rgba(255,255,255,.07);color:<%= statusColour %>"><%= f.status.toUpperCase() %><% if(f.status==='pending'){%> · S<%=f.review_stage||2%><%}%></span>
+                    <a href="/admin/application/<%= app.id %>?split=<%= f.id %>" class="btn btn-ghost btn-sm" style="font-size:11px;padding:3px 10px">Split View</a>
+                    <a href="/admin/application/<%= f.id %>" class="btn btn-ghost btn-sm" style="font-size:11px;padding:3px 10px">Full →</a>
+                  </div>
+
+                  <% if(fChoicesArr.length){ %>
+                  <div class="friend-choices">
+                    <span style="font-size:11px;color:var(--muted);margin-right:2px">Island prefs:</span>
+                    <% fChoicesArr.forEach(function(isle,i){ if(isle){ %>
+                      <span class="friend-choice-badge <%= i===0?'rank1':'' %>">#<%= i+1 %> <%= isle.charAt(0).toUpperCase()+isle.slice(1) %></span>
+                    <% }}); %>
+                    <% if(f.island_assignment){ %>
+                      <span style="font-size:11px;font-weight:700;color:#74c0fc;margin-left:4px">Assigned: <%= f.island_assignment.charAt(0).toUpperCase()+f.island_assignment.slice(1) %></span>
+                    <% } %>
+                  </div>
+                  <% } %>
+
+                  <% if(fListedUs){ %>
+                    <div class="friend-mutual-note">They listed <%= app.ign||'this player' %> — mutual request confirmed.</div>
+                  <% }else{ %>
+                    <div class="friend-no-mutual">They did not list <%= app.ign||'this player' %> in their friend requests.</div>
+                  <% } %>
+                </div>
+              <% } %>
+            <% } %>
+
+            <% if (friendApps.length === 0 && notApplied.length === 0) { %>
               <p class="muted">No friend requests listed.</p>
             <% } %>
           </div>
+
         </div>
 
-        <!-- ── Sidebar ── -->
+        <!-- Sidebar -->
         <div class="review-sidebar">
           <div class="review-scard">
             <h3>Applicant</h3>
@@ -191,22 +376,22 @@
             <p class="review-scard-name"><%= app.ign || '—' %></p>
             <p class="muted review-scard-sub">@<%= app.discord_tag %></p>
             <p class="muted review-scard-sub" style="font-size:0.72rem">ID: <%= app.discord_id %></p>
-            <p class="muted review-scard-sub" style="font-size:0.72rem">Applied: <%= new Date(app.submitted_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) %></p>
+            <p class="muted review-scard-sub" style="font-size:0.72rem">Applied: <%= app.submitted_at ? new Date(app.submitted_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '—' %></p>
           </div>
 
           <div class="review-scard">
             <h3>Quick Info</h3>
-            <div class="review-qrow"><span class="muted">Playstyle</span><span class="playstyle-badge playstyle-<%= app.playstyle %>"><%= app.playstyle || '—' %></span></div>
+            <div class="review-qrow"><span class="muted">Playstyle</span><span><% if(app.playstyle){%><span class="playstyle-badge playstyle-<%= app.playstyle %>"><%= app.playstyle %></span><%}else{%>—<%}%></span></div>
             <div class="review-qrow"><span class="muted">App type</span><span><%= app.app_type || '—' %></span></div>
             <div class="review-qrow"><span class="muted">Age</span><span><%= app.age || '—' %></span></div>
             <div class="review-qrow"><span class="muted">Country</span><span><%= app.country || '—' %></span></div>
-            <div class="review-qrow"><span class="muted">Content creator</span><span><%= app.creates_content ? 'Yes' : 'No' %></span></div>
+            <div class="review-qrow"><span class="muted">Creator</span><span><%= app.creates_content ? 'Yes' : 'No' %></span></div>
           </div>
 
           <div class="review-scard">
             <h3>Island Assignment</h3>
             <form action="/admin/application/<%= app.id %>/island" method="POST">
-              <select name="island" class="form-select" style="width:100%;margin-bottom:0.5rem;padding:8px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:#e0e2ed;font-size:14px">
+              <select name="island" style="width:100%;margin-bottom:0.5rem;padding:8px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:#e0e2ed;font-size:14px">
                 <option value="">— Not assigned —</option>
                 <option value="jungle" <%= app.island_assignment==='jungle' ? 'selected' : '' %>>Jungle</option>
                 <option value="snow" <%= app.island_assignment==='snow' ? 'selected' : '' %>>Snow</option>
@@ -227,9 +412,41 @@
               <button type="submit" class="btn btn-primary btn-sm" style="width:100%;margin-top:0.5rem">Save Notes</button>
             </form>
           </div>
+
+          <% if (eventHistory && eventHistory.length > 0) { %>
+          <div class="review-scard">
+            <h3>Review History</h3>
+            <div class="ev-timeline">
+              <% for (const ev of eventHistory) { %>
+                <%
+                  const dotClass = ev.event_type.startsWith('pass')||ev.event_type==='accepted' ? 'ev-dot-pass'
+                    : ev.event_type.startsWith('decline') ? 'ev-dot-decline'
+                    : ev.event_type==='reset_to_pending' ? 'ev-dot-reset'
+                    : 'ev-dot-accept';
+                  const label = ev.event_type==='pass_stage' ? `Passed Stage ${ev.stage_number}`
+                    : ev.event_type==='decline_stage' ? `Declined at Stage ${ev.stage_number}`
+                    : ev.event_type==='accepted' ? 'Accepted'
+                    : ev.event_type==='declined' ? 'Declined (manual)'
+                    : ev.event_type==='reset_to_pending' ? 'Reset to pending'
+                    : ev.event_type;
+                %>
+                <div class="ev-item">
+                  <div class="ev-dot <%= dotClass %>"></div>
+                  <div class="ev-body">
+                    <div><span class="ev-who"><%= ev.done_by_discord_tag || 'Admin' %></span> <span class="ev-what"><%= label %></span></div>
+                    <div class="ev-when"><%= new Date(ev.done_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) %></div>
+                  </div>
+                </div>
+              <% } %>
+            </div>
+          </div>
+          <% } %>
+
         </div>
 
-      </div>
+      </div><!-- end normal layout -->
+      <% } %>
+
     </div>
   </section>
 </main>
