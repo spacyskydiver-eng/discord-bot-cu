@@ -603,7 +603,7 @@ function renderBlock(b) {
 
             <div class="apw-nav">
               <button type="button" class="apw-btn-ghost" onclick="goStage(6)">Back</button>
-              <button type="submit" class="apw-btn-submit" id="submitBtn" disabled>Submit Application</button>
+              <button type="submit" class="apw-btn-submit" id="submitBtn">Submit Application</button>
             </div>
           </div>
 
@@ -743,11 +743,10 @@ function updateWordCount(ta) {
   document.getElementById('wordCounter').classList.toggle('ok', n >= 150);
 }
 
-// Agreement checkboxes — scoped to the agreements list only, NOT the Stage 2 reading confirm
+// Agreement checkboxes — update hidden value; validation happens on submit
 document.querySelectorAll('.apw-agr-list .agr-check').forEach(function(cb) {
   cb.addEventListener('change', function() {
     var all = Array.from(document.querySelectorAll('.apw-agr-list .agr-check')).every(function(c) { return c.checked; });
-    document.getElementById('submitBtn').disabled = !all;
     document.getElementById('agreementsVal').value = all ? 'confirmed' : '';
   });
 });
@@ -1159,9 +1158,23 @@ document.querySelectorAll('.apw-textarea, .apw-input').forEach(function(el) {
   });
 });
 
-// Clear draft on successful submit
+// Form submit: validate agreements then clear draft
 var _applyForm = document.getElementById('applyForm');
-if (_applyForm) _applyForm.addEventListener('submit', clearDraft);
+if (_applyForm) {
+  _applyForm.addEventListener('submit', function(e) {
+    var unchecked = Array.from(document.querySelectorAll('.apw-agr-list .agr-check')).filter(function(c) { return !c.checked; });
+    if (unchecked.length > 0) {
+      e.preventDefault();
+      unchecked[0].closest('.agr-item').style.outline = '2px solid #f87171';
+      unchecked[0].closest('.agr-item').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(function() {
+        if (unchecked[0].closest('.agr-item')) unchecked[0].closest('.agr-item').style.outline = '';
+      }, 2500);
+      return;
+    }
+    clearDraft();
+  });
+}
 
 // Restore draft on page load
 loadDraft();
