@@ -784,6 +784,33 @@
 .apw-reading-table tr:nth-child(even) td{background:rgba(255,255,255,.05)}
 .apw-reading-table tr:last-child td{border-bottom:none}
 
+/* ---------- QUIZ LAYOUT ---------- */
+.quiz-layout{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.quiz-rules-panel{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.13);
+  border-radius:12px;overflow:hidden;position:sticky;top:20px;
+}
+.quiz-rules-head{
+  font-family:"Baloo 2";font-weight:800;font-size:14px;color:#fff;
+  padding:13px 18px;background:rgba(255,255,255,.07);
+  border-bottom:1px solid rgba(255,255,255,.12);letter-spacing:.01em;
+}
+.quiz-rules-body{
+  max-height:540px;overflow-y:auto;padding:16px 18px;
+  font-size:13px;color:#c9ccdb;line-height:1.7;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent;
+}
+.quiz-rules-body::-webkit-scrollbar{width:4px}
+.quiz-rules-body::-webkit-scrollbar-track{background:transparent}
+.quiz-rules-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:4px}
+.quiz-rules-body .apw-reading-section{font-size:11px}
+.quiz-rules-body .apw-reading-list{font-size:13px}
+.quiz-questions-panel{}
+@media(max-width:720px){
+  .quiz-layout{grid-template-columns:1fr}
+  .quiz-rules-panel{position:static}
+}
+
 /* ---------- QUIZ ---------- */
 .quiz-intro{font-size:14px;color:#c9ccdb;margin-bottom:20px;line-height:1.65;
   padding:14px 16px;background:rgba(255,255,255,.04);border-radius:10px;

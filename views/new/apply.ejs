@@ -246,79 +246,79 @@ function renderBlock(b) {
               </div>
             </div>
 
-            <div class="apw-reading">
-              <button type="button" class="apw-reading-toggle" id="rulesToggle" onclick="toggleRules()" aria-expanded="true">
-                The Collective — Event Rules
-                <svg class="apw-reading-chev" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l5 5 5-5"/></svg>
-              </button>
-              <div class="apw-reading-body" id="rulesBody">
-                <p class="apw-reading-section">General</p>
-                <ul class="apw-reading-list">
-                  <li>You must make every reasonable effort to attend scheduled sessions. Players who repeatedly miss sessions without notice may be removed.</li>
-                  <li>You must communicate in English during the event.</li>
-                  <li>No hacking, cheating, or exploiting bugs. Any unfair advantage must be reported to staff immediately.</li>
-                  <li>No mods that give a gameplay advantage. Performance mods such as Sodium and Optifine are allowed.</li>
-                  <li>Staff decisions are final. Raise disputes through a ticket after the session.</li>
-                  <li>Do not share information about the event publicly before it begins.</li>
-                </ul>
-                <p class="apw-reading-section">Combat</p>
-                <ul class="apw-reading-list">
-                  <li>PvP is disabled during session 1. It enables at the start of session 2 and remains on for the rest of the event.</li>
-                  <li>From session 2 onwards killing other players, including those on your own island, is allowed.</li>
-                  <li>Stealing from other players and bases is allowed.</li>
-                  <li>There are no protected areas outside of the designated no-build zones.</li>
-                  <li>Do not combat log. Disconnecting to avoid death is a bannable offence.</li>
-                  <li>This is not a roleplay server. You can be killed by anyone at any time for any reason from session 2 onwards.</li>
-                </ul>
-                <p class="apw-reading-section">Griefing</p>
-                <ul class="apw-reading-list">
-                  <li>Destroying another player's builds purely to grief with no strategic purpose is not allowed.</li>
-                  <li>Destroying your own island's landscape to grief your own civilisation is not allowed.</li>
-                  <li>Intentionally destroying your own island's altar or ore zones is not allowed.</li>
-                </ul>
-                <p class="apw-reading-section">Gear and Enchantments</p>
-                <ul class="apw-reading-list">
-                  <li>Enchantment caps are enforced by plugin and cannot be bypassed.</li>
-                  <li>Golden apple limits are enforced by plugin.</li>
-                  <li>Do not attempt to duplicate items or exploit any inventory mechanic.</li>
-                </ul>
-                <p class="apw-reading-section">Zones</p>
-                <ul class="apw-reading-list">
-                  <li>No building or breaking blocks inside diamond regen zones, upgrade ore zones, or contested zones.</li>
-                  <li>Do not attempt to exploit zone mechanics or cooldowns.</li>
-                  <li>Do not block or obstruct zone entrances.</li>
-                </ul>
-                <p class="apw-reading-section">Communication</p>
-                <ul class="apw-reading-list">
-                  <li>No sharing of real life personal information about other players.</li>
-                  <li>No harassment, hate speech, or discriminatory language in any chat.</li>
-                  <li>No advertising other servers or Discord servers during the event.</li>
-                  <li>Spamming chat during live sessions is not allowed.</li>
-                </ul>
-                <p class="apw-reading-section">Tickets and Staff</p>
-                <ul class="apw-reading-list">
-                  <li>If you have a complaint or rule break to report during a live session, open a ticket. Do not bring disputes into public chat.</li>
-                  <li>False reports or abuse of the ticket system will result in punishment.</li>
-                  <li>Impersonating staff is a bannable offence.</li>
-                </ul>
-                <p class="apw-reading-section">Content</p>
-                <ul class="apw-reading-list">
-                  <li>By participating in this event you acknowledge that your gameplay may be recorded and used in future content by The Collective. If you do not consent, do not apply.</li>
-                </ul>
-              </div>
-            </div>
-
-            <label class="agr-item" style="margin:20px 0 0">
+            <label class="agr-item" style="margin:20px 0">
               <input type="checkbox" class="agr-check" id="readingConfirmCheck" onchange="onReadingConfirm()"/>
-              <span class="agr-text">I have read and understood the event overview and all rules above.</span>
+              <span class="agr-text">I have read and understood the event overview above.</span>
             </label>
 
-            <div id="quizSection" style="display:none;margin-top:24px">
-              <p class="quiz-intro">Answer these 3 questions correctly to continue. If you get one wrong it resets with a different question — scroll up to check the text above at any time.</p>
-              <div id="quizQ0" class="quiz-question"></div>
-              <div id="quizQ1" class="quiz-question"></div>
-              <div id="quizQ2" class="quiz-question"></div>
-              <div id="quizStatus" class="quiz-status">0 of 3 correct</div>
+            <div id="quizSection" style="display:none">
+              <div class="quiz-layout">
+                <div class="quiz-rules-panel">
+                  <div class="quiz-rules-head">Event Rules — reference</div>
+                  <div class="quiz-rules-body">
+                    <p class="apw-reading-section">General</p>
+                    <ul class="apw-reading-list">
+                      <li>You must make every reasonable effort to attend scheduled sessions. Players who repeatedly miss sessions without notice may be removed.</li>
+                      <li>You must communicate in English during the event.</li>
+                      <li>No hacking, cheating, or exploiting bugs. Any unfair advantage must be reported to staff immediately.</li>
+                      <li>No mods that give a gameplay advantage. Performance mods such as Sodium and Optifine are allowed.</li>
+                      <li>Staff decisions are final. Raise disputes through a ticket after the session.</li>
+                      <li>Do not share information about the event publicly before it begins.</li>
+                    </ul>
+                    <p class="apw-reading-section">Combat</p>
+                    <ul class="apw-reading-list">
+                      <li>PvP is disabled during session 1. It enables at the start of session 2 and remains on for the rest of the event.</li>
+                      <li>From session 2 onwards killing other players, including those on your own island, is allowed.</li>
+                      <li>Stealing from other players and bases is allowed.</li>
+                      <li>There are no protected areas outside of the designated no-build zones.</li>
+                      <li>Do not combat log. Disconnecting to avoid death is a bannable offence.</li>
+                      <li>This is not a roleplay server. You can be killed by anyone at any time for any reason from session 2 onwards.</li>
+                    </ul>
+                    <p class="apw-reading-section">Griefing</p>
+                    <ul class="apw-reading-list">
+                      <li>Destroying another player's builds purely to grief with no strategic purpose is not allowed.</li>
+                      <li>Destroying your own island's landscape to grief your own civilisation is not allowed.</li>
+                      <li>Intentionally destroying your own island's altar or ore zones is not allowed.</li>
+                    </ul>
+                    <p class="apw-reading-section">Gear and Enchantments</p>
+                    <ul class="apw-reading-list">
+                      <li>Enchantment caps are enforced by plugin and cannot be bypassed.</li>
+                      <li>Golden apple limits are enforced by plugin.</li>
+                      <li>Do not attempt to duplicate items or exploit any inventory mechanic.</li>
+                    </ul>
+                    <p class="apw-reading-section">Zones</p>
+                    <ul class="apw-reading-list">
+                      <li>No building or breaking blocks inside diamond regen zones, upgrade ore zones, or contested zones.</li>
+                      <li>Do not attempt to exploit zone mechanics or cooldowns.</li>
+                      <li>Do not block or obstruct zone entrances.</li>
+                    </ul>
+                    <p class="apw-reading-section">Communication</p>
+                    <ul class="apw-reading-list">
+                      <li>No sharing of real life personal information about other players.</li>
+                      <li>No harassment, hate speech, or discriminatory language in any chat.</li>
+                      <li>No advertising other servers or Discord servers during the event.</li>
+                      <li>Spamming chat during live sessions is not allowed.</li>
+                    </ul>
+                    <p class="apw-reading-section">Tickets and Staff</p>
+                    <ul class="apw-reading-list">
+                      <li>If you have a complaint or rule break to report during a live session, open a ticket. Do not bring disputes into public chat.</li>
+                      <li>False reports or abuse of the ticket system will result in punishment.</li>
+                      <li>Impersonating staff is a bannable offence.</li>
+                    </ul>
+                    <p class="apw-reading-section">Content</p>
+                    <ul class="apw-reading-list">
+                      <li>By participating in this event you acknowledge that your gameplay may be recorded and used in future content by The Collective. If you do not consent, do not apply.</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="quiz-questions-panel">
+                  <p class="quiz-intro">Answer all 3 correctly to continue. Wrong answers reset with a different question — refer to the rules on the left at any time.</p>
+                  <div id="quizQ0" class="quiz-question"></div>
+                  <div id="quizQ1" class="quiz-question"></div>
+                  <div id="quizQ2" class="quiz-question"></div>
+                  <div id="quizStatus" class="quiz-status">0 of 3 correct</div>
+                </div>
+              </div>
             </div>
 
             <div class="apw-nav">
@@ -739,15 +739,6 @@ function updateIslandUI() {
   }
 }
 
-// Rules toggle
-function toggleRules() {
-  var btn = document.getElementById('rulesToggle');
-  var body = document.getElementById('rulesBody');
-  var open = btn.getAttribute('aria-expanded') === 'true';
-  btn.setAttribute('aria-expanded', !open);
-  body.style.display = open ? 'none' : '';
-}
-
 // Reading confirmation + quiz reveal
 function onReadingConfirm() {
   var checked = document.getElementById('readingConfirmCheck').checked;
@@ -764,26 +755,23 @@ function onReadingConfirm() {
 
 // Quiz
 var QUIZ_POOL = [
-  { q:'How many sessions does The Collective run across?', opts:['5 sessions','8 sessions','10 sessions','12 sessions'], a:2 },
-  { q:'How many islands are there in the event?', opts:['3','4','5','6'], a:1 },
-  { q:'How long does each session last approximately?', opts:['2 hours','3 hours','4 hours','6 hours'], a:2 },
-  { q:'How many islands are destroyed before the end of the event?', opts:['None','One','Two','Three'], a:2 },
-  { q:'From which session does PvP enable?', opts:['Session 1','Session 2','Session 3','Session 4'], a:1 },
-  { q:'Is PvP enabled during session 1?', opts:['Yes, from the start','No, it is disabled','Only in certain zones','Only in contested zones'], a:1 },
-  { q:'When do gates between islands open?', opts:['Start of session 2','30 minutes into session 3','Start of session 4','End of session 3'], a:1 },
-  { q:'How many diamond regen zones does each island have?', opts:['3','4','6','8'], a:2 },
-  { q:'What size are the diamond regen zones?', opts:['10x10 blocks','15x15 blocks','20x20 blocks','30x30 blocks'], a:2 },
-  { q:'How many upgrade ore zones does each island have?', opts:['2','3','4','6'], a:1 },
-  { q:'Is stealing from other players and their bases allowed?', opts:['No, never','Yes, fully allowed','Only after session 3','Only between islands'], a:1 },
-  { q:'What happens if you disconnect to avoid death?', opts:['You receive a warning','Nothing happens','It is a bannable offence','You lose your gear'], a:2 },
-  { q:'Where should rule breaks be reported during a live session?', opts:['In public chat','Through a ticket','Directly to staff in voice','In Discord after the event'], a:1 },
-  { q:'Which performance mods are allowed?', opts:['Any mods','No mods at all','Mods like Sodium and Optifine','PvP mods only'], a:2 },
-  { q:'What must be brought to the altar to keep your island alive?', opts:['Food and crops','Drops from the creature that roams your island','Foreign ore from other islands','Emeralds'], a:1 },
-  { q:'The altar mechanic is active from session 2 until which session?', opts:['Session 5','Session 6','Session 7','Session 8'], a:2 },
-  { q:'Is pure griefing with no strategic purpose allowed?', opts:['Yes, completely','No, it is not allowed','Only on enemy islands','Only in sessions 1-3'], a:1 },
-  { q:'How many gold regen zones does the desert island have?', opts:['1','2','3','4'], a:1 },
-  { q:'What is the maximum Protection enchantment allowed in sessions 1-3?', opts:['Protection 1','Protection 2','Protection 3','Protection 4'], a:1 },
-  { q:'From which session are enchantment caps lifted for the second time?', opts:['Session 5','Session 6','Session 7','Session 8'], a:2 }
+  { q:'Is PvP enabled during session 1?', opts:['Yes, from the start','No, it is disabled','Only near the walls','Only in contested zones'], a:1 },
+  { q:'From which session is PvP permanently enabled?', opts:['Session 1','Session 2','Session 3','Session 4'], a:1 },
+  { q:'What happens if you disconnect to avoid death?', opts:['You receive a warning','Nothing — it is allowed','It is a bannable offence','You lose your items'], a:2 },
+  { q:'Is stealing from other players and their bases allowed?', opts:['No, never','Yes, it is fully allowed','Only after session 3','Only between islands'], a:1 },
+  { q:'Is destroying another player\'s builds purely to grief allowed?', opts:['Yes, completely','No, it is not allowed','Only on enemy islands','Only in early sessions'], a:1 },
+  { q:'Where should you report a rule break during a live session?', opts:['In public chat','By opening a ticket','By messaging a staff member directly','In Discord after the event'], a:1 },
+  { q:'Which mods are explicitly allowed?', opts:['Any PvP mods','No mods at all','Performance mods like Sodium and Optifine','Any client-side mods'], a:2 },
+  { q:'Is impersonating staff a bannable offence?', opts:['No, just a warning','Yes','Only if done repeatedly','Only in public chat'], a:1 },
+  { q:'Can you share information about the event publicly before it begins?', opts:['Yes, freely','No','Only with your own community','Only after sign-up closes'], a:1 },
+  { q:'Is killing a player on your own island allowed from session 2?', opts:['No, only players from other islands','Yes, anyone can be killed from session 2','Only with staff permission','Only in contested zones'], a:1 },
+  { q:'Can you advertise other servers or Discord servers during the event?', opts:['Yes, freely','No, it is not allowed','Only in private messages','Only before sessions'], a:1 },
+  { q:'Is sharing another player\'s real life personal information allowed?', opts:['Yes, if they agree','No, never','Only if relevant to a dispute','Only between friends'], a:1 },
+  { q:'Are enchantment caps enforced by plugin?', opts:['No, it is the honour system','Yes, and they cannot be bypassed','Only from session 4','Only for armour'], a:1 },
+  { q:'Can you place or break blocks inside diamond regen zones?', opts:['Yes','No — no building or breaking allowed inside','Only to defend them','Only on your own island'], a:1 },
+  { q:'What happens if you abuse the ticket system with false reports?', opts:['Nothing','You receive a warning','You will be punished','You are automatically removed'], a:2 },
+  { q:'Must you communicate in English during the event?', opts:['No, any language is fine','Yes','Only during combat','Only in public chat'], a:1 },
+  { q:'Is intentionally destroying your own island\'s altar allowed?', opts:['Yes, it is your island','No, it is not allowed','Only in sessions 1-2','Only with your island\'s agreement'], a:1 },
 ];
 var quizAnswered = [false, false, false];
 var quizCurrent = [null, null, null];
