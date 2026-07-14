@@ -557,7 +557,7 @@
 .nd-inline-link:hover{text-decoration:underline}
 
 /* ---------- APPLY WIZARD ---------- */
-.apw-wrap{max-width:640px;margin:0 auto;padding-bottom:60px}
+.apw-wrap{max-width:940px;margin:0 auto;padding-bottom:60px}
 
 /* Status screens */
 .apw-status{

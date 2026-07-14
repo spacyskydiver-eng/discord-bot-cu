@@ -35,6 +35,14 @@ function renderBlock(b) {
 
   <div class="apw-wrap">
 
+    <% if (locals.isAdmin) { %>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;padding:10px 14px;background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);border-radius:10px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <span style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:#fbbf24;letter-spacing:.05em">ADMIN PREVIEW</span>
+      <button id="adminSkipBtn" type="button" onclick="toggleAdminSkip()" style="margin-left:auto;font-family:'Baloo 2';font-weight:700;font-size:12px;padding:4px 12px;border-radius:7px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#c9ccdb;cursor:pointer;">Skip OFF</button>
+    </div>
+    <% } %>
+
     <% if (!event) { %>
       <div class="apw-status">
         <div class="apw-status-icon">—</div>
@@ -589,6 +597,23 @@ document.querySelectorAll('.tz-stamp').forEach(function(el) {
   } catch(_) {}
 });
 
+// Admin preview mode
+var ADMIN_PREVIEW = <%- locals.isAdmin ? 'true' : 'false' %>;
+var adminSkipOn = false;
+function toggleAdminSkip() {
+  adminSkipOn = !adminSkipOn;
+  var btn = document.getElementById('adminSkipBtn');
+  btn.textContent = adminSkipOn ? 'Skip ON' : 'Skip OFF';
+  btn.style.background = adminSkipOn ? 'rgba(251,191,36,.25)' : 'rgba(255,255,255,.08)';
+  btn.style.borderColor = adminSkipOn ? '#fbbf24' : 'rgba(255,255,255,.15)';
+  btn.style.color = adminSkipOn ? '#fbbf24' : '#c9ccdb';
+  if (adminSkipOn) {
+    document.getElementById('quizNextBtn').disabled = false;
+    quizAnswered = [true, true, true];
+    updateQuizStatus();
+  }
+}
+
 // Stage navigation
 var currentStageNum = 1;
 function goStage(n) {
@@ -767,8 +792,6 @@ var QUIZ_POOL = [
   { q:'Is killing a player on your own island allowed from session 2?', opts:['No, only players from other islands','Yes, anyone can be killed from session 2','Only with staff permission','Only in contested zones'], a:1 },
   { q:'Can you advertise other servers or Discord servers during the event?', opts:['Yes, freely','No, it is not allowed','Only in private messages','Only before sessions'], a:1 },
   { q:'Is sharing another player\'s real life personal information allowed?', opts:['Yes, if they agree','No, never','Only if relevant to a dispute','Only between friends'], a:1 },
-  { q:'Are enchantment caps enforced by plugin?', opts:['No, it is the honour system','Yes, and they cannot be bypassed','Only from session 4','Only for armour'], a:1 },
-  { q:'Can you place or break blocks inside diamond regen zones?', opts:['Yes','No — no building or breaking allowed inside','Only to defend them','Only on your own island'], a:1 },
   { q:'What happens if you abuse the ticket system with false reports?', opts:['Nothing','You receive a warning','You will be punished','You are automatically removed'], a:2 },
   { q:'Must you communicate in English during the event?', opts:['No, any language is fine','Yes','Only during combat','Only in public chat'], a:1 },
   { q:'Is intentionally destroying your own island\'s altar allowed?', opts:['Yes, it is your island','No, it is not allowed','Only in sessions 1-2','Only with your island\'s agreement'], a:1 },
@@ -843,6 +866,7 @@ function updateQuizStatus() {
 
 // Stage validation
 function nextFrom(stage) {
+  if (adminSkipOn) { goStage(stage + 1); return; }
   if (stage === 3) {
     var required = ['ign','discord_username','age','country','how_heard'];
     for (var i = 0; i < required.length; i++) {

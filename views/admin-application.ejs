@@ -147,11 +147,39 @@
             <% } %>
           </div>
 
-          <div class="review-section" style="border-bottom:none">
+          <div class="review-section">
             <div class="review-section-label">Stage 6 — Agreements</div>
             <p class="<%= app.agreements_confirmed ? '' : 'muted' %>">
               <%= app.agreements_confirmed ? 'All four agreements confirmed.' : 'Agreements not confirmed.' %>
             </p>
+          </div>
+
+          <div class="review-section">
+            <div class="review-section-label">Island Preferences (applicant ranked)</div>
+            <% const choices = app.island_choices; %>
+            <% if (choices && choices.length) { %>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <% choices.forEach(function(isle, i) { %>
+                  <% if (isle) { %>
+                    <span style="font-size:13px;padding:4px 12px;background:rgba(255,255,255,.07);border-radius:99px;color:#e0e2ed">
+                      <span style="color:var(--muted);font-size:11px">#<%= i+1 %> </span><%= isle.charAt(0).toUpperCase()+isle.slice(1) %>
+                    </span>
+                  <% } %>
+                <% }); %>
+              </div>
+            <% } else { %>
+              <p class="muted">No island preferences submitted.</p>
+            <% } %>
+          </div>
+
+          <div class="review-section" style="border-bottom:none">
+            <div class="review-section-label">Friend Requests</div>
+            <% if (app.friend_requests && app.friend_requests.trim()) { %>
+              <p style="white-space:pre-wrap"><%= app.friend_requests %></p>
+              <p class="muted" style="font-size:0.78rem;margin-top:4px">Check that these players have also listed <%= app.ign %> in their own friend requests.</p>
+            <% } else { %>
+              <p class="muted">No friend requests listed.</p>
+            <% } %>
           </div>
         </div>
 
@@ -173,6 +201,23 @@
             <div class="review-qrow"><span class="muted">Age</span><span><%= app.age || '—' %></span></div>
             <div class="review-qrow"><span class="muted">Country</span><span><%= app.country || '—' %></span></div>
             <div class="review-qrow"><span class="muted">Content creator</span><span><%= app.creates_content ? 'Yes' : 'No' %></span></div>
+          </div>
+
+          <div class="review-scard">
+            <h3>Island Assignment</h3>
+            <form action="/admin/application/<%= app.id %>/island" method="POST">
+              <select name="island" class="form-select" style="width:100%;margin-bottom:0.5rem;padding:8px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:#e0e2ed;font-size:14px">
+                <option value="">— Not assigned —</option>
+                <option value="jungle" <%= app.island_assignment==='jungle' ? 'selected' : '' %>>Jungle</option>
+                <option value="snow" <%= app.island_assignment==='snow' ? 'selected' : '' %>>Snow</option>
+                <option value="badlands" <%= app.island_assignment==='badlands' ? 'selected' : '' %>>Badlands</option>
+                <option value="forest" <%= app.island_assignment==='forest' ? 'selected' : '' %>>Forest</option>
+              </select>
+              <button type="submit" class="btn btn-primary btn-sm" style="width:100%">Save Island</button>
+            </form>
+            <% if (app.island_choices && app.island_choices.length) { %>
+              <p class="muted" style="font-size:0.75rem;margin-top:8px">Their preference: <%= app.island_choices.filter(Boolean).map((s,i)=>`#${i+1} ${s.charAt(0).toUpperCase()+s.slice(1)}`).join(', ') %></p>
+            <% } %>
           </div>
 
           <div class="review-scard">

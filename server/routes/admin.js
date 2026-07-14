@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../../db');
+const { sendDiscordDM } = require('../discord-dm');
 const multer = require('multer');
 const path = require('path');
 
@@ -130,6 +131,8 @@ router.get('/application/:id', async (req, res) => {
 // Update application status (manual override / reset)
 router.post('/application/:id/status', async (req, res) => {
   const { status } = req.body;
+  const appRes = await db.query(`SELECT discord_id, ign FROM structured_applications WHERE id=$1`, [req.params.id]);
+  const app = appRes.rows[0];
   if (status === 'pending') {
     await db.query(
       `UPDATE structured_applications SET status='pending', accepted_at=NULL, declined_at_stage=NULL, review_stage=2 WHERE id=$1`,
@@ -140,10 +143,16 @@ router.post('/application/:id/status', async (req, res) => {
       `UPDATE structured_applications SET status='accepted', accepted_at=$1 WHERE id=$2`,
       [new Date(), req.params.id]
     );
+    if (app) sendDiscordDM(app.discord_id,
+      `**Your application has been accepted!**\n\nCongratulations ${app.ign || ''} — you've been accepted into **The Collective**. Keep an eye out for further details on what happens next.`
+    );
   } else if (status === 'declined') {
     await db.query(
       `UPDATE structured_applications SET status='declined' WHERE id=$1`,
       [req.params.id]
+    );
+    if (app) sendDiscordDM(app.discord_id,
+      `**Application update — The Collective**\n\nHi ${app.ign || ''}, unfortunately your application has not been successful this time. Thank you for applying.`
     );
   }
   res.redirect(`/admin/application/${req.params.id}`);
@@ -151,13 +160,17 @@ router.post('/application/:id/status', async (req, res) => {
 
 // Pass current review stage (advance to next, or accept if at stage 6)
 router.post('/application/:id/pass-stage', async (req, res) => {
-  const appRes = await db.query(`SELECT review_stage FROM structured_applications WHERE id = $1`, [req.params.id]);
+  const appRes = await db.query(`SELECT review_stage, discord_id, ign FROM structured_applications WHERE id = $1`, [req.params.id]);
   if (!appRes.rows.length) return res.redirect('/admin');
-  const stage = appRes.rows[0].review_stage || 2;
+  const { review_stage, discord_id, ign } = appRes.rows[0];
+  const stage = review_stage || 2;
   if (stage >= 6) {
     await db.query(
       `UPDATE structured_applications SET status='accepted', accepted_at=$1 WHERE id=$2`,
       [new Date(), req.params.id]
+    );
+    sendDiscordDM(discord_id,
+      `**Your application has been accepted!**\n\nCongratulations ${ign || ''} — you've been accepted into **The Collective**. Keep an eye out for further details on what happens next.`
     );
   } else {
     await db.query(
@@ -170,12 +183,28 @@ router.post('/application/:id/pass-stage', async (req, res) => {
 
 // Decline at current review stage
 router.post('/application/:id/decline-stage', async (req, res) => {
-  const appRes = await db.query(`SELECT review_stage FROM structured_applications WHERE id = $1`, [req.params.id]);
+  const appRes = await db.query(`SELECT review_stage, discord_id, ign FROM structured_applications WHERE id = $1`, [req.params.id]);
   if (!appRes.rows.length) return res.redirect('/admin');
-  const stage = appRes.rows[0].review_stage || 2;
+  const { review_stage, discord_id, ign } = appRes.rows[0];
+  const stage = review_stage || 2;
   await db.query(
     `UPDATE structured_applications SET status='declined', declined_at_stage=$1 WHERE id=$2`,
     [stage, req.params.id]
+  );
+  sendDiscordDM(discord_id,
+    `**Application update — The Collective**\n\nHi ${ign || ''}, unfortunately your application has not been successful at this stage. Thank you for taking the time to apply.`
+  );
+  res.redirect(`/admin/application/${req.params.id}`);
+});
+
+// Island assignment
+router.post('/application/:id/island', async (req, res) => {
+  const { island } = req.body;
+  const valid = ['jungle','snow','badlands','forest',''];
+  if (!valid.includes(island)) return res.redirect(`/admin/application/${req.params.id}`);
+  await db.query(
+    `UPDATE structured_applications SET island_assignment=$1 WHERE id=$2`,
+    [island || null, req.params.id]
   );
   res.redirect(`/admin/application/${req.params.id}`);
 });

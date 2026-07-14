@@ -502,13 +502,20 @@
       <% if (statDisq > 0) { %><div class="nd-app-stat"><span><%= statDisq %></span><span>Disqualified</span></div><% } %>
     </div>
 
-    <div class="nd-filter-row">
+    <div class="nd-filter-row" style="flex-wrap:wrap;gap:6px">
       <button class="nd-filter-btn active" onclick="filterApps('all',this)">All (<%= statTotal %>)</button>
       <button class="nd-filter-btn" onclick="filterApps('pending',this)">Pending (<%= statPending %>)</button>
       <% for (let s = 2; s <= 6; s++) { const stageLabels = {2:'Basic',3:'Playstyle',4:'Scenarios',5:'Application',6:'Agreement'}; const sn2 = applications.filter(a=>a.status==='pending'&&(a.review_stage||2)===s).length; if(sn2>0){ %><button class="nd-filter-btn" onclick="filterApps('stage<%= s %>',this)">S<%= s %>: <%= stageLabels[s] %> (<%= sn2 %>)</button><% } } %>
       <button class="nd-filter-btn" onclick="filterApps('accepted',this)">Accepted (<%= statAccepted %>)</button>
       <button class="nd-filter-btn" onclick="filterApps('declined',this)">Declined (<%= statDeclined %>)</button>
-      <input type="text" class="nd-input nd-search" id="appSearch" placeholder="Search IGN or Discord..." oninput="filterApps(null,null)">
+      <div style="display:flex;gap:5px;margin-left:auto;align-items:center">
+        <span style="font-size:11px;color:var(--muted);font-family:'Baloo 2';font-weight:700;letter-spacing:.04em">SORT</span>
+        <button class="nd-filter-btn" onclick="sortApps('newest',this)">Newest</button>
+        <button class="nd-filter-btn" onclick="sortApps('oldest',this)">Oldest</button>
+        <button class="nd-filter-btn" onclick="sortApps('words',this)">Most Words</button>
+        <button class="nd-filter-btn" onclick="sortApps('video',this)">Video First</button>
+      </div>
+      <input type="text" class="nd-input nd-search" id="appSearch" placeholder="Search IGN or Discord..." oninput="filterApps(null,null)" style="width:200px">
     </div>
 
     <% const listedApps = applications.filter(a=>a.status!=='disqualified'); %>
@@ -516,14 +523,18 @@
       <div class="nd-card"><p style="color:var(--muted)">No applications yet.</p></div>
     <% } else { %>
       <div class="nd-card" style="padding:0;overflow:hidden">
-        <div class="nd-app-head"><span>Applicant</span><span>IGN</span><span>Playstyle</span><span>Submitted</span><span>Status</span><span></span></div>
+        <div class="nd-app-head"><span>Applicant</span><span>IGN</span><span>Type</span><span>Words</span><span>Island Pref.</span><span>Submitted</span><span>Status</span><span></span></div>
         <div id="appList">
           <% for (const a of listedApps) { %>
-            <div class="nd-app-row" data-status="<%= a.status %>" data-stage="stage<%= a.review_stage||2 %>" data-search="<%= ((a.ign||'')+(a.discord_tag||'')).toLowerCase() %>">
+            <% const wordCount = a.written_app ? a.written_app.trim().split(/\s+/).filter(Boolean).length : 0; %>
+            <% const topIsland = Array.isArray(a.island_choices) ? a.island_choices[0] : (a.island_choices ? a.island_choices[0] : null); %>
+            <div class="nd-app-row" data-status="<%= a.status %>" data-stage="stage<%= a.review_stage||2 %>" data-search="<%= ((a.ign||'')+(a.discord_tag||'')).toLowerCase() %>" data-words="<%= wordCount %>" data-type="<%= a.app_type||'' %>" data-submitted="<%= a.submitted_at ? new Date(a.submitted_at).getTime() : 0 %>">
               <span><img src="<%= a.discord_avatar||'' %>" class="nd-app-avatar" onerror="this.style.display='none'"><span style="font-size:13px;color:var(--muted)">@<%= a.discord_tag||'—' %></span></span>
               <span style="font-size:14px;color:#e0e2ed"><%= a.ign||'—' %></span>
-              <span><% if(a.playstyle){ %><span class="nd-playstyle-badge"><%= a.playstyle %></span><% }else{ %>—<% } %></span>
-              <span style="font-size:13px;color:var(--muted)"><%= new Date(a.submitted_at).toLocaleDateString('en-GB') %></span>
+              <span><% if(a.app_type==='video'){ %><span style="font-size:11px;font-family:'Baloo 2';font-weight:800;color:#74c0fc;background:rgba(116,192,252,.12);padding:2px 8px;border-radius:99px">VIDEO</span><% }else if(a.app_type==='written'){ %><span style="font-size:11px;font-family:'Baloo 2';font-weight:800;color:#c9ccdb;background:rgba(255,255,255,.07);padding:2px 8px;border-radius:99px">TEXT</span><% }else{ %>—<% } %></span>
+              <span style="font-size:13px;color:<%= wordCount>=150?'#5be38f':'var(--muted)' %>"><%= a.app_type==='video'?'—':wordCount %></span>
+              <span style="font-size:13px;color:var(--muted)"><%= topIsland ? topIsland.charAt(0).toUpperCase()+topIsland.slice(1) : '—' %></span>
+              <span style="font-size:13px;color:var(--muted)"><%= a.submitted_at ? new Date(a.submitted_at).toLocaleDateString('en-GB') : '—' %></span>
               <span><span class="nd-status nd-status-<%= a.status %>"><%= a.status %></span><% if(a.status==='pending'){ %><span class="nd-stage-chip">S<%= a.review_stage||2 %></span><% } %></span>
               <span><a href="/admin/application/<%= a.id %>" class="nd-btn nd-btn-ghost nd-btn-sm">Review</a></span>
             </div>
@@ -533,18 +544,57 @@
       </div>
     <% } %>
 
-    <% const accepted = applications.filter(a=>a.status==='accepted'); %>
+    <%
+      const accepted = applications.filter(a=>a.status==='accepted');
+      const ISLANDS = ['jungle','snow','badlands','forest'];
+      const islandNames = {jungle:'Jungle',snow:'Snow',badlands:'Badlands',forest:'Forest'};
+    %>
     <% if (accepted.length > 0) { %>
       <div class="nd-card" style="margin-top:20px">
-        <h3>Accepted Players (<%= accepted.length %>)</h3>
-        <div class="nd-roster">
-          <% for (const a of accepted) { %>
-            <a href="/admin/application/<%= a.id %>" class="nd-roster-card">
-              <img src="<%= a.discord_avatar||'' %>" onerror="this.style.display='none'">
-              <span><%= a.ign||a.discord_tag %></span>
-              <% if(a.playstyle){ %><span class="nd-playstyle-badge" style="font-size:10px"><%= a.playstyle %></span><% } %>
-            </a>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <h3 style="margin:0">Island Assignment (<%= accepted.length %> accepted)</h3>
+          <span style="font-size:12px;color:var(--muted)">Click an island on each player's review page to assign them</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+          <% for (const isle of ISLANDS) { %>
+            <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;overflow:hidden">
+              <div style="padding:10px 14px;background:rgba(255,255,255,.07);font-family:'Baloo 2';font-weight:800;font-size:13px;color:#fff;border-bottom:1px solid rgba(255,255,255,.08)"><%= islandNames[isle] %></div>
+              <div style="padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-height:60px">
+                <% const isleApps = accepted.filter(a=>a.island_assignment===isle); %>
+                <% if (isleApps.length === 0) { %><span style="font-size:12px;color:var(--muted)">Unassigned</span><% } %>
+                <% for (const a of isleApps) { %>
+                  <a href="/admin/application/<%= a.id %>" style="display:flex;align-items:center;gap:6px;text-decoration:none">
+                    <img src="<%= a.discord_avatar||'' %>" style="width:20px;height:20px;border-radius:50%;object-fit:cover" onerror="this.style.display='none'">
+                    <span style="font-size:13px;color:#e0e2ed"><%= a.ign||a.discord_tag %></span>
+                  </a>
+                <% } %>
+              </div>
+            </div>
           <% } %>
+        </div>
+        <% const unassigned = accepted.filter(a=>!a.island_assignment); %>
+        <% if (unassigned.length > 0) { %>
+          <div style="margin-top:12px;padding:10px 14px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:8px">
+            <span style="font-size:12px;font-family:'Baloo 2';font-weight:700;color:#fbbf24"><%= unassigned.length %> player<%= unassigned.length===1?'':'s' %> not yet assigned to an island:</span>
+            <span style="font-size:13px;color:#c9ccdb;margin-left:8px"><%= unassigned.map(a=>a.ign||a.discord_tag).join(', ') %></span>
+          </div>
+        <% } %>
+      </div>
+
+      <div class="nd-card" style="margin-top:16px">
+        <h3>Friend Requests Overview</h3>
+        <div style="display:flex;flex-direction:column;gap:8px">
+        <% for (const a of accepted) { if (!a.friend_requests || !a.friend_requests.trim()) continue; %>
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:8px;border:1px solid rgba(255,255,255,.07)">
+            <img src="<%= a.discord_avatar||'' %>" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;margin-top:2px" onerror="this.style.display='none'">
+            <div>
+              <span style="font-family:'Baloo 2';font-weight:700;font-size:13px;color:#e0e2ed"><%= a.ign||a.discord_tag %></span>
+              <span style="font-size:12px;color:var(--muted);margin:0 6px">wants to be with:</span>
+              <span style="font-size:13px;color:#c9ccdb"><%= a.friend_requests %></span>
+            </div>
+          </div>
+        <% } %>
+        <% if (accepted.every(a=>!a.friend_requests||!a.friend_requests.trim())) { %><p style="color:var(--muted);font-size:13px">No friend requests listed.</p><% } %>
         </div>
       </div>
     <% } %>
@@ -1031,6 +1081,22 @@ function filterApps(filter,btn){
   });
   const empty=document.getElementById('appEmptyMsg');
   if(empty) empty.style.display=visible===0&&rows.length>0?'block':'none';
+}
+function sortApps(by, btn){
+  const list=document.getElementById('appList');
+  if(!list) return;
+  const rows=[...list.querySelectorAll('.nd-app-row')];
+  rows.sort((a,b)=>{
+    if(by==='newest') return Number(b.dataset.submitted||0)-Number(a.dataset.submitted||0);
+    if(by==='oldest') return Number(a.dataset.submitted||0)-Number(b.dataset.submitted||0);
+    if(by==='words') return Number(b.dataset.words||0)-Number(a.dataset.words||0);
+    if(by==='video'){
+      const av=a.dataset.type==='video'?0:1, bv=b.dataset.type==='video'?0:1;
+      return av-bv;
+    }
+    return 0;
+  });
+  rows.forEach(r=>list.appendChild(r));
 }
 
 /* ── Stage accordion ── */

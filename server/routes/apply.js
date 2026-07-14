@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../../db');
+const { sendDiscordDM } = require('../discord-dm');
 
 router.get('/', async (req, res) => {
   const eventRes = await db.query(`SELECT * FROM events ORDER BY created_at DESC LIMIT 1`);
@@ -92,6 +93,10 @@ router.post('/submit', async (req, res) => {
       req.session.user.id, req.session.user.avatar, req.session.user.username,
       parsedIslandChoices, friend_requests || null
     ]
+  );
+
+  sendDiscordDM(req.session.user.id,
+    `**Your application has been submitted!**\n\nThanks ${req.session.user.username} — we've received your application for **${event.title || 'The Collective'}**. We'll review it and update you here when there's a decision. Good luck!`
   );
 
   res.redirect('/apply?submitted=1');
