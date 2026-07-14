@@ -138,6 +138,13 @@ function renderBlock(b) {
 
     <% } else { %>
 
+      <!-- Draft resume banner (hidden by default, shown by JS) -->
+      <div id="resumeBanner" style="display:none;align-items:center;gap:10px;padding:10px 16px;margin-bottom:14px;background:rgba(116,192,252,.08);border:1px solid rgba(116,192,252,.2);border-radius:10px;font-size:13px;color:#74c0fc;font-family:'Baloo 2',sans-serif;font-weight:700">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><path d="M12 2v10l4 2"/><circle cx="12" cy="12" r="10"/></svg>
+        Resuming your draft — picked up from stage <span id="resumeStageNum">1</span>
+        <button type="button" onclick="clearDraft();this.closest('#resumeBanner').style.display='none'" style="margin-left:auto;background:none;border:none;color:#74c0fc;cursor:pointer;font-size:12px;opacity:.7">Clear draft ✕</button>
+      </div>
+
       <!-- Step bar -->
       <div class="apw-steps" id="wizardHeader">
         <% ['Eligibility','Understanding','Basic Info','Playstyle','Scenarios','Application','Agreement'].forEach(function(name, i) { %>
@@ -626,6 +633,7 @@ function goStage(n) {
   });
   document.getElementById('stage-' + n).classList.add('active');
   currentStageNum = n;
+  saveDraft();
 
   document.querySelectorAll('.wizard-step').forEach(function(el, i) {
     el.classList.toggle('done', i + 1 < n);
@@ -924,6 +932,146 @@ function nextFrom(stage) {
   }
   goStage(stage + 1);
 }
+
+// ── Draft persistence ──────────────────────────────────────────────────────
+var DRAFT_KEY = 'tfn_draft_' + '<%= locals.user ? locals.user.id : "guest" %>';
+var DRAFT_EXISTS = <%- locals.existing ? 'true' : 'false' %>;
+
+function _dv(sel) { var e = document.querySelector(sel); return e ? e.value : ''; }
+function _di(id)  { var e = document.getElementById(id);  return e ? e.value : ''; }
+
+function saveDraft() {
+  if (DRAFT_EXISTS || !document.getElementById('applyForm')) return;
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({
+      v: 2,
+      stage: currentStageNum,
+      quizPassed: quizAnswered.every(Boolean),
+      elig:        _di('eligAnswersInput'),
+      ign:         _dv('[name="ign"]'),
+      disc:        _dv('[name="discord_username"]'),
+      age:         _dv('[name="age"]'),
+      country:     _dv('[name="country"]'),
+      how_heard:   _dv('[name="how_heard"]'),
+      played_civ:  _di('playedCivVal'),
+      civ_details: _dv('[name="played_civ_details"]'),
+      creates_content: _di('createsContentVal'),
+      content_link: _dv('[name="content_link"]'),
+      islandRanks: islandRanks,
+      friends:     _dv('[name="friend_requests"]'),
+      playstyle:   _di('playstyleVal'),
+      ps_desc:     _dv('[name="playstyle_description"]'),
+      s1:          _dv('[name="scenario_1"]'),
+      s2:          _dv('[name="scenario_2"]'),
+      s3:          _dv('[name="scenario_3"]'),
+      app_type:    _di('appTypeVal'),
+      video_link:  _di('videoLinkInput'),
+      written_app: _di('writtenInput'),
+    }));
+  } catch(e) {}
+}
+
+function clearDraft() {
+  try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
+}
+
+function loadDraft() {
+  if (DRAFT_EXISTS) { clearDraft(); return; }
+  if (!document.getElementById('applyForm')) return;
+  try {
+    var raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return;
+    var d = JSON.parse(raw);
+    if (d.v !== 2) { clearDraft(); return; }
+
+    function sv(sel, v) { var e = document.querySelector(sel); if (e && v) e.value = v; }
+    function si(id,  v) { var e = document.getElementById(id);  if (e && v) e.value = v; }
+
+    sv('[name="ign"]',                d.ign);
+    sv('[name="discord_username"]',   d.disc);
+    sv('[name="age"]',                d.age);
+    sv('[name="country"]',            d.country);
+    sv('[name="how_heard"]',          d.how_heard);
+    sv('[name="played_civ_details"]', d.civ_details);
+    sv('[name="content_link"]',       d.content_link);
+    sv('[name="friend_requests"]',    d.friends);
+    sv('[name="playstyle_description"]', d.ps_desc);
+    sv('[name="scenario_1"]',         d.s1);
+    sv('[name="scenario_2"]',         d.s2);
+    sv('[name="scenario_3"]',         d.s3);
+    si('videoLinkInput',              d.video_link);
+    if (d.written_app) {
+      si('writtenInput', d.written_app);
+      var wi = document.getElementById('writtenInput');
+      if (wi) updateWordCount(wi);
+    }
+    if (d.elig) si('eligAnswersInput', d.elig);
+
+    // played_civ toggle button
+    if (d.played_civ === 'yes') {
+      var yBtn = document.querySelector('[onclick*="playedCivVal"][onclick*="\'yes\'"]');
+      if (yBtn) yBtn.click();
+    }
+
+    // creates_content toggle button
+    if (d.creates_content === 'yes') {
+      var cBtn = document.querySelector('[onclick*="createsContentVal"][onclick*="\'yes\'"]');
+      if (cBtn) cBtn.click();
+    }
+
+    // island ranks
+    if (d.islandRanks && Object.keys(d.islandRanks).length) {
+      islandRanks = d.islandRanks;
+      updateIslandUI();
+    }
+
+    // playstyle card
+    if (d.playstyle) {
+      var psCard = document.querySelector('.playstyle-card[data-val="' + d.playstyle + '"]');
+      if (psCard) pickPlaystyle(psCard);
+    }
+
+    // app type card
+    if (d.app_type) {
+      var atCard = document.querySelector('.app-type-card[data-type="' + d.app_type + '"]');
+      if (atCard) pickAppType(d.app_type, atCard);
+    }
+
+    // quiz state
+    if (d.quizPassed) {
+      quizAnswered = [true, true, true];
+      var qBtn = document.getElementById('quizNextBtn');
+      if (qBtn) qBtn.disabled = false;
+    }
+
+    // Jump to saved stage and show banner
+    var target = parseInt(d.stage) || 1;
+    if (target > 1) {
+      goStage(target);
+      var banner = document.getElementById('resumeBanner');
+      if (banner) {
+        banner.style.display = 'flex';
+        document.getElementById('resumeStageNum').textContent = target;
+      }
+    }
+  } catch(e) {}
+}
+
+// Auto-save on every text input (debounced 600ms)
+var _saveTimer;
+document.querySelectorAll('.apw-textarea, .apw-input').forEach(function(el) {
+  el.addEventListener('input', function() {
+    clearTimeout(_saveTimer);
+    _saveTimer = setTimeout(saveDraft, 600);
+  });
+});
+
+// Clear draft on successful submit
+var _applyForm = document.getElementById('applyForm');
+if (_applyForm) _applyForm.addEventListener('submit', clearDraft);
+
+// Restore draft on page load
+loadDraft();
 </script>
 
 <%- include('partials/foot') %>
