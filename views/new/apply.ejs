@@ -132,11 +132,11 @@ function renderBlock(b) {
 
       <!-- Step bar -->
       <div class="apw-steps" id="wizardHeader">
-        <% ['Eligibility','Basic Info','Playstyle','Scenarios','Application','Agreement'].forEach(function(name, i) { %>
+        <% ['Eligibility','Understanding','Basic Info','Playstyle','Scenarios','Application','Agreement'].forEach(function(name, i) { %>
           <div class="wizard-step <%= i === 0 ? 'active' : '' %>" data-stage="<%= i+1 %>">
             <div class="apw-step-num"><%= i+1 %></div>
           </div>
-          <% if (i < 5) { %><div class="wizard-connector"></div><% } %>
+          <% if (i < 6) { %><div class="wizard-connector"></div><% } %>
         <% }); %>
       </div>
 
@@ -181,9 +181,153 @@ function renderBlock(b) {
             </div>
           </div>
 
-          <!-- ── STAGE 2: BASIC INFO ── -->
+          <!-- ── STAGE 2: EVENT UNDERSTANDING + QUIZ ── -->
           <div class="wizard-stage apw-stage" id="stage-2">
-            <div class="apw-stage-num">Stage 2 of 6</div>
+            <div class="apw-stage-num">Stage 2 of 7</div>
+            <h2>Understanding The Event</h2>
+            <p class="apw-stage-sub">Read the overview and rules below, confirm you've read them, then answer 3 quick questions to continue.</p>
+
+            <div class="apw-reading">
+              <div class="apw-reading-head">Understanding The Collective — The Basics</div>
+              <div class="apw-reading-body">
+                <p>The Collective is a civilisation event. You are not just a player — you are a member of a civilisation, and your decisions affect everyone on your island.</p>
+                <p>You will be assigned to one of four islands — jungle, plains, badlands, or ice. Each island has its own terrain, resources, and challenges. You begin completely isolated with no way to reach other islands. There are no forced teams, no factions plugin, and no scripted outcomes. Every alliance, every betrayal, and every war is built entirely by the people playing.</p>
+                <p>The event runs across 10 scheduled sessions each lasting around 4 hours. This is not a 24/7 server. Sessions are planned and announced in advance. What you build, who you trust, and what you decide between sessions matters just as much as what happens during them.</p>
+                <p>Two islands will be destroyed before the end. The world is slowly dying. What happens after that is entirely up to the players.</p>
+              </div>
+            </div>
+
+            <div class="apw-reading">
+              <div class="apw-reading-head">Understanding The Collective — The Full System</div>
+              <div class="apw-reading-body">
+                <p class="apw-reading-section">The Altar</p>
+                <p>At the heart of each island lies an ancient altar. To keep your island alive your civilisation must hunt the creature that roams your land and bring what it drops as an offering to the altar. Every session the scores are tallied. The island that has contributed the least starts to crack and decay. If your island falls too far behind it gets destroyed — and everyone on it must find a new home on a surviving island.</p>
+                <p>The altar mechanic is active from session 2 and ends after session 7 when only two islands remain.</p>
+
+                <p class="apw-reading-section">The Gates and Crossing Points</p>
+                <p>A wall separates every island from each other. The only way between islands is through dedicated crossing points built into the wall. Gates open 30 minutes into session 3. Contested zones at the crossing points open 2 hours after the gates. From session 8 onwards all crossing restrictions are lifted and players can travel freely between the two remaining islands.</p>
+
+                <p class="apw-reading-section">Diamond Regen Zones</p>
+                <p>Every island has 6 diamond regen zones spread across it. These are 20x20 block areas where players cannot place or break blocks. Diamond ore regenerates inside on a cooldown. These zones are your primary source of diamonds for crafting gear. Players from any island can enter and mine your zones — defending them is your responsibility.</p>
+                <p>Zones can be upgraded by bringing foreign ore to the zone:</p>
+                <ul class="apw-reading-list">
+                  <li><strong>Tier 1</strong> (default): 4 diamonds, 30 minute cooldown</li>
+                  <li><strong>Tier 2</strong> (costs 32 foreign ore): 7 diamonds, 25 minute cooldown</li>
+                  <li><strong>Tier 3</strong> (costs 64 foreign ore): 10 diamonds, 20 minute cooldown</li>
+                </ul>
+
+                <p class="apw-reading-section">Upgrade Ore Zones</p>
+                <p>Every island has 3 upgrade ore zones producing that island's unique ore. Your own island's ore is useless to you — it can only be used by other islands to upgrade their diamond zones. This means you need to either trade with other islands or raid them to get the foreign ore you need to upgrade your own zones.</p>
+
+                <p class="apw-reading-section">Gold Zones</p>
+                <p>The desert island has 2 gold regen zones. These are the only source of naturally regenerating gold on the map. Gold is used to craft golden apples. Desert island gold is a valuable trade commodity for all islands.</p>
+
+                <p class="apw-reading-section">Contested Zones</p>
+                <p>Located at the wall crossing points between islands. These are 50x50 block areas where custom mobs guard loot chests containing better gear than anything obtainable elsewhere. Players cannot place or break blocks inside. Once a chest is looted it disappears. Admins open and close contested zones with a visual countdown visible on both sides.</p>
+
+                <p class="apw-reading-section">Gear Progression</p>
+                <p>Enchantment caps lift automatically at the start of sessions 4 and 7.</p>
+                <table class="apw-reading-table">
+                  <thead><tr><th>Sessions</th><th>Max Armour</th><th>Max Sword</th><th>Max Gapples</th></tr></thead>
+                  <tbody>
+                    <tr><td>1–3</td><td>Protection 2</td><td>Sharpness 2</td><td>6</td></tr>
+                    <tr><td>4–6</td><td>Protection 3</td><td>Sharpness 3</td><td>8</td></tr>
+                    <tr><td>7–10</td><td>Protection 4</td><td>Sharpness 4</td><td>10</td></tr>
+                  </tbody>
+                </table>
+                <p>A single Protection 5 armour set exists in contested zone chests from session 5 onwards. The more pieces you equip simultaneously the more debuffs you receive.</p>
+                <p>The mace exists somewhere on the map. It cannot be enchanted. Lore clues will be given in session 6.</p>
+
+                <p class="apw-reading-section">The Economy</p>
+                <p>Players earn emeralds by exchanging food and ores at the /shop. Emeralds can be spent on island specific building blocks. The shop does not sell gear, weapons, or food.</p>
+                <p>Each player can have one locked chest at any time. Lock it by crafting a key and using it on a single chest.</p>
+              </div>
+            </div>
+
+            <div class="apw-reading">
+              <button type="button" class="apw-reading-toggle" id="rulesToggle" onclick="toggleRules()" aria-expanded="true">
+                The Collective — Event Rules
+                <svg class="apw-reading-chev" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l5 5 5-5"/></svg>
+              </button>
+              <div class="apw-reading-body" id="rulesBody">
+                <p class="apw-reading-section">General</p>
+                <ul class="apw-reading-list">
+                  <li>You must make every reasonable effort to attend scheduled sessions. Players who repeatedly miss sessions without notice may be removed.</li>
+                  <li>You must communicate in English during the event.</li>
+                  <li>No hacking, cheating, or exploiting bugs. Any unfair advantage must be reported to staff immediately.</li>
+                  <li>No mods that give a gameplay advantage. Performance mods such as Sodium and Optifine are allowed.</li>
+                  <li>Staff decisions are final. Raise disputes through a ticket after the session.</li>
+                  <li>Do not share information about the event publicly before it begins.</li>
+                </ul>
+                <p class="apw-reading-section">Combat</p>
+                <ul class="apw-reading-list">
+                  <li>PvP is disabled during session 1. It enables at the start of session 2 and remains on for the rest of the event.</li>
+                  <li>From session 2 onwards killing other players, including those on your own island, is allowed.</li>
+                  <li>Stealing from other players and bases is allowed.</li>
+                  <li>There are no protected areas outside of the designated no-build zones.</li>
+                  <li>Do not combat log. Disconnecting to avoid death is a bannable offence.</li>
+                  <li>This is not a roleplay server. You can be killed by anyone at any time for any reason from session 2 onwards.</li>
+                </ul>
+                <p class="apw-reading-section">Griefing</p>
+                <ul class="apw-reading-list">
+                  <li>Destroying another player's builds purely to grief with no strategic purpose is not allowed.</li>
+                  <li>Destroying your own island's landscape to grief your own civilisation is not allowed.</li>
+                  <li>Intentionally destroying your own island's altar or ore zones is not allowed.</li>
+                </ul>
+                <p class="apw-reading-section">Gear and Enchantments</p>
+                <ul class="apw-reading-list">
+                  <li>Enchantment caps are enforced by plugin and cannot be bypassed.</li>
+                  <li>Golden apple limits are enforced by plugin.</li>
+                  <li>Do not attempt to duplicate items or exploit any inventory mechanic.</li>
+                </ul>
+                <p class="apw-reading-section">Zones</p>
+                <ul class="apw-reading-list">
+                  <li>No building or breaking blocks inside diamond regen zones, upgrade ore zones, or contested zones.</li>
+                  <li>Do not attempt to exploit zone mechanics or cooldowns.</li>
+                  <li>Do not block or obstruct zone entrances.</li>
+                </ul>
+                <p class="apw-reading-section">Communication</p>
+                <ul class="apw-reading-list">
+                  <li>No sharing of real life personal information about other players.</li>
+                  <li>No harassment, hate speech, or discriminatory language in any chat.</li>
+                  <li>No advertising other servers or Discord servers during the event.</li>
+                  <li>Spamming chat during live sessions is not allowed.</li>
+                </ul>
+                <p class="apw-reading-section">Tickets and Staff</p>
+                <ul class="apw-reading-list">
+                  <li>If you have a complaint or rule break to report during a live session, open a ticket. Do not bring disputes into public chat.</li>
+                  <li>False reports or abuse of the ticket system will result in punishment.</li>
+                  <li>Impersonating staff is a bannable offence.</li>
+                </ul>
+                <p class="apw-reading-section">Content</p>
+                <ul class="apw-reading-list">
+                  <li>By participating in this event you acknowledge that your gameplay may be recorded and used in future content by The Collective. If you do not consent, do not apply.</li>
+                </ul>
+              </div>
+            </div>
+
+            <label class="agr-item" style="margin:20px 0 0">
+              <input type="checkbox" class="agr-check" id="readingConfirmCheck" onchange="onReadingConfirm()"/>
+              <span class="agr-text">I have read and understood the event overview and all rules above.</span>
+            </label>
+
+            <div id="quizSection" style="display:none;margin-top:24px">
+              <p class="quiz-intro">Answer these 3 questions correctly to continue. If you get one wrong it resets with a different question — scroll up to check the text above at any time.</p>
+              <div id="quizQ0" class="quiz-question"></div>
+              <div id="quizQ1" class="quiz-question"></div>
+              <div id="quizQ2" class="quiz-question"></div>
+              <div id="quizStatus" class="quiz-status">0 of 3 correct</div>
+            </div>
+
+            <div class="apw-nav">
+              <button type="button" class="apw-btn-ghost" onclick="goStage(1)">Back</button>
+              <button type="button" class="apw-btn-next" id="quizNextBtn" onclick="goStage(3)" disabled>Next</button>
+            </div>
+          </div>
+
+          <!-- ── STAGE 3: BASIC INFO ── -->
+          <div class="wizard-stage apw-stage" id="stage-3">
+            <div class="apw-stage-num">Stage 3 of 7</div>
             <h2><%= (stageSettings[2] && stageSettings[2].title) || 'Basic Information' %></h2>
             <% if (stageSettings[2] && stageSettings[2].subtitle) { %>
               <p class="apw-stage-sub"><%= stageSettings[2].subtitle %></p>
@@ -286,14 +430,14 @@ function renderBlock(b) {
             </div>
 
             <div class="apw-nav">
-              <button type="button" class="apw-btn-ghost" onclick="goStage(1)">Back</button>
-              <button type="button" class="apw-btn-next" onclick="nextFrom(2)">Next</button>
+              <button type="button" class="apw-btn-ghost" onclick="goStage(2)">Back</button>
+              <button type="button" class="apw-btn-next" onclick="nextFrom(3)">Next</button>
             </div>
           </div>
 
-          <!-- ── STAGE 3: PLAYSTYLE ── -->
-          <div class="wizard-stage apw-stage" id="stage-3">
-            <div class="apw-stage-num">Stage 3 of 6</div>
+          <!-- ── STAGE 4: PLAYSTYLE ── -->
+          <div class="wizard-stage apw-stage" id="stage-4">
+            <div class="apw-stage-num">Stage 4 of 7</div>
             <h2><%= (stageSettings[3] && stageSettings[3].title) || 'Playstyle' %></h2>
             <% if (stageSettings[3] && stageSettings[3].subtitle) { %>
               <p class="apw-stage-sub"><%= stageSettings[3].subtitle %></p>
@@ -316,14 +460,14 @@ function renderBlock(b) {
             </div>
 
             <div class="apw-nav">
-              <button type="button" class="apw-btn-ghost" onclick="goStage(2)">Back</button>
-              <button type="button" class="apw-btn-next" onclick="nextFrom(3)">Next</button>
+              <button type="button" class="apw-btn-ghost" onclick="goStage(3)">Back</button>
+              <button type="button" class="apw-btn-next" onclick="nextFrom(4)">Next</button>
             </div>
           </div>
 
-          <!-- ── STAGE 4: SCENARIOS ── -->
-          <div class="wizard-stage apw-stage" id="stage-4">
-            <div class="apw-stage-num">Stage 4 of 6</div>
+          <!-- ── STAGE 5: SCENARIOS ── -->
+          <div class="wizard-stage apw-stage" id="stage-5">
+            <div class="apw-stage-num">Stage 5 of 7</div>
             <h2><%= (stageSettings[4] && stageSettings[4].title) || 'Scenario Questions' %></h2>
             <% if (stageSettings[4] && stageSettings[4].subtitle) { %>
               <p class="apw-stage-sub"><%= stageSettings[4].subtitle %></p>
@@ -348,14 +492,14 @@ function renderBlock(b) {
             </div>
 
             <div class="apw-nav">
-              <button type="button" class="apw-btn-ghost" onclick="goStage(3)">Back</button>
-              <button type="button" class="apw-btn-next" onclick="nextFrom(4)">Next</button>
+              <button type="button" class="apw-btn-ghost" onclick="goStage(4)">Back</button>
+              <button type="button" class="apw-btn-next" onclick="nextFrom(5)">Next</button>
             </div>
           </div>
 
-          <!-- ── STAGE 5: APPLICATION TYPE ── -->
-          <div class="wizard-stage apw-stage" id="stage-5">
-            <div class="apw-stage-num">Stage 5 of 6</div>
+          <!-- ── STAGE 6: APPLICATION TYPE ── -->
+          <div class="wizard-stage apw-stage" id="stage-6">
+            <div class="apw-stage-num">Stage 6 of 7</div>
             <h2><%= (stageSettings[5] && stageSettings[5].title) || 'Your Application' %></h2>
             <% if (stageSettings[5] && stageSettings[5].subtitle) { %>
               <p class="apw-stage-sub"><%= stageSettings[5].subtitle %></p>
@@ -390,14 +534,14 @@ function renderBlock(b) {
             </div>
 
             <div class="apw-nav">
-              <button type="button" class="apw-btn-ghost" onclick="goStage(4)">Back</button>
-              <button type="button" class="apw-btn-next" onclick="nextFrom(5)">Next</button>
+              <button type="button" class="apw-btn-ghost" onclick="goStage(5)">Back</button>
+              <button type="button" class="apw-btn-next" onclick="nextFrom(6)">Next</button>
             </div>
           </div>
 
-          <!-- ── STAGE 6: AGREEMENT ── -->
-          <div class="wizard-stage apw-stage" id="stage-6">
-            <div class="apw-stage-num">Stage 6 of 6</div>
+          <!-- ── STAGE 7: AGREEMENT ── -->
+          <div class="wizard-stage apw-stage" id="stage-7">
+            <div class="apw-stage-num">Stage 7 of 7</div>
             <h2><%= (stageSettings[6] && stageSettings[6].title) || 'Final Agreement' %></h2>
             <% if (stageSettings[6] && stageSettings[6].subtitle) { %>
               <p class="apw-stage-sub"><%= stageSettings[6].subtitle %></p>
@@ -418,7 +562,7 @@ function renderBlock(b) {
             </div>
 
             <div class="apw-nav">
-              <button type="button" class="apw-btn-ghost" onclick="goStage(5)">Back</button>
+              <button type="button" class="apw-btn-ghost" onclick="goStage(6)">Back</button>
               <button type="submit" class="apw-btn-submit" id="submitBtn" disabled>Submit Application</button>
             </div>
           </div>
@@ -593,9 +737,123 @@ function updateIslandUI() {
   }
 }
 
+// Rules toggle
+function toggleRules() {
+  var btn = document.getElementById('rulesToggle');
+  var body = document.getElementById('rulesBody');
+  var open = btn.getAttribute('aria-expanded') === 'true';
+  btn.setAttribute('aria-expanded', !open);
+  body.style.display = open ? 'none' : '';
+}
+
+// Reading confirmation + quiz reveal
+function onReadingConfirm() {
+  var checked = document.getElementById('readingConfirmCheck').checked;
+  var quizSection = document.getElementById('quizSection');
+  if (checked) {
+    quizSection.style.display = 'block';
+    initQuiz();
+  } else {
+    quizSection.style.display = 'none';
+    document.getElementById('quizNextBtn').disabled = true;
+    quizAnswered = [false, false, false];
+  }
+}
+
+// Quiz
+var QUIZ_POOL = [
+  { q:'How many sessions does The Collective run across?', opts:['5 sessions','8 sessions','10 sessions','12 sessions'], a:2 },
+  { q:'How many islands are there in the event?', opts:['3','4','5','6'], a:1 },
+  { q:'How long does each session last approximately?', opts:['2 hours','3 hours','4 hours','6 hours'], a:2 },
+  { q:'How many islands are destroyed before the end of the event?', opts:['None','One','Two','Three'], a:2 },
+  { q:'From which session does PvP enable?', opts:['Session 1','Session 2','Session 3','Session 4'], a:1 },
+  { q:'Is PvP enabled during session 1?', opts:['Yes, from the start','No, it is disabled','Only in certain zones','Only in contested zones'], a:1 },
+  { q:'When do gates between islands open?', opts:['Start of session 2','30 minutes into session 3','Start of session 4','End of session 3'], a:1 },
+  { q:'How many diamond regen zones does each island have?', opts:['3','4','6','8'], a:2 },
+  { q:'What size are the diamond regen zones?', opts:['10x10 blocks','15x15 blocks','20x20 blocks','30x30 blocks'], a:2 },
+  { q:'How many upgrade ore zones does each island have?', opts:['2','3','4','6'], a:1 },
+  { q:'Is stealing from other players and their bases allowed?', opts:['No, never','Yes, fully allowed','Only after session 3','Only between islands'], a:1 },
+  { q:'What happens if you disconnect to avoid death?', opts:['You receive a warning','Nothing happens','It is a bannable offence','You lose your gear'], a:2 },
+  { q:'Where should rule breaks be reported during a live session?', opts:['In public chat','Through a ticket','Directly to staff in voice','In Discord after the event'], a:1 },
+  { q:'Which performance mods are allowed?', opts:['Any mods','No mods at all','Mods like Sodium and Optifine','PvP mods only'], a:2 },
+  { q:'What must be brought to the altar to keep your island alive?', opts:['Food and crops','Drops from the creature that roams your island','Foreign ore from other islands','Emeralds'], a:1 },
+  { q:'The altar mechanic is active from session 2 until which session?', opts:['Session 5','Session 6','Session 7','Session 8'], a:2 },
+  { q:'Is pure griefing with no strategic purpose allowed?', opts:['Yes, completely','No, it is not allowed','Only on enemy islands','Only in sessions 1-3'], a:1 },
+  { q:'How many gold regen zones does the desert island have?', opts:['1','2','3','4'], a:1 },
+  { q:'What is the maximum Protection enchantment allowed in sessions 1-3?', opts:['Protection 1','Protection 2','Protection 3','Protection 4'], a:1 },
+  { q:'From which session are enchantment caps lifted for the second time?', opts:['Session 5','Session 6','Session 7','Session 8'], a:2 }
+];
+var quizAnswered = [false, false, false];
+var quizCurrent = [null, null, null];
+var ORDINALS_Q = ['1st','2nd','3rd'];
+
+function initQuiz() {
+  quizAnswered = [false, false, false];
+  var pool = QUIZ_POOL.slice();
+  shuffle(pool);
+  for (var i = 0; i < 3; i++) {
+    quizCurrent[i] = pool[i];
+    renderQuizQ(i);
+  }
+  updateQuizStatus();
+}
+
+function shuffle(arr) {
+  for (var i = arr.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+}
+
+function renderQuizQ(slot) {
+  var q = quizCurrent[slot];
+  var opts = q.opts.map(function(o, i) { return { text: o, correct: i === q.a }; });
+  shuffle(opts);
+  var html = '<div class="quiz-q-text">' + (slot + 1) + '. ' + q.q + '</div><div class="quiz-opts">';
+  opts.forEach(function(opt) {
+    html += '<button type="button" class="quiz-opt" data-correct="' + opt.correct + '" onclick="answerQuiz(' + slot + ',this)">' + opt.text + '</button>';
+  });
+  html += '</div>';
+  var container = document.getElementById('quizQ' + slot);
+  container.innerHTML = html;
+  container.className = 'quiz-question';
+}
+
+function answerQuiz(slot, btn) {
+  if (quizAnswered[slot]) return;
+  if (btn.dataset.correct === 'true') {
+    btn.classList.add('correct');
+    quizAnswered[slot] = true;
+    document.getElementById('quizQ' + slot).classList.add('passed');
+    btn.closest('.quiz-opts').querySelectorAll('.quiz-opt').forEach(function(b) { b.disabled = true; });
+  } else {
+    btn.classList.add('wrong');
+    btn.disabled = true;
+    setTimeout(function() { replaceQuizQ(slot); }, 900);
+  }
+  updateQuizStatus();
+}
+
+function replaceQuizQ(slot) {
+  var usedQs = quizCurrent.map(function(q) { return q ? q.q : ''; });
+  var available = QUIZ_POOL.filter(function(q) { return usedQs.indexOf(q.q) === -1; });
+  if (!available.length) available = QUIZ_POOL;
+  var newQ = available[Math.floor(Math.random() * available.length)];
+  quizCurrent[slot] = newQ;
+  renderQuizQ(slot);
+}
+
+function updateQuizStatus() {
+  var count = quizAnswered.filter(Boolean).length;
+  var statusEl = document.getElementById('quizStatus');
+  statusEl.textContent = count + ' of 3 correct';
+  statusEl.className = 'quiz-status' + (count === 3 ? ' ok' : '');
+  document.getElementById('quizNextBtn').disabled = count < 3;
+}
+
 // Stage validation
 function nextFrom(stage) {
-  if (stage === 2) {
+  if (stage === 3) {
     var required = ['ign','discord_username','age','country','how_heard'];
     for (var i = 0; i < required.length; i++) {
       var el = document.querySelector('[name="' + required[i] + '"]');
@@ -612,7 +870,7 @@ function nextFrom(stage) {
       return;
     }
   }
-  if (stage === 3) {
+  if (stage === 4) {
     if (!document.getElementById('playstyleVal').value) {
       alert('Please select a playstyle to continue.');
       return;
@@ -622,7 +880,7 @@ function nextFrom(stage) {
       return;
     }
   }
-  if (stage === 4) {
+  if (stage === 5) {
     var scenarios = ['scenario_1','scenario_2','scenario_3'];
     for (var i = 0; i < scenarios.length; i++) {
       if (!document.querySelector('[name="' + scenarios[i] + '"]').value.trim()) {
@@ -632,7 +890,7 @@ function nextFrom(stage) {
       }
     }
   }
-  if (stage === 5) {
+  if (stage === 6) {
     var type = document.getElementById('appTypeVal').value;
     if (!type) { alert('Please choose video or written.'); return; }
     if (type === 'video' && !document.getElementById('videoLinkInput').value.trim()) {
