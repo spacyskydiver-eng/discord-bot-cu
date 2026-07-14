@@ -263,6 +263,13 @@ router.post('/application/:id/island', async (req, res) => {
   res.redirect(`/admin/application/${req.params.id}`);
 });
 
+// Delete application entirely (lets user reapply from scratch)
+router.post('/application/:id/delete', async (req, res) => {
+  await db.query(`DELETE FROM application_events WHERE application_id = $1`, [req.params.id]);
+  await db.query(`DELETE FROM structured_applications WHERE id = $1`, [req.params.id]);
+  res.redirect('/admin#applications');
+});
+
 // Save admin notes
 router.post('/application/:id/notes', async (req, res) => {
   await db.query(

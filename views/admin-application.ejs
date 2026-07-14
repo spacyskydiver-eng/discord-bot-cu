@@ -74,6 +74,11 @@
               <button type="submit" class="btn btn-ghost btn-sm">Reset to Pending</button>
             </form>
           <% } %>
+          <% if (app.status === 'disqualified' || app.status === 'declined') { %>
+            <form action="/admin/application/<%= app.id %>/delete" method="POST" style="display:inline" onsubmit="return confirm('Delete this application completely? The user will be able to reapply from scratch.')">
+              <button type="submit" class="btn btn-ghost btn-sm" style="color:#f87171;border-color:rgba(248,113,113,.3)">Delete &amp; Allow Reapply</button>
+            </form>
+          <% } %>
         </div>
       </div>
 

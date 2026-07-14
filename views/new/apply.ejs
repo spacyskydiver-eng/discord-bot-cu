@@ -51,7 +51,7 @@ function renderBlock(b) {
         <a href="/" class="apw-cta">Back to home</a>
       </div>
 
-    <% } else if (existing && existing.status === 'disqualified') { %>
+    <% } else if (existing && existing.status === 'disqualified' && !locals.isAdmin) { %>
       <div class="apw-status err">
         <div class="apw-status-icon">✕</div>
         <h2>Not Eligible</h2>
@@ -59,7 +59,7 @@ function renderBlock(b) {
         <a href="/events" class="apw-cta">View events</a>
       </div>
 
-    <% } else if (existing && existing.status === 'accepted') { %>
+    <% } else if (existing && existing.status === 'accepted' && !locals.isAdmin) { %>
       <div class="apw-status ok">
         <div class="apw-status-icon">✓</div>
         <h2>Application Accepted</h2>
@@ -67,7 +67,7 @@ function renderBlock(b) {
         <a href="https://discord.gg/C63H8CFkm" target="_blank" rel="noopener" class="apw-cta apw-cta-discord">Open Discord</a>
       </div>
 
-    <% } else if (existing && existing.status === 'declined') { %>
+    <% } else if (existing && existing.status === 'declined' && !locals.isAdmin) { %>
       <div class="apw-status err">
         <div class="apw-status-icon">✕</div>
         <h2>Application Declined</h2>
@@ -79,7 +79,7 @@ function renderBlock(b) {
         <a href="/events" class="apw-cta">View events</a>
       </div>
 
-    <% } else if (existing && existing.status === 'pending') { %>
+    <% } else if (existing && existing.status === 'pending' && !locals.isAdmin) { %>
       <div class="apw-status warn">
         <div class="apw-status-icon">◎</div>
         <h2>Under Review</h2>
