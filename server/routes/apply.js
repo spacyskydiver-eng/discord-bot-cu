@@ -71,12 +71,19 @@ router.post('/submit', async (req, res) => {
 
   let parsedAnswers = {};
   try { parsedAnswers = JSON.parse(eligibility_answers || '{}'); } catch (_) {}
+  const jsonAnswers = JSON.stringify(parsedAnswers);
 
-  let parsedIslandChoices = null;
-  try { parsedIslandChoices = JSON.parse(island_choices || 'null'); } catch (_) {}
+  let jsonIslandChoices = null;
+  try {
+    const parsed = JSON.parse(island_choices || 'null');
+    if (parsed !== null) jsonIslandChoices = JSON.stringify(parsed);
+  } catch (_) {}
 
-  let parsedSessionAvail = null;
-  try { parsedSessionAvail = JSON.parse(session_availability || 'null'); } catch (_) {}
+  let jsonSessionAvail = null;
+  try {
+    const parsed = JSON.parse(session_availability || 'null');
+    if (parsed !== null) jsonSessionAvail = JSON.stringify(parsed);
+  } catch (_) {}
 
   try {
     await db.query(
@@ -89,18 +96,18 @@ router.post('/submit', async (req, res) => {
         island_choices, friend_requests, session_availability
       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)`,
       [
-        parsedAnswers, ign, discord_username, parseInt(age) || null, country, how_heard,
+        jsonAnswers, ign, discord_username, parseInt(age) || null, country, how_heard,
         played_civ === 'yes', played_civ_details || null,
         creates_content === 'yes', content_link || null,
         playstyle, playstyle_description, scenario_1, scenario_2, scenario_3,
         app_type, video_link || null, written_app || null,
         agreements === 'confirmed',
         req.session.user.id, req.session.user.avatar, req.session.user.username,
-        parsedIslandChoices, friend_requests || null, parsedSessionAvail
+        jsonIslandChoices, friend_requests || null, jsonSessionAvail
       ]
     );
   } catch (err) {
-    console.error('Application INSERT error:', err.message);
+    console.error('Application INSERT error:', err.message, { jsonAnswers, jsonIslandChoices, jsonSessionAvail });
     return res.redirect('/apply?error=server');
   }
 
@@ -122,7 +129,7 @@ router.post('/record-disqualified', async (req, res) => {
       `INSERT INTO structured_applications (discord_id, discord_tag, discord_avatar, status, eligibility_answers)
        VALUES ($1,$2,$3,'disqualified',$4)`,
       [req.session.user.id, req.session.user.username, req.session.user.avatar,
-       req.body.answers || {}]
+       JSON.stringify(req.body.answers || {})]
     );
   }
   res.json({ ok: true });
