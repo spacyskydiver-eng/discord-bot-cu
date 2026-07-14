@@ -138,6 +138,18 @@ function renderBlock(b) {
 
     <% } else { %>
 
+      <% if (locals.error === 'incomplete') { %>
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;margin-bottom:16px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:10px;font-size:13px;color:#f87171;font-family:'Baloo 2',sans-serif;font-weight:700">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Your application was missing some required information — please fill in all fields and try again.
+      </div>
+      <% } else if (locals.error === 'server') { %>
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;margin-bottom:16px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:10px;font-size:13px;color:#f87171;font-family:'Baloo 2',sans-serif;font-weight:700">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Something went wrong saving your application — please try submitting again. Your answers are still saved.
+      </div>
+      <% } %>
+
       <!-- Draft resume banner (hidden by default, shown by JS) -->
       <div id="resumeBanner" style="display:none;align-items:center;gap:10px;padding:10px 16px;margin-bottom:14px;background:rgba(116,192,252,.08);border:1px solid rgba(116,192,252,.2);border-radius:10px;font-size:13px;color:#74c0fc;font-family:'Baloo 2',sans-serif;font-weight:700">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><path d="M12 2v10l4 2"/><circle cx="12" cy="12" r="10"/></svg>
@@ -731,10 +743,10 @@ function updateWordCount(ta) {
   document.getElementById('wordCounter').classList.toggle('ok', n >= 150);
 }
 
-// Agreement checkboxes
-document.querySelectorAll('.agr-check').forEach(function(cb) {
+// Agreement checkboxes — scoped to the agreements list only, NOT the Stage 2 reading confirm
+document.querySelectorAll('.apw-agr-list .agr-check').forEach(function(cb) {
   cb.addEventListener('change', function() {
-    var all = Array.from(document.querySelectorAll('.agr-check')).every(function(c) { return c.checked; });
+    var all = Array.from(document.querySelectorAll('.apw-agr-list .agr-check')).every(function(c) { return c.checked; });
     document.getElementById('submitBtn').disabled = !all;
     document.getElementById('agreementsVal').value = all ? 'confirmed' : '';
   });

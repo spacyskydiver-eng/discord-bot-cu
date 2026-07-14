@@ -37,6 +37,7 @@ router.get('/', async (req, res) => {
 
   res.render('new/apply', {
     event, eligibilityQuestions, existing, submitted: req.query.submitted === '1',
+    error: req.query.error || null,
     stageSettings, stageBlocks, agreementItems, playstyleOptions
   });
 });
@@ -77,26 +78,31 @@ router.post('/submit', async (req, res) => {
   let parsedSessionAvail = null;
   try { parsedSessionAvail = JSON.parse(session_availability || 'null'); } catch (_) {}
 
-  await db.query(
-    `INSERT INTO structured_applications (
-      eligibility_answers, ign, discord_username_input, age, country, how_heard,
-      played_civ, played_civ_details, creates_content, content_link,
-      playstyle, playstyle_description, scenario_1, scenario_2, scenario_3,
-      app_type, video_link, written_app, agreements_confirmed,
-      discord_id, discord_avatar, discord_tag,
-      island_choices, friend_requests, session_availability
-    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)`,
-    [
-      parsedAnswers, ign, discord_username, parseInt(age) || null, country, how_heard,
-      played_civ === 'yes', played_civ_details || null,
-      creates_content === 'yes', content_link || null,
-      playstyle, playstyle_description, scenario_1, scenario_2, scenario_3,
-      app_type, video_link || null, written_app || null,
-      agreements === 'confirmed',
-      req.session.user.id, req.session.user.avatar, req.session.user.username,
-      parsedIslandChoices, friend_requests || null, parsedSessionAvail
-    ]
-  );
+  try {
+    await db.query(
+      `INSERT INTO structured_applications (
+        eligibility_answers, ign, discord_username_input, age, country, how_heard,
+        played_civ, played_civ_details, creates_content, content_link,
+        playstyle, playstyle_description, scenario_1, scenario_2, scenario_3,
+        app_type, video_link, written_app, agreements_confirmed,
+        discord_id, discord_avatar, discord_tag,
+        island_choices, friend_requests, session_availability
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)`,
+      [
+        parsedAnswers, ign, discord_username, parseInt(age) || null, country, how_heard,
+        played_civ === 'yes', played_civ_details || null,
+        creates_content === 'yes', content_link || null,
+        playstyle, playstyle_description, scenario_1, scenario_2, scenario_3,
+        app_type, video_link || null, written_app || null,
+        agreements === 'confirmed',
+        req.session.user.id, req.session.user.avatar, req.session.user.username,
+        parsedIslandChoices, friend_requests || null, parsedSessionAvail
+      ]
+    );
+  } catch (err) {
+    console.error('Application INSERT error:', err.message);
+    return res.redirect('/apply?error=server');
+  }
 
   sendDiscordDM(req.session.user.id,
     `**Your application has been submitted!**\n\nThanks ${req.session.user.username} — we've received your application for **${event.title || 'The Collective'}**. We'll review it and update you here when there's a decision. Good luck!`
