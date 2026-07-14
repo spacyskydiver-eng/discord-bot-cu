@@ -127,7 +127,62 @@
               </form>
             <% } %>
           </div>
-          <%- include('partials/_app-content', { a: app, eligibilityQuestions }) %>
+          <div style="padding:20px 24px">
+
+            <div class="review-section">
+              <div class="review-section-label">Basic Info</div>
+              <div class="review-info-grid">
+                <div class="review-info-cell"><span class="ric-key">IGN</span><span><%= app.ign||'—' %></span></div>
+                <div class="review-info-cell"><span class="ric-key">Age</span><span><%= app.age||'—' %></span></div>
+                <div class="review-info-cell"><span class="ric-key">Country</span><span><%= app.country||'—' %></span></div>
+                <div class="review-info-cell"><span class="ric-key">Playstyle</span><span><% if(app.playstyle){%><span class="playstyle-badge playstyle-<%= app.playstyle %>"><%= app.playstyle %></span><%}else{%>—<%}%></span></div>
+                <div class="review-info-cell"><span class="ric-key">App type</span><span><%= app.app_type||'—' %></span></div>
+              </div>
+            </div>
+
+            <div class="review-section">
+              <div class="review-section-label">Island Preferences</div>
+              <% if(app.island_choices&&app.island_choices.length){%>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  <%app.island_choices.forEach(function(isle,i){if(isle){%>
+                    <span style="font-size:12px;padding:3px 10px;background:rgba(255,255,255,.07);border-radius:99px;color:#e0e2ed"><span style="color:var(--muted);font-size:10px">#<%=i+1%> </span><%=isle.charAt(0).toUpperCase()+isle.slice(1)%></span>
+                  <%}}); %>
+                </div>
+              <%}else{%><p class="muted">None submitted.</p><%}%>
+            </div>
+
+            <% if(app.app_type==='video'&&app.video_link){%>
+            <div class="review-section">
+              <div class="review-section-label">Video Application</div>
+              <a href="<%= app.video_link %>" target="_blank" class="legal-link" style="word-break:break-all"><%= app.video_link %></a>
+            </div>
+            <%}else if(app.written_app){%>
+            <div class="review-section">
+              <div class="review-section-label">Written Application</div>
+              <p class="review-freetext"><%= app.written_app %></p>
+            </div>
+            <%}%>
+
+            <div class="review-section">
+              <div class="review-section-label">Scenarios</div>
+              <p class="review-freetext" style="font-size:0.8rem;color:var(--muted);margin-bottom:3px">Scenario 1</p>
+              <p class="review-freetext"><%= app.scenario_1||'—' %></p>
+              <p class="review-freetext" style="font-size:0.8rem;color:var(--muted);margin-bottom:3px;margin-top:10px">Scenario 2</p>
+              <p class="review-freetext"><%= app.scenario_2||'—' %></p>
+              <p class="review-freetext" style="font-size:0.8rem;color:var(--muted);margin-bottom:3px;margin-top:10px">Scenario 3</p>
+              <p class="review-freetext"><%= app.scenario_3||'—' %></p>
+            </div>
+
+            <div class="review-section" style="border-bottom:none">
+              <div class="review-section-label">Their Friend Requests</div>
+              <p class="review-freetext"><%= app.friend_requests||'None listed.' %></p>
+              <% if(splitApp&&splitApp.ign){ %>
+                <% const leftListedRight = (app.friend_requests||'').toLowerCase().includes(splitApp.ign.toLowerCase()); %>
+                <% if(leftListedRight){%><p style="font-size:12px;color:#5be38f;margin-top:6px">They listed <%= splitApp.ign %> — mutual confirmed.</p>
+                <%}else{%><p style="font-size:12px;color:#f87171;margin-top:6px">They did not list <%= splitApp.ign %>.</p><%}%>
+              <% } %>
+            </div>
+          </div>
         </div>
 
         <!-- Right: friend app -->
