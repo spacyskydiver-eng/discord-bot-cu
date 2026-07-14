@@ -12,8 +12,14 @@ const APPLY_KEYWORDS = [
   'how to apply', 'how do i apply', 'how do you apply', 'how can i apply',
   'how to join', 'how do i join', 'how can i join', 'how to sign up',
   'how do i sign up', 'when can i apply', 'when can we apply',
-  'when do applications', 'when are applications'
+  'when do applications', 'when are applications',
+  'application link', 'apply link', 'where do i apply', 'where can i apply',
+  'where to apply', 'where to sign up', 'apply now', 'sign up link',
+  'how do we apply', 'how do we join', 'can i apply', 'can i sign up',
+  'is there an application', 'link to apply', 'link to the application'
 ];
+
+const SITE = process.env.WEBSITE_URL || 'https://collective-union-events.onrender.com';
 
 module.exports = async (message) => {
   if (message.author.bot || !message.guild) return;
@@ -21,11 +27,19 @@ module.exports = async (message) => {
   const lower = message.content.toLowerCase();
 
   if (EVENT_KEYWORDS.some(kw => lower.includes(kw))) {
-    return message.reply('Summer — around end of July to mid August and will run across 10 sessions over 2 weeks. Not a 24/7 server.');
+    return message.reply(
+      'The event runs across **10 sessions**, every other day starting <t:1754841600:F>.\n' +
+      'The final session is <t:1756396800:F>.\n' +
+      'All sessions start at the same time — this is **not** a 24/7 server.'
+    );
   }
 
   if (APPLY_KEYWORDS.some(kw => lower.includes(kw))) {
-    return message.reply('Applications will release in mid June. If you are accepted you will be notified and given a custom role.');
+    return message.reply(
+      '**Applications are open!** Apply here:\n' +
+      SITE + '/apply\n\n' +
+      'If you are accepted you will be notified via DM and given a role.'
+    );
   }
 
   const guildId = message.guild.id;
