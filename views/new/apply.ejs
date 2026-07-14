@@ -374,6 +374,14 @@ function renderBlock(b) {
               <input type="text" name="how_heard" class="apw-input" placeholder="e.g. YouTube, a friend, Discord" />
             </div>
             <div class="apw-field">
+              <label class="apw-label">Session Availability <span class="req">*</span></label>
+              <p class="apw-field-hint">All 10 sessions are shown below with times in <strong>your local timezone</strong>. Tick every session you can attend. You must be able to make <strong>at least 5 sessions including Session 1</strong> to be considered.</p>
+              <input type="hidden" name="session_availability" id="sessionAvailInput" />
+              <div class="session-avail-grid" id="sessionAvailGrid"></div>
+              <div class="session-avail-status" id="sessionAvailStatus"></div>
+            </div>
+
+            <div class="apw-field">
               <label class="apw-label">Have you played civilisation-style events before?</label>
               <input type="hidden" name="played_civ" id="playedCivVal" value="no" />
               <div class="apw-toggle">
@@ -893,6 +901,19 @@ function nextFrom(stage) {
       document.getElementById('islandRankStatus').classList.add('err');
       return;
     }
+    var _sessVal = [];
+    try { _sessVal = JSON.parse(document.getElementById('sessionAvailInput').value || '[]'); } catch(e) {}
+    if (_sessVal.length < 5 || !_sessVal.includes(1)) {
+      var _saSt = document.getElementById('sessionAvailStatus');
+      if (!_sessVal.includes(1)) {
+        _saSt.textContent = 'Session 1 is required — please tick it if you can attend.';
+      } else {
+        _saSt.textContent = 'Please select at least 5 sessions you can attend.';
+      }
+      _saSt.className = 'session-avail-status err';
+      document.getElementById('sessionAvailGrid').scrollIntoView({ behavior:'smooth', block:'center' });
+      return;
+    }
   }
   if (stage === 4) {
     if (!document.getElementById('playstyleVal').value) {
@@ -933,6 +954,50 @@ function nextFrom(stage) {
   goStage(stage + 1);
 }
 
+// ── Session availability ───────────────────────────────────────────────────
+var SESSION_TIMES = [
+  1754841600,1755014400,1755187200,1755360000,1755532800,
+  1755705600,1755878400,1756051200,1756224000,1756396800
+];
+
+function initSessionAvail() {
+  var grid = document.getElementById('sessionAvailGrid');
+  if (!grid) return;
+  SESSION_TIMES.forEach(function(ts, i) {
+    var d = new Date(ts * 1000);
+    var dateStr = d.toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+    var timeStr = d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit', timeZoneName:'short' });
+    var row = document.createElement('label');
+    row.className = 'session-avail-row';
+    row.innerHTML =
+      '<input type="checkbox" class="session-avail-chk" data-session="' + (i+1) + '" onchange="updateSessionAvail()">' +
+      '<span class="session-avail-num">Session ' + (i+1) + '</span>' +
+      '<span class="session-avail-date">' + dateStr + ' &mdash; ' + timeStr + '</span>';
+    grid.appendChild(row);
+  });
+}
+
+function updateSessionAvail() {
+  var checked = [];
+  document.querySelectorAll('.session-avail-chk').forEach(function(chk) {
+    if (chk.checked) checked.push(parseInt(chk.dataset.session));
+  });
+  document.getElementById('sessionAvailInput').value = JSON.stringify(checked);
+  saveDraft();
+  var status = document.getElementById('sessionAvailStatus');
+  var count = checked.length;
+  if (count === 0) { status.textContent = ''; status.className = 'session-avail-status'; return; }
+  var hasS1 = checked.includes(1);
+  if (count < 5 || !hasS1) {
+    var msg = !hasS1 ? 'Session 1 is required' : (5 - count) + ' more session' + (5 - count !== 1 ? 's' : '') + ' needed';
+    status.textContent = count + ' selected — ' + msg;
+    status.className = 'session-avail-status warn';
+  } else {
+    status.textContent = count + ' sessions selected ✓';
+    status.className = 'session-avail-status ok';
+  }
+}
+
 // ── Draft persistence ──────────────────────────────────────────────────────
 var DRAFT_KEY = 'tfn_draft_' + '<%= locals.user ? locals.user.id : "guest" %>';
 var DRAFT_EXISTS = <%- locals.existing ? 'true' : 'false' %>;
@@ -964,9 +1029,10 @@ function saveDraft() {
       s1:          _dv('[name="scenario_1"]'),
       s2:          _dv('[name="scenario_2"]'),
       s3:          _dv('[name="scenario_3"]'),
-      app_type:    _di('appTypeVal'),
-      video_link:  _di('videoLinkInput'),
-      written_app: _di('writtenInput'),
+      app_type:     _di('appTypeVal'),
+      video_link:   _di('videoLinkInput'),
+      written_app:  _di('writtenInput'),
+      session_avail: _di('sessionAvailInput'),
     }));
   } catch(e) {}
 }
@@ -1031,6 +1097,18 @@ function loadDraft() {
       if (psCard) pickPlaystyle(psCard);
     }
 
+    // session availability checkboxes
+    if (d.session_avail) {
+      try {
+        var savedSess = JSON.parse(d.session_avail);
+        si('sessionAvailInput', d.session_avail);
+        document.querySelectorAll('.session-avail-chk').forEach(function(chk) {
+          chk.checked = savedSess.includes(parseInt(chk.dataset.session));
+        });
+        updateSessionAvail();
+      } catch(e) {}
+    }
+
     // app type card
     if (d.app_type) {
       var atCard = document.querySelector('.app-type-card[data-type="' + d.app_type + '"]');
@@ -1056,6 +1134,9 @@ function loadDraft() {
     }
   } catch(e) {}
 }
+
+// Initialise session grid and load draft on page ready
+initSessionAvail();
 
 // Auto-save on every text input (debounced 600ms)
 var _saveTimer;

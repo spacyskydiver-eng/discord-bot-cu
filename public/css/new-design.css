@@ -821,6 +821,19 @@
   transition:border-color .2s,background .2s;
 }
 .quiz-question.passed{border-color:rgba(91,227,143,.4);background:rgba(91,227,143,.06)}
+/* Session availability */
+.session-avail-grid{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+.session-avail-row{display:flex;align-items:center;gap:10px;padding:9px 13px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:9px;cursor:pointer;transition:background .1s}
+.session-avail-row:hover{background:rgba(255,255,255,.08)}
+.session-avail-row input[type=checkbox]{width:16px;height:16px;flex-shrink:0;accent-color:#9775fa;cursor:pointer}
+.session-avail-row:has(input:checked){background:rgba(151,117,250,.1);border-color:rgba(151,117,250,.4)}
+.session-avail-num{font-family:"Baloo 2";font-weight:800;font-size:13px;color:#e0e2ed;min-width:70px}
+.session-avail-date{font-size:13px;color:#9ca3af}
+.session-avail-status{font-size:13px;margin-top:8px;font-weight:600;font-family:"Baloo 2"}
+.session-avail-status.ok{color:#5be38f}
+.session-avail-status.warn{color:#fbbf24}
+.session-avail-status.err{color:#f87171}
+
 .quiz-q-text{font-family:"Baloo 2";font-weight:800;font-size:15px;color:#fff;margin-bottom:14px;line-height:1.45}
 .quiz-opts{display:flex;flex-direction:column;gap:9px}
 .quiz-opt{

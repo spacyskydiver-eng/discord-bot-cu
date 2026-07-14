@@ -305,6 +305,26 @@
             </div>
           </div>
 
+          <% if (app.session_availability && app.session_availability.length) { %>
+          <div class="review-section">
+            <div class="review-section-label">Session Availability</div>
+            <%
+              const SESSION_TS = [1754841600,1755014400,1755187200,1755360000,1755532800,
+                                  1755705600,1755878400,1756051200,1756224000,1756396800];
+              const canAttend = app.session_availability;
+            %>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+              <% SESSION_TS.forEach(function(ts, i) { %>
+                <% const can = canAttend.includes(i+1); %>
+                <span style="font-size:12px;padding:3px 10px;border-radius:99px;font-family:'Baloo 2';font-weight:700;background:<%= can ? 'rgba(91,227,143,.15)' : 'rgba(255,255,255,.05)' %>;color:<%= can ? '#5be38f' : '#4b5563' %>">
+                  S<%= i+1 %><%= can ? ' ✓' : ' ✕' %>
+                </span>
+              <% }); %>
+            </div>
+            <p style="font-size:12px;color:var(--muted)"><%= canAttend.length %> of 10 sessions · <%= canAttend.includes(1) ? 'Session 1 confirmed' : '<span style="color:#f87171">Session 1 NOT confirmed</span>' %></p>
+          </div>
+          <% } %>
+
           <div class="review-section">
             <div class="review-section-label">Stage 3 — Playstyle</div>
             <% if (app.playstyle) { %>
