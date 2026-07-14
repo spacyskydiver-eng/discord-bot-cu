@@ -51,14 +51,6 @@ function renderBlock(b) {
         <a href="/" class="apw-cta">Back to home</a>
       </div>
 
-    <% } else if (existing && existing.status === 'disqualified' && !locals.isAdmin) { %>
-      <div class="apw-status err">
-        <div class="apw-status-icon">✕</div>
-        <h2>Not Eligible</h2>
-        <p>You did not meet the eligibility requirements for <strong><%= event.title %></strong>. You cannot reapply for this event with this Discord account.</p>
-        <a href="/events" class="apw-cta">View events</a>
-      </div>
-
     <% } else if (existing && existing.status === 'accepted' && !locals.isAdmin) { %>
       <div class="apw-status ok">
         <div class="apw-status-icon">✓</div>
@@ -691,10 +683,6 @@ function checkEligibility() {
   });
   document.getElementById('eligAnswersInput').value = JSON.stringify(eligAnswers);
   if (disq) {
-    fetch('/apply/record-disqualified', {
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ answers: eligAnswers })
-    }).catch(function(){});
     document.getElementById('eligQList').style.display = 'none';
     document.getElementById('stage1Nav').style.display = 'none';
     document.getElementById('disqMsg').style.display = 'block';
