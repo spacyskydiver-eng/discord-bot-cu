@@ -710,6 +710,33 @@
 .apw-wc{font-family:"Baloo 2";font-size:12px;color:var(--muted);margin-top:5px}
 .apw-wc.ok .wc-min{color:#5be38f}
 
+/* Field hint */
+.apw-field-hint{font-size:13px;color:var(--muted);margin:-4px 0 10px;line-height:1.5}
+.apw-field-hint strong{color:#c9ccdb}
+
+/* Island ranking */
+.island-rank-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:8px}
+.island-card{
+  position:relative;background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:10px 8px 10px;text-align:center;cursor:pointer;
+  transition:border-color .15s,background .15s,transform .1s;user-select:none;
+}
+.island-card:hover{border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.07);transform:translateY(-1px)}
+.island-card.ranked{border-color:rgba(151,117,250,.55);background:rgba(151,117,250,.08)}
+.island-card-ico{width:48px;height:48px;border-radius:10px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.island-card-ico svg{width:34px;height:34px}
+.island-card-name{font-family:"Baloo 2";font-weight:800;font-size:13px}
+.island-rank-badge{
+  position:absolute;top:6px;right:6px;
+  background:#9775fa;color:#fff;
+  font-family:"Baloo 2";font-weight:800;font-size:10px;letter-spacing:.3px;
+  padding:2px 6px;border-radius:5px;transition:opacity .15s;opacity:0;
+}
+.island-rank-status{font-family:"Baloo 2";font-size:12px;color:var(--muted);margin-top:4px;transition:color .15s}
+.island-rank-status.ok{color:#5be38f}
+.island-rank-status.err{color:#f87171}
+@media(max-width:560px){.island-rank-grid{grid-template-columns:repeat(2,1fr)}}
+
 /* Agreement list */
 .apw-agr-list{display:flex;flex-direction:column;gap:9px;margin-bottom:20px}
 .agr-item{

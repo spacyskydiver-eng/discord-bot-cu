@@ -59,7 +59,8 @@ router.post('/submit', async (req, res) => {
     eligibility_answers, ign, discord_username, age, country, how_heard,
     played_civ, played_civ_details, creates_content, content_link,
     playstyle, playstyle_description, scenario_1, scenario_2, scenario_3,
-    app_type, video_link, written_app, agreements
+    app_type, video_link, written_app, agreements,
+    island_choices, friend_requests
   } = req.body;
 
   if (!ign || !playstyle || !scenario_1 || !scenario_2 || !scenario_3 || !app_type) {
@@ -69,14 +70,18 @@ router.post('/submit', async (req, res) => {
   let parsedAnswers = {};
   try { parsedAnswers = JSON.parse(eligibility_answers || '{}'); } catch (_) {}
 
+  let parsedIslandChoices = null;
+  try { parsedIslandChoices = JSON.parse(island_choices || 'null'); } catch (_) {}
+
   await db.query(
     `INSERT INTO structured_applications (
       eligibility_answers, ign, discord_username_input, age, country, how_heard,
       played_civ, played_civ_details, creates_content, content_link,
       playstyle, playstyle_description, scenario_1, scenario_2, scenario_3,
       app_type, video_link, written_app, agreements_confirmed,
-      discord_id, discord_avatar, discord_tag
-    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
+      discord_id, discord_avatar, discord_tag,
+      island_choices, friend_requests
+    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)`,
     [
       parsedAnswers, ign, discord_username, parseInt(age) || null, country, how_heard,
       played_civ === 'yes', played_civ_details || null,
@@ -84,7 +89,8 @@ router.post('/submit', async (req, res) => {
       playstyle, playstyle_description, scenario_1, scenario_2, scenario_3,
       app_type, video_link || null, written_app || null,
       agreements === 'confirmed',
-      req.session.user.id, req.session.user.avatar, req.session.user.username
+      req.session.user.id, req.session.user.avatar, req.session.user.username,
+      parsedIslandChoices, friend_requests || null
     ]
   );
 

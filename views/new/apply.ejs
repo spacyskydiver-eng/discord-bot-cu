@@ -242,6 +242,49 @@ function renderBlock(b) {
               </div>
             </div>
 
+            <div class="apw-field">
+              <label class="apw-label">Island Preferences <span class="req">*</span></label>
+              <p class="apw-field-hint">Click the islands in order from most to least preferred. Click again to remove a selection.</p>
+              <div class="island-rank-grid">
+                <div class="island-card" data-island="jungle" onclick="clickIsland('jungle')" style="--iclr:#1e6630;--itxt:#51cf66">
+                  <div class="island-rank-badge"></div>
+                  <div class="island-card-ico" style="background:linear-gradient(135deg,#1e5e2e,#0c0d10)">
+                    <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg"><path d="M8 4C13 10 4 17 11 25S7 34 14 36" stroke="#37b24d" stroke-width="2.5" fill="none" stroke-linecap="round"/><ellipse cx="7" cy="11" rx="4" ry="2.5" fill="#2f9e44" transform="rotate(-30 7 11)"/><ellipse cx="12" cy="20" rx="4" ry="2.5" fill="#40c057" transform="rotate(20 12 20)"/><path d="M22 36L22 20" stroke="#7a5230" stroke-width="2.5"/><circle cx="22" cy="15" r="8" fill="#2b8a3e"/><circle cx="28" cy="18" r="5" fill="#37b24d"/></svg>
+                  </div>
+                  <div class="island-card-name" style="color:#51cf66">Jungle</div>
+                </div>
+                <div class="island-card" data-island="snow" onclick="clickIsland('snow')" style="--iclr:#2b5d7a;--itxt:#74c0fc">
+                  <div class="island-rank-badge"></div>
+                  <div class="island-card-ico" style="background:linear-gradient(135deg,#2b5d7a,#0c0d10)">
+                    <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg"><polygon points="18,5 30,30 6,30" fill="#e7f5ff"/><polygon points="18,5 25,18 11,18" fill="#a5d8ff"/><polygon points="10,30 18,18 26,30" fill="#fff"/><g stroke="#d0ebff" stroke-width="1.5" stroke-linecap="round"><path d="M18 6v6M15 9h6M30 10v5M27.5 12.5h5"/></g></svg>
+                  </div>
+                  <div class="island-card-name" style="color:#74c0fc">Snow</div>
+                </div>
+                <div class="island-card" data-island="badlands" onclick="clickIsland('badlands')" style="--iclr:#7a3b12;--itxt:#ff922b">
+                  <div class="island-rank-badge"></div>
+                  <div class="island-card-ico" style="background:linear-gradient(135deg,#7a3b12,#0c0d10)">
+                    <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="22" width="28" height="10" fill="#d9480f"/><rect x="4" y="17" width="28" height="5" fill="#e8590c"/><rect x="4" y="13" width="28" height="4" fill="#f08c00"/><rect x="10" y="7" width="8" height="15" fill="#e8590c"/><rect x="10" y="4" width="8" height="4" fill="#ffa94d"/><rect x="21" y="10" width="7" height="12" fill="#d9480f"/></svg>
+                  </div>
+                  <div class="island-card-name" style="color:#ff922b">Badlands</div>
+                </div>
+                <div class="island-card" data-island="forest" onclick="clickIsland('forest')" style="--iclr:#3d6312;--itxt:#94d82d">
+                  <div class="island-rank-badge"></div>
+                  <div class="island-card-ico" style="background:linear-gradient(135deg,#3d6312,#0c0d10)">
+                    <svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg"><rect x="16" y="26" width="4" height="8" fill="#7a5230"/><polygon points="18,5 27,18 9,18" fill="#5c940d"/><polygon points="18,11 29,26 7,26" fill="#82c91e"/><polygon points="18,17 30,32 6,32" fill="#a9e34b"/></svg>
+                  </div>
+                  <div class="island-card-name" style="color:#94d82d">Forest</div>
+                </div>
+              </div>
+              <input type="hidden" name="island_choices" id="islandChoicesInput"/>
+              <div class="island-rank-status" id="islandRankStatus">Select all 4 islands to continue</div>
+            </div>
+
+            <div class="apw-field">
+              <label class="apw-label">Friends you want to play with</label>
+              <p class="apw-field-hint">Optional. List the Minecraft IGNs of anyone you'd like to be placed with, one per line. <strong>Important:</strong> they must also include your IGN in their application — both sides need to list each other for us to try and group you together.</p>
+              <textarea name="friend_requests" class="apw-textarea" rows="3" placeholder="Enter IGNs here, one per line..."></textarea>
+            </div>
+
             <div class="apw-nav">
               <button type="button" class="apw-btn-ghost" onclick="goStage(1)">Back</button>
               <button type="button" class="apw-btn-next" onclick="nextFrom(2)">Next</button>
@@ -507,6 +550,49 @@ document.querySelectorAll('.agr-check').forEach(function(cb) {
   });
 });
 
+// Island preference ranking
+var islandRanks = {};
+var ORDINALS = ['1st','2nd','3rd','4th'];
+
+function clickIsland(val) {
+  if (islandRanks[val] !== undefined) {
+    var removed = islandRanks[val];
+    delete islandRanks[val];
+    Object.keys(islandRanks).forEach(function(k) {
+      if (islandRanks[k] > removed) islandRanks[k]--;
+    });
+  } else {
+    var nextRank = Object.keys(islandRanks).length + 1;
+    if (nextRank > 4) return;
+    islandRanks[val] = nextRank;
+  }
+  updateIslandUI();
+}
+
+function updateIslandUI() {
+  document.querySelectorAll('.island-card').forEach(function(card) {
+    var val = card.dataset.island;
+    var rank = islandRanks[val];
+    var badge = card.querySelector('.island-rank-badge');
+    card.classList.toggle('ranked', rank !== undefined);
+    badge.textContent = rank !== undefined ? ORDINALS[rank - 1] : '';
+    badge.style.opacity = rank !== undefined ? '1' : '0';
+  });
+  var count = Object.keys(islandRanks).length;
+  var statusEl = document.getElementById('islandRankStatus');
+  if (count === 4) {
+    var ordered = ['', '', '', ''];
+    Object.keys(islandRanks).forEach(function(k) { ordered[islandRanks[k] - 1] = k; });
+    document.getElementById('islandChoicesInput').value = JSON.stringify(ordered);
+    statusEl.textContent = 'All set';
+    statusEl.classList.add('ok');
+  } else {
+    document.getElementById('islandChoicesInput').value = '';
+    statusEl.textContent = (4 - count) + ' more to select';
+    statusEl.classList.remove('ok');
+  }
+}
+
 // Stage validation
 function nextFrom(stage) {
   if (stage === 2) {
@@ -519,6 +605,11 @@ function nextFrom(stage) {
         el.addEventListener('input', function() { this.classList.remove('input-error'); }, { once:true });
         return;
       }
+    }
+    if (!document.getElementById('islandChoicesInput').value) {
+      document.querySelector('.island-rank-grid').scrollIntoView({ behavior:'smooth', block:'center' });
+      document.getElementById('islandRankStatus').classList.add('err');
+      return;
     }
   }
   if (stage === 3) {
