@@ -267,7 +267,6 @@ function renderBlock(b) {
                     <p class="apw-reading-section">General</p>
                     <ul class="apw-reading-list">
                       <li>You must make every reasonable effort to attend scheduled sessions. Players who repeatedly miss sessions without notice may be removed.</li>
-                      <li>You must communicate in English during the event.</li>
                       <li>No hacking, cheating, or exploiting bugs. Any unfair advantage must be reported to staff immediately.</li>
                       <li>No mods that give a gameplay advantage. Performance mods such as Sodium and Optifine are allowed.</li>
                       <li>Staff decisions are final. Raise disputes through a ticket after the session.</li>
@@ -569,6 +568,10 @@ function renderBlock(b) {
                   <span class="agr-text"><%= item.item_text %></span>
                 </label>
               <% } %>
+              <label class="agr-item" style="border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:14px 16px;margin-top:10px;background:rgba(255,255,255,.03)">
+                <input type="checkbox" class="agr-check" />
+                <span class="agr-text"><strong>I confirm that all information I have provided in this application is truthful, accurate, and my own.</strong> I understand that submitting false or misleading information may result in my removal from the event.</span>
+              </label>
             </div>
 
             <div class="apw-nav">
@@ -793,7 +796,6 @@ var QUIZ_POOL = [
   { q:'Can you advertise other servers or Discord servers during the event?', opts:['Yes, freely','No, it is not allowed','Only in private messages','Only before sessions'], a:1 },
   { q:'Is sharing another player\'s real life personal information allowed?', opts:['Yes, if they agree','No, never','Only if relevant to a dispute','Only between friends'], a:1 },
   { q:'What happens if you abuse the ticket system with false reports?', opts:['Nothing','You receive a warning','You will be punished','You are automatically removed'], a:2 },
-  { q:'Must you communicate in English during the event?', opts:['No, any language is fine','Yes','Only during combat','Only in public chat'], a:1 },
   { q:'Is intentionally destroying your own island\'s altar allowed?', opts:['Yes, it is your island','No, it is not allowed','Only in sessions 1-2','Only with your island\'s agreement'], a:1 },
 ];
 var quizAnswered = [false, false, false];
