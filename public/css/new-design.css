@@ -737,6 +737,82 @@
 .island-rank-status.err{color:#f87171}
 @media(max-width:560px){.island-rank-grid{grid-template-columns:repeat(2,1fr)}}
 
+/* ---------- READING SECTIONS ---------- */
+.apw-reading{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.13);
+  border-radius:12px;margin-bottom:16px;overflow:hidden;
+}
+.apw-reading-head{
+  font-family:"Baloo 2";font-weight:800;font-size:15px;color:#fff;
+  padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.06);letter-spacing:.01em;
+}
+.apw-reading-toggle{
+  width:100%;display:flex;align-items:center;justify-content:space-between;
+  font-family:"Baloo 2";font-weight:800;font-size:15px;color:#fff;
+  padding:14px 20px;background:rgba(255,255,255,.06);border:none;cursor:pointer;
+  text-align:left;border-bottom:1px solid rgba(255,255,255,.12);letter-spacing:.01em;
+}
+.apw-reading-toggle[aria-expanded="false"] + .apw-reading-body{display:none}
+.apw-reading-chev{flex-shrink:0;transition:transform .2s}
+.apw-reading-toggle[aria-expanded="false"] .apw-reading-chev{transform:rotate(-90deg)}
+.apw-reading-body{padding:20px 22px;font-size:14.5px;color:#d6d9e8;line-height:1.75}
+.apw-reading-body p{margin:0 0 12px}
+.apw-reading-body p:last-child{margin-bottom:0}
+.apw-reading-section{
+  display:block;font-family:"Baloo 2";font-weight:800;font-size:12px;color:#74c0fc;
+  text-transform:uppercase;letter-spacing:.08em;
+  margin:22px 0 8px!important;padding:0;border:none;
+}
+.apw-reading-section:first-child{margin-top:0!important}
+.apw-reading-list{margin:0 0 12px;padding-left:22px}
+.apw-reading-list li{margin-bottom:7px;line-height:1.65}
+.apw-reading-table-wrap{overflow-x:auto;margin:10px 0 14px;border-radius:8px;border:1px solid rgba(255,255,255,.22)}
+.apw-reading-table{
+  width:100%;border-collapse:collapse;font-size:14px;
+}
+.apw-reading-table th,.apw-reading-table td{
+  padding:10px 16px;text-align:left;
+  border-bottom:1px solid rgba(255,255,255,.12);
+}
+.apw-reading-table thead tr{border-bottom:2px solid rgba(255,255,255,.22)}
+.apw-reading-table th{
+  background:rgba(255,255,255,.1);font-family:"Baloo 2";font-weight:800;
+  font-size:13px;color:#fff;text-transform:uppercase;letter-spacing:.05em;
+}
+.apw-reading-table td{color:#d6d9e8;background:rgba(255,255,255,.02)}
+.apw-reading-table tr:nth-child(even) td{background:rgba(255,255,255,.05)}
+.apw-reading-table tr:last-child td{border-bottom:none}
+
+/* ---------- QUIZ ---------- */
+.quiz-intro{font-size:14px;color:#c9ccdb;margin-bottom:20px;line-height:1.65;
+  padding:14px 16px;background:rgba(255,255,255,.04);border-radius:10px;
+  border-left:3px solid rgba(255,255,255,.2);}
+.quiz-question{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.13);
+  border-radius:12px;padding:20px 20px 16px;margin-bottom:14px;
+  transition:border-color .2s,background .2s;
+}
+.quiz-question.passed{border-color:rgba(91,227,143,.4);background:rgba(91,227,143,.06)}
+.quiz-q-text{font-family:"Baloo 2";font-weight:800;font-size:15px;color:#fff;margin-bottom:14px;line-height:1.45}
+.quiz-opts{display:flex;flex-direction:column;gap:9px}
+.quiz-opt{
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);
+  color:#d6d9e8;font-size:14px;padding:12px 16px;border-radius:10px;
+  cursor:pointer;text-align:left;transition:all .12s;font-family:inherit;
+  line-height:1.45;
+}
+.quiz-opt:hover:not(:disabled){background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28);color:#fff}
+.quiz-opt.correct{background:rgba(91,227,143,.15);border-color:#5be38f;color:#5be38f;cursor:default;font-weight:600}
+.quiz-opt.wrong{background:rgba(248,113,113,.12);border-color:#f87171;color:#f87171;cursor:default}
+.quiz-opt:disabled:not(.correct):not(.wrong){opacity:.42;cursor:default}
+.quiz-status{
+  font-family:"Baloo 2";font-weight:800;font-size:14px;color:var(--muted);
+  margin:6px 0 0;padding:10px 14px;background:rgba(255,255,255,.04);
+  border-radius:8px;text-align:center;
+}
+.quiz-status.ok{color:#5be38f;background:rgba(91,227,143,.08)}
+
 /* Agreement list */
 .apw-agr-list{display:flex;flex-direction:column;gap:9px;margin-bottom:20px}
 .agr-item{
