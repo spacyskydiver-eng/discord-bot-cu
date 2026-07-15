@@ -28,9 +28,19 @@ module.exports = async (message) => {
 
   if (EVENT_KEYWORDS.some(kw => lower.includes(kw))) {
     return message.reply(
-      'The event runs across **10 sessions**, every other day starting <t:1754841600:F>.\n' +
-      'The final session is <t:1756396800:F>.\n' +
-      'All sessions start at the same time — this is **not** a 24/7 server.'
+      'The event runs across **10 sessions** starting <t:1755360000:F>.\n' +
+      '**Full schedule:**\n' +
+      'Session 1 — <t:1755360000:F>\n' +
+      'Session 2 — <t:1755446400:F>\n' +
+      'Session 3 — <t:1755619200:F>\n' +
+      'Session 4 — <t:1755792000:F>\n' +
+      'Session 5 — <t:1755964800:F>\n' +
+      'Session 6 — <t:1756137600:F>\n' +
+      'Session 7 — <t:1756310400:F>\n' +
+      'Session 8 — <t:1756483200:F>\n' +
+      'Session 9 — <t:1756656000:F>\n' +
+      'Session 10 — <t:1756828800:F>\n' +
+      'This is **not** a 24/7 server.'
     );
   }
 

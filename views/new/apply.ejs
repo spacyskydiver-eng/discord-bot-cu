@@ -212,6 +212,7 @@ function renderBlock(b) {
                 <p>The Collective is a civilisation event. You are not just a player — you are a member of a civilisation, and your decisions affect everyone on your island.</p>
                 <p>You will be assigned to one of four islands — jungle, plains, badlands, or ice. Each island has its own terrain, resources, and challenges. You begin completely isolated with no way to reach other islands. There are no forced teams, no factions plugin, and no scripted outcomes. Every alliance, every betrayal, and every war is built entirely by the people playing.</p>
                 <p>The event runs across 10 scheduled sessions each lasting around 4 hours. This is not a 24/7 server. Sessions are planned and announced in advance. What you build, who you trust, and what you decide between sessions matters just as much as what happens during them.</p>
+                <div id="sessionScheduleList" style="margin:12px 0 4px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px"></div>
                 <p>Two islands will be destroyed before the end. The world is slowly dying. What happens after that is entirely up to the players.</p>
               </div>
             </div>
@@ -955,24 +956,37 @@ function nextFrom(stage) {
 
 // ── Session availability ───────────────────────────────────────────────────
 var SESSION_TIMES = [
-  1754841600,1755014400,1755187200,1755360000,1755532800,
-  1755705600,1755878400,1756051200,1756224000,1756396800
+  1755360000,1755446400,1755619200,1755792000,1755964800,
+  1756137600,1756310400,1756483200,1756656000,1756828800
 ];
 
 function initSessionAvail() {
-  var grid = document.getElementById('sessionAvailGrid');
-  if (!grid) return;
   SESSION_TIMES.forEach(function(ts, i) {
     var d = new Date(ts * 1000);
     var dateStr = d.toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short', year:'numeric' });
     var timeStr = d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit', timeZoneName:'short' });
-    var row = document.createElement('label');
-    row.className = 'session-avail-row';
-    row.innerHTML =
-      '<input type="checkbox" class="session-avail-chk" data-session="' + (i+1) + '" onchange="updateSessionAvail()">' +
-      '<span class="session-avail-num">Session ' + (i+1) + '</span>' +
-      '<span class="session-avail-date">' + dateStr + ' &mdash; ' + timeStr + '</span>';
-    grid.appendChild(row);
+
+    // Stage 2 overview list
+    var schedList = document.getElementById('sessionScheduleList');
+    if (schedList) {
+      var chip = document.createElement('div');
+      chip.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:12px';
+      chip.innerHTML = '<span style="font-family:\'Baloo 2\';font-weight:800;color:var(--accent);min-width:72px">Session ' + (i+1) + '</span>' +
+        '<span style="color:var(--muted)">' + dateStr + ' &mdash; ' + timeStr + '</span>';
+      schedList.appendChild(chip);
+    }
+
+    // Stage 3 availability grid
+    var grid = document.getElementById('sessionAvailGrid');
+    if (grid) {
+      var row = document.createElement('label');
+      row.className = 'session-avail-row';
+      row.innerHTML =
+        '<input type="checkbox" class="session-avail-chk" data-session="' + (i+1) + '" onchange="updateSessionAvail()">' +
+        '<span class="session-avail-num">Session ' + (i+1) + '</span>' +
+        '<span class="session-avail-date">' + dateStr + ' &mdash; ' + timeStr + '</span>';
+      grid.appendChild(row);
+    }
   });
 }
 
