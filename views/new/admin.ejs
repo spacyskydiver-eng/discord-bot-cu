@@ -276,18 +276,22 @@
 
   <!-- Tabs -->
   <div class="nd-tabs">
-    <button class="nd-tab active" data-tab="event">Event</button>
+    <% if (locals.isFullAdmin) { %>
+    <button class="nd-tab" data-tab="event">Event</button>
     <button class="nd-tab" data-tab="stages">Stages</button>
-    <button class="nd-tab" data-tab="applications">
+    <% } %>
+    <button class="nd-tab <%= locals.isFullAdmin ? '' : 'active' %>" data-tab="applications">
       Applications<% const pendingCount = applications.filter(a=>a.status==='pending').length; if(pendingCount>0){ %><span class="nd-tab-badge"><%= pendingCount %></span><% } %>
     </button>
+    <% if (locals.isFullAdmin) { %>
     <button class="nd-tab" data-tab="bot">Bot</button>
     <button class="nd-tab" data-tab="stafftab">Staff Roles</button>
     <button class="nd-tab" data-tab="webhook">Webhook Builder</button>
+    <% } %>
   </div>
 
   <!-- ═══ EVENT TAB ═══ -->
-  <div class="nd-panel active" id="tab-event">
+  <div class="nd-panel <%= locals.isFullAdmin ? 'active' : '' %>" id="tab-event">
     <div class="nd-card">
       <% if (!event) { %>
         <h2>Create Event</h2>
@@ -488,7 +492,7 @@
   </div>
 
   <!-- ═══ APPLICATIONS TAB ═══ -->
-  <div class="nd-panel" id="tab-applications">
+  <div class="nd-panel <%= locals.isFullAdmin ? '' : 'active' %>" id="tab-applications">
     <% const statTotal = applications.filter(a=>a.status!=='disqualified').length; %>
     <% const statPending = applications.filter(a=>a.status==='pending').length; %>
     <% const statAccepted = applications.filter(a=>a.status==='accepted').length; %>

@@ -20,15 +20,38 @@ const upload = multer({
   }
 });
 
-function requireAdmin(req, res, next) {
-  const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(s => s.trim());
-  if (!req.session.user || !adminIds.includes(req.session.user.id)) {
-    return res.status(403).render('403');
+const ADMIN_IDS = () => (process.env.ADMIN_DISCORD_IDS || '').split(',').map(s => s.trim());
+
+async function requireAdminOrStaff(req, res, next) {
+  if (!req.session.user) return res.status(403).render('403');
+  if (ADMIN_IDS().includes(req.session.user.id)) {
+    res.locals.isFullAdmin = true;
+    return next();
   }
+  const row = (await db.query(
+    `SELECT 1 FROM staff_access WHERE discord_id = $1`, [req.session.user.id]
+  )).rows[0];
+  if (row) {
+    res.locals.isFullAdmin = false;
+    return next();
+  }
+  return res.status(403).render('403');
+}
+
+function requireFullAdmin(req, res, next) {
+  if (!res.locals.isFullAdmin) return res.status(403).json({ error: 'Forbidden' });
   next();
 }
 
-router.use(requireAdmin);
+router.use(requireAdminOrStaff);
+
+// Staff can only access application review paths; everything else needs full admin
+router.use((req, res, next) => {
+  if (res.locals.isFullAdmin) return next();
+  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application');
+  if (!allowed) return res.status(403).render('403');
+  next();
+});
 
 // Admin dashboard
 router.get('/', async (req, res) => {
