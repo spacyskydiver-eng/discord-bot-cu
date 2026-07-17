@@ -13,7 +13,7 @@
           <% } %>
           <span><%= locals.user.globalName || locals.user.username %></span>
         </div>
-        <% if (locals.isAdmin) { %>
+        <% if (locals.isAdmin || locals.isStaffAccess) { %>
           <a href="/admin" class="banner-btn admin">Control Centre</a>
         <% } %>
         <a href="/auth/logout" class="banner-btn">Logout</a>
