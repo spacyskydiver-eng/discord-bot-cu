@@ -100,10 +100,10 @@
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
 /* ---------- HOME ---------- */
-.home{display:grid;grid-template-columns:minmax(0,1fr) 1.25fr;gap:26px}
+.home{display:grid;grid-template-columns:minmax(0,1fr) 1.45fr;gap:28px;align-items:start}
 .sidebar{
   background:var(--panel);border:1px solid var(--line);
-  border-radius:var(--radius);padding:30px 28px;box-shadow:var(--shadow);
+  border-radius:var(--radius);padding:36px 34px;box-shadow:var(--shadow);
 }
 .logo{
   font-family:"Press Start 2P";font-size:clamp(22px,3.4vw,34px);
@@ -114,43 +114,43 @@
   display:block;font-size:12px;color:#fff;margin-top:14px;letter-spacing:3px;
   text-shadow:2px 2px 0 rgba(0,0,0,.5);
 }
-.lede{color:#cfd2da;margin:22px 0 0}
+.lede{color:#cfd2da;margin:24px 0 0;font-size:16px;line-height:1.7}
 .more{max-height:0;overflow:hidden;transition:max-height .35s ease;color:var(--muted)}
 .more.open{max-height:520px}
-.more p{margin:14px 0 0}
+.more p{margin:14px 0 0;font-size:15px;line-height:1.7}
 .showmore{
-  margin-top:16px;font-family:"Baloo 2";font-weight:700;color:var(--t-apps);
+  margin-top:18px;font-family:"Baloo 2";font-weight:700;color:var(--t-apps);
   display:inline-flex;align-items:center;gap:8px;font-size:15px;
   background:none;border:none;padding:0;cursor:pointer;
 }
 .showmore .chev{transition:transform .3s}
 .showmore.open .chev{transform:rotate(180deg)}
 .discord{
-  margin-top:26px;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
-  background:#5865F2;color:#fff;font-family:"Baloo 2";font-weight:800;font-size:16px;
-  padding:14px;border-radius:12px;box-shadow:0 8px 18px rgba(88,101,242,.35);
+  margin-top:30px;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
+  background:#5865F2;color:#fff;font-family:"Baloo 2";font-weight:800;font-size:17px;
+  padding:16px;border-radius:12px;box-shadow:0 8px 18px rgba(88,101,242,.35);
   transition:transform .12s,filter .12s;text-decoration:none;
 }
 .discord:hover{transform:translateY(-2px);filter:brightness(1.08)}
 
 /* home themed tiles */
-.tiles{display:flex;flex-direction:column;gap:20px}
+.tiles{display:flex;flex-direction:column;gap:24px}
 .tile{
   position:relative;overflow:hidden;border-radius:var(--radius);
-  min-height:150px;display:flex;align-items:center;gap:22px;
-  padding:24px 28px;text-align:left;width:100%;
+  min-height:192px;display:flex;align-items:center;gap:28px;
+  padding:30px 36px;text-align:left;width:100%;
   border:1px solid rgba(255,255,255,.07);box-shadow:var(--shadow);
   transition:transform .15s, box-shadow .15s, filter .15s;
   text-decoration:none;cursor:pointer;
 }
 .tile:hover{transform:translateY(-3px) scale(1.005);filter:brightness(1.06);box-shadow:0 20px 40px rgba(0,0,0,.5)}
-.tile .ico{position:relative;z-index:2;width:84px;height:84px;flex:0 0 auto;
+.tile .ico{position:relative;z-index:2;width:100px;height:100px;flex:0 0 auto;
   filter:drop-shadow(0 6px 10px rgba(0,0,0,.45))}
-.tile .ico svg{width:84px;height:84px}
+.tile .ico svg{width:100px;height:100px}
 .tile .label{position:relative;z-index:2}
-.tile h3{font-family:"Baloo 2";font-weight:800;font-size:26px;margin:0;color:#fff;
+.tile h3{font-family:"Baloo 2";font-weight:800;font-size:30px;margin:0;color:#fff;
   text-shadow:2px 2px 0 rgba(0,0,0,.35)}
-.tile p{margin:4px 0 0;font-weight:700;font-size:13px;letter-spacing:1px;
+.tile p{margin:6px 0 0;font-weight:700;font-size:14px;letter-spacing:1px;
   text-transform:uppercase;color:rgba(255,255,255,.82)}
 .tile .bgart{position:absolute;inset:0;z-index:1;opacity:.9}
 .tile.events{background:radial-gradient(120% 160% at 80% 30%,#2b6fb0,#0f2c4d)}
@@ -900,13 +900,16 @@
 /* ===================== RESPONSIVE ===================== */
 
 @media (max-width:880px){
-  .home{grid-template-columns:1fr}
+  .home{grid-template-columns:1fr;gap:20px}
   .brand{font-size:11px}
   .timeline{grid-template-columns:1fr;gap:22px}
   .timeline::before{display:none}
   .phase{padding:0 0 0 4px}
-  .collective{padding:24px 20px 28px}
   .store-grid{grid-template-columns:1fr;max-width:420px}
+  .tile{min-height:160px;padding:24px 28px;gap:22px}
+  .tile h3{font-size:24px}
+  .tile .ico{width:80px;height:80px}
+  .tile .ico svg{width:80px;height:80px}
 }
 
 /* ---- Phone (≤ 600px) ---- */
@@ -927,15 +930,18 @@
   .page-title{font-size:22px}
 
   /* Home */
-  .sidebar{padding:22px 18px}
+  .sidebar{padding:24px 20px}
   .logo{font-size:clamp(18px,7vw,28px)}
-  .lede{font-size:14px}
-  .discord{font-size:14px;padding:12px}
-  .tiles{gap:12px}
-  .tile{min-height:110px;padding:16px 18px;gap:14px}
-  .tile h3{font-size:18px}
-  .tile p{font-size:11px}
-  .tile .ico{width:56px;height:56px}
+  .lede{font-size:15px;margin-top:18px}
+  .more{max-height:none}
+  .showmore{display:none}
+  .discord{font-size:15px;padding:14px}
+  .tiles{gap:14px}
+  .tile{min-height:130px;padding:20px 22px;gap:18px}
+  .tile h3{font-size:21px}
+  .tile p{font-size:12px}
+  .tile .ico{width:68px;height:68px}
+  .tile .ico svg{width:68px;height:68px}
 
   /* Event feature cards */
   .efeat-art{height:200px}
@@ -973,12 +979,6 @@
   .apw-nav{margin-top:18px}
   .apw-status{padding:28px 20px}
 
-  /* Collective */
-  .collective{padding:22px 16px 26px}
-  .col-head h2{font-size:22px}
-  .col-vision{font-size:14px}
-  .phase h4{font-size:16px}
-  .col-rail{margin:22px 0 12px}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important}
