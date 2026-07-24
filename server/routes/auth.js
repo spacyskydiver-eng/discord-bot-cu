@@ -7,6 +7,8 @@ router.get('/discord', (req, res) => {
   if (!process.env.DISCORD_CLIENT_SECRET || !process.env.REDIRECT_URI || !process.env.CLIENT_ID) {
     return res.redirect('/auth/error?reason=not-configured');
   }
+  // Remember which language the user was on so the callback can redirect correctly
+  req.session.oauthReturnLang = req._lang;
   const params = new URLSearchParams({
     client_id: process.env.CLIENT_ID,
     redirect_uri: process.env.REDIRECT_URI,
@@ -67,8 +69,10 @@ router.get('/callback', async (req, res) => {
       } catch (_) {}
     }
 
-    const home = req.session.lang === 'fr' ? '/fr/' : '/';
-    res.redirect(home);
+    // Redirect back to whichever language the user was on when they clicked Login
+    const returnLang = req.session.oauthReturnLang || 'en';
+    delete req.session.oauthReturnLang;
+    res.redirect(returnLang === 'fr' ? '/fr/' : '/');
   } catch (err) {
     console.error('OAuth error:', err);
     res.redirect('/auth/error?reason=oauth-failed');
@@ -76,8 +80,9 @@ router.get('/callback', async (req, res) => {
 });
 
 router.get('/logout', (req, res) => {
-  const home = req.session.lang === 'fr' ? '/fr/' : '/';
-  req.session.destroy(() => res.redirect(home));
+  // req._lang is set by the URL middleware — /fr/auth/logout → fr, /auth/logout → en
+  const lang = req._lang;
+  req.session.destroy(() => res.redirect(lang === 'fr' ? '/fr/' : '/'));
 });
 
 module.exports = router;

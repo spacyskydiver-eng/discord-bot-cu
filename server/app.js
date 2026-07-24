@@ -9,11 +9,6 @@ const LOCALES = {};
 for (const lang of ['en', 'fr']) {
   LOCALES[lang] = JSON.parse(fs.readFileSync(path.join(__dirname, '../locales', `${lang}.json`), 'utf8'));
 }
-function detectLang(acceptHeader) {
-  const s = (acceptHeader || '').toLowerCase();
-  if (s.startsWith('fr') || s.includes(',fr') || s.includes(';fr')) return 'fr';
-  return 'en';
-}
 
 module.exports = function startServer() {
   const app = express();
@@ -32,26 +27,25 @@ module.exports = function startServer() {
     cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
   }));
 
-  // URL-based language routing: /fr/... serves French, /... serves English
+  // Language is determined SOLELY by URL prefix.
+  // /fr/... → French, everything else → English.
+  // No session persistence — this runs fresh on every request.
   app.use((req, res, next) => {
     if (req.path === '/fr' || req.path.startsWith('/fr/')) {
-      req._urlLang = 'fr';
-      req.session.lang = 'fr';
+      req._lang = 'fr';
       req.url = req.url.slice(3) || '/';
+    } else {
+      req._lang = 'en';
     }
     next();
   });
 
-  // Attach user, lang helpers, and admin flags to every response
   app.use(async (req, res, next) => {
-    const lang = req._urlLang
-      || (req.session.lang === 'fr' || req.session.lang === 'en' ? req.session.lang : detectLang(req.headers['accept-language']));
-
+    const lang = req._lang;
     res.locals.lang = lang;
     res.locals.lp   = lang === 'fr' ? '/fr' : '';
     res.locals.t    = (key) => (LOCALES[lang][key] !== undefined ? LOCALES[lang][key] : LOCALES['en'][key] ?? key);
 
-    // Pre-computed URL for the lang switcher button
     const origUrl = req.originalUrl;
     res.locals.langSwitchUrl = lang === 'fr'
       ? (origUrl.replace(/^\/fr/, '') || '/')
