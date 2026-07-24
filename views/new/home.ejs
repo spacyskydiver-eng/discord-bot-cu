@@ -8,21 +8,21 @@
     <aside class="sidebar">
       <div class="logo">CUE<span class="sub">COLLECTIVE UNION EVENTS</span></div>
 
-      <p class="lede">The Collective is a Minecraft event server built for players who want something worth actually showing up for.</p>
+      <p class="lede"><%- t('home_lede') %></p>
 
       <div class="more" id="moreText">
-        <p>We run large scale civilisation events, smaller mini events, and tournaments throughout the year, all built with real investment, custom development, and a standard that most servers in this space simply do not meet. No rushed launches, no half finished ideas, no events that disappear after two weeks.</p>
-        <p>The goal is simple. Build the kind of server that people remember being part of.</p>
+        <p><%- t('home_more_p1') %></p>
+        <p><%- t('home_more_p2') %></p>
       </div>
 
       <button class="showmore" id="showMore" aria-expanded="false">
-        <span class="t">Show more</span>
+        <span class="t"><%= t('show_more') %></span>
         <span class="chev">▾</span>
       </button>
 
       <a class="discord" href="https://discord.gg/C63H8CFkm" target="_blank" rel="noopener">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4.4A19 19 0 0 0 15.3 3l-.3.5a14 14 0 0 1 4 2 16 16 0 0 0-13.4 0 14 14 0 0 1 4-2L9.3 3A19 19 0 0 0 4.6 4.4 20 20 0 0 0 1 18.6 19 19 0 0 0 6.8 21l.6-1a13 13 0 0 1-2-1l.5-.3a13 13 0 0 0 11.2 0l.5.3a13 13 0 0 1-2 1l.6 1A19 19 0 0 0 23 18.6 20 20 0 0 0 20 4.4ZM8.6 15.3c-.9 0-1.7-.9-1.7-2s.8-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Zm6.8 0c-.9 0-1.7-.9-1.7-2s.8-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Z"/></svg>
-        Join our Discord
+        <%= t('join_discord') %>
       </a>
     </aside>
 
@@ -51,8 +51,8 @@
           </svg>
         </div>
         <div class="label">
-          <h3>Upcoming Events</h3>
-          <p>See what's coming next</p>
+          <h3><%= t('tile_events') %></h3>
+          <p><%= t('tile_events_sub') %></p>
         </div>
       </a>
 
@@ -78,8 +78,8 @@
           </svg>
         </div>
         <div class="label">
-          <h3>Applications</h3>
-          <p>Apply to join an event</p>
+          <h3><%= t('tile_apps') %></h3>
+          <p><%= t('tile_apps_sub') %></p>
         </div>
       </a>
 
@@ -104,8 +104,8 @@
           </svg>
         </div>
         <div class="label">
-          <h3>Store</h3>
-          <p>VIP &amp; VIP+ ranks</p>
+          <h3><%= t('tile_store') %></h3>
+          <p><%= t('tile_store_sub') %></p>
         </div>
       </a>
 
@@ -114,14 +114,20 @@
 
 </main>
 
-<%- include('partials/foot') %>
-
 <script>
-document.getElementById('showMore').addEventListener('click', function() {
-  var m = document.getElementById('moreText');
-  var open = m.classList.toggle('open');
-  this.classList.toggle('open', open);
-  this.querySelector('.t').textContent = open ? 'Show less' : 'Show more';
-  this.setAttribute('aria-expanded', open);
-});
+var _showMore = document.getElementById('showMore');
+var _showMoreText = _showMore ? _showMore.querySelector('.t') : null;
+var _showLess = '<%= t("show_less").replace(/'/g, "\\'") %>';
+var _showMoreLabel = '<%= t("show_more").replace(/'/g, "\\'") %>';
+if (_showMore) {
+  _showMore.addEventListener('click', function() {
+    var m = document.getElementById('moreText');
+    var open = m.classList.toggle('open');
+    this.classList.toggle('open', open);
+    _showMoreText.textContent = open ? _showLess : _showMoreLabel;
+    this.setAttribute('aria-expanded', open);
+  });
+}
 </script>
+
+<%- include('partials/foot') %>

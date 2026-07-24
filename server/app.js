@@ -3,6 +3,17 @@ const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const path = require('path');
 const pool = require('../db');
+const fs = require('fs');
+
+const LOCALES = {};
+for (const lang of ['en', 'fr']) {
+  LOCALES[lang] = JSON.parse(fs.readFileSync(path.join(__dirname, '../locales', `${lang}.json`), 'utf8'));
+}
+function detectLang(acceptHeader) {
+  const s = (acceptHeader || '').toLowerCase();
+  if (s.startsWith('fr') || s.includes(',fr') || s.includes(';fr')) return 'fr';
+  return 'en';
+}
 
 module.exports = function startServer() {
   const app = express();
@@ -23,6 +34,13 @@ module.exports = function startServer() {
 
   // Make user available in all views
   app.use(async (req, res, next) => {
+    // Language detection: session → Accept-Language header
+    const lang = (req.session.lang === 'fr' || req.session.lang === 'en')
+      ? req.session.lang
+      : detectLang(req.headers['accept-language']);
+    res.locals.lang = lang;
+    res.locals.t = (key) => (LOCALES[lang][key] !== undefined ? LOCALES[lang][key] : LOCALES['en'][key] ?? key);
+
     res.locals.user = req.session.user || null;
     const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(s => s.trim());
     res.locals.isAdmin = req.session.user ? adminIds.includes(req.session.user.id) : false;

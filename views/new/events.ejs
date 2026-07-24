@@ -21,15 +21,15 @@ const ISLAND = {
 <main class="wrap">
 
   <div class="page-head">
-    <a href="/" class="back">← Home</a>
+    <a href="/" class="back"><%= t('back_home') %></a>
     <div>
-      <h1 class="page-title">Upcoming Events</h1>
-      <p class="page-sub">Click an event to see the full details.</p>
+      <h1 class="page-title"><%= t('events_title') %></h1>
+      <p class="page-sub"><%= t('events_sub') %></p>
     </div>
   </div>
 
   <% if (events.length === 0) { %>
-    <p style="color:var(--muted);font-size:15px;text-align:center;padding:60px 0;">No events scheduled yet — check back soon.</p>
+    <p style="color:var(--muted);font-size:15px;text-align:center;padding:60px 0;"><%= t('events_empty') %></p>
   <% } else { %>
   <div class="event-list">
     <% events.forEach(function(ev) { %>
@@ -70,15 +70,15 @@ const ISLAND = {
             <div class="efeat-name"><%= ev.title %></div>
             <div class="efeat-meta">
               <% if (ev.event_date) { %>
-                Starts <%= new Date(ev.event_date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'}) %>
+                <%= t('event_starts') %> <%= new Date(ev.event_date).toLocaleDateString(t('date_locale'),{weekday:'short',day:'numeric',month:'long',year:'numeric'}) %>
               <% } else if (ev.is_open) { %>
-                Applications open now
+                <%= t('event_apps_open') %>
               <% } else { %>
-                Coming soon
+                <%= t('event_coming_soon') %>
               <% } %>
             </div>
           </div>
-          <span class="efeat-cta">View details →</span>
+          <span class="efeat-cta"><%= t('event_view_details') %></span>
         </div>
       </a>
     <% }); %>

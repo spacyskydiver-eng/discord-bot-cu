@@ -26,10 +26,10 @@ function renderBlock(b) {
 <main class="wrap">
 
   <div class="page-head">
-    <a href="/applications" class="back">← Applications</a>
+    <a href="/applications" class="back"><%= t('apply_back_applications') %></a>
     <div>
-      <h1 class="page-title">Apply</h1>
-      <% if (event) { %><p class="page-sub">Applying for: <strong><%= event.title %></strong></p><% } %>
+      <h1 class="page-title"><%= t('apply_page_title') %></h1>
+      <% if (event) { %><p class="page-sub"><%= t('apply_for') %> <strong><%= event.title %></strong></p><% } %>
     </div>
   </div>
 
@@ -38,45 +38,45 @@ function renderBlock(b) {
     <% if (locals.isAdmin) { %>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;padding:10px 14px;background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);border-radius:10px;">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-      <span style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:#fbbf24;letter-spacing:.05em">ADMIN PREVIEW</span>
-      <button id="adminSkipBtn" type="button" onclick="toggleAdminSkip()" style="margin-left:auto;font-family:'Baloo 2';font-weight:700;font-size:12px;padding:4px 12px;border-radius:7px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#c9ccdb;cursor:pointer;">Skip OFF</button>
+      <span style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:#fbbf24;letter-spacing:.05em"><%= t('apply_admin_preview') %></span>
+      <button id="adminSkipBtn" type="button" onclick="toggleAdminSkip()" style="margin-left:auto;font-family:'Baloo 2';font-weight:700;font-size:12px;padding:4px 12px;border-radius:7px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#c9ccdb;cursor:pointer;"><%= t('apply_skip_off') %></button>
     </div>
     <% } %>
 
     <% if (!event) { %>
       <div class="apw-status">
         <div class="apw-status-icon">—</div>
-        <h2>No Active Event</h2>
-        <p>There are no events open for applications right now. Check back soon.</p>
-        <a href="/" class="apw-cta">Back to home</a>
+        <h2><%= t('apply_no_event_title') %></h2>
+        <p><%= t('apply_no_event_p') %></p>
+        <a href="/" class="apw-cta"><%= t('apply_back_home') %></a>
       </div>
 
     <% } else if (existing && existing.status === 'accepted' && !locals.isAdmin) { %>
       <div class="apw-status ok">
         <div class="apw-status-icon">✓</div>
-        <h2>Application Accepted</h2>
-        <p>Congratulations — you've been accepted for <strong><%= event.title %></strong>. Watch your Discord for further instructions.</p>
-        <a href="https://discord.gg/C63H8CFkm" target="_blank" rel="noopener" class="apw-cta apw-cta-discord">Open Discord</a>
+        <h2><%= t('apply_accepted_title') %></h2>
+        <p><%= t('apply_accepted_p') %> <strong><%= event.title %></strong><%= t('apply_accepted_p2') %></p>
+        <a href="https://discord.gg/C63H8CFkm" target="_blank" rel="noopener" class="apw-cta apw-cta-discord"><%= t('apply_accepted_btn') %></a>
       </div>
 
     <% } else if (existing && existing.status === 'declined' && !locals.isAdmin) { %>
       <div class="apw-status err">
         <div class="apw-status-icon">✕</div>
-        <h2>Application Declined</h2>
+        <h2><%= t('apply_declined_title') %></h2>
         <% if (existing.declined_at_stage) { %>
-          <p>Your application was not successful at Stage <%= existing.declined_at_stage %>. You cannot reapply for this event with this Discord account.</p>
+          <p><%= t('apply_declined_p1') %> <%= existing.declined_at_stage %><%= t('apply_declined_p2') %></p>
         <% } else { %>
-          <p>Your application was not successful this time. We appreciate you applying and hope to see you at a future event.</p>
+          <p><%= t('apply_declined_p3') %></p>
         <% } %>
-        <a href="/events" class="apw-cta">View events</a>
+        <a href="/events" class="apw-cta"><%= t('apply_view_events') %></a>
       </div>
 
     <% } else if (existing && existing.status === 'pending' && !locals.isAdmin) { %>
       <div class="apw-status warn">
         <div class="apw-status-icon">◎</div>
-        <h2>Under Review</h2>
-        <p>Your application for <strong><%= event.title %></strong> is being reviewed by staff. Track your progress below.</p>
-        <% const stageNameMap = {2:'Basic Info',3:'Playstyle',4:'Scenarios',5:'Application',6:'Agreement'}; %>
+        <h2><%= t('apply_pending_title') %></h2>
+        <p><%= t('apply_pending_p') %> <strong><%= event.title %></strong> <%= t('apply_pending_p2') %></p>
+        <% const stageNames = t('apply_stage_names'); %>
         <% const reviewStage = existing.review_stage || 2; %>
         <div class="apw-progress">
           <% for (let s = 2; s <= 6; s++) { %>
@@ -84,8 +84,8 @@ function renderBlock(b) {
             <div class="apw-prog-row <%= passed ? 'passed' : isCurrent ? 'current' : '' %>">
               <div class="apw-prog-dot"><%= passed ? '✓' : s %></div>
               <div>
-                <div class="apw-prog-name">Stage <%= s %> — <%= stageNameMap[s] %></div>
-                <div class="apw-prog-stat"><%= passed ? 'Passed' : isCurrent ? 'Under Review' : 'Waiting' %></div>
+                <div class="apw-prog-name">Stage <%= s %> — <%= stageNames[s] || stageNames[s] %></div>
+                <div class="apw-prog-stat"><%= passed ? t('apply_progress_passed') : isCurrent ? t('apply_progress_current') : t('apply_progress_waiting') %></div>
               </div>
             </div>
             <% if (s < 6) { %><div class="apw-prog-line <%= passed ? 'passed' : '' %>"></div><% } %>
@@ -96,26 +96,26 @@ function renderBlock(b) {
     <% } else if (submitted) { %>
       <div class="apw-status ok">
         <div class="apw-status-icon">✓</div>
-        <h2>Application Received</h2>
-        <p>Your application for <strong><%= event.title %></strong> has been submitted. We'll review it and reach out via Discord.</p>
-        <a href="/" class="apw-cta">Back to home</a>
+        <h2><%= t('apply_received_title') %></h2>
+        <p><%= t('apply_received_p') %> <strong><%= event.title %></strong> <%= t('apply_received_p2') %></p>
+        <a href="/" class="apw-cta"><%= t('apply_back_home') %></a>
       </div>
 
     <% } else if (!event.is_open && event.opens_at && new Date(event.opens_at) > new Date() && !locals.isAdmin) { %>
       <div class="apw-status">
         <div class="apw-status-icon">◷</div>
-        <h2>Not Open Yet</h2>
-        <p>Applications for <strong><%= event.title %></strong> aren't open yet. Come back at:</p>
+        <h2><%= t('apply_not_open_title') %></h2>
+        <p><%= t('apply_not_open_p') %> <strong><%= event.title %></strong> <%= t('apply_not_open_p2') %></p>
         <p style="font-family:'Baloo 2';font-weight:800;font-size:16px;color:var(--text);margin-bottom:22px" class="tz-stamp" data-utc="<%= new Date(event.opens_at).toISOString() %>">Loading...</p>
-        <a href="/events" class="apw-cta">View events</a>
+        <a href="/events" class="apw-cta"><%= t('apply_view_events') %></a>
       </div>
 
     <% } else if (!event.is_open && !locals.isAdmin) { %>
       <div class="apw-status">
         <div class="apw-status-icon">—</div>
-        <h2>Applications Closed</h2>
-        <p>Applications for <strong><%= event.title %></strong> are currently closed.</p>
-        <a href="/events" class="apw-cta">View events</a>
+        <h2><%= t('apply_closed_title') %></h2>
+        <p><%= t('apply_closed_p') %> <strong><%= event.title %></strong> <%= t('apply_closed_p2') %></p>
+        <a href="/events" class="apw-cta"><%= t('apply_view_events') %></a>
       </div>
 
     <% } else if (!locals.user) { %>
@@ -123,9 +123,9 @@ function renderBlock(b) {
         <div class="apw-status-icon">
           <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor" style="color:#5865F2"><path d="M20 4.4A19 19 0 0 0 15.3 3l-.3.5a14 14 0 0 1 4 2 16 16 0 0 0-13.4 0 14 14 0 0 1 4-2L9.3 3A19 19 0 0 0 4.6 4.4 20 20 0 0 0 1 18.6 19 19 0 0 0 6.8 21l.6-1a13 13 0 0 1-2-1l.5-.3a13 13 0 0 0 11.2 0l.5.3a13 13 0 0 1-2 1l.6 1A19 19 0 0 0 23 18.6 20 20 0 0 0 20 4.4ZM8.6 15.3c-.9 0-1.7-.9-1.7-2s.8-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Zm6.8 0c-.9 0-1.7-.9-1.7-2s.8-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Z"/></svg>
         </div>
-        <h2>Sign in to apply</h2>
-        <p>You need to sign in with Discord before you can submit your application.</p>
-        <a href="/auth/discord" class="apw-cta apw-cta-discord">Sign in with Discord</a>
+        <h2><%= t('apply_login_title') %></h2>
+        <p><%= t('apply_login_p') %></p>
+        <a href="/auth/discord" class="apw-cta apw-cta-discord"><%= t('apply_login_btn') %></a>
       </div>
 
     <% } else { %>
@@ -133,25 +133,25 @@ function renderBlock(b) {
       <% if (locals.error === 'incomplete') { %>
       <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;margin-bottom:16px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:10px;font-size:13px;color:#f87171;font-family:'Baloo 2',sans-serif;font-weight:700">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        Your application was missing some required information — please fill in all fields and try again.
+        <%= t('apply_error_incomplete') %>
       </div>
       <% } else if (locals.error === 'server') { %>
       <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;margin-bottom:16px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:10px;font-size:13px;color:#f87171;font-family:'Baloo 2',sans-serif;font-weight:700">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        Something went wrong saving your application — please try submitting again. Your answers are still saved.
+        <%= t('apply_error_server') %>
       </div>
       <% } %>
 
       <!-- Draft resume banner (hidden by default, shown by JS) -->
       <div id="resumeBanner" style="display:none;align-items:center;gap:10px;padding:10px 16px;margin-bottom:14px;background:rgba(116,192,252,.08);border:1px solid rgba(116,192,252,.2);border-radius:10px;font-size:13px;color:#74c0fc;font-family:'Baloo 2',sans-serif;font-weight:700">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><path d="M12 2v10l4 2"/><circle cx="12" cy="12" r="10"/></svg>
-        Resuming your draft — picked up from stage <span id="resumeStageNum">1</span>
-        <button type="button" onclick="clearDraft();this.closest('#resumeBanner').style.display='none'" style="margin-left:auto;background:none;border:none;color:#74c0fc;cursor:pointer;font-size:12px;opacity:.7">Clear draft ✕</button>
+        <%= t('apply_resume_banner') %> <span id="resumeStageNum">1</span>
+        <button type="button" onclick="clearDraft();this.closest('#resumeBanner').style.display='none'" style="margin-left:auto;background:none;border:none;color:#74c0fc;cursor:pointer;font-size:12px;opacity:.7"><%= t('apply_clear_draft') %></button>
       </div>
 
       <!-- Step bar -->
       <div class="apw-steps" id="wizardHeader">
-        <% ['Eligibility','Understanding','Basic Info','Playstyle','Scenarios','Application','Agreement'].forEach(function(name, i) { %>
+        <% t('apply_stage_names').slice(1).forEach(function(name, i) { %>
           <div class="wizard-step <%= i === 0 ? 'active' : '' %>" data-stage="<%= i+1 %>">
             <div class="apw-step-num"><%= i+1 %></div>
           </div>
@@ -181,31 +181,84 @@ function renderBlock(b) {
                 <div class="elig-item" data-id="<%= q.id %>" data-req-yes="<%= q.required_yes %>" data-blocking="<%= q.blocking %>">
                   <p class="elig-q"><%= q.question_text %></p>
                   <div class="apw-yn">
-                    <button type="button" class="yn-btn" data-val="yes">Yes</button>
-                    <button type="button" class="yn-btn" data-val="no">No</button>
+                    <button type="button" class="yn-btn" data-val="yes"><%= t('apply_yn_yes') %></button>
+                    <button type="button" class="yn-btn" data-val="no"><%= t('apply_yn_no') %></button>
                   </div>
                 </div>
               <% } %>
             </div>
 
             <div class="apw-disq" id="disqMsg">
-              <div class="apw-disq-title">You don't meet the requirements</div>
-              <p class="apw-disq-body">Unfortunately you don't qualify for this event based on your answers. We hope to see you at a future one.</p>
-              <button type="button" class="apw-btn-ghost" onclick="resetEligibility()">Go Back</button>
+              <div class="apw-disq-title"><%= t('apply_disq_title') %></div>
+              <p class="apw-disq-body"><%= t('apply_disq_body') %></p>
+              <button type="button" class="apw-btn-ghost" onclick="resetEligibility()"><%= t('apply_go_back') %></button>
             </div>
 
             <div class="apw-nav" id="stage1Nav">
               <span></span>
-              <button type="button" id="eligCheckBtn" class="apw-btn-next" onclick="checkEligibility()" disabled>Check Eligibility</button>
+              <button type="button" id="eligCheckBtn" class="apw-btn-next" onclick="checkEligibility()" disabled><%= t('apply_check_btn') %></button>
             </div>
           </div>
 
           <!-- ── STAGE 2: EVENT UNDERSTANDING + QUIZ ── -->
           <div class="wizard-stage apw-stage" id="stage-2">
             <div class="apw-stage-num">Stage 2 of 7</div>
-            <h2>Understanding The Event</h2>
-            <p class="apw-stage-sub">Read the overview and rules below, confirm you've read them, then answer 3 quick questions to continue.</p>
+            <h2><%= t('apply_s2_title') %></h2>
+            <p class="apw-stage-sub"><%= t('apply_s2_sub') %></p>
 
+            <% if (lang === 'fr') { %>
+            <div class="apw-reading">
+              <div class="apw-reading-head">Comprendre The Collective — Les bases</div>
+              <div class="apw-reading-body">
+                <p>The Collective est un événement de civilisation. Vous n'êtes pas seulement un joueur — vous êtes membre d'une civilisation, et vos décisions affectent tout le monde sur votre île.</p>
+                <p>Vous serez assigné(e) à l'une des quatre îles — jungle, plaines, badlands ou glace. Chaque île a son propre terrain, ses ressources et ses défis. Vous commencez complètement isolé(e), sans aucun moyen d'atteindre les autres îles. Il n'y a pas d'équipes imposées, pas de plugin de factions, pas de résultats scénarisés. Chaque alliance, chaque trahison et chaque guerre est construite entièrement par les joueurs.</p>
+                <p>L'événement se déroule sur 10 sessions planifiées, chacune d'environ 4 heures. Ce n'est pas un serveur disponible 24h/24. Les sessions sont planifiées et annoncées à l'avance. Ce que vous construisez, à qui vous faites confiance et vos décisions entre les sessions comptent autant que ce qui se passe pendant celles-ci.</p>
+                <div id="sessionScheduleList" style="margin:12px 0 4px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px"></div>
+                <p>Deux îles seront détruites avant la fin. Le monde est en train de mourir lentement. Ce qui se passe après dépend entièrement des joueurs.</p>
+              </div>
+            </div>
+            <div class="apw-reading">
+              <div class="apw-reading-head">Comprendre The Collective — Le système complet</div>
+              <div class="apw-reading-body">
+                <p class="apw-reading-section">L'Autel</p>
+                <p>Au cœur de chaque île se trouve un autel ancestral. Pour garder votre île en vie, votre civilisation doit chasser la créature qui rôde sur votre territoire et apporter ce qu'elle laisse tomber en offrande à l'autel. À chaque session, les scores sont comptabilisés. L'île qui a le moins contribué commence à se fissurer et à se dégrader. Si votre île prend trop de retard, elle est détruite — et tous ses habitants doivent trouver un nouveau foyer sur une île survivante.</p>
+                <p>La mécanique de l'autel est active à partir de la session 2 et se termine après la session 7, quand il ne reste plus que deux îles.</p>
+                <p class="apw-reading-section">Les Portes et les Points de Passage</p>
+                <p>Un mur sépare chaque île des autres. Le seul moyen de passer d'une île à une autre est par des points de passage dédiés intégrés dans le mur. Les portes s'ouvrent 30 minutes après le début de la session 3. Les zones contestées aux points de passage s'ouvrent 2 heures après les portes. À partir de la session 8, toutes les restrictions de passage sont levées et les joueurs peuvent voyager librement entre les deux îles restantes.</p>
+                <p class="apw-reading-section">Zones de Régénération de Diamants</p>
+                <p>Chaque île possède 6 zones de régénération de diamants. Ce sont des zones de 20x20 blocs où les joueurs ne peuvent ni placer ni casser de blocs. Le minerai de diamant se régénère à l'intérieur avec un temps de recharge. Ces zones sont votre principale source de diamants pour fabriquer de l'équipement. Les joueurs de n'importe quelle île peuvent entrer et miner vos zones — les défendre est de votre responsabilité.</p>
+                <p>Les zones peuvent être améliorées en apportant du minerai étranger :</p>
+                <ul class="apw-reading-list">
+                  <li><strong>Niveau 1</strong> (par défaut) : 4 diamants, 30 minutes de recharge</li>
+                  <li><strong>Niveau 2</strong> (coût : 32 minerais étrangers) : 7 diamants, 25 minutes de recharge</li>
+                  <li><strong>Niveau 3</strong> (coût : 64 minerais étrangers) : 10 diamants, 20 minutes de recharge</li>
+                </ul>
+                <p class="apw-reading-section">Zones de Minerai d'Amélioration</p>
+                <p>Chaque île possède 3 zones de minerai d'amélioration produisant le minerai unique de cette île. Le minerai de votre propre île ne vous sert à rien — il ne peut être utilisé que par d'autres îles pour améliorer leurs zones de diamants. Cela signifie que vous devez soit commercer avec d'autres îles, soit les attaquer pour obtenir le minerai étranger nécessaire à l'amélioration de vos propres zones.</p>
+                <p class="apw-reading-section">Zones d'Or</p>
+                <p>L'île désertique possède 2 zones de régénération d'or. Ce sont les seules sources d'or se régénérant naturellement sur la carte. L'or sert à fabriquer des pommes dorées. L'or de l'île désertique est une précieuse marchandise commerciale pour toutes les îles.</p>
+                <p class="apw-reading-section">Zones Contestées</p>
+                <p>Situées aux points de passage entre les îles. Ce sont des zones de 50x50 blocs où des mobs personnalisés gardent des coffres de butin contenant un meilleur équipement que tout ce qui peut être obtenu ailleurs. Les joueurs ne peuvent pas placer ou casser des blocs à l'intérieur. Une fois un coffre pillé, il disparaît. Les admins ouvrent et ferment les zones contestées avec un compte à rebours visuel des deux côtés.</p>
+                <p class="apw-reading-section">Progression de l'Équipement</p>
+                <p>Les plafonds d'enchantements se lèvent automatiquement au début des sessions 4 et 7.</p>
+                <div class="apw-reading-table-wrap">
+                  <table class="apw-reading-table">
+                    <thead><tr><th>Sessions</th><th>Armure max</th><th>Épée max</th><th>Gapples max</th></tr></thead>
+                    <tbody>
+                      <tr><td>1–3</td><td>Protection 2</td><td>Tranchant 2</td><td>6</td></tr>
+                      <tr><td>4–6</td><td>Protection 3</td><td>Tranchant 3</td><td>8</td></tr>
+                      <tr><td>7–10</td><td>Protection 4</td><td>Tranchant 4</td><td>10</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p>Un seul set d'armure Protection 5 existe dans les coffres des zones contestées à partir de la session 5. Plus vous équipez de pièces simultanément, plus vous recevez de malus.</p>
+                <p>La masse existe quelque part sur la carte. Elle ne peut pas être enchantée. Des indices seront donnés en session 6.</p>
+                <p class="apw-reading-section">L'Économie</p>
+                <p>Les joueurs gagnent des émeraudes en échangeant de la nourriture et des minerais au /shop. Les émeraudes peuvent être dépensées sur des blocs de construction spécifiques à l'île. Le shop ne vend pas d'équipement, d'armes ni de nourriture.</p>
+                <p>Chaque joueur peut avoir un coffre verrouillé à tout moment. Verrouillez-le en fabriquant une clé et en l'utilisant sur un coffre.</p>
+              </div>
+            </div>
+            <% } else { %>
             <div class="apw-reading">
               <div class="apw-reading-head">Understanding The Collective — The Basics</div>
               <div class="apw-reading-body">
@@ -216,17 +269,14 @@ function renderBlock(b) {
                 <p>Two islands will be destroyed before the end. The world is slowly dying. What happens after that is entirely up to the players.</p>
               </div>
             </div>
-
             <div class="apw-reading">
               <div class="apw-reading-head">Understanding The Collective — The Full System</div>
               <div class="apw-reading-body">
                 <p class="apw-reading-section">The Altar</p>
                 <p>At the heart of each island lies an ancient altar. To keep your island alive your civilisation must hunt the creature that roams your land and bring what it drops as an offering to the altar. Every session the scores are tallied. The island that has contributed the least starts to crack and decay. If your island falls too far behind it gets destroyed — and everyone on it must find a new home on a surviving island.</p>
                 <p>The altar mechanic is active from session 2 and ends after session 7 when only two islands remain.</p>
-
                 <p class="apw-reading-section">The Gates and Crossing Points</p>
                 <p>A wall separates every island from each other. The only way between islands is through dedicated crossing points built into the wall. Gates open 30 minutes into session 3. Contested zones at the crossing points open 2 hours after the gates. From session 8 onwards all crossing restrictions are lifted and players can travel freely between the two remaining islands.</p>
-
                 <p class="apw-reading-section">Diamond Regen Zones</p>
                 <p>Every island has 6 diamond regen zones spread across it. These are 20x20 block areas where players cannot place or break blocks. Diamond ore regenerates inside on a cooldown. These zones are your primary source of diamonds for crafting gear. Players from any island can enter and mine your zones — defending them is your responsibility.</p>
                 <p>Zones can be upgraded by bringing foreign ore to the zone:</p>
@@ -235,16 +285,12 @@ function renderBlock(b) {
                   <li><strong>Tier 2</strong> (costs 32 foreign ore): 7 diamonds, 25 minute cooldown</li>
                   <li><strong>Tier 3</strong> (costs 64 foreign ore): 10 diamonds, 20 minute cooldown</li>
                 </ul>
-
                 <p class="apw-reading-section">Upgrade Ore Zones</p>
                 <p>Every island has 3 upgrade ore zones producing that island's unique ore. Your own island's ore is useless to you — it can only be used by other islands to upgrade their diamond zones. This means you need to either trade with other islands or raid them to get the foreign ore you need to upgrade your own zones.</p>
-
                 <p class="apw-reading-section">Gold Zones</p>
                 <p>The desert island has 2 gold regen zones. These are the only source of naturally regenerating gold on the map. Gold is used to craft golden apples. Desert island gold is a valuable trade commodity for all islands.</p>
-
                 <p class="apw-reading-section">Contested Zones</p>
                 <p>Located at the wall crossing points between islands. These are 50x50 block areas where custom mobs guard loot chests containing better gear than anything obtainable elsewhere. Players cannot place or break blocks inside. Once a chest is looted it disappears. Admins open and close contested zones with a visual countdown visible on both sides.</p>
-
                 <p class="apw-reading-section">Gear Progression</p>
                 <p>Enchantment caps lift automatically at the start of sessions 4 and 7.</p>
                 <div class="apw-reading-table-wrap">
@@ -259,21 +305,78 @@ function renderBlock(b) {
                 </div>
                 <p>A single Protection 5 armour set exists in contested zone chests from session 5 onwards. The more pieces you equip simultaneously the more debuffs you receive.</p>
                 <p>The mace exists somewhere on the map. It cannot be enchanted. Lore clues will be given in session 6.</p>
-
                 <p class="apw-reading-section">The Economy</p>
                 <p>Players earn emeralds by exchanging food and ores at the /shop. Emeralds can be spent on island specific building blocks. The shop does not sell gear, weapons, or food.</p>
                 <p>Each player can have one locked chest at any time. Lock it by crafting a key and using it on a single chest.</p>
               </div>
             </div>
+            <% } %>
 
             <label class="agr-item" style="margin:20px 0">
               <input type="checkbox" class="agr-check" id="readingConfirmCheck" onchange="onReadingConfirm()"/>
-              <span class="agr-text">I have read and understood the event overview above.</span>
+              <span class="agr-text"><%= t('apply_i_read') %></span>
             </label>
 
             <div id="quizSection" style="display:none">
               <div class="quiz-layout">
                 <div class="quiz-rules-panel">
+                  <% if (lang === 'fr') { %>
+                  <div class="quiz-rules-head">Règles de l'événement — référence</div>
+                  <div class="quiz-rules-body">
+                    <p class="apw-reading-section">Général</p>
+                    <ul class="apw-reading-list">
+                      <li>Vous devez faire tout votre possible pour assister aux sessions planifiées. Les joueurs qui manquent répétitivement des sessions sans prévenir pourront être retirés.</li>
+                      <li>Pas de hacking, de triche ou d'exploitation de bugs. Tout avantage injuste doit être signalé immédiatement au staff.</li>
+                      <li>Aucun mod donnant un avantage gameplay. Les mods de performance comme Sodium et Optifine sont autorisés.</li>
+                      <li>Les décisions du staff sont définitives. Soulevez les litiges via un ticket après la session.</li>
+                      <li>Ne partagez pas d'informations sur l'événement publiquement avant son début.</li>
+                    </ul>
+                    <p class="apw-reading-section">Combat</p>
+                    <ul class="apw-reading-list">
+                      <li>Le PvP est désactivé pendant la session 1. Il s'active au début de la session 2 et reste actif pour le reste de l'événement.</li>
+                      <li>À partir de la session 2, tuer d'autres joueurs, y compris ceux de votre propre île, est autorisé.</li>
+                      <li>Voler d'autres joueurs et bases est autorisé.</li>
+                      <li>Il n'y a pas de zones protégées en dehors des zones no-build désignées.</li>
+                      <li>Ne faites pas de combat log. Se déconnecter pour éviter la mort est un motif de bannissement.</li>
+                      <li>Ce n'est pas un serveur roleplay. Vous pouvez être tué(e) par n'importe qui à tout moment et pour n'importe quelle raison à partir de la session 2.</li>
+                    </ul>
+                    <p class="apw-reading-section">Griefing</p>
+                    <ul class="apw-reading-list">
+                      <li>Détruire les constructions d'un autre joueur uniquement pour le griéfer sans but stratégique n'est pas autorisé.</li>
+                      <li>Détruire le paysage de votre propre île pour griéfer votre propre civilisation n'est pas autorisé.</li>
+                      <li>Détruire intentionnellement l'autel ou les zones de minerai de votre propre île n'est pas autorisé.</li>
+                    </ul>
+                    <p class="apw-reading-section">Équipement et Enchantements</p>
+                    <ul class="apw-reading-list">
+                      <li>Les plafonds d'enchantements sont appliqués par plugin et ne peuvent pas être contournés.</li>
+                      <li>Les limites de pommes dorées sont appliquées par plugin.</li>
+                      <li>N'essayez pas de dupliquer des objets ou d'exploiter des mécaniques d'inventaire.</li>
+                    </ul>
+                    <p class="apw-reading-section">Zones</p>
+                    <ul class="apw-reading-list">
+                      <li>Pas de placement ou de destruction de blocs dans les zones de diamants, les zones de minerai d'amélioration ou les zones contestées.</li>
+                      <li>N'essayez pas d'exploiter les mécaniques ou les temps de recharge des zones.</li>
+                      <li>Ne bloquez pas les entrées des zones.</li>
+                    </ul>
+                    <p class="apw-reading-section">Communication</p>
+                    <ul class="apw-reading-list">
+                      <li>Pas de partage d'informations personnelles réelles d'autres joueurs.</li>
+                      <li>Pas de harcèlement, discours haineux ou langage discriminatoire dans aucun chat.</li>
+                      <li>Pas de publicité pour d'autres serveurs ou serveurs Discord pendant l'événement.</li>
+                      <li>Le spam dans le chat pendant les sessions en direct n'est pas autorisé.</li>
+                    </ul>
+                    <p class="apw-reading-section">Tickets et Staff</p>
+                    <ul class="apw-reading-list">
+                      <li>Si vous avez une plainte ou une infraction à signaler pendant une session en direct, ouvrez un ticket. Ne portez pas les litiges dans le chat public.</li>
+                      <li>Les faux signalements ou l'abus du système de tickets entraîneront une sanction.</li>
+                      <li>Usurper l'identité d'un membre du staff est un motif de bannissement.</li>
+                    </ul>
+                    <p class="apw-reading-section">Contenu</p>
+                    <ul class="apw-reading-list">
+                      <li>En participant à cet événement, vous reconnaissez que votre gameplay peut être enregistré et utilisé dans de futurs contenus de The Collective. Si vous ne consentez pas, ne candidatez pas.</li>
+                    </ul>
+                  </div>
+                  <% } else { %>
                   <div class="quiz-rules-head">Event Rules — reference</div>
                   <div class="quiz-rules-body">
                     <p class="apw-reading-section">General</p>
@@ -329,20 +432,21 @@ function renderBlock(b) {
                       <li>By participating in this event you acknowledge that your gameplay may be recorded and used in future content by The Collective. If you do not consent, do not apply.</li>
                     </ul>
                   </div>
+                  <% } %>
                 </div>
                 <div class="quiz-questions-panel">
-                  <p class="quiz-intro">Answer all 3 correctly to continue. Wrong answers reset with a different question — refer to the rules on the left at any time.</p>
+                  <p class="quiz-intro"><%= t('apply_quiz_intro') %></p>
                   <div id="quizQ0" class="quiz-question"></div>
                   <div id="quizQ1" class="quiz-question"></div>
                   <div id="quizQ2" class="quiz-question"></div>
-                  <div id="quizStatus" class="quiz-status">0 of 3 correct</div>
+                  <div id="quizStatus" class="quiz-status">0 <%= t('apply_quiz_status_of') %></div>
                 </div>
               </div>
             </div>
 
             <div class="apw-nav">
-              <button type="button" class="apw-btn-ghost" onclick="goStage(1)">Back</button>
-              <button type="button" class="apw-btn-next" id="quizNextBtn" onclick="goStage(3)" disabled>Next</button>
+              <button type="button" class="apw-btn-ghost" onclick="goStage(1)"><%= t('btn_back') %></button>
+              <button type="button" class="apw-btn-next" id="quizNextBtn" onclick="goStage(3)" disabled><%= t('btn_next') %></button>
             </div>
           </div>
 
@@ -357,67 +461,67 @@ function renderBlock(b) {
             <%- (stageBlocks[2] || []).map(b => renderBlock(b)).join('') %>
 
             <div class="apw-field">
-              <label class="apw-label">Minecraft In-Game Name <span class="req">*</span></label>
-              <input type="text" name="ign" class="apw-input" placeholder="Your exact IGN" />
+              <label class="apw-label"><%= t('apply_s3_ign') %> <span class="req">*</span></label>
+              <input type="text" name="ign" class="apw-input" placeholder="<%= t('apply_s3_ign_ph') %>" />
             </div>
             <div class="apw-field">
-              <label class="apw-label">Discord Username <span class="req">*</span></label>
-              <input type="text" name="discord_username" class="apw-input" placeholder="e.g. spacey or spacey#0001" />
+              <label class="apw-label"><%= t('apply_s3_disc') %> <span class="req">*</span></label>
+              <input type="text" name="discord_username" class="apw-input" placeholder="<%= t('apply_s3_disc_ph') %>" />
             </div>
             <div class="apw-row">
               <div class="apw-field">
-                <label class="apw-label">Age <span class="req">*</span></label>
-                <input type="number" name="age" class="apw-input" min="13" max="99" placeholder="Your age" />
+                <label class="apw-label"><%= t('apply_s3_age') %> <span class="req">*</span></label>
+                <input type="number" name="age" class="apw-input" min="13" max="99" placeholder="<%= t('apply_s3_age_ph') %>" />
               </div>
               <div class="apw-field">
-                <label class="apw-label">Country <span class="req">*</span></label>
-                <input type="text" name="country" class="apw-input" placeholder="e.g. United Kingdom" />
+                <label class="apw-label"><%= t('apply_s3_country') %> <span class="req">*</span></label>
+                <input type="text" name="country" class="apw-input" placeholder="<%= t('apply_s3_country_ph') %>" />
               </div>
             </div>
             <div class="apw-field">
-              <label class="apw-label">How did you hear about The Collective? <span class="req">*</span></label>
-              <input type="text" name="how_heard" class="apw-input" placeholder="e.g. YouTube, a friend, Discord" />
+              <label class="apw-label"><%= t('apply_s3_how_heard') %> <span class="req">*</span></label>
+              <input type="text" name="how_heard" class="apw-input" placeholder="<%= t('apply_s3_how_heard_ph') %>" />
             </div>
             <div class="apw-field">
-              <label class="apw-label">Session Availability <span class="req">*</span></label>
-              <p class="apw-field-hint">All 10 sessions are shown below with times in <strong>your local timezone</strong>. Tick every session you can attend. You must be able to make <strong>at least 5 sessions including Session 1</strong> to be considered.</p>
+              <label class="apw-label"><%= t('apply_s3_session_label') %> <span class="req">*</span></label>
+              <p class="apw-field-hint"><%- t('apply_s3_session_hint') %></p>
               <input type="hidden" name="session_availability" id="sessionAvailInput" />
               <div class="session-avail-grid" id="sessionAvailGrid"></div>
               <div class="session-avail-status" id="sessionAvailStatus"></div>
             </div>
 
             <div class="apw-field">
-              <label class="apw-label">Have you played civilisation-style events before?</label>
+              <label class="apw-label"><%= t('apply_s3_played_civ') %></label>
               <input type="hidden" name="played_civ" id="playedCivVal" value="no" />
               <div class="apw-toggle">
-                <button type="button" class="toggle-opt" onclick="setToggle('playedCivVal','yes',this,'civWrap')">Yes</button>
-                <button type="button" class="toggle-opt active" onclick="setToggle('playedCivVal','no',this,'civWrap')">No</button>
+                <button type="button" class="toggle-opt" onclick="setToggle('playedCivVal','yes',this,'civWrap')"><%= t('apply_yn_yes') %></button>
+                <button type="button" class="toggle-opt active" onclick="setToggle('playedCivVal','no',this,'civWrap')"><%= t('apply_yn_no') %></button>
               </div>
               <div id="civWrap" class="apw-cond" style="display:none">
                 <div class="apw-field" style="margin-bottom:0">
-                  <label class="apw-label">Which events?</label>
-                  <input type="text" name="played_civ_details" class="apw-input" placeholder="e.g. Forged Alliance, MCC" />
+                  <label class="apw-label"><%= t('apply_s3_played_civ_q') %></label>
+                  <input type="text" name="played_civ_details" class="apw-input" placeholder="<%= t('apply_s3_played_civ_ph') %>" />
                 </div>
               </div>
             </div>
             <div class="apw-field">
-              <label class="apw-label">Do you create content? (YouTube, Twitch, etc.)</label>
+              <label class="apw-label"><%= t('apply_s3_creates_content') %></label>
               <input type="hidden" name="creates_content" id="createsContentVal" value="no" />
               <div class="apw-toggle">
-                <button type="button" class="toggle-opt" onclick="setToggle('createsContentVal','yes',this,'contentWrap')">Yes</button>
-                <button type="button" class="toggle-opt active" onclick="setToggle('createsContentVal','no',this,'contentWrap')">No</button>
+                <button type="button" class="toggle-opt" onclick="setToggle('createsContentVal','yes',this,'contentWrap')"><%= t('apply_yn_yes') %></button>
+                <button type="button" class="toggle-opt active" onclick="setToggle('createsContentVal','no',this,'contentWrap')"><%= t('apply_yn_no') %></button>
               </div>
               <div id="contentWrap" class="apw-cond" style="display:none">
                 <div class="apw-field" style="margin-bottom:0">
-                  <label class="apw-label">Channel / Stream link</label>
+                  <label class="apw-label"><%= t('apply_s3_content_link') %></label>
                   <input type="url" name="content_link" class="apw-input" placeholder="https://..." />
                 </div>
               </div>
             </div>
 
             <div class="apw-field">
-              <label class="apw-label">Island Preferences <span class="req">*</span></label>
-              <p class="apw-field-hint">Click the islands in order from most to least preferred. Click again to remove a selection.</p>
+              <label class="apw-label"><%= t('apply_s3_island_label') %> <span class="req">*</span></label>
+              <p class="apw-field-hint"><%= t('apply_s3_island_hint') %></p>
               <div class="island-rank-grid">
                 <div class="island-card" data-island="jungle" onclick="clickIsland('jungle')" style="--iclr:#1e6630;--itxt:#51cf66">
                   <div class="island-rank-badge"></div>
@@ -449,18 +553,18 @@ function renderBlock(b) {
                 </div>
               </div>
               <input type="hidden" name="island_choices" id="islandChoicesInput"/>
-              <div class="island-rank-status" id="islandRankStatus">Select all 4 islands to continue</div>
+              <div class="island-rank-status" id="islandRankStatus"><%= t('apply_s3_island_select_all') %></div>
             </div>
 
             <div class="apw-field">
-              <label class="apw-label">Friends you want to play with</label>
-              <p class="apw-field-hint">Optional. List the Minecraft IGNs of anyone you'd like to be placed with, one per line. <strong>Important:</strong> they must also include your IGN in their application — both sides need to list each other for us to try and group you together.</p>
-              <textarea name="friend_requests" class="apw-textarea" rows="3" placeholder="Enter IGNs here, one per line..."></textarea>
+              <label class="apw-label"><%= t('apply_s3_friends_label') %></label>
+              <p class="apw-field-hint"><%- t('apply_s3_friends_hint') %></p>
+              <textarea name="friend_requests" class="apw-textarea" rows="3" placeholder="<%= t('apply_s3_friends_ph') %>"></textarea>
             </div>
 
             <div class="apw-nav">
-              <button type="button" class="apw-btn-ghost" onclick="goStage(2)">Back</button>
-              <button type="button" class="apw-btn-next" onclick="nextFrom(3)">Next</button>
+              <button type="button" class="apw-btn-ghost" onclick="goStage(2)"><%= t('btn_back') %></button>
+              <button type="button" class="apw-btn-next" onclick="nextFrom(3)"><%= t('btn_next') %></button>
             </div>
           </div>
 
@@ -485,12 +589,12 @@ function renderBlock(b) {
             </div>
             <div class="apw-field">
               <label class="apw-label"><%= (stageSettings[3] && stageSettings[3].playstyle_desc_label) || 'Describe how you would actually play this event based on your chosen playstyle.' %> <span class="req">*</span></label>
-              <textarea name="playstyle_description" class="apw-textarea" rows="4" placeholder="Be specific. What would you actually do on Day 1?"></textarea>
+              <textarea name="playstyle_description" class="apw-textarea" rows="4" placeholder="<%= t('apply_s4_desc_ph') %>"></textarea>
             </div>
 
             <div class="apw-nav">
-              <button type="button" class="apw-btn-ghost" onclick="goStage(3)">Back</button>
-              <button type="button" class="apw-btn-next" onclick="nextFrom(4)">Next</button>
+              <button type="button" class="apw-btn-ghost" onclick="goStage(3)"><%= t('btn_back') %></button>
+              <button type="button" class="apw-btn-next" onclick="nextFrom(4)"><%= t('btn_next') %></button>
             </div>
           </div>
 
@@ -507,22 +611,22 @@ function renderBlock(b) {
             <div class="apw-scenario">
               <div class="apw-scenario-num"><%= (stageSettings[4] && stageSettings[4].scenario_1_title) || 'Scenario 1' %></div>
               <div class="apw-scenario-q"><%= (stageSettings[4] && stageSettings[4].scenario_1_text) || '' %></div>
-              <textarea name="scenario_1" class="apw-textarea" rows="5" placeholder="Your response..."></textarea>
+              <textarea name="scenario_1" class="apw-textarea" rows="5" placeholder="<%= t('apply_s5_scenario_ph') %>"></textarea>
             </div>
             <div class="apw-scenario">
               <div class="apw-scenario-num"><%= (stageSettings[4] && stageSettings[4].scenario_2_title) || 'Scenario 2' %></div>
               <div class="apw-scenario-q"><%= (stageSettings[4] && stageSettings[4].scenario_2_text) || '' %></div>
-              <textarea name="scenario_2" class="apw-textarea" rows="5" placeholder="Your response..."></textarea>
+              <textarea name="scenario_2" class="apw-textarea" rows="5" placeholder="<%= t('apply_s5_scenario_ph') %>"></textarea>
             </div>
             <div class="apw-scenario">
               <div class="apw-scenario-num"><%= (stageSettings[4] && stageSettings[4].scenario_3_title) || 'Scenario 3' %></div>
               <div class="apw-scenario-q"><%= (stageSettings[4] && stageSettings[4].scenario_3_text) || '' %></div>
-              <textarea name="scenario_3" class="apw-textarea" rows="5" placeholder="Your response..."></textarea>
+              <textarea name="scenario_3" class="apw-textarea" rows="5" placeholder="<%= t('apply_s5_scenario_ph') %>"></textarea>
             </div>
 
             <div class="apw-nav">
-              <button type="button" class="apw-btn-ghost" onclick="goStage(4)">Back</button>
-              <button type="button" class="apw-btn-next" onclick="nextFrom(5)">Next</button>
+              <button type="button" class="apw-btn-ghost" onclick="goStage(4)"><%= t('btn_back') %></button>
+              <button type="button" class="apw-btn-next" onclick="nextFrom(5)"><%= t('btn_next') %></button>
             </div>
           </div>
 
@@ -539,32 +643,32 @@ function renderBlock(b) {
             <input type="hidden" name="app_type" id="appTypeVal" />
             <div class="apw-type-grid">
               <div class="app-type-card" data-type="video" onclick="pickAppType('video',this)">
-                <div class="app-type-card-title"><%= (stageSettings[5] && stageSettings[5].video_title) || 'Video' %></div>
-                <div class="app-type-card-desc"><%= (stageSettings[5] && stageSettings[5].video_desc) || 'Record a short 1–3 minute introduction and paste the link.' %></div>
+                <div class="app-type-card-title"><%= (stageSettings[5] && stageSettings[5].video_title) || t('apply_s6_video_title') %></div>
+                <div class="app-type-card-desc"><%= (stageSettings[5] && stageSettings[5].video_desc) || t('apply_s6_video_desc') %></div>
               </div>
               <div class="app-type-card" data-type="written" onclick="pickAppType('written',this)">
-                <div class="app-type-card-title"><%= (stageSettings[5] && stageSettings[5].written_title) || 'Written' %></div>
-                <div class="app-type-card-desc"><%= (stageSettings[5] && stageSettings[5].written_desc) || 'Write at least 150 words about yourself.' %></div>
+                <div class="app-type-card-title"><%= (stageSettings[5] && stageSettings[5].written_title) || t('apply_s6_written_title') %></div>
+                <div class="app-type-card-desc"><%= (stageSettings[5] && stageSettings[5].written_desc) || t('apply_s6_written_desc') %></div>
               </div>
             </div>
 
             <div id="videoSection" style="display:none" class="apw-cond">
               <div class="apw-field">
-                <label class="apw-label">Video Link <span class="req">*</span></label>
-                <input type="url" name="video_link" id="videoLinkInput" class="apw-input" placeholder="https://youtu.be/... or Google Drive link" />
+                <label class="apw-label"><%= t('apply_s6_video_link') %> <span class="req">*</span></label>
+                <input type="url" name="video_link" id="videoLinkInput" class="apw-input" placeholder="<%= t('apply_s6_video_ph') %>" />
               </div>
             </div>
             <div id="writtenSection" style="display:none" class="apw-cond">
               <div class="apw-field">
-                <label class="apw-label">Written Application <span class="req">*</span></label>
-                <textarea name="written_app" id="writtenInput" class="apw-textarea" rows="10" oninput="updateWordCount(this)" placeholder="Tell us about yourself..."></textarea>
-                <div class="apw-wc" id="wordCounter"><span id="wordCountNum">0</span> words <span class="wc-min">(minimum 150)</span></div>
+                <label class="apw-label"><%= t('apply_s6_written_label') %> <span class="req">*</span></label>
+                <textarea name="written_app" id="writtenInput" class="apw-textarea" rows="10" oninput="updateWordCount(this)" placeholder="<%= t('apply_s6_written_ph') %>"></textarea>
+                <div class="apw-wc" id="wordCounter"><span id="wordCountNum">0</span> <%= t('apply_wc_words') %> <span class="wc-min"><%= t('apply_s6_wc_min') %></span></div>
               </div>
             </div>
 
             <div class="apw-nav">
-              <button type="button" class="apw-btn-ghost" onclick="goStage(5)">Back</button>
-              <button type="button" class="apw-btn-next" onclick="nextFrom(6)">Next</button>
+              <button type="button" class="apw-btn-ghost" onclick="goStage(5)"><%= t('btn_back') %></button>
+              <button type="button" class="apw-btn-next" onclick="nextFrom(6)"><%= t('btn_next') %></button>
             </div>
           </div>
 
@@ -575,7 +679,7 @@ function renderBlock(b) {
             <% if (stageSettings[6] && stageSettings[6].subtitle) { %>
               <p class="apw-stage-sub"><%= stageSettings[6].subtitle %></p>
             <% } else { %>
-              <p class="apw-stage-sub">Read and confirm each item to submit your application.</p>
+              <p class="apw-stage-sub"><%= t('apply_s7_sub') %></p>
             <% } %>
 
             <%- (stageBlocks[6] || []).map(b => renderBlock(b)).join('') %>
@@ -590,13 +694,13 @@ function renderBlock(b) {
               <% } %>
               <label class="agr-item" style="border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:14px 16px;margin-top:10px;background:rgba(255,255,255,.03)">
                 <input type="checkbox" class="agr-check" />
-                <span class="agr-text"><strong>I confirm that all information I have provided in this application is truthful, accurate, and my own.</strong> I understand that submitting false or misleading information may result in my removal from the event.</span>
+                <span class="agr-text"><%= t('apply_s7_confirm') %></span>
               </label>
             </div>
 
             <div class="apw-nav">
-              <button type="button" class="apw-btn-ghost" onclick="goStage(6)">Back</button>
-              <button type="submit" class="apw-btn-submit" id="submitBtn">Submit Application</button>
+              <button type="button" class="apw-btn-ghost" onclick="goStage(6)"><%= t('btn_back') %></button>
+              <button type="submit" class="apw-btn-submit" id="submitBtn"><%= t('btn_submit') %></button>
             </div>
           </div>
 
@@ -620,13 +724,34 @@ document.querySelectorAll('.tz-stamp').forEach(function(el) {
   } catch(_) {}
 });
 
+// Locale strings used in JS
+var L = {
+  skipOn:          '<%= t("apply_skip_on") %>',
+  skipOff:         '<%= t("apply_skip_off") %>',
+  islandAllSet:    '<%= t("apply_s3_island_all_set") %>',
+  islandMoreSel:   '<%= t("apply_more_to_select") %>',
+  ordinals:        <%- JSON.stringify(t('apply_ordinals')) %>,
+  quizStatusOf:    '<%= t("apply_quiz_status_of") %>',
+  sessionPrefix:   '<%= t("apply_session_prefix") %>',
+  sessSelected:    '<%= t("apply_session_selected") %>',
+  sessMoreNeeded:  '<%= t("apply_session_more_needed") %>',
+  sessMoreNeededP: '<%= t("apply_session_more_needed_plural") %>',
+  sessS1Required:  '<%= t("apply_session_s1_required") %>',
+  sessSelectedWarn:'<%= t("apply_session_selected_warn") %>',
+  alertPlaystyle:  '<%= t("apply_alert_playstyle") %>',
+  alertScenarios:  '<%= t("apply_alert_scenarios") %>',
+  alertAppType:    '<%= t("apply_alert_app_type") %>',
+  alertWcPre:      '<%= t("apply_alert_written_wc_pre") %>',
+  wcWords:         '<%= t("apply_wc_words") %>'
+};
+
 // Admin preview mode
 var ADMIN_PREVIEW = <%- locals.isAdmin ? 'true' : 'false' %>;
 var adminSkipOn = false;
 function toggleAdminSkip() {
   adminSkipOn = !adminSkipOn;
   var btn = document.getElementById('adminSkipBtn');
-  btn.textContent = adminSkipOn ? 'Skip ON' : 'Skip OFF';
+  btn.textContent = adminSkipOn ? L.skipOn : L.skipOff;
   btn.style.background = adminSkipOn ? 'rgba(251,191,36,.25)' : 'rgba(255,255,255,.08)';
   btn.style.borderColor = adminSkipOn ? '#fbbf24' : 'rgba(255,255,255,.15)';
   btn.style.color = adminSkipOn ? '#fbbf24' : '#c9ccdb';
@@ -742,7 +867,7 @@ document.querySelectorAll('.apw-agr-list .agr-check').forEach(function(cb) {
 
 // Island preference ranking
 var islandRanks = {};
-var ORDINALS = ['1st','2nd','3rd','4th'];
+var ORDINALS = L.ordinals;
 
 function clickIsland(val) {
   if (islandRanks[val] !== undefined) {
@@ -774,11 +899,11 @@ function updateIslandUI() {
     var ordered = ['', '', '', ''];
     Object.keys(islandRanks).forEach(function(k) { ordered[islandRanks[k] - 1] = k; });
     document.getElementById('islandChoicesInput').value = JSON.stringify(ordered);
-    statusEl.textContent = 'All set';
+    statusEl.textContent = L.islandAllSet;
     statusEl.classList.add('ok');
   } else {
     document.getElementById('islandChoicesInput').value = '';
-    statusEl.textContent = (4 - count) + ' more to select';
+    statusEl.textContent = (4 - count) + ' ' + L.islandMoreSel;
     statusEl.classList.remove('ok');
   }
 }
@@ -798,25 +923,9 @@ function onReadingConfirm() {
 }
 
 // Quiz
-var QUIZ_POOL = [
-  { q:'Is PvP enabled during session 1?', opts:['Yes, from the start','No, it is disabled','Only near the walls','Only in contested zones'], a:1 },
-  { q:'From which session is PvP permanently enabled?', opts:['Session 1','Session 2','Session 3','Session 4'], a:1 },
-  { q:'What happens if you disconnect to avoid death?', opts:['You receive a warning','Nothing — it is allowed','It is a bannable offence','You lose your items'], a:2 },
-  { q:'Is stealing from other players and their bases allowed?', opts:['No, never','Yes, it is fully allowed','Only after session 3','Only between islands'], a:1 },
-  { q:'Is destroying another player\'s builds purely to grief allowed?', opts:['Yes, completely','No, it is not allowed','Only on enemy islands','Only in early sessions'], a:1 },
-  { q:'Where should you report a rule break during a live session?', opts:['In public chat','By opening a ticket','By messaging a staff member directly','In Discord after the event'], a:1 },
-  { q:'Which mods are explicitly allowed?', opts:['Any PvP mods','No mods at all','Performance mods like Sodium and Optifine','Any client-side mods'], a:2 },
-  { q:'Is impersonating staff a bannable offence?', opts:['No, just a warning','Yes','Only if done repeatedly','Only in public chat'], a:1 },
-  { q:'Can you share information about the event publicly before it begins?', opts:['Yes, freely','No','Only with your own community','Only after sign-up closes'], a:1 },
-  { q:'Is killing a player on your own island allowed from session 2?', opts:['No, only players from other islands','Yes, anyone can be killed from session 2','Only with staff permission','Only in contested zones'], a:1 },
-  { q:'Can you advertise other servers or Discord servers during the event?', opts:['Yes, freely','No, it is not allowed','Only in private messages','Only before sessions'], a:1 },
-  { q:'Is sharing another player\'s real life personal information allowed?', opts:['Yes, if they agree','No, never','Only if relevant to a dispute','Only between friends'], a:1 },
-  { q:'What happens if you abuse the ticket system with false reports?', opts:['Nothing','You receive a warning','You will be punished','You are automatically removed'], a:2 },
-  { q:'Is intentionally destroying your own island\'s altar allowed?', opts:['Yes, it is your island','No, it is not allowed','Only in sessions 1-2','Only with your island\'s agreement'], a:1 },
-];
+var QUIZ_POOL = <%- JSON.stringify(t('quiz')) %>;
 var quizAnswered = [false, false, false];
 var quizCurrent = [null, null, null];
-var ORDINALS_Q = ['1st','2nd','3rd'];
 
 function initQuiz() {
   quizAnswered = [false, false, false];
@@ -877,7 +986,7 @@ function replaceQuizQ(slot) {
 function updateQuizStatus() {
   var count = quizAnswered.filter(Boolean).length;
   var statusEl = document.getElementById('quizStatus');
-  statusEl.textContent = count + ' of 3 correct';
+  statusEl.textContent = count + ' ' + L.quizStatusOf;
   statusEl.className = 'quiz-status' + (count === 3 ? ' ok' : '');
   document.getElementById('quizNextBtn').disabled = count < 3;
 }
@@ -906,9 +1015,10 @@ function nextFrom(stage) {
     if (_sessVal.length < 5 || !_sessVal.includes(1)) {
       var _saSt = document.getElementById('sessionAvailStatus');
       if (!_sessVal.includes(1)) {
-        _saSt.textContent = 'Session 1 is required — please tick it if you can attend.';
+        _saSt.textContent = L.sessS1Required;
       } else {
-        _saSt.textContent = 'Please select at least 5 sessions you can attend.';
+        var _needed = 5 - _sessVal.length;
+        _saSt.textContent = _needed + ' ' + (_needed !== 1 ? L.sessMoreNeededP : L.sessMoreNeeded);
       }
       _saSt.className = 'session-avail-status err';
       document.getElementById('sessionAvailGrid').scrollIntoView({ behavior:'smooth', block:'center' });
@@ -917,7 +1027,7 @@ function nextFrom(stage) {
   }
   if (stage === 4) {
     if (!document.getElementById('playstyleVal').value) {
-      alert('Please select a playstyle to continue.');
+      alert(L.alertPlaystyle);
       return;
     }
     if (!document.querySelector('[name="playstyle_description"]').value.trim()) {
@@ -930,14 +1040,14 @@ function nextFrom(stage) {
     for (var i = 0; i < scenarios.length; i++) {
       if (!document.querySelector('[name="' + scenarios[i] + '"]').value.trim()) {
         document.querySelector('[name="' + scenarios[i] + '"]').scrollIntoView({ behavior:'smooth', block:'center' });
-        alert('Please answer all scenario questions.');
+        alert(L.alertScenarios);
         return;
       }
     }
   }
   if (stage === 6) {
     var type = document.getElementById('appTypeVal').value;
-    if (!type) { alert('Please choose video or written.'); return; }
+    if (!type) { alert(L.alertAppType); return; }
     if (type === 'video' && !document.getElementById('videoLinkInput').value.trim()) {
       document.getElementById('videoLinkInput').focus();
       return;
@@ -946,7 +1056,7 @@ function nextFrom(stage) {
       var words = document.getElementById('writtenInput').value.trim()
         ? document.getElementById('writtenInput').value.trim().split(/\s+/).length : 0;
       if (words < 150) {
-        alert('Your written application needs at least 150 words. You have ' + words + '.');
+        alert(L.alertWcPre + ' ' + words + ' ' + L.wcWords + '.');
         return;
       }
     }
@@ -971,7 +1081,7 @@ function initSessionAvail() {
     if (schedList) {
       var chip = document.createElement('div');
       chip.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:12px';
-      chip.innerHTML = '<span style="font-family:\'Baloo 2\';font-weight:800;color:var(--accent);min-width:72px">Session ' + (i+1) + '</span>' +
+      chip.innerHTML = '<span style="font-family:\'Baloo 2\';font-weight:800;color:var(--accent);min-width:72px">' + L.sessionPrefix + ' ' + (i+1) + '</span>' +
         '<span style="color:var(--muted)">' + dateStr + ' &mdash; ' + timeStr + '</span>';
       schedList.appendChild(chip);
     }
@@ -983,7 +1093,7 @@ function initSessionAvail() {
       row.className = 'session-avail-row';
       row.innerHTML =
         '<input type="checkbox" class="session-avail-chk" data-session="' + (i+1) + '" onchange="updateSessionAvail()">' +
-        '<span class="session-avail-num">Session ' + (i+1) + '</span>' +
+        '<span class="session-avail-num">' + L.sessionPrefix + ' ' + (i+1) + '</span>' +
         '<span class="session-avail-date">' + dateStr + ' &mdash; ' + timeStr + '</span>';
       grid.appendChild(row);
     }
@@ -1002,11 +1112,12 @@ function updateSessionAvail() {
   if (count === 0) { status.textContent = ''; status.className = 'session-avail-status'; return; }
   var hasS1 = checked.includes(1);
   if (count < 5 || !hasS1) {
-    var msg = !hasS1 ? 'Session 1 is required' : (5 - count) + ' more session' + (5 - count !== 1 ? 's' : '') + ' needed';
-    status.textContent = count + ' selected — ' + msg;
+    var needed = 5 - count;
+    var msg = !hasS1 ? L.sessS1Required : needed + ' ' + (needed !== 1 ? L.sessMoreNeededP : L.sessMoreNeeded);
+    status.textContent = count + ' ' + L.sessSelectedWarn + ' ' + msg;
     status.className = 'session-avail-status warn';
   } else {
-    status.textContent = count + ' sessions selected ✓';
+    status.textContent = count + ' ' + L.sessSelected;
     status.className = 'session-avail-status ok';
   }
 }

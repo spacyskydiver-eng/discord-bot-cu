@@ -40,20 +40,20 @@ function miniArt(theme) {
 <main class="wrap">
 
   <div class="page-head">
-    <a href="/" class="back">← Home</a>
+    <a href="/" class="back"><%= t('back_home') %></a>
     <div>
-      <h1 class="page-title">Applications</h1>
-      <p class="page-sub">Open applications can be filled in now. Locked ones show a countdown.</p>
+      <h1 class="page-title"><%= t('apps_title') %></h1>
+      <p class="page-sub"><%= t('apps_sub') %></p>
     </div>
   </div>
 
   <% if (!locals.user) { %>
     <div style="text-align:center;padding:60px 20px;">
-      <p style="font-family:'Baloo 2';font-size:18px;color:var(--muted);margin:0 0 20px">Log in with Discord to apply for events.</p>
-      <a href="/auth/discord" style="display:inline-flex;align-items:center;gap:10px;background:#5865F2;color:#fff;font-family:'Baloo 2';font-weight:800;font-size:16px;padding:13px 24px;border-radius:12px;text-decoration:none;">Login with Discord</a>
+      <p style="font-family:'Baloo 2';font-size:18px;color:var(--muted);margin:0 0 20px"><%= t('apps_login_prompt') %></p>
+      <a href="/auth/discord" style="display:inline-flex;align-items:center;gap:10px;background:#5865F2;color:#fff;font-family:'Baloo 2';font-weight:800;font-size:16px;padding:13px 24px;border-radius:12px;text-decoration:none;"><%= t('apps_login_btn') %></a>
     </div>
   <% } else if (events.length === 0) { %>
-    <p style="color:var(--muted);font-size:15px;text-align:center;padding:60px 0;">No applications open right now — check back soon!</p>
+    <p style="color:var(--muted);font-size:15px;text-align:center;padding:60px 0;"><%= t('apps_empty') %></p>
   <% } else { %>
   <div class="cards">
     <% events.forEach(function(ev) { %>
@@ -73,28 +73,28 @@ function miniArt(theme) {
         <div class="cardbody">
           <h3><%= ev.title %></h3>
           <% if (ev.event_date) { %>
-            <div class="meta">Starts <%= new Date(ev.event_date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'}) %></div>
+            <div class="meta"><%= t('event_starts') %> <%= new Date(ev.event_date).toLocaleDateString(t('date_locale'),{weekday:'short',day:'numeric',month:'long',year:'numeric'}) %></div>
           <% } %>
           <% if (open || hasVipAccess) { %>
             <% if (hasApplied) { %>
-              <div class="desc">You've applied — Status: <strong style="color:<%= userApp.status==='accepted'?'#5be38f':userApp.status==='declined'||userApp.status==='disqualified'?'#f87171':'#ffd56b' %>"><%= userApp.status %></strong></div>
-              <span class="pill open">Application submitted</span>
+              <div class="desc"><%= t('apps_you_applied') %> <strong style="color:<%= userApp.status==='accepted'?'#5be38f':userApp.status==='declined'||userApp.status==='disqualified'?'#f87171':'#ffd56b' %>"><%= userApp.status %></strong></div>
+              <span class="pill open"><%= t('apps_submitted') %></span>
             <% } else if (!open && hasVipAccess) { %>
-              <div class="desc">You have early access — apply before it opens to everyone.</div>
-              <span class="pill open" style="background:rgba(255,198,61,0.15);color:#ffc63d;">★ VIP Early Access</span>
+              <div class="desc"><%= t('apps_vip_early_desc') %></div>
+              <span class="pill open" style="background:rgba(255,198,61,0.15);color:#ffc63d;"><%= t('apps_vip_early') %></span>
             <% } else { %>
-              <div class="desc">Applications are open — click to apply.</div>
-              <span class="pill open">● Open now</span>
+              <div class="desc"><%= t('apps_apply_now') %></div>
+              <span class="pill open"><%= t('apps_open_now') %></span>
             <% } %>
           <% } else { %>
-            <div class="desc">Applications not open yet.</div>
+            <div class="desc"><%= t('apps_not_open') %></div>
             <% if (locals.isAdmin) { %>
-              <a href="/apply" class="pill admin-bypass">↗ Preview apply page</a>
+              <a href="/apply" class="pill admin-bypass"><%= t('apps_preview') %></a>
             <% } else if (ev.opens_at) { %>
-              <span class="pill soon">Opens</span>
+              <span class="pill soon"><%= t('apps_opens') %></span>
               <div class="countdown" data-countdown="<%= new Date(ev.opens_at).getTime() %>">--:--:--</div>
             <% } else { %>
-              <span class="pill soon">Coming soon</span>
+              <span class="pill soon"><%= t('apps_coming_soon') %></span>
             <% } %>
           <% } %>
         </div>

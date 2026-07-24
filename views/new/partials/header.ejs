@@ -5,7 +5,12 @@
       CUE
     </a>
     <div class="banner-right">
-      <a href="/staff" class="banner-btn staff-nav">Staff</a>
+      <form action="/set-lang" method="POST" style="display:contents">
+        <input type="hidden" name="returnTo" value="<%= locals._url || '/' %>">
+        <input type="hidden" name="lang" value="<%= t('lang_switch_target') %>">
+        <button type="submit" class="banner-btn lang-btn"><%= t('lang_switch') %></button>
+      </form>
+      <a href="/staff" class="banner-btn staff-nav"><%= t('header_staff') %></a>
       <% if (locals.user) { %>
         <div class="banner-user">
           <% if (locals.user.avatar) { %>
@@ -14,11 +19,11 @@
           <span><%= locals.user.globalName || locals.user.username %></span>
         </div>
         <% if (locals.isAdmin || locals.isStaffAccess) { %>
-          <a href="/admin" class="banner-btn admin">Control Centre</a>
+          <a href="/admin" class="banner-btn admin"><%= t('header_control') %></a>
         <% } %>
-        <a href="/auth/logout" class="banner-btn">Logout</a>
+        <a href="/auth/logout" class="banner-btn"><%= t('header_logout') %></a>
       <% } else { %>
-        <a href="/auth/discord" class="banner-login">Login with Discord</a>
+        <a href="/auth/discord" class="banner-login"><%= t('header_login') %></a>
       <% } %>
     </div>
   </div>

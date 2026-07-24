@@ -4,21 +4,21 @@
 <main class="wrap">
 
   <div class="page-head">
-    <a href="/" class="back">← Home</a>
+    <a href="/" class="back"><%= t('back_home') %></a>
     <div>
-      <h1 class="page-title">Store</h1>
-      <p class="page-sub">Two ranks. One-time purchase. Cosmetics that carry across all CUE events and the community server.</p>
+      <h1 class="page-title"><%= t('store_title') %></h1>
+      <p class="page-sub"><%= t('store_sub') %></p>
     </div>
     <button onclick="tebexPopup('https://collective-union.tebex.io/checkout')" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:#e8eaf0;padding:9px 16px;border-radius:10px;font-size:14px;cursor:pointer;font-family:inherit;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-      Basket
+      <%= t('store_basket') %>
     </button>
   </div>
 
   <% if (success) { %>
   <div class="store-success">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
-    Purchase complete! Your rank will be applied within a few minutes.
+    <%= t('store_success') %>
   </div>
   <% } %>
 
@@ -36,8 +36,8 @@
       </div>
       <div class="b">
         <h3>VIP</h3>
-        <div class="price">$4.99 <small>/ permanent</small></div>
-        <div class="once">One-time purchase · unlocked forever</div>
+        <div class="price">$4.99 <small><%= t('store_permanent') %></small></div>
+        <div class="once"><%= t('store_one_time') %></div>
         <ul>
           <li>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#74c0fc" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
@@ -56,7 +56,7 @@
             Early access to event applications
           </li>
         </ul>
-        <a class="buy" style="opacity:0.45;cursor:not-allowed;pointer-events:none;">Coming Soon</a>
+        <a class="buy" style="opacity:0.45;cursor:not-allowed;pointer-events:none;"><%= t('store_coming_soon') %></a>
       </div>
     </div>
 
@@ -72,7 +72,7 @@
       </div>
       <div class="b">
         <h3>VIP+</h3>
-        <div class="price">$9.99 <small>/ permanent</small></div>
+        <div class="price">$9.99 <small><%= t('store_permanent') %></small></div>
         <div class="once">Includes everything in VIP</div>
         <ul>
           <li>
@@ -96,7 +96,7 @@
             Access to sneak peeks of future events
           </li>
         </ul>
-        <a class="buy" style="opacity:0.45;cursor:not-allowed;pointer-events:none;">Coming Soon</a>
+        <a class="buy" style="opacity:0.45;cursor:not-allowed;pointer-events:none;"><%= t('store_coming_soon') %></a>
       </div>
     </div>
 

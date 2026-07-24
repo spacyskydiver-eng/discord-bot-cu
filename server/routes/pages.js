@@ -11,6 +11,13 @@ function formatDesc(text) {
     .replace(/\n/g, '<br>');
 }
 
+router.post('/set-lang', (req, res) => {
+  const lang = req.body.lang === 'fr' ? 'fr' : 'en';
+  req.session.lang = lang;
+  const returnTo = (req.body.returnTo || '/').replace(/[^a-zA-Z0-9/_\-?=&#.]/g, '');
+  res.redirect(returnTo || '/');
+});
+
 router.get('/', async (req, res) => {
   const eventsRes = await db.query(`SELECT * FROM events WHERE is_open = true ORDER BY created_at DESC`);
   const openEventCount = eventsRes.rows.length;
