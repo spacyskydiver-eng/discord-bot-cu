@@ -29,7 +29,7 @@ function renderBlock(b) {
     <a href="<%= lp %>/applications" class="back"><%= t('apply_back_applications') %></a>
     <div>
       <h1 class="page-title"><%= t('apply_page_title') %></h1>
-      <% if (event) { %><p class="page-sub"><%= t('apply_for') %> <strong><%= event.title %></strong></p><% } %>
+      <% if (event) { %><p class="page-sub"><%= t('apply_for') %> <strong><%= (lang === 'fr' && event.title_fr) ? event.title_fr : event.title %></strong></p><% } %>
     </div>
   </div>
 
@@ -55,7 +55,7 @@ function renderBlock(b) {
       <div class="apw-status ok">
         <div class="apw-status-icon">✓</div>
         <h2><%= t('apply_accepted_title') %></h2>
-        <p><%= t('apply_accepted_p') %> <strong><%= event.title %></strong><%= t('apply_accepted_p2') %></p>
+        <p><%= t('apply_accepted_p') %> <strong><%= (lang === 'fr' && event.title_fr) ? event.title_fr : event.title %></strong><%= t('apply_accepted_p2') %></p>
         <a href="https://discord.gg/C63H8CFkm" target="_blank" rel="noopener" class="apw-cta apw-cta-discord"><%= t('apply_accepted_btn') %></a>
       </div>
 
@@ -75,7 +75,7 @@ function renderBlock(b) {
       <div class="apw-status warn">
         <div class="apw-status-icon">◎</div>
         <h2><%= t('apply_pending_title') %></h2>
-        <p><%= t('apply_pending_p') %> <strong><%= event.title %></strong> <%= t('apply_pending_p2') %></p>
+        <p><%= t('apply_pending_p') %> <strong><%= (lang === 'fr' && event.title_fr) ? event.title_fr : event.title %></strong> <%= t('apply_pending_p2') %></p>
         <% const stageNames = t('apply_stage_names'); %>
         <% const reviewStage = existing.review_stage || 2; %>
         <div class="apw-progress">
@@ -97,7 +97,7 @@ function renderBlock(b) {
       <div class="apw-status ok">
         <div class="apw-status-icon">✓</div>
         <h2><%= t('apply_received_title') %></h2>
-        <p><%= t('apply_received_p') %> <strong><%= event.title %></strong> <%= t('apply_received_p2') %></p>
+        <p><%= t('apply_received_p') %> <strong><%= (lang === 'fr' && event.title_fr) ? event.title_fr : event.title %></strong> <%= t('apply_received_p2') %></p>
         <a href="<%= lp %>/" class="apw-cta"><%= t('apply_back_home') %></a>
       </div>
 
@@ -105,7 +105,7 @@ function renderBlock(b) {
       <div class="apw-status">
         <div class="apw-status-icon">◷</div>
         <h2><%= t('apply_not_open_title') %></h2>
-        <p><%= t('apply_not_open_p') %> <strong><%= event.title %></strong> <%= t('apply_not_open_p2') %></p>
+        <p><%= t('apply_not_open_p') %> <strong><%= (lang === 'fr' && event.title_fr) ? event.title_fr : event.title %></strong> <%= t('apply_not_open_p2') %></p>
         <p style="font-family:'Baloo 2';font-weight:800;font-size:16px;color:var(--text);margin-bottom:22px" class="tz-stamp" data-utc="<%= new Date(event.opens_at).toISOString() %>">Loading...</p>
         <a href="<%= lp %>/events" class="apw-cta"><%= t('apply_view_events') %></a>
       </div>
@@ -114,7 +114,7 @@ function renderBlock(b) {
       <div class="apw-status">
         <div class="apw-status-icon">—</div>
         <h2><%= t('apply_closed_title') %></h2>
-        <p><%= t('apply_closed_p') %> <strong><%= event.title %></strong> <%= t('apply_closed_p2') %></p>
+        <p><%= t('apply_closed_p') %> <strong><%= (lang === 'fr' && event.title_fr) ? event.title_fr : event.title %></strong> <%= t('apply_closed_p2') %></p>
         <a href="<%= lp %>/events" class="apw-cta"><%= t('apply_view_events') %></a>
       </div>
 
@@ -166,8 +166,8 @@ function renderBlock(b) {
 
           <!-- ── STAGE 1: ELIGIBILITY ── -->
           <div class="wizard-stage active apw-stage" id="stage-1">
-            <div class="apw-stage-num">Stage 1 of 6</div>
-            <h2><%= (stageSettings[1] && stageSettings[1].title) || 'Eligibility' %> Check</h2>
+            <div class="apw-stage-num"><%= t('apply_stage_prefix') %> 1 <%= t('apply_stage_of') %> 7</div>
+            <h2><%= (stageSettings[1] && stageSettings[1].title) || t('apply_stage_names')[1] %><% if (t('apply_s1_check_suffix')) { %> <%= t('apply_s1_check_suffix') %><% } %></h2>
             <% if (stageSettings[1] && stageSettings[1].subtitle) { %>
               <p class="apw-stage-sub"><%= stageSettings[1].subtitle %></p>
             <% } else { %>
@@ -202,7 +202,7 @@ function renderBlock(b) {
 
           <!-- ── STAGE 2: EVENT UNDERSTANDING + QUIZ ── -->
           <div class="wizard-stage apw-stage" id="stage-2">
-            <div class="apw-stage-num">Stage 2 of 7</div>
+            <div class="apw-stage-num"><%= t('apply_stage_prefix') %> 2 <%= t('apply_stage_of') %> 7</div>
             <h2><%= t('apply_s2_title') %></h2>
             <p class="apw-stage-sub"><%= t('apply_s2_sub') %></p>
 
@@ -452,8 +452,8 @@ function renderBlock(b) {
 
           <!-- ── STAGE 3: BASIC INFO ── -->
           <div class="wizard-stage apw-stage" id="stage-3">
-            <div class="apw-stage-num">Stage 3 of 7</div>
-            <h2><%= (stageSettings[2] && stageSettings[2].title) || 'Basic Information' %></h2>
+            <div class="apw-stage-num"><%= t('apply_stage_prefix') %> 3 <%= t('apply_stage_of') %> 7</div>
+            <h2><%= (stageSettings[2] && stageSettings[2].title) || t('apply_s3_basic_info_fallback') %></h2>
             <% if (stageSettings[2] && stageSettings[2].subtitle) { %>
               <p class="apw-stage-sub"><%= stageSettings[2].subtitle %></p>
             <% } else { %><p class="apw-stage-sub"></p><% } %>
@@ -570,8 +570,8 @@ function renderBlock(b) {
 
           <!-- ── STAGE 4: PLAYSTYLE ── -->
           <div class="wizard-stage apw-stage" id="stage-4">
-            <div class="apw-stage-num">Stage 4 of 7</div>
-            <h2><%= (stageSettings[3] && stageSettings[3].title) || 'Playstyle' %></h2>
+            <div class="apw-stage-num"><%= t('apply_stage_prefix') %> 4 <%= t('apply_stage_of') %> 7</div>
+            <h2><%= (stageSettings[3] && stageSettings[3].title) || t('apply_s4_playstyle_fallback') %></h2>
             <% if (stageSettings[3] && stageSettings[3].subtitle) { %>
               <p class="apw-stage-sub"><%= stageSettings[3].subtitle %></p>
             <% } else { %><p class="apw-stage-sub"></p><% } %>
@@ -600,8 +600,8 @@ function renderBlock(b) {
 
           <!-- ── STAGE 5: SCENARIOS ── -->
           <div class="wizard-stage apw-stage" id="stage-5">
-            <div class="apw-stage-num">Stage 5 of 7</div>
-            <h2><%= (stageSettings[4] && stageSettings[4].title) || 'Scenario Questions' %></h2>
+            <div class="apw-stage-num"><%= t('apply_stage_prefix') %> 5 <%= t('apply_stage_of') %> 7</div>
+            <h2><%= (stageSettings[4] && stageSettings[4].title) || t('apply_s5_scenario_qs_fallback') %></h2>
             <% if (stageSettings[4] && stageSettings[4].subtitle) { %>
               <p class="apw-stage-sub"><%= stageSettings[4].subtitle %></p>
             <% } else { %><p class="apw-stage-sub"></p><% } %>
@@ -609,17 +609,17 @@ function renderBlock(b) {
             <%- (stageBlocks[4] || []).map(b => renderBlock(b)).join('') %>
 
             <div class="apw-scenario">
-              <div class="apw-scenario-num"><%= (stageSettings[4] && stageSettings[4].scenario_1_title) || 'Scenario 1' %></div>
+              <div class="apw-scenario-num"><%= (stageSettings[4] && stageSettings[4].scenario_1_title) || (t('apply_s5_scenario_prefix') + ' 1') %></div>
               <div class="apw-scenario-q"><%= (stageSettings[4] && stageSettings[4].scenario_1_text) || '' %></div>
               <textarea name="scenario_1" class="apw-textarea" rows="5" placeholder="<%= t('apply_s5_scenario_ph') %>"></textarea>
             </div>
             <div class="apw-scenario">
-              <div class="apw-scenario-num"><%= (stageSettings[4] && stageSettings[4].scenario_2_title) || 'Scenario 2' %></div>
+              <div class="apw-scenario-num"><%= (stageSettings[4] && stageSettings[4].scenario_2_title) || (t('apply_s5_scenario_prefix') + ' 2') %></div>
               <div class="apw-scenario-q"><%= (stageSettings[4] && stageSettings[4].scenario_2_text) || '' %></div>
               <textarea name="scenario_2" class="apw-textarea" rows="5" placeholder="<%= t('apply_s5_scenario_ph') %>"></textarea>
             </div>
             <div class="apw-scenario">
-              <div class="apw-scenario-num"><%= (stageSettings[4] && stageSettings[4].scenario_3_title) || 'Scenario 3' %></div>
+              <div class="apw-scenario-num"><%= (stageSettings[4] && stageSettings[4].scenario_3_title) || (t('apply_s5_scenario_prefix') + ' 3') %></div>
               <div class="apw-scenario-q"><%= (stageSettings[4] && stageSettings[4].scenario_3_text) || '' %></div>
               <textarea name="scenario_3" class="apw-textarea" rows="5" placeholder="<%= t('apply_s5_scenario_ph') %>"></textarea>
             </div>
@@ -632,8 +632,8 @@ function renderBlock(b) {
 
           <!-- ── STAGE 6: APPLICATION TYPE ── -->
           <div class="wizard-stage apw-stage" id="stage-6">
-            <div class="apw-stage-num">Stage 6 of 7</div>
-            <h2><%= (stageSettings[5] && stageSettings[5].title) || 'Your Application' %></h2>
+            <div class="apw-stage-num"><%= t('apply_stage_prefix') %> 6 <%= t('apply_stage_of') %> 7</div>
+            <h2><%= (stageSettings[5] && stageSettings[5].title) || t('apply_s6_your_app_fallback') %></h2>
             <% if (stageSettings[5] && stageSettings[5].subtitle) { %>
               <p class="apw-stage-sub"><%= stageSettings[5].subtitle %></p>
             <% } else { %><p class="apw-stage-sub"></p><% } %>
@@ -674,8 +674,8 @@ function renderBlock(b) {
 
           <!-- ── STAGE 7: AGREEMENT ── -->
           <div class="wizard-stage apw-stage" id="stage-7">
-            <div class="apw-stage-num">Stage 7 of 7</div>
-            <h2><%= (stageSettings[6] && stageSettings[6].title) || 'Final Agreement' %></h2>
+            <div class="apw-stage-num"><%= t('apply_stage_prefix') %> 7 <%= t('apply_stage_of') %> 7</div>
+            <h2><%= (stageSettings[6] && stageSettings[6].title) || t('apply_s7_final_agree_fallback') %></h2>
             <% if (stageSettings[6] && stageSettings[6].subtitle) { %>
               <p class="apw-stage-sub"><%= stageSettings[6].subtitle %></p>
             <% } else { %>
