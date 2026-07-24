@@ -21,7 +21,7 @@ const ISLAND = {
 <main class="wrap">
 
   <div class="page-head">
-    <a href="/" class="back"><%= t('back_home') %></a>
+    <a href="<%= lp %>/" class="back"><%= t('back_home') %></a>
     <div>
       <h1 class="page-title"><%= t('events_title') %></h1>
       <p class="page-sub"><%= t('events_sub') %></p>
@@ -35,7 +35,7 @@ const ISLAND = {
     <% events.forEach(function(ev) { %>
       <% const theme = ev.theme || 'default'; %>
       <% const isl = ISLAND[theme]; %>
-      <a href="/events/<%= ev.id %>" class="efeat">
+      <a href="<%= lp %>/events/<%= ev.id %>" class="efeat">
         <div class="efeat-art">
           <% if (ev.card_image) { %>
             <div class="efeat-art-blur" style="background-image:url('<%= ev.card_image %>')"></div>
@@ -67,7 +67,7 @@ const ISLAND = {
         </div>
         <div class="efeat-foot">
           <div>
-            <div class="efeat-name"><%= ev.title %></div>
+            <div class="efeat-name"><%= (lang === 'fr' && ev.title_fr) ? ev.title_fr : ev.title %></div>
             <div class="efeat-meta">
               <% if (ev.event_date) { %>
                 <%= t('event_starts') %> <%= new Date(ev.event_date).toLocaleDateString(t('date_locale'),{weekday:'short',day:'numeric',month:'long',year:'numeric'}) %>

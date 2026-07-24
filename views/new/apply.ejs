@@ -26,7 +26,7 @@ function renderBlock(b) {
 <main class="wrap">
 
   <div class="page-head">
-    <a href="/applications" class="back"><%= t('apply_back_applications') %></a>
+    <a href="<%= lp %>/applications" class="back"><%= t('apply_back_applications') %></a>
     <div>
       <h1 class="page-title"><%= t('apply_page_title') %></h1>
       <% if (event) { %><p class="page-sub"><%= t('apply_for') %> <strong><%= event.title %></strong></p><% } %>
@@ -48,7 +48,7 @@ function renderBlock(b) {
         <div class="apw-status-icon">—</div>
         <h2><%= t('apply_no_event_title') %></h2>
         <p><%= t('apply_no_event_p') %></p>
-        <a href="/" class="apw-cta"><%= t('apply_back_home') %></a>
+        <a href="<%= lp %>/" class="apw-cta"><%= t('apply_back_home') %></a>
       </div>
 
     <% } else if (existing && existing.status === 'accepted' && !locals.isAdmin) { %>
@@ -68,7 +68,7 @@ function renderBlock(b) {
         <% } else { %>
           <p><%= t('apply_declined_p3') %></p>
         <% } %>
-        <a href="/events" class="apw-cta"><%= t('apply_view_events') %></a>
+        <a href="<%= lp %>/events" class="apw-cta"><%= t('apply_view_events') %></a>
       </div>
 
     <% } else if (existing && existing.status === 'pending' && !locals.isAdmin) { %>
@@ -98,7 +98,7 @@ function renderBlock(b) {
         <div class="apw-status-icon">✓</div>
         <h2><%= t('apply_received_title') %></h2>
         <p><%= t('apply_received_p') %> <strong><%= event.title %></strong> <%= t('apply_received_p2') %></p>
-        <a href="/" class="apw-cta"><%= t('apply_back_home') %></a>
+        <a href="<%= lp %>/" class="apw-cta"><%= t('apply_back_home') %></a>
       </div>
 
     <% } else if (!event.is_open && event.opens_at && new Date(event.opens_at) > new Date() && !locals.isAdmin) { %>
@@ -107,7 +107,7 @@ function renderBlock(b) {
         <h2><%= t('apply_not_open_title') %></h2>
         <p><%= t('apply_not_open_p') %> <strong><%= event.title %></strong> <%= t('apply_not_open_p2') %></p>
         <p style="font-family:'Baloo 2';font-weight:800;font-size:16px;color:var(--text);margin-bottom:22px" class="tz-stamp" data-utc="<%= new Date(event.opens_at).toISOString() %>">Loading...</p>
-        <a href="/events" class="apw-cta"><%= t('apply_view_events') %></a>
+        <a href="<%= lp %>/events" class="apw-cta"><%= t('apply_view_events') %></a>
       </div>
 
     <% } else if (!event.is_open && !locals.isAdmin) { %>
@@ -115,7 +115,7 @@ function renderBlock(b) {
         <div class="apw-status-icon">—</div>
         <h2><%= t('apply_closed_title') %></h2>
         <p><%= t('apply_closed_p') %> <strong><%= event.title %></strong> <%= t('apply_closed_p2') %></p>
-        <a href="/events" class="apw-cta"><%= t('apply_view_events') %></a>
+        <a href="<%= lp %>/events" class="apw-cta"><%= t('apply_view_events') %></a>
       </div>
 
     <% } else if (!locals.user) { %>
@@ -125,7 +125,7 @@ function renderBlock(b) {
         </div>
         <h2><%= t('apply_login_title') %></h2>
         <p><%= t('apply_login_p') %></p>
-        <a href="/auth/discord" class="apw-cta apw-cta-discord"><%= t('apply_login_btn') %></a>
+        <a href="<%= lp %>/auth/discord" class="apw-cta apw-cta-discord"><%= t('apply_login_btn') %></a>
       </div>
 
     <% } else { %>

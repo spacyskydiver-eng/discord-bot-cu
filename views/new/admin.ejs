@@ -296,8 +296,10 @@
       <% if (!event) { %>
         <h2>Create Event</h2>
         <form action="/admin/event/create" method="POST">
-          <div class="nd-form-field"><label class="nd-label">Event Title</label><input type="text" name="title" class="nd-input" value="500 Player Civilisation Event: 4 Island Experiment" required /></div>
-          <div class="nd-form-field"><label class="nd-label">Description (HTML allowed)</label><textarea name="description" class="nd-textarea" rows="5"></textarea></div>
+          <div class="nd-form-field"><label class="nd-label">Event Title (English)</label><input type="text" name="title" class="nd-input" value="500 Player Civilisation Event: 4 Island Experiment" required /></div>
+          <div class="nd-form-field"><label class="nd-label">Event Title (Français)</label><input type="text" name="title_fr" class="nd-input" placeholder="Titre en français..." /></div>
+          <div class="nd-form-field"><label class="nd-label">Description — English (HTML allowed)</label><textarea name="description" class="nd-textarea" rows="5"></textarea></div>
+          <div class="nd-form-field"><label class="nd-label">Description — Français (HTML autorisé)</label><textarea name="description_fr" class="nd-textarea" rows="5" placeholder="Description en français..."></textarea></div>
           <div class="nd-form-row">
             <div class="nd-form-field"><label class="nd-label">Applications Open At</label><input type="datetime-local" name="opens_at" class="nd-input" /></div>
             <div class="nd-form-field"><label class="nd-label">Applications Close At</label><input type="datetime-local" name="closes_at" class="nd-input" /></div>
@@ -309,8 +311,10 @@
         <h2>Edit Event</h2>
         <form action="/admin/event/update" method="POST">
           <input type="hidden" name="id" value="<%= event.id %>" />
-          <div class="nd-form-field"><label class="nd-label">Event Title</label><input type="text" name="title" class="nd-input" value="<%= event.title %>" required /></div>
-          <div class="nd-form-field"><label class="nd-label">Description (HTML allowed)</label><textarea name="description" class="nd-textarea" rows="6"><%= event.description || '' %></textarea></div>
+          <div class="nd-form-field"><label class="nd-label">Event Title (English)</label><input type="text" name="title" class="nd-input" value="<%= event.title %>" required /></div>
+          <div class="nd-form-field"><label class="nd-label">Event Title (Français)</label><input type="text" name="title_fr" class="nd-input" value="<%= event.title_fr || '' %>" placeholder="Titre en français..." /></div>
+          <div class="nd-form-field"><label class="nd-label">Description — English (HTML allowed)</label><textarea name="description" class="nd-textarea" rows="5"><%= event.description || '' %></textarea></div>
+          <div class="nd-form-field"><label class="nd-label">Description — Français (HTML autorisé)</label><textarea name="description_fr" class="nd-textarea" rows="5" placeholder="Description en français..."><%= event.description_fr || '' %></textarea></div>
           <div class="nd-form-row">
             <div class="nd-form-field"><label class="nd-label">Opens At</label><input type="datetime-local" name="opens_at" class="nd-input" value="<%= event.opens_at ? new Date(event.opens_at).toISOString().slice(0,16) : '' %>" /></div>
             <div class="nd-form-field"><label class="nd-label">Closes At</label><input type="datetime-local" name="closes_at" class="nd-input" value="<%= event.closes_at ? new Date(event.closes_at).toISOString().slice(0,16) : '' %>" /></div>

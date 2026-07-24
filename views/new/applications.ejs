@@ -40,7 +40,7 @@ function miniArt(theme) {
 <main class="wrap">
 
   <div class="page-head">
-    <a href="/" class="back"><%= t('back_home') %></a>
+    <a href="<%= lp %>/" class="back"><%= t('back_home') %></a>
     <div>
       <h1 class="page-title"><%= t('apps_title') %></h1>
       <p class="page-sub"><%= t('apps_sub') %></p>
@@ -50,7 +50,7 @@ function miniArt(theme) {
   <% if (!locals.user) { %>
     <div style="text-align:center;padding:60px 20px;">
       <p style="font-family:'Baloo 2';font-size:18px;color:var(--muted);margin:0 0 20px"><%= t('apps_login_prompt') %></p>
-      <a href="/auth/discord" style="display:inline-flex;align-items:center;gap:10px;background:#5865F2;color:#fff;font-family:'Baloo 2';font-weight:800;font-size:16px;padding:13px 24px;border-radius:12px;text-decoration:none;"><%= t('apps_login_btn') %></a>
+      <a href="<%= lp %>/auth/discord" style="display:inline-flex;align-items:center;gap:10px;background:#5865F2;color:#fff;font-family:'Baloo 2';font-weight:800;font-size:16px;padding:13px 24px;border-radius:12px;text-decoration:none;"><%= t('apps_login_btn') %></a>
     </div>
   <% } else if (events.length === 0) { %>
     <p style="color:var(--muted);font-size:15px;text-align:center;padding:60px 0;"><%= t('apps_empty') %></p>
@@ -65,13 +65,13 @@ function miniArt(theme) {
       <% const hasApplied = userApp && canApply; %>
 
       <% if (canApply && !hasApplied) { %>
-        <a href="/apply" class="card">
+        <a href="<%= lp %>/apply" class="card">
       <% } else { %>
         <div class="card<%= !canApply ? ' locked' : '' %>">
       <% } %>
         <div class="cardart"><%- miniArt(theme) %></div>
         <div class="cardbody">
-          <h3><%= ev.title %></h3>
+          <h3><%= (lang === 'fr' && ev.title_fr) ? ev.title_fr : ev.title %></h3>
           <% if (ev.event_date) { %>
             <div class="meta"><%= t('event_starts') %> <%= new Date(ev.event_date).toLocaleDateString(t('date_locale'),{weekday:'short',day:'numeric',month:'long',year:'numeric'}) %></div>
           <% } %>
@@ -89,7 +89,7 @@ function miniArt(theme) {
           <% } else { %>
             <div class="desc"><%= t('apps_not_open') %></div>
             <% if (locals.isAdmin) { %>
-              <a href="/apply" class="pill admin-bypass"><%= t('apps_preview') %></a>
+              <a href="<%= lp %>/apply" class="pill admin-bypass"><%= t('apps_preview') %></a>
             <% } else if (ev.opens_at) { %>
               <span class="pill soon"><%= t('apps_opens') %></span>
               <div class="countdown" data-countdown="<%= new Date(ev.opens_at).getTime() %>">--:--:--</div>

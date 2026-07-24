@@ -1,16 +1,12 @@
 <header class="banner">
   <div class="banner-inner">
-    <a href="/" class="brand">
+    <a href="<%= lp %>/" class="brand">
       <span class="cube"></span>
       CUE
     </a>
     <div class="banner-right">
-      <form action="/set-lang" method="POST" style="display:contents">
-        <input type="hidden" name="returnTo" value="<%= locals._url || '/' %>">
-        <input type="hidden" name="lang" value="<%= t('lang_switch_target') %>">
-        <button type="submit" class="banner-btn lang-btn"><%= t('lang_switch') %></button>
-      </form>
-      <a href="/staff" class="banner-btn staff-nav"><%= t('header_staff') %></a>
+      <a href="<%= locals.langSwitchUrl %>" class="banner-btn lang-btn"><%= t('lang_switch') %></a>
+      <a href="<%= lp %>/staff" class="banner-btn staff-nav"><%= t('header_staff') %></a>
       <% if (locals.user) { %>
         <div class="banner-user">
           <% if (locals.user.avatar) { %>
@@ -19,11 +15,11 @@
           <span><%= locals.user.globalName || locals.user.username %></span>
         </div>
         <% if (locals.isAdmin || locals.isStaffAccess) { %>
-          <a href="/admin" class="banner-btn admin"><%= t('header_control') %></a>
+          <a href="<%= lp %>/admin" class="banner-btn admin"><%= t('header_control') %></a>
         <% } %>
-        <a href="/auth/logout" class="banner-btn"><%= t('header_logout') %></a>
+        <a href="<%= lp %>/auth/logout" class="banner-btn"><%= t('header_logout') %></a>
       <% } else { %>
-        <a href="/auth/discord" class="banner-login"><%= t('header_login') %></a>
+        <a href="<%= lp %>/auth/discord" class="banner-login"><%= t('header_login') %></a>
       <% } %>
     </div>
   </div>

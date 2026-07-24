@@ -67,7 +67,8 @@ router.get('/callback', async (req, res) => {
       } catch (_) {}
     }
 
-    res.redirect('/');
+    const home = req.session.lang === 'fr' ? '/fr/' : '/';
+    res.redirect(home);
   } catch (err) {
     console.error('OAuth error:', err);
     res.redirect('/auth/error?reason=oauth-failed');
@@ -75,7 +76,8 @@ router.get('/callback', async (req, res) => {
 });
 
 router.get('/logout', (req, res) => {
-  req.session.destroy(() => res.redirect('/'));
+  const home = req.session.lang === 'fr' ? '/fr/' : '/';
+  req.session.destroy(() => res.redirect(home));
 });
 
 module.exports = router;

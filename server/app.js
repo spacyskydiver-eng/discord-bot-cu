@@ -32,14 +32,30 @@ module.exports = function startServer() {
     cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
   }));
 
-  // Make user available in all views
+  // URL-based language routing: /fr/... serves French, /... serves English
+  app.use((req, res, next) => {
+    if (req.path === '/fr' || req.path.startsWith('/fr/')) {
+      req._urlLang = 'fr';
+      req.session.lang = 'fr';
+      req.url = req.url.slice(3) || '/';
+    }
+    next();
+  });
+
+  // Attach user, lang helpers, and admin flags to every response
   app.use(async (req, res, next) => {
-    // Language detection: session → Accept-Language header
-    const lang = (req.session.lang === 'fr' || req.session.lang === 'en')
-      ? req.session.lang
-      : detectLang(req.headers['accept-language']);
+    const lang = req._urlLang
+      || (req.session.lang === 'fr' || req.session.lang === 'en' ? req.session.lang : detectLang(req.headers['accept-language']));
+
     res.locals.lang = lang;
-    res.locals.t = (key) => (LOCALES[lang][key] !== undefined ? LOCALES[lang][key] : LOCALES['en'][key] ?? key);
+    res.locals.lp   = lang === 'fr' ? '/fr' : '';
+    res.locals.t    = (key) => (LOCALES[lang][key] !== undefined ? LOCALES[lang][key] : LOCALES['en'][key] ?? key);
+
+    // Pre-computed URL for the lang switcher button
+    const origUrl = req.originalUrl;
+    res.locals.langSwitchUrl = lang === 'fr'
+      ? (origUrl.replace(/^\/fr/, '') || '/')
+      : '/fr' + origUrl;
 
     res.locals.user = req.session.user || null;
     const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(s => s.trim());

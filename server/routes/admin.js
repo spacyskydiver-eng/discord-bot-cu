@@ -319,20 +319,20 @@ router.post('/eligibility/delete', async (req, res) => {
 
 // Create event
 router.post('/event/create', async (req, res) => {
-  const { title, description, opens_at, closes_at } = req.body;
+  const { title, title_fr, description, description_fr, opens_at, closes_at } = req.body;
   await db.query(
-    `INSERT INTO events (title, description, opens_at, closes_at) VALUES ($1,$2,$3,$4)`,
-    [title, description, opens_at || null, closes_at || null]
+    `INSERT INTO events (title, title_fr, description, description_fr, opens_at, closes_at) VALUES ($1,$2,$3,$4,$5,$6)`,
+    [title, title_fr || null, description, description_fr || null, opens_at || null, closes_at || null]
   );
   res.redirect('/admin');
 });
 
 // Update event
 router.post('/event/update', async (req, res) => {
-  const { id, title, description, opens_at, closes_at, is_open } = req.body;
+  const { id, title, title_fr, description, description_fr, opens_at, closes_at, is_open } = req.body;
   await db.query(
-    `UPDATE events SET title=$1, description=$2, opens_at=$3, closes_at=$4, is_open=$5 WHERE id=$6`,
-    [title, description, opens_at || null, closes_at || null, is_open === 'true', id]
+    `UPDATE events SET title=$1, title_fr=$2, description=$3, description_fr=$4, opens_at=$5, closes_at=$6, is_open=$7 WHERE id=$8`,
+    [title, title_fr || null, description, description_fr || null, opens_at || null, closes_at || null, is_open === 'true', id]
   );
   res.redirect('/admin');
 });
