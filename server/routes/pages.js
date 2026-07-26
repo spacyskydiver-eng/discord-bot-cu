@@ -65,12 +65,61 @@ router.get('/applications', async (req, res) => {
   const hasVipAccess = userRoleIds.some(id => VIP_ROLE_IDS.includes(id));
   if (req.session.user) {
     const appRes = await db.query(
-      `SELECT status, review_stage FROM structured_applications WHERE discord_id = $1`,
+      `SELECT status, review_stage, edit_requested, edit_approved FROM structured_applications WHERE discord_id = $1`,
       [req.session.user.id]
     );
     userApp = appRes.rows[0] || null;
   }
   res.render('new/applications', { events, userApp, hasVipAccess });
+});
+
+router.get('/my-application', async (req, res) => {
+  if (!req.session.user) return res.redirect(`${res.locals.lp}/auth/discord`);
+  const eventRes = await db.query(`SELECT * FROM events ORDER BY created_at DESC LIMIT 1`);
+  const event = eventRes.rows[0] || null;
+  const appRes = await db.query(
+    `SELECT * FROM structured_applications WHERE discord_id = $1`,
+    [req.session.user.id]
+  );
+  const app = appRes.rows[0] || null;
+  if (!app) return res.redirect(`${res.locals.lp}/applications`);
+  res.render('new/my-application', { app, event, updated: req.query.updated === '1' });
+});
+
+router.get('/my-application/edit', async (req, res) => {
+  if (!req.session.user) return res.redirect(`${res.locals.lp}/auth/discord`);
+  const appRes = await db.query(
+    `SELECT * FROM structured_applications WHERE discord_id = $1`,
+    [req.session.user.id]
+  );
+  const app = appRes.rows[0] || null;
+  if (!app || !app.edit_approved) return res.redirect(`${res.locals.lp}/my-application`);
+  const eventRes = await db.query(`SELECT * FROM events ORDER BY created_at DESC LIMIT 1`);
+  const event = eventRes.rows[0] || null;
+  const playstyleOptions = (await db.query(
+    `SELECT * FROM playstyle_options ORDER BY display_order ASC, id ASC`
+  )).rows;
+  const stageSettingsRows = (await db.query(`SELECT * FROM stage_settings`)).rows;
+  const stageSettings = {};
+  for (const r of stageSettingsRows) {
+    if (!stageSettings[r.stage_number]) stageSettings[r.stage_number] = {};
+    stageSettings[r.stage_number][r.field_key] = r.field_value;
+  }
+  res.render('new/my-application-edit', {
+    app, event, playstyleOptions, stageSettings,
+    error: req.query.error || null
+  });
+});
+
+router.post('/my-application/request-edit', async (req, res) => {
+  if (!req.session.user) return res.redirect(`${res.locals.lp}/auth/discord`);
+  await db.query(
+    `UPDATE structured_applications
+       SET edit_requested = true, edit_requested_at = NOW()
+     WHERE discord_id = $1 AND edit_requested = false AND status != 'declined'`,
+    [req.session.user.id]
+  );
+  res.redirect(`${res.locals.lp}/my-application`);
 });
 
 router.get('/store', (req, res) => {

@@ -79,6 +79,10 @@ function miniArt(theme) {
             <% if (hasApplied) { %>
               <div class="desc"><%= t('apps_you_applied') %> <strong style="color:<%= userApp.status==='accepted'?'#5be38f':userApp.status==='declined'||userApp.status==='disqualified'?'#f87171':'#ffd56b' %>"><%= userApp.status %></strong></div>
               <span class="pill open"><%= t('apps_submitted') %></span>
+              <a href="<%= lp %>/my-application" style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-family:'Baloo 2';font-weight:700;font-size:12px;color:var(--muted);text-decoration:none;padding:5px 10px;border:1px solid var(--border);border-radius:7px;background:rgba(255,255,255,.03)">
+                View your application →
+                <% if (userApp.edit_approved) { %><span style="color:#74c0fc;font-size:10px">● Edit ready</span><% } else if (userApp.edit_requested) { %><span style="color:#fbbf24;font-size:10px">● Edit pending</span><% } %>
+              </a>
             <% } else if (!open && hasVipAccess) { %>
               <div class="desc"><%= t('apps_vip_early_desc') %></div>
               <span class="pill open" style="background:rgba(255,198,61,0.15);color:#ffc63d;"><%= t('apps_vip_early') %></span>

@@ -48,7 +48,7 @@ router.use(requireAdminOrStaff);
 // Staff can only access application review paths; everything else needs full admin
 router.use((req, res, next) => {
   if (res.locals.isFullAdmin) return next();
-  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application');
+  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request');
   if (!allowed) return res.status(403).render('403');
   next();
 });
@@ -66,6 +66,7 @@ router.get('/', async (req, res) => {
     `SELECT id, submitted_at, status, review_stage, accepted_at, declined_at_stage,
             discord_id, discord_tag, discord_avatar, ign, playstyle, app_type,
             island_choices, island_assignment, friend_requests,
+            edit_requested, edit_approved, edit_requested_at,
             CASE WHEN written_app IS NOT NULL AND trim(written_app) != ''
                  THEN array_length(regexp_split_to_array(trim(written_app), '\\s+'), 1)
                  ELSE 0 END AS word_count
@@ -284,6 +285,41 @@ router.post('/application/:id/island', async (req, res) => {
     [island || null, req.params.id]
   );
   res.redirect(`/admin/application/${req.params.id}`);
+});
+
+// Approve edit request
+router.post('/application/:id/approve-edit', async (req, res) => {
+  const appRes = await db.query(
+    `SELECT discord_id, ign FROM structured_applications WHERE id = $1`, [req.params.id]
+  );
+  const app = appRes.rows[0];
+  await db.query(
+    `UPDATE structured_applications SET edit_approved = true WHERE id = $1`, [req.params.id]
+  );
+  logEvent(req.params.id, 'edit_approved', null, req.session.user);
+  if (app) sendDiscordDM(app.discord_id,
+    `**Edit request approved — The Collective**\n\nHi ${app.ign || ''} — your request to edit your application has been approved. Head to the website and go to "Your Application" to make your changes.`
+  );
+  res.redirect('/admin#applications');
+});
+
+// Deny edit request
+router.post('/application/:id/deny-edit', async (req, res) => {
+  const appRes = await db.query(
+    `SELECT discord_id, ign FROM structured_applications WHERE id = $1`, [req.params.id]
+  );
+  const app = appRes.rows[0];
+  await db.query(
+    `UPDATE structured_applications
+       SET edit_requested = false, edit_approved = false, edit_requested_at = NULL
+     WHERE id = $1`,
+    [req.params.id]
+  );
+  logEvent(req.params.id, 'edit_denied', null, req.session.user);
+  if (app) sendDiscordDM(app.discord_id,
+    `**Edit request update — The Collective**\n\nHi ${app.ign || ''} — your request to edit your application has not been approved at this time. If you have questions, reach out in the Discord server.`
+  );
+  res.redirect('/admin#applications');
 });
 
 // Delete application entirely (lets user reapply from scratch)

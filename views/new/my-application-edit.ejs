@@ -1,0 +1,399 @@
+<%- include('partials/head', { pageTitle: 'Edit Application' }) %>
+<%- include('partials/header') %>
+
+<%
+const existingChoices = (() => { try { return JSON.parse(app.island_choices) || []; } catch(_) { return []; } })();
+const existingSessAvail = (() => { try { return JSON.parse(app.session_availability) || []; } catch(_) { return []; } })();
+%>
+
+<style>
+.edt-wrap{max-width:820px;margin:0 auto;padding-bottom:80px}
+.edt-section{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:16px}
+.edt-section-title{font-family:'Baloo 2';font-weight:800;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 16px}
+.edt-field{margin-bottom:14px}
+.edt-field:last-child{margin-bottom:0}
+.edt-label{display:block;font-family:'Baloo 2';font-weight:700;font-size:12px;letter-spacing:.04em;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.edt-input,.edt-textarea,.edt-select{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:10px 13px;font-family:'Baloo 2';font-weight:600;font-size:14px;color:#fff;outline:none;transition:border-color .15s;box-sizing:border-box}
+.edt-input:focus,.edt-textarea:focus,.edt-select:focus{border-color:rgba(212,73,61,.6)}
+.edt-textarea{resize:vertical;min-height:100px}
+.edt-row{display:flex;gap:12px;flex-wrap:wrap}
+.edt-row .edt-field{flex:1;min-width:140px}
+.edt-toggle{display:flex;gap:6px}
+.edt-toggle-btn{font-family:'Baloo 2';font-weight:700;font-size:13px;padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);cursor:pointer;transition:all .15s}
+.edt-toggle-btn.active{background:rgba(212,73,61,.15);border-color:rgba(212,73,61,.4);color:#e0e2ed}
+.edt-island-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.edt-island-card{background:rgba(255,255,255,.04);border:2px solid var(--border);border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:all .15s;user-select:none;position:relative}
+.edt-island-card.selected{border-color:var(--banner-1);background:rgba(212,73,61,.08)}
+.edt-island-card-order{position:absolute;top:6px;right:8px;font-family:'Baloo 2';font-weight:800;font-size:11px;color:var(--banner-1)}
+.edt-island-card-name{font-family:'Baloo 2';font-weight:700;font-size:13px;color:#e0e2ed;margin-top:4px}
+.edt-island-status{font-size:12px;color:var(--muted);font-family:'Baloo 2';font-weight:700;margin-top:6px}
+.edt-sess-grid{display:flex;flex-wrap:wrap;gap:6px}
+.edt-sess-label{display:flex;align-items:center;gap:8px;padding:7px 12px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-family:'Baloo 2';font-weight:700;font-size:12px;color:#e0e2ed;transition:all .15s}
+.edt-sess-label input{accent-color:var(--banner-1)}
+.edt-sess-label.checked{background:rgba(91,227,143,.08);border-color:rgba(91,227,143,.3);color:#5be38f}
+.edt-app-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.edt-app-card{background:rgba(255,255,255,.04);border:2px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .15s}
+.edt-app-card.selected{border-color:var(--banner-1);background:rgba(212,73,61,.08)}
+.edt-app-card-title{font-family:'Baloo 2';font-weight:800;font-size:15px;color:#e0e2ed;margin-bottom:4px}
+.edt-app-card-desc{font-size:13px;color:var(--muted)}
+.edt-playstyle-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:12px}
+.edt-playstyle-card{background:rgba(255,255,255,.04);border:2px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:all .15s}
+.edt-playstyle-card.selected{border-color:var(--banner-1);background:rgba(212,73,61,.08)}
+.edt-playstyle-title{font-family:'Baloo 2';font-weight:800;font-size:14px;color:#e0e2ed;margin-bottom:4px}
+.edt-playstyle-desc{font-size:12px;color:var(--muted)}
+.edt-save-bar{position:fixed;bottom:0;left:0;right:0;background:var(--panel);border-top:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:100}
+.edt-wc{font-size:12px;color:var(--muted);font-family:'Baloo 2';font-weight:700;margin-top:6px}
+.edt-wc .ok{color:#5be38f}
+@media(max-width:600px){.edt-island-grid{grid-template-columns:repeat(2,1fr)}.edt-app-grid{grid-template-columns:1fr}}
+</style>
+
+<main class="wrap">
+  <div class="edt-wrap">
+
+    <div class="page-head" style="margin-bottom:20px">
+      <a href="<%= lp %>/my-application" class="back">← My Application</a>
+      <div>
+        <h1 class="page-title">Edit Application</h1>
+        <% if (event) { %><p class="page-sub">For: <strong><%= (lang === 'fr' && event.title_fr) ? event.title_fr : event.title %></strong></p><% } %>
+      </div>
+    </div>
+
+    <% if (error === 'incomplete') { %>
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;margin-bottom:16px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:10px;font-size:13px;color:#f87171;font-family:'Baloo 2';font-weight:700">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Please fill in all required fields before saving.
+    </div>
+    <% } else if (error === 'server') { %>
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;margin-bottom:16px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:10px;font-size:13px;color:#f87171;font-family:'Baloo 2';font-weight:700">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Something went wrong saving your changes. Please try again.
+    </div>
+    <% } %>
+
+    <form id="editForm" method="POST" action="<%= lp %>/apply/update">
+      <input type="hidden" name="island_choices" id="islandChoicesInput" value='<%- JSON.stringify(existingChoices) %>' />
+      <input type="hidden" name="session_availability" id="sessionAvailInput" value='<%- JSON.stringify(existingSessAvail) %>' />
+      <input type="hidden" name="agreements" value="confirmed" />
+
+      <!-- Basic Info -->
+      <div class="edt-section">
+        <div class="edt-section-title">Basic Information</div>
+        <div class="edt-row">
+          <div class="edt-field">
+            <label class="edt-label">Minecraft IGN <span style="color:#f87171">*</span></label>
+            <input type="text" name="ign" class="edt-input" value="<%= app.ign || '' %>" required />
+          </div>
+          <div class="edt-field">
+            <label class="edt-label">Discord Username</label>
+            <input type="text" name="discord_username" class="edt-input" value="<%= app.discord_username_input || '' %>" />
+          </div>
+        </div>
+        <div class="edt-row">
+          <div class="edt-field">
+            <label class="edt-label">Age</label>
+            <input type="number" name="age" class="edt-input" min="13" max="99" value="<%= app.age || '' %>" />
+          </div>
+          <div class="edt-field">
+            <label class="edt-label">Country</label>
+            <input type="text" name="country" class="edt-input" value="<%= app.country || '' %>" />
+          </div>
+        </div>
+        <div class="edt-field">
+          <label class="edt-label">How did you hear about The Collective?</label>
+          <input type="text" name="how_heard" class="edt-input" value="<%= app.how_heard || '' %>" />
+        </div>
+      </div>
+
+      <!-- Session Availability -->
+      <div class="edt-section">
+        <div class="edt-section-title">Session Availability</div>
+        <p style="font-size:13px;color:var(--muted);margin:0 0 14px">Check every session you can attend. You need <strong>at least 5 sessions including Session 1</strong>.</p>
+        <div class="edt-sess-grid" id="sessGrid"></div>
+        <div id="sessStatus" style="font-family:'Baloo 2';font-weight:700;font-size:13px;margin-top:10px"></div>
+      </div>
+
+      <!-- Experience -->
+      <div class="edt-section">
+        <div class="edt-section-title">Experience & Content</div>
+        <div class="edt-field">
+          <label class="edt-label">Have you played civilisation-style events before?</label>
+          <input type="hidden" name="played_civ" id="playedCivVal" value="<%= app.played_civ ? 'yes' : 'no' %>" />
+          <div class="edt-toggle">
+            <button type="button" class="edt-toggle-btn <%= app.played_civ ? 'active' : '' %>" onclick="setToggle('playedCivVal','yes',this,'civWrap')">Yes</button>
+            <button type="button" class="edt-toggle-btn <%= !app.played_civ ? 'active' : '' %>" onclick="setToggle('playedCivVal','no',this,'civWrap')">No</button>
+          </div>
+        </div>
+        <div id="civWrap" style="display:<%= app.played_civ ? 'block' : 'none' %>">
+          <div class="edt-field">
+            <label class="edt-label">Which events?</label>
+            <input type="text" name="played_civ_details" class="edt-input" value="<%= app.played_civ_details || '' %>" placeholder="e.g. Forged Alliance, MCC" />
+          </div>
+        </div>
+        <div class="edt-field" style="margin-top:16px">
+          <label class="edt-label">Do you create content? (YouTube, Twitch, etc.)</label>
+          <input type="hidden" name="creates_content" id="createsContentVal" value="<%= app.creates_content ? 'yes' : 'no' %>" />
+          <div class="edt-toggle">
+            <button type="button" class="edt-toggle-btn <%= app.creates_content ? 'active' : '' %>" onclick="setToggle('createsContentVal','yes',this,'contentWrap')">Yes</button>
+            <button type="button" class="edt-toggle-btn <%= !app.creates_content ? 'active' : '' %>" onclick="setToggle('createsContentVal','no',this,'contentWrap')">No</button>
+          </div>
+        </div>
+        <div id="contentWrap" style="display:<%= app.creates_content ? 'block' : 'none' %>">
+          <div class="edt-field">
+            <label class="edt-label">Channel / Stream link</label>
+            <input type="url" name="content_link" class="edt-input" value="<%= app.content_link || '' %>" placeholder="https://..." />
+          </div>
+        </div>
+      </div>
+
+      <!-- Island Preferences -->
+      <div class="edt-section">
+        <div class="edt-section-title">Island Preferences</div>
+        <p style="font-size:13px;color:var(--muted);margin:0 0 14px">Click islands in order from most to least preferred. Click again to deselect.</p>
+        <div class="edt-island-grid">
+          <div class="edt-island-card <%= existingChoices.includes('jungle') ? 'selected' : '' %>" data-island="jungle" onclick="toggleIsland('jungle',this)">
+            <span class="edt-island-card-order" id="ord-jungle"></span>
+            <div style="font-size:28px">🌴</div>
+            <div class="edt-island-card-name">Jungle</div>
+          </div>
+          <div class="edt-island-card <%= existingChoices.includes('snow') ? 'selected' : '' %>" data-island="snow" onclick="toggleIsland('snow',this)">
+            <span class="edt-island-card-order" id="ord-snow"></span>
+            <div style="font-size:28px">❄️</div>
+            <div class="edt-island-card-name">Snow</div>
+          </div>
+          <div class="edt-island-card <%= existingChoices.includes('badlands') ? 'selected' : '' %>" data-island="badlands" onclick="toggleIsland('badlands',this)">
+            <span class="edt-island-card-order" id="ord-badlands"></span>
+            <div style="font-size:28px">🏜️</div>
+            <div class="edt-island-card-name">Badlands</div>
+          </div>
+          <div class="edt-island-card <%= existingChoices.includes('forest') ? 'selected' : '' %>" data-island="forest" onclick="toggleIsland('forest',this)">
+            <span class="edt-island-card-order" id="ord-forest"></span>
+            <div style="font-size:28px">🌲</div>
+            <div class="edt-island-card-name">Forest</div>
+          </div>
+        </div>
+        <div id="islandStatus" class="edt-island-status"></div>
+      </div>
+
+      <!-- Friends -->
+      <div class="edt-section">
+        <div class="edt-section-title">Friends to play with</div>
+        <div class="edt-field">
+          <label class="edt-label">Minecraft IGNs (optional, one per line)</label>
+          <textarea name="friend_requests" class="edt-textarea" rows="3" placeholder="Enter IGNs here, one per line..."><%= app.friend_requests || '' %></textarea>
+        </div>
+      </div>
+
+      <!-- Playstyle -->
+      <div class="edt-section">
+        <div class="edt-section-title">Playstyle</div>
+        <input type="hidden" name="playstyle" id="playstyleVal" value="<%= app.playstyle || '' %>" />
+        <div class="edt-playstyle-grid">
+          <% for (const ps of playstyleOptions) { %>
+            <div class="edt-playstyle-card <%= app.playstyle === ps.value_key ? 'selected' : '' %>" onclick="pickPlaystyle('<%= ps.value_key %>',this)">
+              <div class="edt-playstyle-title"><%= ps.title %></div>
+              <div class="edt-playstyle-desc"><%= ps.description %></div>
+            </div>
+          <% } %>
+        </div>
+        <div class="edt-field">
+          <label class="edt-label">Describe how you'd play this event <span style="color:#f87171">*</span></label>
+          <textarea name="playstyle_description" class="edt-textarea" rows="4"><%= app.playstyle_description || '' %></textarea>
+        </div>
+      </div>
+
+      <!-- Scenarios -->
+      <div class="edt-section">
+        <div class="edt-section-title">Scenario Answers</div>
+        <div class="edt-field">
+          <label class="edt-label"><%= (stageSettings[4] && stageSettings[4].scenario_1_title) || 'Scenario 1' %></label>
+          <% if (stageSettings[4] && stageSettings[4].scenario_1_text) { %><p style="font-size:13px;color:var(--muted);margin:0 0 8px"><%= stageSettings[4].scenario_1_text %></p><% } %>
+          <textarea name="scenario_1" class="edt-textarea" rows="5" required><%= app.scenario_1 || '' %></textarea>
+        </div>
+        <div class="edt-field">
+          <label class="edt-label"><%= (stageSettings[4] && stageSettings[4].scenario_2_title) || 'Scenario 2' %></label>
+          <% if (stageSettings[4] && stageSettings[4].scenario_2_text) { %><p style="font-size:13px;color:var(--muted);margin:0 0 8px"><%= stageSettings[4].scenario_2_text %></p><% } %>
+          <textarea name="scenario_2" class="edt-textarea" rows="5" required><%= app.scenario_2 || '' %></textarea>
+        </div>
+        <div class="edt-field">
+          <label class="edt-label"><%= (stageSettings[4] && stageSettings[4].scenario_3_title) || 'Scenario 3' %></label>
+          <% if (stageSettings[4] && stageSettings[4].scenario_3_text) { %><p style="font-size:13px;color:var(--muted);margin:0 0 8px"><%= stageSettings[4].scenario_3_text %></p><% } %>
+          <textarea name="scenario_3" class="edt-textarea" rows="5" required><%= app.scenario_3 || '' %></textarea>
+        </div>
+      </div>
+
+      <!-- Application Type -->
+      <div class="edt-section">
+        <div class="edt-section-title">Your Application</div>
+        <input type="hidden" name="app_type" id="appTypeVal" value="<%= app.app_type || '' %>" />
+        <div class="edt-app-grid">
+          <div class="edt-app-card <%= app.app_type === 'video' ? 'selected' : '' %>" onclick="pickAppType('video',this)">
+            <div class="edt-app-card-title">Video</div>
+            <div class="edt-app-card-desc">Record a 1–3 minute introduction and paste the link</div>
+          </div>
+          <div class="edt-app-card <%= app.app_type === 'written' ? 'selected' : '' %>" onclick="pickAppType('written',this)">
+            <div class="edt-app-card-title">Written</div>
+            <div class="edt-app-card-desc">Write at least 150 words about yourself</div>
+          </div>
+        </div>
+        <div id="videoSection" style="display:<%= app.app_type === 'video' ? 'block' : 'none' %>">
+          <div class="edt-field">
+            <label class="edt-label">Video Link</label>
+            <input type="url" name="video_link" id="videoLinkInput" class="edt-input" value="<%= app.video_link || '' %>" placeholder="https://youtu.be/..." />
+          </div>
+        </div>
+        <div id="writtenSection" style="display:<%= app.app_type === 'written' ? 'block' : 'none' %>">
+          <div class="edt-field">
+            <label class="edt-label">Written Application <span style="color:#f87171">*</span></label>
+            <textarea name="written_app" id="writtenInput" class="edt-textarea" rows="10" oninput="updateWC(this)"><%= app.written_app || '' %></textarea>
+            <div class="edt-wc"><span id="wcNum">0</span> words <span id="wcMin" style="color:var(--muted)">(minimum 150)</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save bar -->
+      <div class="edt-save-bar">
+        <a href="<%= lp %>/my-application" style="font-family:'Baloo 2';font-weight:700;font-size:14px;color:var(--muted);text-decoration:none">← Cancel</a>
+        <button type="submit" onclick="return validateEdit()" style="background:var(--banner-1);color:#fff;font-family:'Baloo 2';font-weight:800;font-size:15px;padding:11px 28px;border:none;border-radius:10px;cursor:pointer">Save Changes</button>
+      </div>
+    </form>
+
+  </div>
+</main>
+
+<%- include('partials/foot') %>
+
+<script>
+var islandOrder = <%- JSON.stringify(existingChoices) %>;
+var SESSION_TIMES = [
+  1755360000,1755446400,1755619200,1755792000,1755964800,
+  1756137600,1756310400,1756483200,1756656000,1756828800
+];
+var existingSess = <%- JSON.stringify(existingSessAvail) %>;
+
+// ── Session availability ──
+(function() {
+  var grid = document.getElementById('sessGrid');
+  SESSION_TIMES.forEach(function(ts, i) {
+    var n = i + 1;
+    var d = new Date(ts * 1000);
+    var dateStr = d.toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short' });
+    var timeStr = d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit', timeZoneName:'short' });
+    var checked = existingSess.includes(n);
+    var lbl = document.createElement('label');
+    lbl.className = 'edt-sess-label' + (checked ? ' checked' : '');
+    lbl.innerHTML = '<input type="checkbox" class="sess-chk" data-n="' + n + '"' + (checked ? ' checked' : '') + '>' +
+      '<strong>S' + n + '</strong><span style="color:var(--muted)">' + dateStr + ' — ' + timeStr + '</span>';
+    lbl.querySelector('input').addEventListener('change', function() {
+      lbl.classList.toggle('checked', this.checked);
+      updateSessAvail();
+    });
+    grid.appendChild(lbl);
+  });
+  updateSessAvail();
+})();
+
+function updateSessAvail() {
+  var checked = [];
+  document.querySelectorAll('.sess-chk').forEach(function(c) {
+    if (c.checked) checked.push(parseInt(c.dataset.n));
+  });
+  document.getElementById('sessionAvailInput').value = JSON.stringify(checked);
+  var st = document.getElementById('sessStatus');
+  var hasS1 = checked.includes(1);
+  if (checked.length === 0) { st.textContent = ''; return; }
+  if (checked.length < 5 || !hasS1) {
+    st.style.color = '#fbbf24';
+    st.textContent = !hasS1 ? 'Session 1 is required' : (5 - checked.length) + ' more session(s) needed';
+  } else {
+    st.style.color = '#5be38f';
+    st.textContent = checked.length + ' sessions selected ✓';
+  }
+}
+
+// ── Island selection ──
+function renderIslandOrders() {
+  var ordinals = ['1st','2nd','3rd','4th'];
+  ['jungle','snow','badlands','forest'].forEach(function(isl) {
+    var el = document.getElementById('ord-' + isl);
+    var idx = islandOrder.indexOf(isl);
+    el.textContent = idx >= 0 ? ordinals[idx] : '';
+  });
+  document.getElementById('islandChoicesInput').value = JSON.stringify(islandOrder);
+  var st = document.getElementById('islandStatus');
+  if (islandOrder.length === 4) {
+    st.style.color = '#5be38f'; st.textContent = 'All 4 islands ranked ✓';
+  } else {
+    st.style.color = 'var(--muted)'; st.textContent = (4 - islandOrder.length) + ' more to select';
+  }
+}
+
+function toggleIsland(name, card) {
+  var idx = islandOrder.indexOf(name);
+  if (idx >= 0) {
+    islandOrder.splice(idx, 1);
+    card.classList.remove('selected');
+  } else {
+    islandOrder.push(name);
+    card.classList.add('selected');
+  }
+  renderIslandOrders();
+}
+renderIslandOrders();
+
+// ── Toggle buttons ──
+function setToggle(inputId, val, btn, wrapId) {
+  document.getElementById(inputId).value = val;
+  btn.closest('.edt-toggle').querySelectorAll('.edt-toggle-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  if (wrapId) document.getElementById(wrapId).style.display = val === 'yes' ? 'block' : 'none';
+}
+
+// ── Playstyle selection ──
+function pickPlaystyle(val, card) {
+  document.querySelectorAll('.edt-playstyle-card').forEach(function(c) { c.classList.remove('selected'); });
+  card.classList.add('selected');
+  document.getElementById('playstyleVal').value = val;
+}
+
+// ── App type selection ──
+function pickAppType(type, card) {
+  document.querySelectorAll('.edt-app-card').forEach(function(c) { c.classList.remove('selected'); });
+  card.classList.add('selected');
+  document.getElementById('appTypeVal').value = type;
+  document.getElementById('videoSection').style.display = type === 'video' ? 'block' : 'none';
+  document.getElementById('writtenSection').style.display = type === 'written' ? 'block' : 'none';
+}
+
+// ── Word count ──
+function updateWC(ta) {
+  var words = ta.value.trim().split(/\s+/).filter(Boolean).length;
+  document.getElementById('wcNum').textContent = words;
+  var min = document.getElementById('wcMin');
+  min.style.color = words >= 150 ? '#5be38f' : 'var(--muted)';
+}
+// Init word count
+(function() {
+  var ta = document.getElementById('writtenInput');
+  if (ta) updateWC(ta);
+})();
+
+// ── Validate before submit ──
+function validateEdit() {
+  if (!document.getElementById('playstyleVal').value) {
+    alert('Please select a playstyle.');
+    return false;
+  }
+  if (!document.getElementById('appTypeVal').value) {
+    alert('Please choose video or written application.');
+    return false;
+  }
+  if (document.getElementById('appTypeVal').value === 'written') {
+    var wc = (document.getElementById('writtenInput').value.trim().split(/\s+/).filter(Boolean).length);
+    if (wc < 150) {
+      alert('Your written application needs at least 150 words. You have ' + wc + '.');
+      return false;
+    }
+  }
+  return true;
+}
+</script>

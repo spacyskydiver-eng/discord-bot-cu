@@ -119,4 +119,70 @@ router.post('/submit', async (req, res) => {
 });
 
 
+router.post('/update', async (req, res) => {
+  if (!req.session.user) return res.redirect('/auth/discord');
+
+  const existing = (await db.query(
+    `SELECT id, edit_approved FROM structured_applications WHERE discord_id = $1`,
+    [req.session.user.id]
+  )).rows[0];
+
+  if (!existing || !existing.edit_approved) return res.redirect('/my-application');
+
+  const {
+    ign, discord_username, age, country, how_heard,
+    played_civ, played_civ_details, creates_content, content_link,
+    playstyle, playstyle_description, scenario_1, scenario_2, scenario_3,
+    app_type, video_link, written_app, agreements,
+    island_choices, friend_requests, session_availability
+  } = req.body;
+
+  if (!ign || !playstyle || !scenario_1 || !scenario_2 || !scenario_3 || !app_type) {
+    return res.redirect('/my-application/edit?error=incomplete');
+  }
+
+  let jsonIslandChoices = null;
+  try {
+    const parsed = JSON.parse(island_choices || 'null');
+    if (parsed !== null) jsonIslandChoices = JSON.stringify(parsed);
+  } catch (_) {}
+
+  let jsonSessionAvail = null;
+  try {
+    const parsed = JSON.parse(session_availability || 'null');
+    if (parsed !== null) jsonSessionAvail = JSON.stringify(parsed);
+  } catch (_) {}
+
+  try {
+    await db.query(
+      `UPDATE structured_applications SET
+        ign = $1, discord_username_input = $2, age = $3, country = $4, how_heard = $5,
+        played_civ = $6, played_civ_details = $7, creates_content = $8, content_link = $9,
+        playstyle = $10, playstyle_description = $11,
+        scenario_1 = $12, scenario_2 = $13, scenario_3 = $14,
+        app_type = $15, video_link = $16, written_app = $17,
+        island_choices = $18, friend_requests = $19, session_availability = $20,
+        agreements_confirmed = $21,
+        edit_requested = false, edit_approved = false, edit_requested_at = NULL
+       WHERE discord_id = $22`,
+      [
+        ign, discord_username, parseInt(age) || null, country, how_heard,
+        played_civ === 'yes', played_civ_details || null,
+        creates_content === 'yes', content_link || null,
+        playstyle, playstyle_description,
+        scenario_1, scenario_2, scenario_3,
+        app_type, video_link || null, written_app || null,
+        jsonIslandChoices, friend_requests || null, jsonSessionAvail,
+        agreements === 'confirmed',
+        req.session.user.id
+      ]
+    );
+  } catch (err) {
+    console.error('Application UPDATE error:', err.message);
+    return res.redirect('/my-application/edit?error=server');
+  }
+
+  res.redirect('/my-application?updated=1');
+});
+
 module.exports = router;
