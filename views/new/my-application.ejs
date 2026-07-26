@@ -4,8 +4,13 @@
 <%
 const islandNames = { jungle:'Jungle', snow:'Snow', badlands:'Badlands', forest:'Forest' };
 const islandColors = { jungle:'#2f9e44', snow:'#74c0fc', badlands:'#e8590c', forest:'#82c91e' };
-const choices = (() => { try { return JSON.parse(app.island_choices) || []; } catch(_) { return []; } })();
-const sessAvail = (() => { try { return JSON.parse(app.session_availability) || []; } catch(_) { return []; } })();
+function parseJsonField(v) {
+  if (!v) return [];
+  if (Array.isArray(v)) return v;
+  try { return JSON.parse(v) || []; } catch(_) { return []; }
+}
+const choices = parseJsonField(app.island_choices);
+const sessAvail = parseJsonField(app.session_availability);
 const ordinals = ['1st','2nd','3rd','4th'];
 %>
 
