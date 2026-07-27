@@ -48,7 +48,7 @@ router.use(requireAdminOrStaff);
 // Staff can only access application review paths; everything else needs full admin
 router.use((req, res, next) => {
   if (res.locals.isFullAdmin) return next();
-  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request');
+  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis';
   if (!allowed) return res.status(403).render('403');
   next();
 });
@@ -109,6 +109,12 @@ router.get('/', async (req, res) => {
     guilds: guildRes.rows, levels, levelRoles, staffRoles, staffAccess,
     stageSettings, stageBlocks, agreementItems, playstyleOptions
   });
+});
+
+// Chest analysis (staff-readable)
+router.get('/chest-analysis', (req, res) => {
+  const chestData = require('../data/chest-data.json');
+  res.render('new/chest-analysis', { chestData });
 });
 
 // Admin preview of the application wizard
