@@ -30,8 +30,8 @@ router.post('/check', async (req, res) => {
     return res.json({ ok: false, error: 'Please enter a valid numeric server ID.' });
   }
 
-  // Verify bot is in the guild
-  const guild = await discordFetch(`/guilds/${guildId}`);
+  // Verify bot is in the guild and get member count
+  const guild = await discordFetch(`/guilds/${guildId}?with_counts=true`);
   if (!guild || !guild.id) {
     return res.json({
       ok: false,
@@ -40,9 +40,7 @@ router.post('/check', async (req, res) => {
     });
   }
 
-  // Fetch actual members (accurate for small servers — approximate_member_count is unreliable)
-  const members = await discordFetch(`/guilds/${guildId}/members?limit=10`);
-  const memberCount = Array.isArray(members) ? members.length : 0;
+  const memberCount = guild.approximate_member_count ?? guild.member_count ?? 0;
 
   if (memberCount >= 3) {
     return res.json({
