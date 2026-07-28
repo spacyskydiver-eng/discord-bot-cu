@@ -33,10 +33,7 @@ module.exports = async (message) => {
     // In forum threads, thread.id === starter message.id
     if (message.id !== message.channel.id) {
       message.delete().catch(() => {});
-      try {
-        const dm = await message.author.createDM();
-        await dm.send('You can only post your advert once per nation forum post. Use `/bump` in your thread to bring it back to the top.');
-      } catch (_) {}
+      await handleAdvertViolation(message);
       return;
     }
   }
@@ -167,6 +164,48 @@ module.exports = async (message) => {
     }
   }
 };
+
+const NATION_LEADER_ROLE_ID = '1531798604849872976';
+const MAIN_GUILD_ID = '1449004906068312189';
+
+async function handleAdvertViolation(message) {
+  const userId = message.author.id;
+
+  const result = await db.query(
+    `INSERT INTO nation_advert_violations (discord_id, count, last_at)
+     VALUES ($1, 1, NOW())
+     ON CONFLICT (discord_id) DO UPDATE SET count = nation_advert_violations.count + 1, last_at = NOW()
+     RETURNING count`,
+    [userId]
+  );
+  const count = result.rows[0].count;
+
+  try {
+    const dm = await message.author.createDM();
+
+    if (count === 1) {
+      await dm.send(
+        '**Nation Advert Forum — Warning**\n\n' +
+        'You can only post your advert once per thread. Additional messages are not allowed and will be deleted.\n\n' +
+        'Use `/bump` inside your thread to bring your advert back to the top.\n\n' +
+        '_This is your first warning. A second violation will result in your Nation Leader role being removed._'
+      );
+    } else {
+      // Second+ violation — remove the Nation Leader role
+      try {
+        const mainGuild = await message.client.guilds.fetch(MAIN_GUILD_ID);
+        const member = await mainGuild.members.fetch(userId);
+        await member.roles.remove(NATION_LEADER_ROLE_ID);
+      } catch (_) {}
+
+      await dm.send(
+        '**Nation Advert Forum — Role Removed**\n\n' +
+        'You have posted additional messages in the nation advert forum more than once. Your **Nation Leader** role has been removed.\n\n' +
+        'To get your permissions back, please open a ticket with our staff team in the Collective Union server.'
+      );
+    }
+  } catch (_) {}
+}
 
 async function alertStaff(message, flag) {
   // Collect staff Discord IDs: DB staff_access + ADMIN_DISCORD_IDS env
