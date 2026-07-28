@@ -102,12 +102,17 @@ const ordinals = ['1st','2nd','3rd','4th'];
 
     <!-- Session Availability -->
     <div class="mya-section">
-      <div class="mya-section-title">Session Availability</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div class="mya-section-title" style="margin:0">Session Availability</div>
+        <% if (app.status !== 'declined' && app.status !== 'withdrawn') { %>
+        <a href="<%= lp %>/my-application/edit-sessions" style="font-family:'Baloo 2';font-weight:800;font-size:12px;padding:5px 12px;border-radius:8px;background:rgba(116,192,252,.1);border:1px solid rgba(116,192,252,.25);color:#74c0fc;text-decoration:none">Update Sessions</a>
+        <% } %>
+      </div>
       <% if (sessAvail.length === 0) { %>
         <p style="color:var(--muted);font-size:13px;margin:0">No sessions recorded.</p>
       <% } else { %>
         <div class="mya-sess-grid">
-          <% for (let i = 1; i <= 10; i++) { %>
+          <% for (let i = 1; i <= 7; i++) { %>
             <span class="mya-sess-chip <%= sessAvail.includes(i) ? '' : 'missing' %>">
               Session <%= i %><%= sessAvail.includes(i) ? ' ✓' : ' ✕' %>
             </span>
@@ -216,6 +221,16 @@ const ordinals = ['1st','2nd','3rd','4th'];
         <p style="color:var(--muted);font-size:13px;margin:0">—</p>
       <% } %>
     </div>
+
+    <% if (app.status !== 'declined' && app.status !== 'withdrawn' && app.status !== 'accepted') { %>
+    <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--line)">
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Withdraw Application</div>
+      <p style="font-size:13px;color:var(--muted);margin:0 0 14px">Withdrawing removes your application from review. This cannot be undone.</p>
+      <form method="POST" action="<%= lp %>/my-application/withdraw" onsubmit="return confirm('Are you sure you want to withdraw your application? This cannot be undone.')">
+        <button type="submit" style="font-family:'Baloo 2';font-weight:800;font-size:13px;padding:8px 16px;border-radius:8px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);color:#f87171;cursor:pointer">Withdraw Application</button>
+      </form>
+    </div>
+    <% } %>
 
   </div>
 </main>

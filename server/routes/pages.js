@@ -122,6 +122,56 @@ router.post('/my-application/request-edit', async (req, res) => {
   res.redirect(`${res.locals.lp}/my-application`);
 });
 
+router.get('/my-application/edit-sessions', async (req, res) => {
+  if (!req.session.user) return res.redirect(`${res.locals.lp}/auth/discord`);
+  const appRes = await db.query(
+    `SELECT * FROM structured_applications WHERE discord_id = $1`,
+    [req.session.user.id]
+  );
+  const app = appRes.rows[0] || null;
+  if (!app || app.status === 'declined' || app.status === 'withdrawn') {
+    return res.redirect(`${res.locals.lp}/my-application`);
+  }
+  function parseJsonField(v) {
+    if (!v) return [];
+    if (Array.isArray(v)) return v;
+    try { return JSON.parse(v) || []; } catch (_) { return []; }
+  }
+  const existingSessAvail = parseJsonField(app.session_availability);
+  res.render('new/my-application-edit-sessions', { app, existingSessAvail });
+});
+
+router.post('/my-application/update-sessions', async (req, res) => {
+  if (!req.session.user) return res.redirect(`${res.locals.lp}/auth/discord`);
+  const existing = (await db.query(
+    `SELECT id, status FROM structured_applications WHERE discord_id = $1`,
+    [req.session.user.id]
+  )).rows[0];
+  if (!existing || existing.status === 'declined' || existing.status === 'withdrawn') {
+    return res.redirect(`${res.locals.lp}/my-application`);
+  }
+  let jsonSessionAvail = null;
+  try {
+    const parsed = JSON.parse(req.body.session_availability || 'null');
+    if (parsed !== null) jsonSessionAvail = JSON.stringify(parsed);
+  } catch (_) {}
+  await db.query(
+    `UPDATE structured_applications SET session_availability = $1 WHERE discord_id = $2`,
+    [jsonSessionAvail, req.session.user.id]
+  );
+  res.redirect(`${res.locals.lp}/my-application?updated=1`);
+});
+
+router.post('/my-application/withdraw', async (req, res) => {
+  if (!req.session.user) return res.redirect(`${res.locals.lp}/auth/discord`);
+  await db.query(
+    `UPDATE structured_applications SET status = 'withdrawn'
+     WHERE discord_id = $1 AND status NOT IN ('declined', 'accepted', 'withdrawn')`,
+    [req.session.user.id]
+  );
+  res.redirect(`${res.locals.lp}/applications`);
+});
+
 router.get('/store', (req, res) => {
   const success = req.query.success === '1';
   res.render('new/store', { success });

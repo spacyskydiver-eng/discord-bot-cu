@@ -1,0 +1,125 @@
+<%- include('partials/head', { pageTitle: 'Update Sessions' }) %>
+<%- include('partials/header') %>
+
+<style>
+.sess-wrap { max-width: 560px; margin: 0 auto; padding-bottom: 60px; }
+.sess-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+.sess-grid { display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 16px; }
+.sess-label {
+  display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
+  cursor: pointer; transition: border-color .15s, background .15s;
+  font-family: 'Baloo 2'; font-weight: 700; font-size: 13px; color: var(--text);
+}
+.sess-label:hover { border-color: rgba(116,192,252,.4); }
+.sess-label.checked { background: rgba(116,192,252,.08); border-color: rgba(116,192,252,.35); }
+.sess-label input[type="checkbox"] { width: 16px; height: 16px; flex-shrink: 0; accent-color: #74c0fc; }
+.sess-date { flex: 1; }
+.sess-num { font-size: 11px; color: var(--muted); }
+.sess-status { font-size: 13px; color: var(--muted); font-family: 'Baloo 2'; font-weight: 700; margin: 4px 0 18px; min-height: 20px; }
+.sess-status.ok { color: #5be38f; }
+.sess-status.warn { color: #f87171; }
+</style>
+
+<main class="wrap">
+  <div class="sess-wrap">
+    <div class="page-head" style="margin-bottom:20px">
+      <a href="<%= lp %>/my-application" class="back">← Your Application</a>
+      <div>
+        <h1 class="page-title">Update Sessions</h1>
+        <p class="page-sub" style="margin:4px 0 0;color:var(--muted);font-size:13px">No staff approval needed — changes save immediately</p>
+      </div>
+    </div>
+
+    <div class="sess-card">
+      <p style="font-size:13px;color:var(--muted);margin:0 0 16px">Check every session you can attend. You need at least <strong>5 sessions including Session 1</strong>.</p>
+
+      <form method="POST" action="<%= lp %>/my-application/update-sessions" onsubmit="return beforeSubmit()">
+        <input type="hidden" name="session_availability" id="sessAvailInput">
+
+        <div class="sess-grid" id="sessGrid"></div>
+        <div id="sessStatus" class="sess-status"></div>
+
+        <button type="submit" id="submitBtn" style="width:100%;font-family:'Baloo 2';font-weight:800;font-size:15px;padding:13px;border-radius:10px;background:var(--banner-1);border:none;color:#fff;cursor:pointer;transition:opacity .15s">
+          Save Session Availability
+        </button>
+      </form>
+    </div>
+  </div>
+</main>
+
+<script>
+var SESSION_TIMES = [
+  1797526800,1797613200,1797699600,1797872400,1797958800,
+  1798304400,1798390800
+];
+var existingSess = <%- JSON.stringify(existingSessAvail) %>;
+
+(function () {
+  var grid = document.getElementById('sessGrid');
+  SESSION_TIMES.forEach(function (ts, i) {
+    var n = i + 1;
+    var d = new Date(ts * 1000);
+    var dateStr = d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+    var timeStr = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+    var checked = existingSess.includes(n);
+
+    var lbl = document.createElement('label');
+    lbl.className = 'sess-label' + (checked ? ' checked' : '');
+    lbl.innerHTML =
+      '<input type="checkbox" class="sess-chk" data-n="' + n + '"' + (checked ? ' checked' : '') + '>' +
+      '<div class="sess-date">' +
+        '<div>' + dateStr + ' &mdash; ' + timeStr + '</div>' +
+        '<div class="sess-num">Session ' + n + '</div>' +
+      '</div>';
+
+    var chk = lbl.querySelector('input');
+    chk.addEventListener('change', function () {
+      lbl.classList.toggle('checked', chk.checked);
+      updateStatus();
+    });
+
+    grid.appendChild(lbl);
+  });
+
+  updateStatus();
+
+  function updateStatus() {
+    var checked = Array.from(document.querySelectorAll('.sess-chk:checked')).map(function (c) { return +c.dataset.n; });
+    var hasS1 = checked.includes(1);
+    var st = document.getElementById('sessStatus');
+    var btn = document.getElementById('submitBtn');
+
+    if (checked.length === 0) {
+      st.textContent = '';
+      st.className = 'sess-status';
+      btn.disabled = false;
+      return;
+    }
+    if (!hasS1) {
+      st.textContent = 'Session 1 is required';
+      st.className = 'sess-status warn';
+      btn.disabled = true;
+      btn.style.opacity = '.45';
+    } else if (checked.length < 5) {
+      st.textContent = (5 - checked.length) + ' more session(s) needed';
+      st.className = 'sess-status warn';
+      btn.disabled = true;
+      btn.style.opacity = '.45';
+    } else {
+      st.textContent = checked.length + ' sessions selected';
+      st.className = 'sess-status ok';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    }
+  }
+})();
+
+function beforeSubmit() {
+  var checked = Array.from(document.querySelectorAll('.sess-chk:checked')).map(function (c) { return +c.dataset.n; });
+  document.getElementById('sessAvailInput').value = JSON.stringify(checked);
+  return true;
+}
+</script>
+
+<%- include('partials/foot') %>
