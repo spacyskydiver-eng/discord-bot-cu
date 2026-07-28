@@ -1,5 +1,6 @@
 const db = require('../db');
 const { isNationGuild } = require('../utils/nationGuilds');
+const { checkContent } = require('../utils/contentFilter');
 
 const EVENT_KEYWORDS = [
   'when will it be', 'when is it', 'when is the event', 'when does it start',
@@ -45,6 +46,12 @@ module.exports = async (message) => {
        message.member?.displayName || message.author.username,
        message.author.displayAvatarURL({ size: 64, extension: 'png' })]
     ).catch(() => {});
+
+    // Content moderation — alert staff if flagged word/phrase detected
+    const flag = checkContent(message.content);
+    if (flag) {
+      alertStaff(message, flag).catch(console.error);
+    }
   }
 
   const lower = message.content.toLowerCase();
@@ -143,6 +150,35 @@ module.exports = async (message) => {
     }
   }
 };
+
+async function alertStaff(message, flag) {
+  // Collect staff Discord IDs: DB staff_access + ADMIN_DISCORD_IDS env
+  const staffRows = (await db.query(`SELECT discord_id FROM staff_access`)).rows;
+  const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(s => s.trim()).filter(Boolean);
+  const allIds = [...new Set([...staffRows.map(r => r.discord_id), ...adminIds])];
+
+  const typeLabel = flag.type === 'slur' ? 'Racist slur' : 'Extremist content';
+  const dmContent = [
+    `⚠️ **Flagged message detected in a nation server**`,
+    ``,
+    `**Type:** ${typeLabel}`,
+    `**Matched:** \`${flag.matched}\``,
+    `**Server:** ${message.guild.name}`,
+    `**Channel:** #${message.channel.name}`,
+    `**Author:** ${message.author.username} (\`${message.author.id}\`)`,
+    `**Message:**`,
+    `> ${message.content.slice(0, 800).replace(/\n/g, '\n> ')}`,
+    ``,
+    `View in staff portal: ${process.env.WEBSITE_URL || 'https://collective-union-events.onrender.com'}/admin/nations/${message.guild.id}`,
+  ].join('\n');
+
+  for (const id of allIds) {
+    try {
+      const user = await message.client.users.fetch(id);
+      await user.send(dmContent);
+    } catch (_) {}
+  }
+}
 
 async function assignLevelRole(guild, member, guildId, newLevel) {
   try {
