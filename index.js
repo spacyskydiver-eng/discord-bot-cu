@@ -81,9 +81,18 @@ client.on('interactionCreate', async interaction => {
         // Initial server sync (runs in background)
         syncNationServer(client, row.guild_id).catch(console.error);
 
+        // Give Nation Leader role in the main CU guild
+        try {
+          const mainGuild = await client.guilds.fetch('1449004906068312189');
+          const member = await mainGuild.members.fetch(applicantId);
+          await member.roles.add('1531798604849872976');
+        } catch (err) {
+          console.error('Failed to assign Nation Leader role:', err.message);
+        }
+
         // DM the applicant
         sendDiscordDM(applicantId,
-          `**Nation Leader Application — Accepted!**\n\nYour nation server **${row.server_name}** has been approved. You are now a recognised nation leader for the 100 Player Event. Our bot will monitor your server throughout the event — keep it there and its permissions intact.`
+          `**Nation Leader Application — Accepted!**\n\nYour nation server **${row.server_name}** has been approved. You are now a recognised nation leader for the 100 Player Event. Our bot will monitor your server throughout the event — keep it there and its permissions intact.\n\nYou have been given the **Nation Leader** role in the server.`
         );
 
         // Update the ticket message to reflect acceptance

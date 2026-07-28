@@ -23,8 +23,25 @@ const APPLY_KEYWORDS = [
 
 const SITE = process.env.WEBSITE_URL || 'https://collective-union-events.onrender.com';
 
+const NATION_FORUM_ID = '1531798329397215242';
+
 module.exports = async (message) => {
-  if (message.author.bot || !message.guild) return;
+  if (!message.guild) return;
+
+  // Nation advert forum: only allow the starter message per thread; delete everything else
+  if (!message.author.bot && message.channel.isThread() && message.channel.parentId === NATION_FORUM_ID) {
+    // In forum threads, thread.id === starter message.id
+    if (message.id !== message.channel.id) {
+      message.delete().catch(() => {});
+      try {
+        const dm = await message.author.createDM();
+        await dm.send('You can only post your advert once per nation forum post. Use `/bump` in your thread to bring it back to the top.');
+      } catch (_) {}
+      return;
+    }
+  }
+
+  if (message.author.bot) return;
 
   // Nation server message tracking
   if (await isNationGuild(message.guild.id)) {
