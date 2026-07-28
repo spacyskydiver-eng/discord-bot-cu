@@ -48,7 +48,7 @@ router.use(requireAdminOrStaff);
 // Staff can only access application review paths; everything else needs full admin
 router.use((req, res, next) => {
   if (res.locals.isFullAdmin) return next();
-  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader');
+  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader') || req.path.startsWith('/nations');
   if (!allowed) return res.status(403).render('403');
   next();
 });
@@ -459,6 +459,71 @@ router.post('/hundred/:id/notes', async (req, res) => {
 router.post('/nation-leader/:id/delete', async (req, res) => {
   await db.query(`DELETE FROM nation_leader_applications WHERE id=$1`, [req.params.id]);
   res.redirect('/admin#tab-hundred');
+});
+
+// Nations portal
+router.get('/nations', async (req, res) => {
+  const nations = (await db.query(
+    `SELECT n.*,
+            (SELECT COUNT(*) FROM nation_members nm WHERE nm.guild_id = n.guild_id AND nm.left_at IS NULL) AS member_count,
+            (SELECT COUNT(*) FROM nation_messages nm WHERE nm.guild_id = n.guild_id) AS message_count,
+            (SELECT COUNT(*) FROM nation_channels nc WHERE nc.guild_id = n.guild_id AND nc.deleted = false) AS channel_count
+     FROM nation_leader_applications n
+     WHERE n.accepted = true
+     ORDER BY n.accepted_at DESC`
+  )).rows;
+  res.render('new/admin-nations', { nations });
+});
+
+router.get('/nations/:guildId', async (req, res) => {
+  const nation = (await db.query(
+    `SELECT * FROM nation_leader_applications WHERE guild_id=$1`, [req.params.guildId]
+  )).rows[0];
+  if (!nation) return res.redirect('/admin/nations');
+
+  const channels = (await db.query(
+    `SELECT * FROM nation_channels WHERE guild_id=$1 ORDER BY position ASC`, [req.params.guildId]
+  )).rows;
+
+  const members = (await db.query(
+    `SELECT * FROM nation_members WHERE guild_id=$1 ORDER BY left_at NULLS FIRST, username ASC`, [req.params.guildId]
+  )).rows;
+
+  const firstChannel = channels.find(c => !c.deleted && (c.channel_type === 0 || c.channel_type === 5));
+
+  res.render('new/admin-nation', { nation, channels, members, firstChannelId: firstChannel?.channel_id || null });
+});
+
+// JSON endpoint — messages for a channel with optional search
+router.get('/nations/:guildId/messages', async (req, res) => {
+  const { channel_id, search, before } = req.query;
+  const limit = 60;
+
+  let rows;
+  if (search && search.trim()) {
+    rows = (await db.query(
+      `SELECT nm.*, nc.channel_name
+       FROM nation_messages nm
+       LEFT JOIN nation_channels nc ON nc.channel_id = nm.channel_id
+       WHERE nm.guild_id=$1
+         AND ($2::text IS NULL OR nm.channel_id=$2)
+         AND to_tsvector('english', coalesce(nm.content,'')) @@ plainto_tsquery('english',$3)
+       ORDER BY nm.sent_at DESC LIMIT $4`,
+      [req.params.guildId, channel_id || null, search.trim(), limit]
+    )).rows;
+  } else {
+    rows = (await db.query(
+      `SELECT nm.*
+       FROM nation_messages nm
+       WHERE nm.guild_id=$1
+         AND ($2::text IS NULL OR nm.channel_id=$2)
+         AND ($3::text IS NULL OR nm.message_id < $3)
+       ORDER BY nm.sent_at DESC LIMIT $4`,
+      [req.params.guildId, channel_id || null, before || null, limit]
+    )).rows;
+  }
+
+  res.json(rows.reverse());
 });
 
 // Eligibility questions CRUD

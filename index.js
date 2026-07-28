@@ -5,6 +5,10 @@ const fs = require('fs');
 const path = require('path');
 const startServer = require('./server/app');
 const runVeteranCheck = require('./events/veteranCheck');
+const { setupNationTracking } = require('./events/nationTracking');
+const { syncNationServer } = require('./utils/nationSync');
+const { invalidate: invalidateNationCache } = require('./utils/nationGuilds');
+const { sendDiscordDM } = require('./server/discord-dm');
 
 const client = new Client({
   intents: [
@@ -25,9 +29,9 @@ for (const file of commandFiles) {
 
 client.once('ready', () => {
   console.log(`Bot online: ${client.user.tag}`);
-  // Run veteran check on startup then every 6 hours
   runVeteranCheck(client);
   setInterval(() => runVeteranCheck(client), 6 * 60 * 60 * 1000);
+  setupNationTracking(client);
 });
 
 client.on('messageCreate', require('./events/messageCreate'));
@@ -42,6 +46,56 @@ client.on('interactionCreate', async interaction => {
       } catch (err) {
         console.error('Close ticket error:', err);
         await interaction.reply({ content: 'Could not delete the channel.', ephemeral: true }).catch(() => {});
+      }
+      return;
+    }
+
+    // Accept nation leader application
+    if (interaction.customId === 'accept_leader_ticket') {
+      await interaction.deferReply({ ephemeral: true });
+      try {
+        // Parse applicant Discord ID from channel topic
+        const topic = interaction.channel.topic || '';
+        const match = topic.match(/nation-leader-(\d+)/);
+        if (!match) {
+          return interaction.editReply({ content: 'Could not determine applicant from channel topic.' });
+        }
+        const applicantId = match[1];
+
+        // Look up their nation server
+        const row = (await db.query(
+          `SELECT guild_id, server_name FROM nation_leader_applications WHERE discord_id = $1`,
+          [applicantId]
+        )).rows[0];
+        if (!row) {
+          return interaction.editReply({ content: 'No nation leader application found for this user.' });
+        }
+
+        // Mark accepted
+        await db.query(
+          `UPDATE nation_leader_applications SET accepted=true, accepted_at=NOW() WHERE discord_id=$1`,
+          [applicantId]
+        );
+        invalidateNationCache();
+
+        // Initial server sync (runs in background)
+        syncNationServer(client, row.guild_id).catch(console.error);
+
+        // DM the applicant
+        sendDiscordDM(applicantId,
+          `**Nation Leader Application — Accepted!**\n\nYour nation server **${row.server_name}** has been approved. You are now a recognised nation leader for the 100 Player Event. Our bot will monitor your server throughout the event — keep it there and its permissions intact.`
+        );
+
+        // Update the ticket message to reflect acceptance
+        await interaction.channel.send({
+          content: `✅ <@${applicantId}>'s nation leader application has been **accepted** by <@${interaction.user.id}>. Closing ticket.`
+        });
+
+        await interaction.editReply({ content: 'Application accepted. Closing ticket...' });
+        setTimeout(() => interaction.channel.delete('Nation leader accepted').catch(() => {}), 3000);
+      } catch (err) {
+        console.error('Accept leader error:', err);
+        await interaction.editReply({ content: 'Something went wrong. Please try again.' });
       }
       return;
     }

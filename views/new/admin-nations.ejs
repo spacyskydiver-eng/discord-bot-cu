@@ -1,0 +1,46 @@
+<%- include('partials/head', { pageTitle: 'Nations Portal' }) %>
+<%- include('partials/header') %>
+
+<style>
+.nat-wrap{max-width:960px;margin:0 auto;padding-bottom:60px}
+.nat-card{display:flex;align-items:center;gap:16px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin-bottom:10px;text-decoration:none;color:inherit;transition:border-color .15s}
+.nat-card:hover{border-color:rgba(91,227,143,.35)}
+.nat-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;background:rgba(255,255,255,.08);flex-shrink:0}
+.nat-name{font-family:'Baloo 2';font-weight:800;font-size:16px;color:#e0e2ed}
+.nat-meta{font-size:12px;color:var(--muted);margin-top:2px;font-family:'Baloo 2';font-weight:600}
+.nat-stat{display:flex;flex-direction:column;align-items:center;padding:0 16px;border-left:1px solid var(--line)}
+.nat-stat span:first-child{font-family:'Baloo 2';font-weight:800;font-size:20px;color:#e0e2ed}
+.nat-stat span:last-child{font-size:11px;color:var(--muted);font-family:'Baloo 2';font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+</style>
+
+<main class="wrap">
+  <div class="nat-wrap">
+    <div class="page-head" style="margin-bottom:24px">
+      <a href="/admin" class="back">← Admin</a>
+      <div>
+        <h1 class="page-title">Nations Portal</h1>
+        <p class="page-sub" style="color:var(--muted);font-size:13px;margin:4px 0 0"><%= nations.length %> accepted nation<%= nations.length !== 1 ? 's' : '' %></p>
+      </div>
+    </div>
+
+    <% if (nations.length === 0) { %>
+      <div style="text-align:center;padding:60px 0;color:var(--muted);font-family:'Baloo 2';font-weight:700">No nations accepted yet.</div>
+    <% } %>
+
+    <% for (const n of nations) { %>
+      <a href="/admin/nations/<%= n.guild_id %>" class="nat-card">
+        <img src="<%= n.discord_avatar || '' %>" class="nat-avatar" onerror="this.style.display='none'">
+        <div style="flex:1;min-width:0">
+          <div class="nat-name"><%= n.server_name %></div>
+          <div class="nat-meta">Leader: @<%= n.discord_tag %> · Accepted <%= n.accepted_at ? new Date(n.accepted_at).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}) : '—' %></div>
+        </div>
+        <div class="nat-stat"><span><%= n.member_count %></span><span>Members</span></div>
+        <div class="nat-stat"><span><%= n.channel_count %></span><span>Channels</span></div>
+        <div class="nat-stat"><span><%= n.message_count %></span><span>Messages</span></div>
+        <div style="color:var(--muted);margin-left:8px">→</div>
+      </a>
+    <% } %>
+  </div>
+</main>
+
+<%- include('partials/foot') %>

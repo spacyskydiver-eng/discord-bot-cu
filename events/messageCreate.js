@@ -1,4 +1,5 @@
 const db = require('../db');
+const { isNationGuild } = require('../utils/nationGuilds');
 
 const EVENT_KEYWORDS = [
   'when will it be', 'when is it', 'when is the event', 'when does it start',
@@ -23,6 +24,28 @@ const SITE = process.env.WEBSITE_URL || 'https://collective-union-events.onrende
 
 module.exports = async (message) => {
   if (message.author.bot || !message.guild) return;
+
+  // Nation server message tracking
+  if (await isNationGuild(message.guild.id)) {
+    const attachments = message.attachments.size
+      ? JSON.stringify([...message.attachments.values()].map(a => ({ url: a.url, name: a.name })))
+      : null;
+    db.query(
+      `INSERT INTO nation_messages (guild_id, channel_id, message_id, discord_id, username, avatar, content, attachments, sent_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT (message_id) DO NOTHING`,
+      [message.guild.id, message.channel.id, message.id, message.author.id, message.author.username,
+       message.author.displayAvatarURL({ size: 64, extension: 'png' }),
+       message.content || null, attachments, message.createdAt]
+    ).catch(console.error);
+    // Update member record in case display name changed
+    db.query(
+      `INSERT INTO nation_members (guild_id, discord_id, username, display_name, avatar)
+       VALUES ($1,$2,$3,$4,$5) ON CONFLICT (guild_id, discord_id) DO UPDATE SET username=$3, display_name=$4, avatar=$5`,
+      [message.guild.id, message.author.id, message.author.username,
+       message.member?.displayName || message.author.username,
+       message.author.displayAvatarURL({ size: 64, extension: 'png' })]
+    ).catch(() => {});
+  }
 
   const lower = message.content.toLowerCase();
 

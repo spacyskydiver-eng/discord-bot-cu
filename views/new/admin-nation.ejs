@@ -1,0 +1,292 @@
+<%- include('partials/head', { pageTitle: nation.server_name + ' — Nation Portal' }) %>
+<%- include('partials/header') %>
+
+<style>
+/* ── Layout ── */
+.nation-shell{display:grid;grid-template-columns:220px 1fr 200px;height:calc(100vh - 64px);max-width:100%;overflow:hidden;background:#0c0d10}
+/* ── Channel sidebar ── */
+.nc-sidebar{background:#111216;border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+.nc-server-header{padding:14px 16px;border-bottom:1px solid var(--line);font-family:'Baloo 2';font-weight:800;font-size:14px;color:#e0e2ed;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nc-search{padding:8px 10px;border-bottom:1px solid var(--line)}
+.nc-search input{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-family:'Baloo 2';font-weight:600;font-size:12px;color:#e0e2ed;outline:none;box-sizing:border-box}
+.nc-search input::placeholder{color:var(--muted)}
+.nc-channels{flex:1;overflow-y:auto;padding:8px 0}
+.nc-category{font-family:'Baloo 2';font-weight:800;font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;padding:12px 10px 4px;cursor:default}
+.nc-channel{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:6px;margin:1px 6px;cursor:pointer;font-family:'Baloo 2';font-weight:700;font-size:13px;color:var(--muted);transition:background .1s,color .1s}
+.nc-channel:hover{background:rgba(255,255,255,.06);color:#c9ccdb}
+.nc-channel.active{background:rgba(255,255,255,.1);color:#fff}
+.nc-channel.deleted{color:rgba(248,113,113,.5)}
+.nc-channel.deleted.active{background:rgba(248,113,113,.08);color:#f87171}
+.nc-channel-icon{font-size:13px;flex-shrink:0;opacity:.6}
+/* ── Message area ── */
+.nc-main{display:flex;flex-direction:column;overflow:hidden}
+.nc-topbar{display:flex;align-items:center;gap:10px;padding:0 16px;height:48px;border-bottom:1px solid var(--line);background:#111216;flex-shrink:0}
+.nc-topbar-name{font-family:'Baloo 2';font-weight:800;font-size:14px;color:#e0e2ed}
+.nc-topbar-search{margin-left:auto;display:flex;gap:6px}
+.nc-topbar-search input{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:6px;padding:5px 10px;font-family:'Baloo 2';font-weight:600;font-size:12px;color:#e0e2ed;outline:none;width:180px}
+.nc-topbar-search input::placeholder{color:var(--muted)}
+.nc-topbar-search button{background:rgba(116,192,252,.12);border:1px solid rgba(116,192,252,.3);color:#74c0fc;font-family:'Baloo 2';font-weight:700;font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer}
+.nc-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:0}
+.nc-load-more{text-align:center;padding:8px;margin-bottom:8px}
+.nc-load-more button{background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--muted);font-family:'Baloo 2';font-weight:700;font-size:12px;padding:6px 16px;border-radius:6px;cursor:pointer}
+.nc-load-more button:hover{background:rgba(255,255,255,.09);color:#e0e2ed}
+.nc-msg{display:flex;gap:12px;padding:4px 0;border-radius:4px}
+.nc-msg:hover{background:rgba(255,255,255,.02)}
+.nc-msg-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;margin-top:2px;background:rgba(255,255,255,.08)}
+.nc-msg-body{flex:1;min-width:0}
+.nc-msg-meta{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+.nc-msg-name{font-family:'Baloo 2';font-weight:800;font-size:13px;color:#e0e2ed}
+.nc-msg-time{font-size:10px;color:var(--muted);font-family:'Baloo 2';font-weight:600}
+.nc-msg-content{font-size:13px;color:#c9ccdb;line-height:1.55;word-break:break-word;white-space:pre-wrap}
+.nc-msg-attach{margin-top:4px}
+.nc-msg-attach a{display:inline-block;font-size:11px;color:#74c0fc;background:rgba(116,192,252,.08);border:1px solid rgba(116,192,252,.2);border-radius:4px;padding:2px 8px;text-decoration:none;margin-right:4px}
+.nc-msg-group{margin-bottom:4px}
+.nc-msg-date-divider{text-align:center;font-size:11px;color:var(--muted);font-family:'Baloo 2';font-weight:700;margin:12px 0 8px;position:relative}
+.nc-msg-date-divider::before,.nc-msg-date-divider::after{content:'';position:absolute;top:50%;width:calc(50% - 60px);height:1px;background:var(--line)}
+.nc-msg-date-divider::before{left:0}
+.nc-msg-date-divider::after{right:0}
+.nc-empty{display:flex;align-items:center;justify-content:center;flex:1;color:var(--muted);font-family:'Baloo 2';font-weight:700;font-size:14px}
+/* ── Member sidebar ── */
+.nc-members{background:#111216;border-left:1px solid var(--line);overflow-y:auto;padding:12px 0}
+.nc-members-header{font-family:'Baloo 2';font-weight:800;font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;padding:4px 12px 8px}
+.nc-member{display:flex;align-items:center;gap:8px;padding:5px 12px;border-radius:6px;margin:1px 6px}
+.nc-member img{width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;background:rgba(255,255,255,.08)}
+.nc-member-name{font-family:'Baloo 2';font-weight:700;font-size:12px;color:#c9ccdb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nc-member-name.left{color:rgba(255,255,255,.3);text-decoration:line-through}
+</style>
+
+<div class="nation-shell">
+
+  <!-- Channel sidebar -->
+  <div class="nc-sidebar">
+    <div class="nc-server-header" title="<%= nation.server_name %>">
+      <%= nation.server_name %>
+      <div style="font-size:10px;font-family:'Baloo 2';font-weight:600;color:var(--muted);margin-top:1px">@<%= nation.discord_tag %></div>
+    </div>
+    <div class="nc-search">
+      <input type="text" id="globalSearch" placeholder="Search all messages..." onkeydown="if(event.key==='Enter')doSearch()">
+    </div>
+    <div class="nc-channels" id="channelList">
+      <%
+        const categories = {};
+        const uncategorised = [];
+        for (const ch of channels) {
+          if (ch.channel_type !== 0 && ch.channel_type !== 5) continue;
+          if (ch.category_name) {
+            if (!categories[ch.category_name]) categories[ch.category_name] = [];
+            categories[ch.category_name].push(ch);
+          } else {
+            uncategorised.push(ch);
+          }
+        }
+      %>
+      <% for (const [cat, chs] of Object.entries(categories)) { %>
+        <div class="nc-category"><%= cat %></div>
+        <% for (const ch of chs) { %>
+          <div class="nc-channel <%= ch.deleted ? 'deleted' : '' %> <%= firstChannelId === ch.channel_id ? 'active' : '' %>"
+               data-channel-id="<%= ch.channel_id %>"
+               data-channel-name="<%= ch.channel_name %>"
+               onclick="selectChannel('<%= ch.channel_id %>','<%= ch.channel_name.replace(/'/g,"\\'") %>')">
+            <span class="nc-channel-icon">#</span>
+            <%= ch.channel_name %><% if (ch.deleted) { %> <span style="font-size:9px;color:#f87171;margin-left:2px">[deleted]</span><% } %>
+          </div>
+        <% } %>
+      <% } %>
+      <% if (uncategorised.length) { %>
+        <% for (const ch of uncategorised) { %>
+          <div class="nc-channel <%= ch.deleted ? 'deleted' : '' %> <%= firstChannelId === ch.channel_id ? 'active' : '' %>"
+               data-channel-id="<%= ch.channel_id %>"
+               data-channel-name="<%= ch.channel_name %>"
+               onclick="selectChannel('<%= ch.channel_id %>','<%= ch.channel_name.replace(/'/g,"\\'") %>')">
+            <span class="nc-channel-icon">#</span>
+            <%= ch.channel_name %><% if (ch.deleted) { %> <span style="font-size:9px;color:#f87171;margin-left:2px">[deleted]</span><% } %>
+          </div>
+        <% } %>
+      <% } %>
+    </div>
+    <div style="padding:10px 14px;border-top:1px solid var(--line)">
+      <a href="/admin/nations" style="font-family:'Baloo 2';font-weight:700;font-size:12px;color:var(--muted);text-decoration:none">← All Nations</a>
+    </div>
+  </div>
+
+  <!-- Message area -->
+  <div class="nc-main">
+    <div class="nc-topbar">
+      <span style="color:var(--muted)">#</span>
+      <span class="nc-topbar-name" id="activeChannelName"><%= channels.find(c=>c.channel_id===firstChannelId)?.channel_name || 'Select a channel' %></span>
+      <div class="nc-topbar-search">
+        <input type="text" id="msgSearch" placeholder="Search in channel..." onkeydown="if(event.key==='Enter')doSearch()">
+        <button onclick="doSearch()">Search</button>
+        <button onclick="clearSearch()" id="clearBtn" style="display:none;background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.3);color:#f87171">Clear</button>
+      </div>
+    </div>
+    <div class="nc-messages" id="msgArea">
+      <div class="nc-empty">Select a channel to view messages</div>
+    </div>
+  </div>
+
+  <!-- Members sidebar -->
+  <div class="nc-members">
+    <div class="nc-members-header">Members (<%= members.filter(m => !m.left_at).length %>)</div>
+    <% for (const m of members) { %>
+      <div class="nc-member">
+        <img src="<%= m.avatar || '' %>" onerror="this.style.background='rgba(255,255,255,.1)';this.src=''">
+        <span class="nc-member-name<%= m.left_at ? ' left' : '' %>" title="<%= m.username %>"><%= m.display_name || m.username %></span>
+      </div>
+    <% } %>
+  </div>
+
+</div>
+
+<script>
+var GUILD_ID = '<%= nation.guild_id %>';
+var currentChannelId = <%- JSON.stringify(firstChannelId) %>;
+var currentChannelName = <%- JSON.stringify(channels.find(c=>c.channel_id===firstChannelId)?.channel_name || '') %>;
+var oldestMessageId = null;
+var isSearchMode = false;
+
+// Load first channel on page load
+if (currentChannelId) loadMessages(currentChannelId, null, false);
+
+function selectChannel(channelId, channelName) {
+  currentChannelId = channelId;
+  currentChannelName = channelName;
+  oldestMessageId = null;
+  isSearchMode = false;
+  document.getElementById('activeChannelName').textContent = channelName;
+  document.getElementById('msgSearch').value = '';
+  document.getElementById('clearBtn').style.display = 'none';
+  document.querySelectorAll('.nc-channel').forEach(el => {
+    el.classList.toggle('active', el.dataset.channelId === channelId);
+  });
+  loadMessages(channelId, null, false);
+}
+
+function loadMessages(channelId, before, prepend) {
+  var url = '/admin/nations/' + GUILD_ID + '/messages?channel_id=' + encodeURIComponent(channelId);
+  if (before) url += '&before=' + encodeURIComponent(before);
+  fetch(url)
+    .then(r => r.json())
+    .then(msgs => renderMessages(msgs, prepend))
+    .catch(() => {});
+}
+
+function doSearch() {
+  var search = (document.getElementById('msgSearch').value || document.getElementById('globalSearch').value || '').trim();
+  if (!search) return;
+  isSearchMode = true;
+  document.getElementById('clearBtn').style.display = '';
+  var channelId = document.getElementById('globalSearch').value.trim() ? null : currentChannelId;
+  var url = '/admin/nations/' + GUILD_ID + '/messages?search=' + encodeURIComponent(search);
+  if (channelId) url += '&channel_id=' + encodeURIComponent(channelId);
+  fetch(url)
+    .then(r => r.json())
+    .then(msgs => renderMessages(msgs, false, true))
+    .catch(() => {});
+}
+
+function clearSearch() {
+  isSearchMode = false;
+  document.getElementById('msgSearch').value = '';
+  document.getElementById('globalSearch').value = '';
+  document.getElementById('clearBtn').style.display = 'none';
+  if (currentChannelId) loadMessages(currentChannelId, null, false);
+}
+
+function renderMessages(msgs, prepend, isSearch) {
+  var area = document.getElementById('msgArea');
+  if (!prepend) area.innerHTML = '';
+
+  if (msgs.length === 0 && !prepend) {
+    area.innerHTML = '<div class="nc-empty">No messages</div>';
+    return;
+  }
+
+  var frag = document.createDocumentFragment();
+
+  if (msgs.length > 0 && !isSearch) {
+    var loadMoreDiv = document.createElement('div');
+    loadMoreDiv.className = 'nc-load-more';
+    loadMoreDiv.id = 'loadMoreBtn';
+    var btn = document.createElement('button');
+    btn.textContent = 'Load older messages';
+    btn.onclick = function() {
+      if (oldestMessageId) loadMessages(currentChannelId, oldestMessageId, true);
+    };
+    loadMoreDiv.appendChild(btn);
+    frag.appendChild(loadMoreDiv);
+  }
+
+  if (msgs.length > 0) oldestMessageId = msgs[0].message_id;
+
+  var lastDate = null;
+  var lastAuthor = null;
+  var lastTime = null;
+
+  for (var i = 0; i < msgs.length; i++) {
+    var msg = msgs[i];
+    var sentAt = msg.sent_at ? new Date(msg.sent_at) : null;
+    var dateStr = sentAt ? sentAt.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' }) : null;
+
+    if (dateStr && dateStr !== lastDate) {
+      var div = document.createElement('div');
+      div.className = 'nc-msg-date-divider';
+      div.textContent = dateStr;
+      frag.appendChild(div);
+      lastDate = dateStr;
+      lastAuthor = null;
+    }
+
+    var timeStr = sentAt ? sentAt.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }) : '';
+    var isSameAuthor = lastAuthor === msg.discord_id && sentAt && lastTime && (sentAt - lastTime) < 5*60*1000;
+    lastAuthor = msg.discord_id;
+    lastTime = sentAt;
+
+    var msgEl = document.createElement('div');
+    msgEl.className = 'nc-msg';
+    if (isSameAuthor && !isSearch) {
+      msgEl.style.paddingLeft = '48px';
+      msgEl.innerHTML = '<span class="nc-msg-content">' + escHtml(msg.content || '') + '</span>';
+    } else {
+      var attachHtml = '';
+      if (msg.attachments) {
+        var att = typeof msg.attachments === 'string' ? JSON.parse(msg.attachments) : msg.attachments;
+        if (Array.isArray(att)) {
+          attachHtml = '<div class="nc-msg-attach">' + att.map(function(a) {
+            return '<a href="' + escHtml(a.url) + '" target="_blank">' + escHtml(a.name || 'attachment') + '</a>';
+          }).join('') + '</div>';
+        }
+      }
+      var channelLabel = isSearch ? '<span style="font-size:10px;color:var(--muted);margin-left:6px">in #' + (msg.channel_name || msg.channel_id) + '</span>' : '';
+      msgEl.innerHTML =
+        '<img class="nc-msg-avatar" src="' + (msg.avatar || '') + '" onerror="this.style.background=\'rgba(255,255,255,.1)\';this.src=\'\'">' +
+        '<div class="nc-msg-body">' +
+          '<div class="nc-msg-meta">' +
+            '<span class="nc-msg-name">' + escHtml(msg.username || 'Unknown') + '</span>' +
+            '<span class="nc-msg-time">' + timeStr + '</span>' +
+            channelLabel +
+          '</div>' +
+          '<div class="nc-msg-content">' + escHtml(msg.content || '') + '</div>' +
+          attachHtml +
+        '</div>';
+    }
+
+    frag.appendChild(msgEl);
+  }
+
+  if (prepend) {
+    var existing = document.getElementById('loadMoreBtn');
+    if (existing) existing.remove();
+    area.insertBefore(frag, area.firstChild);
+  } else {
+    area.appendChild(frag);
+    area.scrollTop = area.scrollHeight;
+  }
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>');
+}
+</script>
+
+<%- include('partials/foot') %>

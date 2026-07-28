@@ -97,6 +97,10 @@ module.exports = {
 
       const closeButton = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
+          .setCustomId('accept_leader_ticket')
+          .setLabel('✓ Accept Nation')
+          .setStyle(ButtonStyle.Success),
+        new ButtonBuilder()
           .setCustomId('close_leader_ticket')
           .setLabel('Close & Delete Ticket')
           .setStyle(ButtonStyle.Danger)

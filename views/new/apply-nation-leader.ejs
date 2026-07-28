@@ -49,8 +49,20 @@
       </div>
     </div>
 
-    <% if (existing) { %>
-    <!-- Already approved -->
+    <% if (existing && existing.accepted) { %>
+    <!-- Accepted as nation leader -->
+    <div class="nl-approved">
+      <div style="font-size:32px;margin-bottom:10px">🏛️</div>
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:20px;color:#5be38f;margin-bottom:6px">Accepted as Nation Leader</div>
+      <div style="font-size:14px;color:var(--muted);margin-bottom:4px">Nation Server: <strong style="color:#e0e2ed"><%= existing.server_name %></strong></div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Accepted <%= existing.accepted_at ? new Date(existing.accepted_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '' %></div>
+      <div style="background:rgba(91,227,143,.06);border:1px solid rgba(91,227,143,.2);border-radius:10px;padding:14px 18px;font-size:14px;color:#c9ccdb;text-align:left">
+        Your nation has been officially recognised. The bot is now monitoring your server throughout the event. Keep it there and its permissions intact — removing or revoking the bot will result in disqualification.
+      </div>
+    </div>
+
+    <% } else if (existing) { %>
+    <!-- Server verified, pending ticket review -->
     <div class="nl-approved">
       <div style="font-size:32px;margin-bottom:10px">✅</div>
       <div style="font-family:'Baloo 2';font-weight:800;font-size:20px;color:#5be38f;margin-bottom:6px">Server Authorised</div>
