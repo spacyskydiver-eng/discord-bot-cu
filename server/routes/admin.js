@@ -48,7 +48,7 @@ router.use(requireAdminOrStaff);
 // Staff can only access application review paths; everything else needs full admin
 router.use((req, res, next) => {
   if (res.locals.isFullAdmin) return next();
-  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred');
+  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader');
   if (!allowed) return res.status(403).render('403');
   next();
 });
@@ -79,6 +79,12 @@ router.get('/', async (req, res) => {
             ign, country, session_availability, friend_requests,
             edit_requested, edit_approved, edit_requested_at
      FROM hundred_applications
+     ORDER BY submitted_at DESC NULLS LAST`
+  )).rows;
+
+  const nationLeaderApplications = (await db.query(
+    `SELECT id, submitted_at, discord_id, discord_tag, discord_avatar, guild_id, server_name, member_count
+     FROM nation_leader_applications
      ORDER BY submitted_at DESC NULLS LAST`
   )).rows;
 
@@ -113,7 +119,7 @@ router.get('/', async (req, res) => {
   const playstyleOptions = (await db.query(`SELECT * FROM playstyle_options ORDER BY display_order ASC, id ASC`)).rows;
 
   res.render('new/admin', {
-    event, eligibilityQuestions, applications, hundredApplications,
+    event, eligibilityQuestions, applications, hundredApplications, nationLeaderApplications,
     guilds: guildRes.rows, levels, levelRoles, staffRoles, staffAccess,
     stageSettings, stageBlocks, agreementItems, playstyleOptions
   });
@@ -446,6 +452,13 @@ router.post('/hundred/:id/notes', async (req, res) => {
     [req.body.notes || null, req.params.id]
   );
   res.redirect(`/admin/hundred/${req.params.id}`);
+});
+
+// ── Nation Leader admin routes ─────────────────────────────────────────────
+
+router.post('/nation-leader/:id/delete', async (req, res) => {
+  await db.query(`DELETE FROM nation_leader_applications WHERE id=$1`, [req.params.id]);
+  res.redirect('/admin#tab-hundred');
 });
 
 // Eligibility questions CRUD

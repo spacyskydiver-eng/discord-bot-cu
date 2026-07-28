@@ -35,7 +35,35 @@ function miniArt(theme) {
     <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
     <div style="width:76px;height:76px">${ico}</div></div>`;
 }
+
+// Session timestamps
+const SESSION_TIMES_500 = [1797526800,1797613200,1797699600,1797872400,1797958800,1798304400,1798390800];
+const SESSION_TIMES_100 = [1787932800,1788019200,1788105600,1788192000,1788278400,1788364800];
+
+function sessionDateRange(times) {
+  var first = new Date(times[0] * 1000);
+  var last  = new Date(times[times.length - 1] * 1000);
+  var opts  = { day: 'numeric', month: 'short', year: 'numeric' };
+  if (first.getUTCFullYear() === last.getUTCFullYear() && first.getUTCMonth() === last.getUTCMonth()) {
+    return first.getUTCDate() + ' – ' + last.toLocaleDateString('en-GB', opts);
+  }
+  return first.toLocaleDateString('en-GB', opts) + ' – ' + last.toLocaleDateString('en-GB', opts);
+}
 %>
+
+<style>
+.apps-section{margin-bottom:28px}
+.apps-section-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:14px 0;border-bottom:1px solid var(--line);margin-bottom:16px;user-select:none}
+.apps-section-header:hover .apps-section-name{color:#fff}
+.apps-section-name{font-family:'Baloo 2';font-weight:800;font-size:18px;color:#e0e2ed;transition:color .15s}
+.apps-section-meta{font-size:13px;color:var(--muted);font-family:'Baloo 2';font-weight:700}
+.apps-section-arrow{font-size:12px;color:var(--muted);transition:transform .2s;margin-left:10px}
+.apps-section-arrow.open{transform:rotate(180deg)}
+.apps-section-body{transition:none}
+.sess-dates{display:flex;align-items:center;gap:6px;margin-top:6px;margin-bottom:4px}
+.sess-dates-label{font-family:'Baloo 2';font-weight:700;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.sess-dates-val{font-family:'Baloo 2';font-weight:700;font-size:12px;color:#c9ccdb;background:rgba(255,255,255,.05);padding:2px 8px;border-radius:99px;border:1px solid var(--line)}
+</style>
 
 <main class="wrap">
 
@@ -52,104 +80,184 @@ function miniArt(theme) {
       <p style="font-family:'Baloo 2';font-size:18px;color:var(--muted);margin:0 0 20px"><%= t('apps_login_prompt') %></p>
       <a href="<%= lp %>/auth/discord" style="display:inline-flex;align-items:center;gap:10px;background:#5865F2;color:#fff;font-family:'Baloo 2';font-weight:800;font-size:16px;padding:13px 24px;border-radius:12px;text-decoration:none;"><%= t('apps_login_btn') %></a>
     </div>
-  <% } else if (events.length === 0) { %>
-    <p style="color:var(--muted);font-size:15px;text-align:center;padding:60px 0;"><%= t('apps_empty') %></p>
   <% } else { %>
-  <div class="cards">
-    <!-- 100 Player Event card (hardcoded) -->
-    <% if (userHundredApp) { %>
-      <div class="card">
-    <% } else { %>
-      <a href="<%= lp %>/apply-hundred" class="card">
-    <% } %>
-      <div class="cardart" style="background:linear-gradient(135deg,#0f2a0f,#0c0d10)">
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
-          <svg viewBox="0 0 48 48" style="width:72px;height:72px" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="24" cy="24" r="20" fill="rgba(22,163,74,.18)" stroke="#16a34a" stroke-width="1.5"/>
-            <text x="24" y="31" text-anchor="middle" font-size="18" font-family="'Baloo 2',sans-serif" font-weight="800" fill="#5be38f">100</text>
-          </svg>
-        </div>
+
+  <!-- ══ 100 PLAYER EVENTS SECTION ══════════════════════════════════════════ -->
+  <div class="apps-section">
+    <div class="apps-section-header" onclick="toggleSection('hundred')">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="apps-section-name">100 Player Events</span>
+        <span style="font-family:'Baloo 2';font-weight:800;font-size:11px;padding:2px 9px;border-radius:99px;background:rgba(22,163,74,.12);color:#5be38f;border:1px solid rgba(22,163,74,.25)"><%= SESSION_TIMES_100.length %> sessions</span>
       </div>
-      <div class="cardbody">
-        <h3>100 Player Event</h3>
-        <div class="desc" style="color:var(--muted);font-size:13px;margin-bottom:10px">100 players, one island. Permanent death. No rules.</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="apps-section-meta"><%= sessionDateRange(SESSION_TIMES_100) %></span>
+        <span class="apps-section-arrow open" id="arrow-hundred">▼</span>
+      </div>
+    </div>
+    <div class="apps-section-body" id="section-hundred">
+      <div class="cards">
+
+        <!-- 100 Player Event card -->
         <% if (userHundredApp) { %>
-          <div class="desc"><strong>Your application:</strong> <strong style="color:<%= userHundredApp.status==='accepted'?'#5be38f':userHundredApp.status==='declined'?'#f87171':'#ffd56b' %>"><%= userHundredApp.status %></strong></div>
-          <span class="pill open">Submitted</span>
-          <a href="<%= lp %>/my-application-hundred" style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-family:'Baloo 2';font-weight:700;font-size:12px;color:var(--muted);text-decoration:none;padding:5px 10px;border:1px solid var(--border);border-radius:7px;background:rgba(255,255,255,.03)">
-            View your application →
-            <% if (userHundredApp.edit_approved) { %><span style="color:#74c0fc;font-size:10px">● Edit ready</span><% } else if (userHundredApp.edit_requested) { %><span style="color:#fbbf24;font-size:10px">● Edit pending</span><% } %>
-          </a>
+          <div class="card">
         <% } else { %>
-          <span class="pill open">Apply Now</span>
+          <a href="<%= lp %>/apply-hundred" class="card">
         <% } %>
-      </div>
-    <% if (userHundredApp) { %>
-      </div>
-    <% } else { %>
-      </a>
-    <% } %>
-
-    <% events.forEach(function(ev) { %>
-      <% const theme = ev.theme || 'default'; %>
-      <% const isl = ISLAND[theme]; %>
-      <% const color = isl ? isl.color : (theme==='4island'?'#2fd96b':'#888'); %>
-      <% const open = ev.is_open; %>
-      <% const canApply = open || hasVipAccess; %>
-      <% const hasApplied = userApp && canApply; %>
-
-      <% if (canApply && !hasApplied) { %>
-        <a href="<%= lp %>/apply" class="card">
-      <% } else { %>
-        <div class="card<%= !canApply ? ' locked' : '' %>">
-      <% } %>
-        <div class="cardart"><%- miniArt(theme) %></div>
-        <div class="cardbody">
-          <h3><%= (lang === 'fr' && ev.title_fr) ? ev.title_fr : ev.title %></h3>
-          <% if (ev.event_date) { %>
-            <div class="meta"><%= t('event_starts') %> <%= new Date(ev.event_date).toLocaleDateString(t('date_locale'),{weekday:'short',day:'numeric',month:'long',year:'numeric'}) %></div>
-          <% } %>
-          <% if (open || hasVipAccess) { %>
-            <% if (hasApplied) { %>
-              <div class="desc"><%= t('apps_you_applied') %> <strong style="color:<%= userApp.status==='accepted'?'#5be38f':userApp.status==='declined'||userApp.status==='disqualified'?'#f87171':'#ffd56b' %>"><%= userApp.status %></strong></div>
-              <span class="pill open"><%= t('apps_submitted') %></span>
-              <a href="<%= lp %>/my-application" style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-family:'Baloo 2';font-weight:700;font-size:12px;color:var(--muted);text-decoration:none;padding:5px 10px;border:1px solid var(--border);border-radius:7px;background:rgba(255,255,255,.03)">
+          <div class="cardart" style="background:linear-gradient(135deg,#0d2b1a,#0c0d10)">
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+              <svg viewBox="0 0 48 48" style="width:72px;height:72px">
+                <circle cx="24" cy="24" r="20" fill="rgba(22,163,74,.15)" stroke="#16a34a" stroke-width="1.5"/>
+                <text x="24" y="31" text-anchor="middle" font-size="18" font-family="'Baloo 2',sans-serif" font-weight="800" fill="#5be38f">100</text>
+              </svg>
+            </div>
+          </div>
+          <div class="cardbody">
+            <h3>100 Player Event</h3>
+            <div class="sess-dates">
+              <span class="sess-dates-label">Sessions</span>
+              <span class="sess-dates-val"><%= SESSION_TIMES_100.length %> sessions · <%= sessionDateRange(SESSION_TIMES_100) %></span>
+            </div>
+            <div class="meta" style="margin-bottom:4px">Permanent death · No forced teams · PvP off S1</div>
+            <% if (userHundredApp) { %>
+              <div class="desc">Your application: <strong style="color:<%= userHundredApp.status==='accepted'?'#5be38f':userHundredApp.status==='declined'?'#f87171':'#ffd56b' %>"><%= userHundredApp.status %></strong></div>
+              <span class="pill open">Submitted</span>
+              <a href="<%= lp %>/my-application-hundred" style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-family:'Baloo 2';font-weight:700;font-size:12px;color:var(--muted);text-decoration:none;padding:5px 10px;border:1px solid var(--border);border-radius:7px;background:rgba(255,255,255,.03)">
                 View your application →
-                <% if (userApp.edit_approved) { %><span style="color:#74c0fc;font-size:10px">● Edit ready</span><% } else if (userApp.edit_requested) { %><span style="color:#fbbf24;font-size:10px">● Edit pending</span><% } %>
+                <% if (userHundredApp.edit_approved) { %><span style="color:#74c0fc;font-size:10px">● Edit ready</span><% } else if (userHundredApp.edit_requested) { %><span style="color:#fbbf24;font-size:10px">● Edit pending</span><% } %>
               </a>
-            <% } else if (!open && hasVipAccess) { %>
-              <div class="desc"><%= t('apps_vip_early_desc') %></div>
-              <span class="pill open" style="background:rgba(255,198,61,0.15);color:#ffc63d;"><%= t('apps_vip_early') %></span>
             <% } else { %>
               <div class="desc"><%= t('apps_apply_now') %></div>
-              <span class="pill open"><%= t('apps_open_now') %></span>
+              <span class="pill open">Apply Now</span>
             <% } %>
-          <% } else { %>
-            <div class="desc"><%= t('apps_not_open') %></div>
-            <% if (locals.isAdmin) { %>
-              <a href="<%= lp %>/apply" class="pill admin-bypass"><%= t('apps_preview') %></a>
-            <% } else if (ev.opens_at) { %>
-              <span class="pill soon"><%= t('apps_opens') %></span>
-              <div class="countdown" data-countdown="<%= new Date(ev.opens_at).getTime() %>">--:--:--</div>
+          </div>
+        <% if (userHundredApp) { %>
+          </div>
+        <% } else { %>
+          </a>
+        <% } %>
+
+        <!-- Nation Leader card -->
+        <% if (userNationApp) { %>
+          <div class="card">
+        <% } else { %>
+          <a href="<%= lp %>/apply-nation-leader" class="card">
+        <% } %>
+          <div class="cardart" style="background:linear-gradient(135deg,#1a1200,#0c0d10)">
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+              <svg viewBox="0 0 48 48" style="width:68px;height:68px" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="24" cy="24" r="20" fill="rgba(251,191,36,.1)" stroke="#fbbf24" stroke-width="1.5"/>
+                <text x="24" y="29" text-anchor="middle" font-size="20" fill="#fbbf24">👑</text>
+              </svg>
+            </div>
+          </div>
+          <div class="cardbody">
+            <h3>Nation Leader</h3>
+            <div class="meta" style="margin-bottom:4px">100 Player Event · Separate application</div>
+            <div class="desc" style="font-size:12px;color:var(--muted);margin-bottom:8px">Want to lead your own nation? Verify your Discord server and apply for the nation leader role.</div>
+            <% if (userNationApp) { %>
+              <span class="pill open" style="background:rgba(251,191,36,.12);color:#fbbf24;border-color:rgba(251,191,36,.25)">✓ Server Verified</span>
+              <div style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'Baloo 2';font-weight:700"><%= userNationApp.server_name %> · Use <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px">/leader application</code> in Discord</div>
             <% } else { %>
-              <span class="pill soon"><%= t('apps_coming_soon') %></span>
+              <span class="pill open" style="background:rgba(251,191,36,.12);color:#fbbf24;border-color:rgba(251,191,36,.25)">Apply</span>
             <% } %>
-          <% } %>
-        </div>
-      <% if (canApply && !hasApplied) { %>
-        </a>
-      <% } else { %>
-        </div>
-      <% } %>
-    <% }); %>
+          </div>
+        <% if (userNationApp) { %>
+          </div>
+        <% } else { %>
+          </a>
+        <% } %>
+
+      </div>
+    </div>
   </div>
+
+  <!-- ══ 500 PLAYER EVENT SECTION ═══════════════════════════════════════════ -->
+  <div class="apps-section">
+    <div class="apps-section-header" onclick="toggleSection('fivehundred')">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="apps-section-name">500 Player Event</span>
+        <span style="font-family:'Baloo 2';font-weight:800;font-size:11px;padding:2px 9px;border-radius:99px;background:rgba(212,73,61,.12);color:#e87168;border:1px solid rgba(212,73,61,.25)"><%= SESSION_TIMES_500.length %> sessions</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="apps-section-meta"><%= sessionDateRange(SESSION_TIMES_500) %></span>
+        <span class="apps-section-arrow open" id="arrow-fivehundred">▼</span>
+      </div>
+    </div>
+    <div class="apps-section-body" id="section-fivehundred">
+      <% if (events.length === 0) { %>
+        <p style="color:var(--muted);font-size:15px;padding:20px 0;"><%= t('apps_empty') %></p>
+      <% } else { %>
+      <div class="cards">
+        <% events.forEach(function(ev) { %>
+          <% const theme = ev.theme || 'default'; %>
+          <% const isl = ISLAND[theme]; %>
+          <% const open = ev.is_open; %>
+          <% const canApply = open || hasVipAccess; %>
+          <% const hasApplied = userApp && canApply; %>
+
+          <% if (canApply && !hasApplied) { %>
+            <a href="<%= lp %>/apply" class="card">
+          <% } else { %>
+            <div class="card<%= !canApply ? ' locked' : '' %>">
+          <% } %>
+            <div class="cardart"><%- miniArt(theme) %></div>
+            <div class="cardbody">
+              <h3><%= (lang === 'fr' && ev.title_fr) ? ev.title_fr : ev.title %></h3>
+              <div class="sess-dates">
+                <span class="sess-dates-label">Sessions</span>
+                <span class="sess-dates-val"><%= SESSION_TIMES_500.length %> sessions · <%= sessionDateRange(SESSION_TIMES_500) %></span>
+              </div>
+              <% if (open || hasVipAccess) { %>
+                <% if (hasApplied) { %>
+                  <div class="desc"><%= t('apps_you_applied') %> <strong style="color:<%= userApp.status==='accepted'?'#5be38f':userApp.status==='declined'||userApp.status==='disqualified'?'#f87171':'#ffd56b' %>"><%= userApp.status %></strong></div>
+                  <span class="pill open"><%= t('apps_submitted') %></span>
+                  <a href="<%= lp %>/my-application" style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-family:'Baloo 2';font-weight:700;font-size:12px;color:var(--muted);text-decoration:none;padding:5px 10px;border:1px solid var(--border);border-radius:7px;background:rgba(255,255,255,.03)">
+                    View your application →
+                    <% if (userApp.edit_approved) { %><span style="color:#74c0fc;font-size:10px">● Edit ready</span><% } else if (userApp.edit_requested) { %><span style="color:#fbbf24;font-size:10px">● Edit pending</span><% } %>
+                  </a>
+                <% } else if (!open && hasVipAccess) { %>
+                  <div class="desc"><%= t('apps_vip_early_desc') %></div>
+                  <span class="pill open" style="background:rgba(255,198,61,0.15);color:#ffc63d;"><%= t('apps_vip_early') %></span>
+                <% } else { %>
+                  <div class="desc"><%= t('apps_apply_now') %></div>
+                  <span class="pill open"><%= t('apps_open_now') %></span>
+                <% } %>
+              <% } else { %>
+                <div class="desc"><%= t('apps_not_open') %></div>
+                <% if (locals.isAdmin) { %>
+                  <a href="<%= lp %>/apply" class="pill admin-bypass"><%= t('apps_preview') %></a>
+                <% } else if (ev.opens_at) { %>
+                  <span class="pill soon"><%= t('apps_opens') %></span>
+                  <div class="countdown" data-countdown="<%= new Date(ev.opens_at).getTime() %>">--:--:--</div>
+                <% } else { %>
+                  <span class="pill soon"><%= t('apps_coming_soon') %></span>
+                <% } %>
+              <% } %>
+            </div>
+          <% if (canApply && !hasApplied) { %>
+            </a>
+          <% } else { %>
+            </div>
+          <% } %>
+        <% }); %>
+      </div>
+      <% } %>
+    </div>
+  </div>
+
   <% } %>
 
 </main>
 
-<%- include('partials/foot') %>
-
 <script>
+function toggleSection(name) {
+  var body = document.getElementById('section-' + name);
+  var arrow = document.getElementById('arrow-' + name);
+  var open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : '';
+  if (arrow) arrow.classList.toggle('open', !open);
+}
+
 (function() {
   function tick() {
     document.querySelectorAll('[data-countdown]').forEach(function(el) {
@@ -166,3 +274,5 @@ function miniArt(theme) {
   setInterval(tick, 1000);
 })();
 </script>
+
+<%- include('partials/foot') %>

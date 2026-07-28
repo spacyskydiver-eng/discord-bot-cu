@@ -717,6 +717,34 @@
         </div>
       </div>
     <% } %>
+
+    <!-- Nation Leader Applications sub-section -->
+    <div style="margin-top:28px">
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:14px;color:#e0e2ed;margin-bottom:12px;display:flex;align-items:center;gap:10px">
+        Nation Leader Applications
+        <span style="font-size:11px;font-family:'Baloo 2';font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.25)"><%= nationLeaderApplications.length %></span>
+      </div>
+      <% if (nationLeaderApplications.length === 0) { %>
+        <div class="nd-card"><p style="color:var(--muted);margin:0">No nation leader applications yet.</p></div>
+      <% } else { %>
+        <div class="nd-card" style="padding:0;overflow:hidden">
+          <div style="display:grid;grid-template-columns:2fr 1.5fr 1fr 1.2fr auto;gap:12px;padding:10px 20px;font-family:'Baloo 2';font-weight:700;font-size:12px;color:var(--muted);background:rgba(255,255,255,.02);letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border)">
+            <span>Applicant</span><span>Server Name</span><span>Members</span><span>Submitted</span><span></span>
+          </div>
+          <% for (const a of nationLeaderApplications) { %>
+            <div style="display:grid;grid-template-columns:2fr 1.5fr 1fr 1.2fr auto;gap:12px;align-items:center;padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.04);font-size:14px">
+              <span><img src="<%= a.discord_avatar||'' %>" class="nd-app-avatar" onerror="this.style.display='none'"><span style="font-size:13px;color:var(--muted)">@<%= a.discord_tag||'—' %></span></span>
+              <span style="color:#e0e2ed"><%= a.server_name||'—' %></span>
+              <span style="color:var(--muted)"><%= a.member_count != null ? a.member_count : '—' %></span>
+              <span style="color:var(--muted)"><%= a.submitted_at ? new Date(a.submitted_at).toLocaleDateString('en-GB') : '—' %></span>
+              <form method="POST" action="/admin/nation-leader/<%= a.id %>/delete" style="display:inline" onsubmit="return confirm('Delete this nation server record? The user will need to re-verify.')">
+                <button class="nd-btn nd-btn-danger nd-btn-sm">Delete</button>
+              </form>
+            </div>
+          <% } %>
+        </div>
+      <% } %>
+    </div>
   </div>
 
   <!-- ═══ BOT TAB ═══ -->

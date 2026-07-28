@@ -61,11 +61,12 @@ router.get('/applications', async (req, res) => {
   const events = (await db.query(`SELECT * FROM events ORDER BY is_open DESC, event_date ASC NULLS LAST`)).rows;
   let userApp = null;
   let userHundredApp = null;
+  let userNationApp = null;
   const VIP_ROLE_IDS = ['1449004906433351881', '1449030965576990720'];
   const userRoleIds = req.session.user?.guildRoleIds || [];
   const hasVipAccess = userRoleIds.some(id => VIP_ROLE_IDS.includes(id));
   if (req.session.user) {
-    const [appRes, hundredRes] = await Promise.all([
+    const [appRes, hundredRes, nationRes] = await Promise.all([
       db.query(
         `SELECT status, review_stage, edit_requested, edit_approved FROM structured_applications WHERE discord_id = $1`,
         [req.session.user.id]
@@ -73,12 +74,17 @@ router.get('/applications', async (req, res) => {
       db.query(
         `SELECT status, edit_requested, edit_approved FROM hundred_applications WHERE discord_id = $1`,
         [req.session.user.id]
+      ),
+      db.query(
+        `SELECT server_name FROM nation_leader_applications WHERE discord_id = $1`,
+        [req.session.user.id]
       )
     ]);
     userApp = appRes.rows[0] || null;
     userHundredApp = hundredRes.rows[0] || null;
+    userNationApp = nationRes.rows[0] || null;
   }
-  res.render('new/applications', { events, userApp, userHundredApp, hasVipAccess });
+  res.render('new/applications', { events, userApp, userHundredApp, userNationApp, hasVipAccess });
 });
 
 router.get('/my-application', async (req, res) => {
@@ -277,9 +283,10 @@ router.post('/my-application-hundred/update-sessions', async (req, res) => {
 
 router.post('/my-application-hundred/withdraw', async (req, res) => {
   if (!req.session.user) return res.redirect(`${res.locals.lp}/auth/discord`);
+  // Delete the row entirely so the user can reapply from scratch
   await db.query(
-    `UPDATE hundred_applications SET status = 'withdrawn'
-     WHERE discord_id = $1 AND status NOT IN ('declined', 'accepted', 'withdrawn')`,
+    `DELETE FROM hundred_applications
+     WHERE discord_id = $1 AND status NOT IN ('declined', 'accepted')`,
     [req.session.user.id]
   );
   res.redirect(`${res.locals.lp}/applications`);
