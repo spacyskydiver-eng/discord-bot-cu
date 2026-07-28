@@ -34,6 +34,18 @@ client.on('messageCreate', require('./events/messageCreate'));
 
 client.on('interactionCreate', async interaction => {
   if (interaction.isButton()) {
+    // Close leader ticket
+    if (interaction.customId === 'close_leader_ticket') {
+      try {
+        await interaction.reply({ content: 'Closing ticket...', ephemeral: true });
+        await interaction.channel.delete('Leader ticket closed by staff');
+      } catch (err) {
+        console.error('Close ticket error:', err);
+        await interaction.reply({ content: 'Could not delete the channel.', ephemeral: true }).catch(() => {});
+      }
+      return;
+    }
+
     try {
       const row = await db.query('SELECT response_text, response_payload FROM button_responses WHERE custom_id = $1', [interaction.customId]);
       if (row.rows.length) {

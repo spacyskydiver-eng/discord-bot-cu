@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ChannelType, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, ChannelType, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const db = require('../db');
 
 // Role IDs that can see nation leader ticket channels
@@ -74,18 +74,44 @@ module.exports = {
         reason: `Nation leader application ticket for ${interaction.user.tag}`
       });
 
+      // Try to create an invite to the nation leader's server
+      let inviteUrl = null;
+      try {
+        const nlGuild = await interaction.client.guilds.fetch(row.guild_id);
+        const channels = await nlGuild.channels.fetch();
+        const textChannel = channels.find(c =>
+          c.type === ChannelType.GuildText &&
+          c.permissionsFor(nlGuild.members.me)?.has(PermissionFlagsBits.CreateInstantInvite)
+        );
+        if (textChannel) {
+          const invite = await textChannel.createInvite({ maxAge: 0, maxUses: 0, reason: 'Nation leader review' });
+          inviteUrl = invite.url;
+        }
+      } catch (_) {}
+
+      const fields = [
+        { name: 'Nation Server', value: row.server_name, inline: true },
+        { name: 'Discord', value: `@${interaction.user.username}`, inline: true }
+      ];
+      if (inviteUrl) fields.push({ name: 'Join Server', value: inviteUrl, inline: false });
+
+      const closeButton = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId('close_leader_ticket')
+          .setLabel('Close & Delete Ticket')
+          .setStyle(ButtonStyle.Danger)
+      );
+
       await ticketChannel.send({
         embeds: [{
           color: 0x22863a,
           title: 'Nation Leader Application',
           description: `<@${interaction.user.id}> is applying to be a nation leader for the **100 Player Event**.`,
-          fields: [
-            { name: 'Nation Server', value: row.server_name, inline: true },
-            { name: 'Discord', value: `@${interaction.user.username}`, inline: true }
-          ],
-          footer: { text: 'Please review and respond in this channel.' },
+          fields,
+          footer: { text: 'Use the button below to close this ticket when done.' },
           timestamp: new Date().toISOString()
-        }]
+        }],
+        components: [closeButton]
       });
 
       await interaction.editReply({
