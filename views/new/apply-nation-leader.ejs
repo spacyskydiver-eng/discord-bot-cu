@@ -115,12 +115,12 @@
       <div class="nl-step">
         <div class="nl-step-num">3</div>
         <div class="nl-step-body">
-          <p class="nl-step-title">Get your server's channel ID</p>
-          <p class="nl-step-desc">You need to copy the ID of any channel in your server (the general channel works fine). Here's how:</p>
+          <p class="nl-step-title">Get your server's ID</p>
+          <p class="nl-step-desc">Here's how to copy your server ID:</p>
           <div style="margin-top:8px;font-size:13px;color:var(--muted);line-height:1.7">
             <div style="margin-bottom:4px">① In Discord, go to <strong style="color:#c9ccdb">User Settings → Advanced</strong> and enable <strong style="color:#c9ccdb">Developer Mode</strong>.</div>
-            <div style="margin-bottom:4px">② Go to your new server. Right-click any channel in the channel list.</div>
-            <div>③ Click <code>Copy Channel ID</code>. Paste that number below.</div>
+            <div style="margin-bottom:4px">② Right-click your server's <strong style="color:#c9ccdb">name or icon</strong> in the left sidebar.</div>
+            <div>③ Click <code>Copy Server ID</code>. Paste that number below.</div>
           </div>
         </div>
       </div>
@@ -128,8 +128,8 @@
       <div class="nl-step" style="margin-bottom:0">
         <div class="nl-step-num">4</div>
         <div class="nl-step-body">
-          <p class="nl-step-title">Enter the channel ID and authorise</p>
-          <p class="nl-step-desc" style="margin-bottom:12px">Once you enter the channel ID, our bot will check your server. This takes a few seconds.</p>
+          <p class="nl-step-title">Enter the server ID and authorise</p>
+          <p class="nl-step-desc" style="margin-bottom:12px">Once you enter the server ID, our bot will check your server. This takes a few seconds.</p>
 
           <div style="margin-bottom:8px">
             <input type="text" id="channelIdInput" class="nl-input" placeholder="e.g. 1234567890123456789" inputmode="numeric" pattern="[0-9]+" maxlength="25">
@@ -182,7 +182,7 @@ function authoriseServer() {
   fetch('<%= lp %>/apply-nation-leader/check', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ channel_id: channelId })
+    body: JSON.stringify({ guild_id: channelId })
   })
   .then(function(r) { return r.json(); })
   .then(function(data) {

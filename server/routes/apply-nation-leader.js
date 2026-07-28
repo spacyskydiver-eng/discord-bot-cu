@@ -25,41 +25,31 @@ router.get('/', async (req, res) => {
 router.post('/check', async (req, res) => {
   if (!req.session.user) return res.status(401).json({ ok: false, error: 'Not logged in.' });
 
-  const channelId = (req.body.channel_id || '').trim();
-  if (!channelId || !/^\d+$/.test(channelId)) {
-    return res.json({ ok: false, error: 'Please enter a valid numeric channel ID.' });
+  const guildId = (req.body.guild_id || '').trim();
+  if (!guildId || !/^\d+$/.test(guildId)) {
+    return res.json({ ok: false, error: 'Please enter a valid numeric server ID.' });
   }
 
-  // Get channel → guild_id
-  const channel = await discordFetch(`/channels/${channelId}`);
-  if (!channel || !channel.guild_id) {
+  // Verify bot is in the guild
+  const guild = await discordFetch(`/guilds/${guildId}`);
+  if (!guild || !guild.id) {
     return res.json({
       ok: false,
       reason: 'bot_not_in_server',
-      error: 'Our bot could not find that channel. Make sure you invited the bot to your server and entered the correct channel ID.'
+      error: 'Our bot is not in that server. Make sure you invited the bot before submitting.'
     });
   }
 
-  const guildId = channel.guild_id;
-
-  // Get guild with member count
-  const guild = await discordFetch(`/guilds/${guildId}?with_counts=true`);
-  if (!guild) {
-    return res.json({
-      ok: false,
-      reason: 'bot_not_in_server',
-      error: 'Our bot is not in that server. Please invite it first, then try again.'
-    });
-  }
-
-  const memberCount = guild.approximate_member_count || 0;
+  // Fetch actual members (accurate for small servers — approximate_member_count is unreliable)
+  const members = await discordFetch(`/guilds/${guildId}/members?limit=10`);
+  const memberCount = Array.isArray(members) ? members.length : 0;
 
   if (memberCount >= 3) {
     return res.json({
       ok: false,
       reason: 'too_many_members',
       count: memberCount,
-      error: `Your server currently has ${memberCount} member${memberCount !== 1 ? 's' : ''}. Nation servers must have fewer than 3 members at the time of authorisation — please use a freshly created server with no existing members.`
+      error: `Your server has ${memberCount} member${memberCount !== 1 ? 's' : ''} (including the bot). Nation servers must have fewer than 3 members — please use a freshly created server.`
     });
   }
 
@@ -74,7 +64,7 @@ router.post('/check', async (req, res) => {
         req.session.user.avatar || null,
         guildId,
         guild.name,
-        channelId,
+        null,
         memberCount
       ]
     );
