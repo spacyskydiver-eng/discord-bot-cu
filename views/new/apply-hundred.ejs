@@ -1,0 +1,376 @@
+<%- include('partials/head', { pageTitle: '100 Player Event — Apply' }) %>
+<%- include('partials/header') %>
+
+<% if (submitted) { %>
+<main class="wrap" style="max-width:640px;text-align:center;padding-top:60px">
+  <div style="font-size:48px;margin-bottom:16px">🎮</div>
+  <h1 style="font-family:'Baloo 2';font-weight:800;font-size:28px;margin:0 0 12px">Application submitted!</h1>
+  <p style="color:var(--muted);font-size:15px;margin:0 0 28px">We've received your application for the 100 Player Event. We'll review it and send you a Discord DM with the decision.</p>
+  <a href="<%= lp %>/my-application-hundred" style="display:inline-flex;align-items:center;gap:8px;background:var(--panel-2);border:1px solid var(--line);color:#e0e2ed;font-family:'Baloo 2';font-weight:800;font-size:14px;padding:12px 24px;border-radius:10px;text-decoration:none">View your application →</a>
+</main>
+<%- include('partials/foot') %>
+<% } else { %>
+
+<style>
+/* ── Wizard shell ── */
+.apw { max-width: 760px; margin: 0 auto; padding-bottom: 70px; }
+.apw-progress { display: flex; gap: 0; margin-bottom: 28px; border-radius: 8px; overflow: hidden; }
+.apw-progress-step { flex: 1; height: 4px; background: var(--panel-2); transition: background .3s; }
+.apw-progress-step.done { background: var(--banner-1); }
+.apw-progress-step.active { background: #fbbf24; }
+
+.apw-stage { display: none; }
+.apw-stage.active { display: block; }
+
+.apw-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; margin-bottom: 16px; }
+.apw-card-title { font-family: 'Baloo 2'; font-weight: 800; font-size: 20px; margin: 0 0 6px; }
+.apw-card-sub { font-size: 13px; color: var(--muted); margin: 0 0 20px; }
+
+.apw-field { margin-bottom: 16px; }
+.apw-label { font-family: 'Baloo 2'; font-weight: 700; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; display: block; }
+.apw-input { width: 100%; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px; font-family: 'Baloo 2'; font-weight: 600; font-size: 14px; color: var(--text); outline: none; transition: border-color .15s; box-sizing: border-box; }
+.apw-input:focus { border-color: rgba(255,255,255,.3); }
+.apw-textarea { min-height: 90px; resize: vertical; }
+
+/* Eligibility */
+.elig-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.elig-row:last-child { border-bottom: none; padding-bottom: 0; }
+.elig-q { font-family: 'Baloo 2'; font-weight: 700; font-size: 14px; flex: 1; padding-right: 20px; }
+.elig-toggle { display: flex; gap: 6px; flex-shrink: 0; }
+.elig-btn { font-family: 'Baloo 2'; font-weight: 800; font-size: 13px; padding: 7px 16px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); cursor: pointer; transition: all .15s; }
+.elig-btn.yes-active { background: rgba(91,227,143,.12); border-color: rgba(91,227,143,.4); color: #5be38f; }
+.elig-btn.no-active { background: rgba(248,113,113,.1); border-color: rgba(248,113,113,.3); color: #f87171; }
+.elig-gate { display: none; padding: 14px 16px; background: rgba(248,113,113,.07); border: 1px solid rgba(248,113,113,.25); border-radius: 10px; margin-top: 16px; font-family: 'Baloo 2'; font-weight: 700; font-size: 13px; color: #f87171; }
+
+/* Sessions */
+.sess-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 6px; font-family: 'Baloo 2'; font-weight: 700; font-size: 13px; }
+.sess-num { color: var(--muted); font-size: 11px; min-width: 60px; }
+
+/* Nav */
+.apw-nav { display: flex; gap: 10px; justify-content: space-between; margin-top: 20px; }
+.apw-btn-back { font-family: 'Baloo 2'; font-weight: 800; font-size: 14px; padding: 12px 24px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); cursor: pointer; transition: all .15s; }
+.apw-btn-back:hover { color: var(--text); }
+.apw-btn-next { font-family: 'Baloo 2'; font-weight: 800; font-size: 14px; padding: 12px 32px; border-radius: 10px; background: var(--banner-1); border: none; color: #fff; cursor: pointer; transition: opacity .15s; }
+.apw-btn-next:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Agree */
+.agr-item { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; cursor: pointer; }
+.agr-check { width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; accent-color: var(--banner-1); cursor: pointer; }
+.agr-text { font-family: 'Baloo 2'; font-weight: 600; font-size: 13px; color: #c9ccdb; line-height: 1.5; }
+
+/* Stage label */
+.apw-stage-label { font-family: 'Baloo 2'; font-weight: 700; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+</style>
+
+<main class="wrap">
+<div class="apw">
+
+  <div class="page-head" style="margin-bottom:20px">
+    <a href="<%= lp %>/applications" class="back">← Applications</a>
+    <div>
+      <h1 class="page-title">100 Player Event</h1>
+      <p class="page-sub" style="margin:4px 0 0;color:var(--muted);font-size:13px">Application</p>
+    </div>
+  </div>
+
+  <% if (error === 'server') { %>
+  <div style="padding:14px 18px;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.25);border-radius:var(--radius);margin-bottom:16px;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#f87171">
+    Something went wrong saving your application. Please try again.
+  </div>
+  <% } %>
+
+  <!-- Progress bar -->
+  <div class="apw-progress" id="progressBar">
+    <div class="apw-progress-step active" id="prog-1"></div>
+    <div class="apw-progress-step" id="prog-2"></div>
+    <div class="apw-progress-step" id="prog-3"></div>
+    <div class="apw-progress-step" id="prog-4"></div>
+    <div class="apw-progress-step" id="prog-5"></div>
+  </div>
+
+  <form method="POST" action="<%= lp %>/apply-hundred/submit" id="applyForm">
+
+    <!-- ══════════════ STAGE 1: Overview ══════════════ -->
+    <div class="apw-stage active" id="stage-1">
+      <div class="apw-stage-label">Stage 1 of 5 — Event Overview</div>
+      <div class="apw-card">
+        <div class="apw-card-title">The 100 Player Event</div>
+        <div class="apw-card-sub">Read this before applying</div>
+        <div style="font-size:14px;color:#c9ccdb;line-height:1.7;margin-bottom:20px">
+          <p style="margin:0 0 12px">100 players spawn at the centre of a custom island and are released at the same moment. From there, everything is up to you. Build, ally, betray, fight, survive. No forced teams, no scripted outcomes, no one telling you who to trust or when to fight. Death is permanent.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0">
+            <div style="background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:12px 14px">
+              <div style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Players</div>
+              <div style="font-family:'Baloo 2';font-weight:800;font-size:18px">100</div>
+              <div style="font-size:12px;color:var(--muted)">Applications required</div>
+            </div>
+            <div style="background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:12px 14px">
+              <div style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Sessions</div>
+              <div style="font-family:'Baloo 2';font-weight:800;font-size:18px">6</div>
+              <div style="font-size:12px;color:var(--muted)">One per day</div>
+            </div>
+            <div style="background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.2);border-radius:10px;padding:12px 14px">
+              <div style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:#f87171;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Death</div>
+              <div style="font-family:'Baloo 2';font-weight:800;font-size:18px">Permanent</div>
+              <div style="font-size:12px;color:var(--muted)">If you die, you are out</div>
+            </div>
+            <div style="background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:12px 14px">
+              <div style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">PvP</div>
+              <div style="font-family:'Baloo 2';font-weight:800;font-size:18px">Session 2+</div>
+              <div style="font-size:12px;color:var(--muted)">Disabled session 1</div>
+            </div>
+          </div>
+          <p style="margin:0 0 4px;font-family:'Baloo 2';font-weight:800;font-size:13px;color:#e0e2ed">Session Schedule</p>
+        </div>
+        <div id="sessionList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:20px"></div>
+        <label class="agr-item">
+          <input type="checkbox" class="agr-check" id="readConfirm" onchange="document.getElementById('btn-next-1').disabled=!this.checked">
+          <span class="agr-text">I have read and understood the event description above.</span>
+        </label>
+      </div>
+      <div class="apw-nav">
+        <span></span>
+        <button type="button" class="apw-btn-next" id="btn-next-1" disabled onclick="goStage(2)">Next →</button>
+      </div>
+    </div>
+
+    <!-- ══════════════ STAGE 2: Eligibility ══════════════ -->
+    <div class="apw-stage" id="stage-2">
+      <div class="apw-stage-label">Stage 2 of 5 — Eligibility</div>
+      <div class="apw-card">
+        <div class="apw-card-title">Eligibility Check</div>
+        <div class="apw-card-sub">All three questions must be answered Yes to proceed.</div>
+
+        <input type="hidden" name="can_attend" id="val-can_attend" value="">
+        <input type="hidden" name="has_mic" id="val-has_mic" value="">
+        <input type="hidden" name="is_13_plus" id="val-is_13_plus" value="">
+
+        <div class="elig-row">
+          <div class="elig-q">Can you attend all 6 sessions? (One per day, starting <span id="sess1Date"></span>)</div>
+          <div class="elig-toggle">
+            <button type="button" class="elig-btn" onclick="setElig('can_attend','yes',this)">Yes</button>
+            <button type="button" class="elig-btn" onclick="setElig('can_attend','no',this)">No</button>
+          </div>
+        </div>
+        <div class="elig-row">
+          <div class="elig-q">Do you have a working microphone?</div>
+          <div class="elig-toggle">
+            <button type="button" class="elig-btn" onclick="setElig('has_mic','yes',this)">Yes</button>
+            <button type="button" class="elig-btn" onclick="setElig('has_mic','no',this)">No</button>
+          </div>
+        </div>
+        <div class="elig-row">
+          <div class="elig-q">Are you 13 or older?</div>
+          <div class="elig-toggle">
+            <button type="button" class="elig-btn" onclick="setElig('is_13_plus','yes',this)">Yes</button>
+            <button type="button" class="elig-btn" onclick="setElig('is_13_plus','no',this)">No</button>
+          </div>
+        </div>
+
+        <div class="elig-gate" id="eligGate">
+          You do not meet the eligibility requirements for this event. Unfortunately you cannot apply.
+        </div>
+      </div>
+      <div class="apw-nav">
+        <button type="button" class="apw-btn-back" onclick="goStage(1)">← Back</button>
+        <button type="button" class="apw-btn-next" id="btn-next-2" disabled onclick="goStage(3)">Next →</button>
+      </div>
+    </div>
+
+    <!-- ══════════════ STAGE 3: Basic Info ══════════════ -->
+    <div class="apw-stage" id="stage-3">
+      <div class="apw-stage-label">Stage 3 of 5 — Basic Information</div>
+      <div class="apw-card">
+        <div class="apw-card-title">Basic Information</div>
+        <div class="apw-field">
+          <label class="apw-label" for="f-ign">Minecraft Username (IGN)</label>
+          <input type="text" id="f-ign" name="ign" class="apw-input" placeholder="YourIGN" required maxlength="40" oninput="checkBasic()">
+        </div>
+        <div class="apw-field">
+          <label class="apw-label" for="f-discord">Discord Username</label>
+          <input type="text" id="f-discord" name="discord_username" class="apw-input" placeholder="username" required maxlength="60" oninput="checkBasic()">
+        </div>
+        <div class="apw-field">
+          <label class="apw-label" for="f-country">Country / Timezone</label>
+          <input type="text" id="f-country" name="country" class="apw-input" placeholder="e.g. United Kingdom, GMT+1" required maxlength="80" oninput="checkBasic()">
+        </div>
+      </div>
+      <div class="apw-nav">
+        <button type="button" class="apw-btn-back" onclick="goStage(2)">← Back</button>
+        <button type="button" class="apw-btn-next" id="btn-next-3" disabled onclick="goStage(4)">Next →</button>
+      </div>
+    </div>
+
+    <!-- ══════════════ STAGE 4: Questions + Friends ══════════════ -->
+    <div class="apw-stage" id="stage-4">
+      <div class="apw-stage-label">Stage 4 of 5 — Quick Questions</div>
+      <div class="apw-card">
+        <div class="apw-card-title">Quick Questions</div>
+        <div class="apw-field">
+          <label class="apw-label" for="f-prev">Have you played in any Minecraft events before?</label>
+          <p style="font-size:12px;color:var(--muted);margin:0 0 6px">If yes, briefly which ones. If no, just write "No".</p>
+          <textarea id="f-prev" name="prev_events" class="apw-input apw-textarea" placeholder="e.g. Forged Alliance, MCC — or No" maxlength="400"></textarea>
+        </div>
+        <div class="apw-field">
+          <label class="apw-label" for="f-playstyle">How would you describe your playstyle in one or two sentences?</label>
+          <textarea id="f-playstyle" name="playstyle_desc" class="apw-input apw-textarea" required maxlength="500" oninput="checkQuestions()" placeholder="e.g. I tend to play cautiously, building alliances early before committing to fights."></textarea>
+        </div>
+        <div class="apw-field">
+          <label class="apw-label" for="f-why">Why do you want to join this event?</label>
+          <p style="font-size:12px;color:var(--muted);margin:0 0 6px">2-3 sentences is fine.</p>
+          <textarea id="f-why" name="why_join" class="apw-input apw-textarea" required maxlength="800" oninput="checkQuestions()" placeholder="Tell us why you want to take part..."></textarea>
+        </div>
+      </div>
+      <div class="apw-card">
+        <div class="apw-card-title" style="font-size:16px">Friend Requests</div>
+        <div class="apw-card-sub">Optional — list any players you'd like to be placed near. No guarantees.</div>
+        <div class="apw-field" style="margin:0">
+          <textarea name="friend_requests" class="apw-input apw-textarea" placeholder="IGN1, IGN2..." maxlength="400" style="min-height:70px"></textarea>
+        </div>
+      </div>
+      <div class="apw-nav">
+        <button type="button" class="apw-btn-back" onclick="goStage(3)">← Back</button>
+        <button type="button" class="apw-btn-next" id="btn-next-4" disabled onclick="goStage(5)">Next →</button>
+      </div>
+    </div>
+
+    <!-- ══════════════ STAGE 5: Rules + Legal ══════════════ -->
+    <div class="apw-stage" id="stage-5">
+      <div class="apw-stage-label">Stage 5 of 5 — Rules and Agreement</div>
+      <div class="apw-card">
+        <div class="apw-card-title">Event Rules</div>
+        <div style="font-size:13px;color:#c9ccdb;line-height:1.7;margin-bottom:20px">
+          <ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px">
+            <li>Death is permanent. If you die you are immediately removed from the game.</li>
+            <li>PvP is disabled during Session 1. Once Session 2 begins all bets are off.</li>
+            <li>No hacking, cheating, exploiting, or using disallowed mods. Doing so results in permanent removal.</li>
+            <li>No griefing or destroying the map outside of pvp-related actions.</li>
+            <li>You must make every reasonable effort to attend all 6 sessions. If you cannot attend and do not notify staff in advance, your spot may be given to someone else.</li>
+            <li>Treat other players with respect outside of the game. In-game betrayal is part of the event. Out-of-game harassment is not.</li>
+            <li>Staff decisions are final. Do not dispute rulings publicly.</li>
+          </ul>
+        </div>
+
+        <input type="hidden" name="rules_agreed" id="val-rules_agreed" value="">
+        <input type="hidden" name="legal_agreed" id="val-legal_agreed" value="">
+
+        <label class="agr-item" onclick="toggleAgree('rules_agreed','chk-rules',this)">
+          <input type="checkbox" class="agr-check" id="chk-rules" readonly onclick="event.preventDefault()">
+          <span class="agr-text">I have read and agree to all event rules listed above.</span>
+        </label>
+        <label class="agr-item" onclick="toggleAgree('legal_agreed','chk-legal',this)">
+          <input type="checkbox" class="agr-check" id="chk-legal" readonly onclick="event.preventDefault()">
+          <span class="agr-text">I confirm that I am 13 years of age or older. I understand that my Discord ID and Minecraft username will be stored for the purpose of running this event, and will not be shared with third parties.</span>
+        </label>
+
+        <div id="rulesGate" style="display:none;margin-top:14px;padding:12px 14px;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.25);border-radius:10px;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#f87171">
+          You must agree to both items above to submit your application.
+        </div>
+      </div>
+      <div class="apw-nav">
+        <button type="button" class="apw-btn-back" onclick="goStage(4)">← Back</button>
+        <button type="submit" class="apw-btn-next" id="btn-submit" disabled onclick="return checkSubmit()">Submit Application</button>
+      </div>
+    </div>
+
+  </form>
+</div>
+</main>
+
+<script>
+var SESSION_TIMES = [1787932800,1788019200,1788105600,1788192000,1788278400,1788364800];
+
+// Build session list on stage 1
+(function() {
+  var list = document.getElementById('sessionList');
+  SESSION_TIMES.forEach(function(ts, i) {
+    var d = new Date(ts * 1000);
+    var dateStr = d.toLocaleDateString(undefined, { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+    var timeStr = d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit', timeZoneName:'short' });
+    var row = document.createElement('div');
+    row.className = 'sess-row';
+    row.innerHTML = '<span class="sess-num">Session ' + (i+1) + '</span><span style="flex:1">' + dateStr + '</span><span style="color:var(--muted);font-size:12px">' + timeStr + '</span>';
+    list.appendChild(row);
+  });
+  // Fill in session 1 date for eligibility stage
+  var d1 = new Date(SESSION_TIMES[0] * 1000);
+  var el = document.getElementById('sess1Date');
+  if (el) el.textContent = d1.toLocaleDateString(undefined, { day:'numeric', month:'long', year:'numeric' });
+})();
+
+// Stage navigation
+var currentStage = 1;
+function goStage(n) {
+  document.getElementById('stage-' + currentStage).classList.remove('active');
+  document.getElementById('stage-' + n).classList.add('active');
+  for (var i = 1; i <= 5; i++) {
+    var p = document.getElementById('prog-' + i);
+    if (i < n) { p.className = 'apw-progress-step done'; }
+    else if (i === n) { p.className = 'apw-progress-step active'; }
+    else { p.className = 'apw-progress-step'; }
+  }
+  currentStage = n;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Eligibility
+var eligVals = { can_attend: '', has_mic: '', is_13_plus: '' };
+function setElig(field, val, btn) {
+  eligVals[field] = val;
+  document.getElementById('val-' + field).value = val;
+  var row = btn.closest('.elig-toggle');
+  row.querySelectorAll('.elig-btn').forEach(function(b) {
+    b.className = 'elig-btn';
+  });
+  btn.classList.add(val === 'yes' ? 'yes-active' : 'no-active');
+  checkElig();
+}
+function checkElig() {
+  var allYes = eligVals.can_attend === 'yes' && eligVals.has_mic === 'yes' && eligVals.is_13_plus === 'yes';
+  var anyNo = eligVals.can_attend === 'no' || eligVals.has_mic === 'no' || eligVals.is_13_plus === 'no';
+  var allAnswered = eligVals.can_attend !== '' && eligVals.has_mic !== '' && eligVals.is_13_plus !== '';
+  document.getElementById('eligGate').style.display = (anyNo && allAnswered) ? 'block' : 'none';
+  document.getElementById('btn-next-2').disabled = !allYes;
+}
+
+// Basic info
+function checkBasic() {
+  var ign = document.getElementById('f-ign').value.trim();
+  var disc = document.getElementById('f-discord').value.trim();
+  var country = document.getElementById('f-country').value.trim();
+  document.getElementById('btn-next-3').disabled = !(ign && disc && country);
+}
+
+// Questions
+function checkQuestions() {
+  var ps = document.getElementById('f-playstyle').value.trim();
+  var why = document.getElementById('f-why').value.trim();
+  document.getElementById('btn-next-4').disabled = !(ps && why);
+}
+
+// Rules / legal toggles
+function toggleAgree(field, chkId, label) {
+  var chk = document.getElementById(chkId);
+  chk.checked = !chk.checked;
+  document.getElementById('val-' + field).value = chk.checked ? 'yes' : '';
+  checkRules();
+}
+function checkRules() {
+  var r = document.getElementById('chk-rules').checked;
+  var l = document.getElementById('chk-legal').checked;
+  document.getElementById('rulesGate').style.display = (!r || !l) && (r || l) ? 'block' : 'none';
+  document.getElementById('btn-submit').disabled = !(r && l);
+}
+function checkSubmit() {
+  var r = document.getElementById('chk-rules').checked;
+  var l = document.getElementById('chk-legal').checked;
+  if (!r || !l) {
+    document.getElementById('rulesGate').style.display = 'block';
+    return false;
+  }
+  return true;
+}
+</script>
+
+<%- include('partials/foot') %>
+<% } %>

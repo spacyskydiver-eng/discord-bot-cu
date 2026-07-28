@@ -1,0 +1,82 @@
+<%- include('partials/head', { pageTitle: 'Edit Application — 100 Player Event' }) %>
+<%- include('partials/header') %>
+
+<style>
+.edt-wrap{max-width:720px;margin:0 auto;padding-bottom:60px}
+.edt-section{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-bottom:16px}
+.edt-section-title{font-family:'Baloo 2';font-weight:800;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 16px}
+.edt-field{margin-bottom:14px}
+.edt-label{font-family:'Baloo 2';font-weight:700;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;display:block}
+.edt-input{width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:11px 14px;font-family:'Baloo 2';font-weight:600;font-size:14px;color:var(--text);outline:none;transition:border-color .15s;box-sizing:border-box}
+.edt-input:focus{border-color:rgba(255,255,255,.3)}
+textarea.edt-input{min-height:90px;resize:vertical}
+</style>
+
+<main class="wrap">
+  <div class="edt-wrap">
+
+    <div class="page-head" style="margin-bottom:20px">
+      <a href="<%= lp %>/my-application-hundred" class="back">← Your Application</a>
+      <div>
+        <h1 class="page-title">Edit Application</h1>
+        <p class="page-sub" style="margin:4px 0 0;color:var(--muted);font-size:13px">100 Player Event</p>
+      </div>
+    </div>
+
+    <% if (error) { %>
+    <div style="padding:14px 18px;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.25);border-radius:var(--radius);margin-bottom:16px;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#f87171">
+      Please fill in all required fields before saving.
+    </div>
+    <% } %>
+
+    <form method="POST" action="<%= lp %>/my-application-hundred/update">
+
+      <div class="edt-section">
+        <div class="edt-section-title">Basic Information</div>
+        <div class="edt-field">
+          <label class="edt-label">Minecraft Username (IGN)</label>
+          <input type="text" name="ign" class="edt-input" value="<%= app.ign || '' %>" required maxlength="40">
+        </div>
+        <div class="edt-field">
+          <label class="edt-label">Discord Username</label>
+          <input type="text" name="discord_username" class="edt-input" value="<%= app.discord_username_input || '' %>" required maxlength="60">
+        </div>
+        <div class="edt-field">
+          <label class="edt-label">Country / Timezone</label>
+          <input type="text" name="country" class="edt-input" value="<%= app.country || '' %>" required maxlength="80">
+        </div>
+      </div>
+
+      <div class="edt-section">
+        <div class="edt-section-title">Quick Questions</div>
+        <div class="edt-field">
+          <label class="edt-label">Previous Minecraft Events</label>
+          <textarea name="prev_events" class="edt-input" maxlength="400"><%= app.prev_events || '' %></textarea>
+        </div>
+        <div class="edt-field">
+          <label class="edt-label">Playstyle (1-2 sentences)</label>
+          <textarea name="playstyle_desc" class="edt-input" required maxlength="500"><%= app.playstyle_desc || '' %></textarea>
+        </div>
+        <div class="edt-field">
+          <label class="edt-label">Why do you want to join?</label>
+          <textarea name="why_join" class="edt-input" required maxlength="800"><%= app.why_join || '' %></textarea>
+        </div>
+      </div>
+
+      <div class="edt-section">
+        <div class="edt-section-title">Friend Requests</div>
+        <div class="edt-field" style="margin:0">
+          <textarea name="friend_requests" class="edt-input" maxlength="400" style="min-height:70px" placeholder="IGN1, IGN2..."><%= app.friend_requests || '' %></textarea>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px">
+        <a href="<%= lp %>/my-application-hundred" style="font-family:'Baloo 2';font-weight:800;font-size:14px;padding:12px 24px;border-radius:10px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted);text-decoration:none">Cancel</a>
+        <button type="submit" style="font-family:'Baloo 2';font-weight:800;font-size:14px;padding:12px 28px;border-radius:10px;background:var(--banner-1);border:none;color:#fff;cursor:pointer">Save Changes</button>
+      </div>
+
+    </form>
+  </div>
+</main>
+
+<%- include('partials/foot') %>

@@ -56,6 +56,40 @@ function miniArt(theme) {
     <p style="color:var(--muted);font-size:15px;text-align:center;padding:60px 0;"><%= t('apps_empty') %></p>
   <% } else { %>
   <div class="cards">
+    <!-- 100 Player Event card (hardcoded) -->
+    <% if (userHundredApp) { %>
+      <div class="card">
+    <% } else { %>
+      <a href="<%= lp %>/apply-hundred" class="card">
+    <% } %>
+      <div class="cardart" style="background:linear-gradient(135deg,#0f2a0f,#0c0d10)">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+          <svg viewBox="0 0 48 48" style="width:72px;height:72px" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="24" cy="24" r="20" fill="rgba(22,163,74,.18)" stroke="#16a34a" stroke-width="1.5"/>
+            <text x="24" y="31" text-anchor="middle" font-size="18" font-family="'Baloo 2',sans-serif" font-weight="800" fill="#5be38f">100</text>
+          </svg>
+        </div>
+      </div>
+      <div class="cardbody">
+        <h3>100 Player Event</h3>
+        <div class="desc" style="color:var(--muted);font-size:13px;margin-bottom:10px">100 players, one island. Permanent death. No rules.</div>
+        <% if (userHundredApp) { %>
+          <div class="desc"><strong>Your application:</strong> <strong style="color:<%= userHundredApp.status==='accepted'?'#5be38f':userHundredApp.status==='declined'?'#f87171':'#ffd56b' %>"><%= userHundredApp.status %></strong></div>
+          <span class="pill open">Submitted</span>
+          <a href="<%= lp %>/my-application-hundred" style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-family:'Baloo 2';font-weight:700;font-size:12px;color:var(--muted);text-decoration:none;padding:5px 10px;border:1px solid var(--border);border-radius:7px;background:rgba(255,255,255,.03)">
+            View your application →
+            <% if (userHundredApp.edit_approved) { %><span style="color:#74c0fc;font-size:10px">● Edit ready</span><% } else if (userHundredApp.edit_requested) { %><span style="color:#fbbf24;font-size:10px">● Edit pending</span><% } %>
+          </a>
+        <% } else { %>
+          <span class="pill open">Apply Now</span>
+        <% } %>
+      </div>
+    <% if (userHundredApp) { %>
+      </div>
+    <% } else { %>
+      </a>
+    <% } %>
+
     <% events.forEach(function(ev) { %>
       <% const theme = ev.theme || 'default'; %>
       <% const isl = ISLAND[theme]; %>

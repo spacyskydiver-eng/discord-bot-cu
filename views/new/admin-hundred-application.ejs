@@ -1,0 +1,161 @@
+<%- include('partials/head', { pageTitle: 'Review Application — 100 Player Event' }) %>
+<%- include('partials/header') %>
+
+<%
+function parseJsonField(v) {
+  if (!v) return [];
+  if (Array.isArray(v)) return v;
+  try { return JSON.parse(v) || []; } catch(_) { return []; }
+}
+const sessAvail = parseJsonField(app.session_availability);
+const SESSION_TIMES = [1787932800,1788019200,1788105600,1788192000,1788278400,1788364800];
+%>
+
+<style>
+.rev-wrap{max-width:860px;margin:0 auto;padding-bottom:60px}
+.rev-section{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-bottom:16px}
+.rev-section-title{font-family:'Baloo 2';font-weight:800;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 16px}
+.rev-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.rev-label{font-size:11px;font-family:'Baloo 2';font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.rev-value{font-size:14px;color:#e0e2ed;font-family:'Baloo 2';font-weight:600;line-height:1.5}
+.rev-value.long{white-space:pre-wrap;line-height:1.6;font-weight:400;font-size:14px;color:#c9ccdb}
+.rev-actions{display:flex;gap:10px;flex-wrap:wrap}
+.rev-btn{font-family:'Baloo 2';font-weight:800;font-size:13px;padding:9px 20px;border-radius:8px;border:none;cursor:pointer;text-decoration:none;display:inline-block}
+</style>
+
+<main class="wrap">
+  <div class="rev-wrap">
+
+    <div class="page-head" style="margin-bottom:20px">
+      <a href="/admin#tab-hundred" class="back">← Admin</a>
+      <div style="flex:1">
+        <h1 class="page-title"><%= app.ign || 'Unknown' %></h1>
+        <p class="page-sub" style="margin:4px 0 0;color:var(--muted);font-size:13px">100 Player Event application · @<%= app.discord_tag || app.discord_username %></p>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <% if (app.discord_avatar) { %>
+        <img src="<%= app.discord_avatar %>" style="width:42px;height:42px;border-radius:50%" onerror="this.style.display='none'">
+        <% } %>
+        <span style="font-family:'Baloo 2';font-weight:800;font-size:14px;padding:5px 14px;border-radius:99px;
+          background:<%= app.status==='accepted'?'rgba(91,227,143,.12)':app.status==='declined'?'rgba(248,113,113,.1)':'rgba(251,191,36,.1)' %>;
+          color:<%= app.status==='accepted'?'#5be38f':app.status==='declined'?'#f87171':'#fbbf24' %>;
+          border:1px solid <%= app.status==='accepted'?'rgba(91,227,143,.25)':app.status==='declined'?'rgba(248,113,113,.25)':'rgba(251,191,36,.25)' %>">
+          <%= app.status %>
+        </span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="rev-section">
+      <div class="rev-section-title">Review Actions</div>
+      <div class="rev-actions">
+        <% if (app.status !== 'accepted') { %>
+        <form method="POST" action="/admin/hundred/<%= app.id %>/accept" style="display:inline">
+          <button class="rev-btn" style="background:rgba(91,227,143,.12);color:#5be38f;border:1px solid rgba(91,227,143,.3)">✓ Accept</button>
+        </form>
+        <% } %>
+        <% if (app.status !== 'declined') { %>
+        <form method="POST" action="/admin/hundred/<%= app.id %>/decline" style="display:inline">
+          <button class="rev-btn" style="background:rgba(248,113,113,.1);color:#f87171;border:1px solid rgba(248,113,113,.25)">✕ Decline</button>
+        </form>
+        <% } %>
+        <% if (app.status === 'accepted' || app.status === 'declined') { %>
+        <form method="POST" action="/admin/hundred/<%= app.id %>/reset" style="display:inline">
+          <button class="rev-btn" style="background:var(--panel-2);color:var(--muted);border:1px solid var(--line)">Reset to Pending</button>
+        </form>
+        <% } %>
+        <% if (app.edit_requested && !app.edit_approved) { %>
+        <form method="POST" action="/admin/hundred/<%= app.id %>/approve-edit" style="display:inline">
+          <button class="rev-btn" style="background:rgba(116,192,252,.1);color:#74c0fc;border:1px solid rgba(116,192,252,.25)">✓ Approve Edit</button>
+        </form>
+        <form method="POST" action="/admin/hundred/<%= app.id %>/deny-edit" style="display:inline">
+          <button class="rev-btn" style="background:var(--panel-2);color:var(--muted);border:1px solid var(--line)">✕ Deny Edit</button>
+        </form>
+        <% } %>
+        <form method="POST" action="/admin/hundred/<%= app.id %>/delete" style="display:inline" onsubmit="return confirm('Delete this application? The user will be able to reapply.')">
+          <button class="rev-btn" style="background:var(--panel-2);color:var(--muted);border:1px solid var(--line)">Delete</button>
+        </form>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:10px">Submitted <%= app.submitted_at ? new Date(app.submitted_at).toLocaleString('en-GB') : '—' %><% if (app.accepted_at) { %> · Accepted <%= new Date(app.accepted_at).toLocaleDateString('en-GB') %><% } %><% if (app.declined_at) { %> · Declined <%= new Date(app.declined_at).toLocaleDateString('en-GB') %><% } %></div>
+    </div>
+
+    <!-- Sessions -->
+    <div class="rev-section">
+      <div class="rev-section-title">Session Availability</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <% for (let i = 1; i <= 6; i++) { %>
+          <% const ts = SESSION_TIMES[i-1]; %>
+          <% const d = new Date(ts * 1000); %>
+          <% const label = d.toLocaleDateString(undefined, {weekday:'short', day:'numeric', month:'short'}); %>
+          <span style="font-family:'Baloo 2';font-weight:700;font-size:12px;padding:4px 10px;border-radius:99px;
+            background:<%= sessAvail.includes(i)?'rgba(91,227,143,.1)':'rgba(255,255,255,.04)' %>;
+            color:<%= sessAvail.includes(i)?'#5be38f':'var(--muted)' %>;
+            border:1px solid <%= sessAvail.includes(i)?'rgba(91,227,143,.2)':'var(--line)' %>">
+            S<%= i %> — <%= label %> <%= sessAvail.includes(i) ? '✓' : '✕' %>
+          </span>
+        <% } %>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px"><%= sessAvail.length %> of 6 sessions</div>
+    </div>
+
+    <!-- Basic info -->
+    <div class="rev-section">
+      <div class="rev-section-title">Basic Information</div>
+      <div class="rev-row">
+        <div><div class="rev-label">IGN</div><div class="rev-value"><%= app.ign || '—' %></div></div>
+        <div><div class="rev-label">Discord</div><div class="rev-value">@<%= app.discord_username_input || app.discord_tag || '—' %></div></div>
+        <div><div class="rev-label">Country / TZ</div><div class="rev-value"><%= app.country || '—' %></div></div>
+        <div><div class="rev-label">Eligibility</div>
+          <div style="display:flex;flex-direction:column;gap:3px;margin-top:2px">
+            <span style="font-size:12px;color:<%= app.can_attend?'#5be38f':'#f87171' %>"><%= app.can_attend?'✓':'✕' %> Can attend</span>
+            <span style="font-size:12px;color:<%= app.has_mic?'#5be38f':'#f87171' %>"><%= app.has_mic?'✓':'✕' %> Has mic</span>
+            <span style="font-size:12px;color:<%= app.is_13_plus?'#5be38f':'#f87171' %>"><%= app.is_13_plus?'✓':'✕' %> 13+</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Questions -->
+    <div class="rev-section">
+      <div class="rev-section-title">Quick Questions</div>
+      <div style="margin-bottom:16px"><div class="rev-label">Previous events</div><div class="rev-value long"><%= app.prev_events || '—' %></div></div>
+      <div style="margin-bottom:16px"><div class="rev-label">Playstyle</div><div class="rev-value long"><%= app.playstyle_desc || '—' %></div></div>
+      <div><div class="rev-label">Why join</div><div class="rev-value long"><%= app.why_join || '—' %></div></div>
+    </div>
+
+    <!-- Friends -->
+    <div class="rev-section">
+      <div class="rev-section-title">Friend Requests</div>
+      <div class="rev-value long"><%= app.friend_requests || '—' %></div>
+
+      <% if (friendApps && friendApps.length > 0) { %>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
+        <div style="font-family:'Baloo 2';font-weight:700;font-size:12px;color:var(--muted);margin-bottom:8px">FRIENDS WHO APPLIED</div>
+        <% for (const f of friendApps) { %>
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)">
+          <img src="<%= f.discord_avatar||'' %>" style="width:24px;height:24px;border-radius:50%;object-fit:cover" onerror="this.style.display='none'">
+          <span style="font-size:13px;color:#e0e2ed;flex:1"><%= f.ign %></span>
+          <span style="font-size:12px;color:var(--muted)"><%= f.status %></span>
+          <a href="/admin/hundred/<%= f.id %>" style="font-size:12px;color:#74c0fc;text-decoration:none">View →</a>
+        </div>
+        <% } %>
+      </div>
+      <% } %>
+      <% if (notApplied && notApplied.length > 0) { %>
+      <div style="margin-top:8px;font-size:12px;color:#f87171">Not yet applied: <%= notApplied.join(', ') %></div>
+      <% } %>
+    </div>
+
+    <!-- Admin Notes -->
+    <div class="rev-section">
+      <div class="rev-section-title">Admin Notes</div>
+      <form method="POST" action="/admin/hundred/<%= app.id %>/notes">
+        <textarea name="notes" style="width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:11px 14px;font-family:'Baloo 2';font-weight:600;font-size:13px;color:var(--text);outline:none;min-height:80px;resize:vertical;box-sizing:border-box"><%= app.admin_notes || '' %></textarea>
+        <button type="submit" style="margin-top:8px;font-family:'Baloo 2';font-weight:800;font-size:13px;padding:8px 18px;border-radius:8px;background:var(--panel-2);border:1px solid var(--line);color:var(--text);cursor:pointer">Save Notes</button>
+      </form>
+    </div>
+
+  </div>
+</main>
+
+<%- include('partials/foot') %>

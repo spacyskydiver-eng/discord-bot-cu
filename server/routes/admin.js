@@ -48,7 +48,7 @@ router.use(requireAdminOrStaff);
 // Staff can only access application review paths; everything else needs full admin
 router.use((req, res, next) => {
   if (res.locals.isFullAdmin) return next();
-  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis';
+  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred');
   if (!allowed) return res.status(403).render('403');
   next();
 });
@@ -71,6 +71,14 @@ router.get('/', async (req, res) => {
                  THEN array_length(regexp_split_to_array(trim(written_app), '\\s+'), 1)
                  ELSE 0 END AS word_count
      FROM structured_applications
+     ORDER BY submitted_at DESC NULLS LAST`
+  )).rows;
+
+  const hundredApplications = (await db.query(
+    `SELECT id, submitted_at, status, discord_id, discord_tag, discord_avatar,
+            ign, country, session_availability, friend_requests,
+            edit_requested, edit_approved, edit_requested_at
+     FROM hundred_applications
      ORDER BY submitted_at DESC NULLS LAST`
   )).rows;
 
@@ -105,7 +113,7 @@ router.get('/', async (req, res) => {
   const playstyleOptions = (await db.query(`SELECT * FROM playstyle_options ORDER BY display_order ASC, id ASC`)).rows;
 
   res.render('new/admin', {
-    event, eligibilityQuestions, applications,
+    event, eligibilityQuestions, applications, hundredApplications,
     guilds: guildRes.rows, levels, levelRoles, staffRoles, staffAccess,
     stageSettings, stageBlocks, agreementItems, playstyleOptions
   });
@@ -342,6 +350,102 @@ router.post('/application/:id/notes', async (req, res) => {
     [req.body.notes || null, req.params.id]
   );
   res.redirect(`/admin/application/${req.params.id}`);
+});
+
+// ── 100 Player Event admin routes ────────────────────────────────────────────
+
+router.get('/hundred/:id', async (req, res) => {
+  const appRes = await db.query(`SELECT * FROM hundred_applications WHERE id = $1`, [req.params.id]);
+  if (!appRes.rows.length) return res.redirect('/admin#tab-hundred');
+  const app = appRes.rows[0];
+
+  function parseJsonField(v) {
+    if (!v) return [];
+    if (Array.isArray(v)) return v;
+    try { return JSON.parse(v) || []; } catch (_) { return []; }
+  }
+
+  const friendNames = (app.friend_requests || '').split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+  let friendApps = [];
+  if (friendNames.length > 0) {
+    const fRes = await db.query(
+      `SELECT id, ign, discord_tag, discord_avatar, status FROM hundred_applications WHERE LOWER(ign) = ANY($1::text[])`,
+      [friendNames.map(n => n.toLowerCase())]
+    );
+    friendApps = fRes.rows;
+  }
+  const foundIgnsLower = friendApps.map(f => f.ign.toLowerCase());
+  const notApplied = friendNames.filter(n => !foundIgnsLower.includes(n.toLowerCase()));
+
+  res.render('new/admin-hundred-application', { app, friendApps, notApplied });
+});
+
+router.post('/hundred/:id/accept', async (req, res) => {
+  const appRes = await db.query(`SELECT discord_id, ign FROM hundred_applications WHERE id = $1`, [req.params.id]);
+  const app = appRes.rows[0];
+  await db.query(
+    `UPDATE hundred_applications SET status='accepted', accepted_at=NOW() WHERE id=$1`, [req.params.id]
+  );
+  if (app) sendDiscordDM(app.discord_id,
+    `**100 Player Event — Application Accepted!**\n\nCongratulations ${app.ign || ''} — you've been accepted into the 100 Player Event. Keep an eye out for further details.`
+  );
+  res.redirect(`/admin/hundred/${req.params.id}`);
+});
+
+router.post('/hundred/:id/decline', async (req, res) => {
+  const appRes = await db.query(`SELECT discord_id, ign FROM hundred_applications WHERE id = $1`, [req.params.id]);
+  const app = appRes.rows[0];
+  await db.query(
+    `UPDATE hundred_applications SET status='declined', declined_at=NOW() WHERE id=$1`, [req.params.id]
+  );
+  if (app) sendDiscordDM(app.discord_id,
+    `**100 Player Event — Application Update**\n\nHi ${app.ign || ''}, unfortunately your application for the 100 Player Event has not been successful this time. Thank you for applying.`
+  );
+  res.redirect(`/admin/hundred/${req.params.id}`);
+});
+
+router.post('/hundred/:id/reset', async (req, res) => {
+  await db.query(
+    `UPDATE hundred_applications SET status='pending', accepted_at=NULL, declined_at=NULL WHERE id=$1`, [req.params.id]
+  );
+  res.redirect(`/admin/hundred/${req.params.id}`);
+});
+
+router.post('/hundred/:id/approve-edit', async (req, res) => {
+  const appRes = await db.query(`SELECT discord_id, ign FROM hundred_applications WHERE id = $1`, [req.params.id]);
+  const app = appRes.rows[0];
+  await db.query(
+    `UPDATE hundred_applications SET edit_approved=true WHERE id=$1`, [req.params.id]
+  );
+  if (app) sendDiscordDM(app.discord_id,
+    `**100 Player Event — Edit Request Approved**\n\nHi ${app.ign || ''} — your request to edit your application has been approved. Head to the website to make your changes.`
+  );
+  res.redirect(`/admin/hundred/${req.params.id}`);
+});
+
+router.post('/hundred/:id/deny-edit', async (req, res) => {
+  const appRes = await db.query(`SELECT discord_id, ign FROM hundred_applications WHERE id = $1`, [req.params.id]);
+  const app = appRes.rows[0];
+  await db.query(
+    `UPDATE hundred_applications SET edit_requested=false, edit_approved=false, edit_requested_at=NULL WHERE id=$1`, [req.params.id]
+  );
+  if (app) sendDiscordDM(app.discord_id,
+    `**100 Player Event — Edit Request Update**\n\nHi ${app.ign || ''} — your edit request has not been approved at this time. If you have questions, reach out in the Discord server.`
+  );
+  res.redirect(`/admin/hundred/${req.params.id}`);
+});
+
+router.post('/hundred/:id/delete', async (req, res) => {
+  await db.query(`DELETE FROM hundred_applications WHERE id=$1`, [req.params.id]);
+  res.redirect('/admin#tab-hundred');
+});
+
+router.post('/hundred/:id/notes', async (req, res) => {
+  await db.query(
+    `UPDATE hundred_applications SET admin_notes=$1 WHERE id=$2`,
+    [req.body.notes || null, req.params.id]
+  );
+  res.redirect(`/admin/hundred/${req.params.id}`);
 });
 
 // Eligibility questions CRUD

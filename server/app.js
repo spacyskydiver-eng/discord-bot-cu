@@ -72,6 +72,7 @@ module.exports = function startServer() {
   app.use('/', require('./routes/pages'));
   app.use('/auth', require('./routes/auth'));
   app.use('/apply', require('./routes/apply'));
+  app.use('/apply-hundred', require('./routes/apply-hundred'));
   app.use('/admin', require('./routes/admin'));
 
   const port = process.env.PORT || 3000;
