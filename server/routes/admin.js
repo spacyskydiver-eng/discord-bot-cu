@@ -358,7 +358,7 @@ router.post('/application/:id/notes', async (req, res) => {
   res.redirect(`/admin/application/${req.params.id}`);
 });
 
-// ── 100 Player Event admin routes ────────────────────────────────────────────
+// ── 150 Player Event admin routes ────────────────────────────────────────────
 
 router.get('/hundred/:id', async (req, res) => {
   const appRes = await db.query(`SELECT * FROM hundred_applications WHERE id = $1`, [req.params.id]);
@@ -393,7 +393,7 @@ router.post('/hundred/:id/accept', async (req, res) => {
     `UPDATE hundred_applications SET status='accepted', accepted_at=NOW() WHERE id=$1`, [req.params.id]
   );
   if (app) sendDiscordDM(app.discord_id,
-    `**100 Player Event — Application Accepted!**\n\nCongratulations ${app.ign || ''} — you've been accepted into the 100 Player Event. Keep an eye out for further details.`
+    `**150 Player Event — Application Accepted!**\n\nCongratulations ${app.ign || ''} — you've been accepted into the 150 Player Event. Keep an eye out for further details.`
   );
   res.redirect(`/admin/hundred/${req.params.id}`);
 });
@@ -405,7 +405,7 @@ router.post('/hundred/:id/decline', async (req, res) => {
     `UPDATE hundred_applications SET status='declined', declined_at=NOW() WHERE id=$1`, [req.params.id]
   );
   if (app) sendDiscordDM(app.discord_id,
-    `**100 Player Event — Application Update**\n\nHi ${app.ign || ''}, unfortunately your application for the 100 Player Event has not been successful this time. Thank you for applying.`
+    `**150 Player Event — Application Update**\n\nHi ${app.ign || ''}, unfortunately your application for the 150 Player Event has not been successful this time. Thank you for applying.`
   );
   res.redirect(`/admin/hundred/${req.params.id}`);
 });
@@ -424,7 +424,7 @@ router.post('/hundred/:id/approve-edit', async (req, res) => {
     `UPDATE hundred_applications SET edit_approved=true WHERE id=$1`, [req.params.id]
   );
   if (app) sendDiscordDM(app.discord_id,
-    `**100 Player Event — Edit Request Approved**\n\nHi ${app.ign || ''} — your request to edit your application has been approved. Head to the website to make your changes.`
+    `**150 Player Event — Edit Request Approved**\n\nHi ${app.ign || ''} — your request to edit your application has been approved. Head to the website to make your changes.`
   );
   res.redirect(`/admin/hundred/${req.params.id}`);
 });
@@ -436,7 +436,7 @@ router.post('/hundred/:id/deny-edit', async (req, res) => {
     `UPDATE hundred_applications SET edit_requested=false, edit_approved=false, edit_requested_at=NULL WHERE id=$1`, [req.params.id]
   );
   if (app) sendDiscordDM(app.discord_id,
-    `**100 Player Event — Edit Request Update**\n\nHi ${app.ign || ''} — your edit request has not been approved at this time. If you have questions, reach out in the Discord server.`
+    `**150 Player Event — Edit Request Update**\n\nHi ${app.ign || ''} — your edit request has not been approved at this time. If you have questions, reach out in the Discord server.`
   );
   res.redirect(`/admin/hundred/${req.params.id}`);
 });

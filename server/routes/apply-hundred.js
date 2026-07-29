@@ -75,12 +75,12 @@ router.post('/submit', async (req, res) => {
       ]
     );
   } catch (err) {
-    console.error('100-player application INSERT error:', err.message);
+    console.error('150-player application INSERT error:', err.message);
     return res.redirect(`${res.locals.lp}/apply-hundred?error=server`);
   }
 
   sendDiscordDM(req.session.user.id,
-    `**Your application has been submitted!**\n\nThanks ${req.session.user.username} — we've received your application for the **100 Player Event**. We'll review it and get back to you. Good luck!`
+    `**Your application has been submitted!**\n\nThanks ${req.session.user.username} — we've received your application for the **150 Player Event**. We'll review it and get back to you. Good luck!`
   );
 
   res.redirect(`${res.locals.lp}/apply-hundred?submitted=1`);

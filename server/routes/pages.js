@@ -186,7 +186,7 @@ router.post('/my-application/withdraw', async (req, res) => {
   res.redirect(`${res.locals.lp}/applications`);
 });
 
-// ── 100 Player Event: my application ─────────────────────────────────────────
+// ── 150 Player Event: my application ─────────────────────────────────────────
 
 function parseJsonFieldH(v) {
   if (!v) return [];

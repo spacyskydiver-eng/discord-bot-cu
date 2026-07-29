@@ -8,7 +8,7 @@ const SITE_URL = process.env.WEBSITE_URL || 'https://tfn.gg';
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('leader')
-    .setDescription('Nation leader commands for the 100 Player Event')
+    .setDescription('Nation leader commands for the 150 Player Event')
     .addSubcommand(sub =>
       sub.setName('application')
         .setDescription('Open a nation leader application ticket')
@@ -110,7 +110,7 @@ module.exports = {
         embeds: [{
           color: 0x22863a,
           title: 'Nation Leader Application',
-          description: `<@${interaction.user.id}> is applying to be a nation leader for the **100 Player Event**.`,
+          description: `<@${interaction.user.id}> is applying to be a nation leader for the **150 Player Event**.`,
           fields,
           footer: { text: 'Use the button below to close this ticket when done.' },
           timestamp: new Date().toISOString()

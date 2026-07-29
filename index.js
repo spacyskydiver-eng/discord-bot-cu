@@ -92,7 +92,7 @@ client.on('interactionCreate', async interaction => {
 
         // DM the applicant
         sendDiscordDM(applicantId,
-          `**Nation Leader Application — Accepted!**\n\nYour nation server **${row.server_name}** has been approved. You are now a recognised nation leader for the 100 Player Event. Our bot will monitor your server throughout the event — keep it there and its permissions intact.\n\nYou have been given the **Nation Leader** role in the server.`
+          `**Nation Leader Application — Accepted!**\n\nYour nation server **${row.server_name}** has been approved. You are now a recognised nation leader for the 150 Player Event. Our bot will monitor your server throughout the event — keep it there and its permissions intact.\n\nYou have been given the **Nation Leader** role in the server.`
         );
 
         // Update the ticket message to reflect acceptance
