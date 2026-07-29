@@ -52,7 +52,6 @@
     <% if (existing && existing.accepted) { %>
     <!-- Accepted as nation leader -->
     <div class="nl-approved">
-      <div style="font-size:32px;margin-bottom:10px">🏛️</div>
       <div style="font-family:'Baloo 2';font-weight:800;font-size:20px;color:#5be38f;margin-bottom:6px">Accepted as Nation Leader</div>
       <div style="font-size:14px;color:var(--muted);margin-bottom:4px">Nation Server: <strong style="color:#e0e2ed"><%= existing.server_name %></strong></div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Accepted <%= existing.accepted_at ? new Date(existing.accepted_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '' %></div>
@@ -64,7 +63,6 @@
     <% } else if (existing) { %>
     <!-- Server verified, pending ticket review -->
     <div class="nl-approved">
-      <div style="font-size:32px;margin-bottom:10px">✅</div>
       <div style="font-family:'Baloo 2';font-weight:800;font-size:20px;color:#5be38f;margin-bottom:6px">Server Authorised</div>
       <div style="font-size:14px;color:var(--muted);margin-bottom:4px">Server: <strong style="color:#e0e2ed"><%= existing.server_name %></strong></div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Verified <%= existing.submitted_at ? new Date(existing.submitted_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '' %></div>
