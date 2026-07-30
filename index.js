@@ -36,6 +36,29 @@ client.once('ready', () => {
 
 client.on('messageCreate', require('./events/messageCreate'));
 
+const NATION_FORUM_ID = '1531798329397215242';
+const NATION_LEADER_ROLE_ID = '1531798604849872976';
+
+client.on('threadCreate', async (thread) => {
+  if (thread.parentId !== NATION_FORUM_ID) return;
+  try {
+    const member = await thread.guild.members.fetch(thread.ownerId).catch(() => null);
+    if (!member || !member.roles.cache.has(NATION_LEADER_ROLE_ID)) return;
+
+    const { buildBotMessage } = require('./commands/bump');
+    const msg = await thread.send(buildBotMessage(null));
+
+    await db.query(
+      `INSERT INTO nation_advert_posts (thread_id, bot_message_id, discord_id)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (thread_id) DO UPDATE SET bot_message_id = $2`,
+      [thread.id, msg.id, thread.ownerId]
+    );
+  } catch (err) {
+    console.error('threadCreate auto-post error:', err);
+  }
+});
+
 client.on('interactionCreate', async interaction => {
   if (interaction.isButton()) {
     // Close leader ticket
