@@ -145,6 +145,7 @@ let scene, camera, renderer;
 let solidMat, waterMat, planeMat;
 let solidGroup, waterGroup, planGroup;
 let chunks = new Map();
+let chunkQueue = [];
 let animId = null;
 
 // ── Textures ──────────────────────────────────────────────────────────────────
@@ -709,22 +710,28 @@ function updateChunks() {
   const camChunkX = Math.floor(camera.position.x / CHUNK);
   const camChunkZ = Math.floor(camera.position.z / CHUNK);
   const maxCX = Math.ceil(W / CHUNK), maxCZ = Math.ceil(H / CHUNK);
+  const queued = new Set(chunkQueue.map(c => c.key));
 
-  // Load visible chunks
+  // Queue chunks sorted closest-first
   for (let dz = -RENDER_DIST; dz <= RENDER_DIST; dz++) {
     for (let dx = -RENDER_DIST; dx <= RENDER_DIST; dx++) {
-      if (dx*dx + dz*dz > RENDER_DIST*RENDER_DIST) continue;
+      const d2 = dx*dx + dz*dz;
+      if (d2 > RENDER_DIST * RENDER_DIST) continue;
       const cx = camChunkX + dx, cz = camChunkZ + dz;
       if (cx < 0 || cz < 0 || cx >= maxCX || cz >= maxCZ) continue;
       const key = cx + '_' + cz;
-      if (!chunks.has(key)) buildChunk(cx, cz);
+      if (!chunks.has(key) && !queued.has(key)) {
+        chunkQueue.push({ cx, cz, key, d2 });
+        queued.add(key);
+      }
     }
   }
+  chunkQueue.sort((a, b) => a.d2 - b.d2);
 
   // Unload distant chunks
   for (const [key, ch] of chunks) {
     const [cx, cz] = key.split('_').map(Number);
-    if (Math.abs(cx - camChunkX) > RENDER_DIST + 2 || Math.abs(cz - camChunkZ) > RENDER_DIST + 2) {
+    if (Math.abs(cx - camChunkX) > RENDER_DIST + 3 || Math.abs(cz - camChunkZ) > RENDER_DIST + 3) {
       if (ch.solid) { solidGroup.remove(ch.solid); ch.solid.geometry.dispose(); }
       if (ch.water) { waterGroup.remove(ch.water); ch.water.geometry.dispose(); }
       chunks.delete(key);
@@ -737,9 +744,15 @@ function updateChunks() {
 // ══════════════════════════════════════════════════════════════════════════════
 
 let lastChunkUpdate = 0;
+const CHUNKS_PER_FRAME = 3;
 function animate() {
   animId = requestAnimationFrame(animate);
   processKeys();
+  // Build a few queued chunks per frame to avoid freezing the main thread
+  for (let i = 0; i < CHUNKS_PER_FRAME && chunkQueue.length > 0; i++) {
+    const c = chunkQueue.shift();
+    if (!chunks.has(c.key)) buildChunk(c.cx, c.cz);
+  }
   const now = performance.now();
   if (now - lastChunkUpdate > 300) { updateChunks(); lastChunkUpdate = now; }
   renderer.render(scene, camera);
