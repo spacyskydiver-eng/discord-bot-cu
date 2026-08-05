@@ -97,6 +97,7 @@
     </div>
 
     <div id="mv-coords">X: — &nbsp;Y: — &nbsp;Z: —</div>
+    <div id="mv-stats" style="position:absolute;bottom:14px;right:14px;z-index:10;background:rgba(17,18,22,.85);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-family:monospace;font-size:11px;color:var(--muted);line-height:1.6"></div>
 
     <div id="mv-panel">
       <div id="mv-panel-header">
@@ -266,6 +267,19 @@ async function loadWorld(files) {
 
     buildBlockColors();
 
+    // Compute center terrain height for camera positioning
+    const ci = Math.floor(H / 2) * W + Math.floor(W / 2);
+    const centerH = isFinite(heights[ci]) ? heights[ci] : 64;
+    const nonZeroBlocks = [surface[ci], surface[ci+1], surface[ci+2], surface[ci-1], surface[ci-2]].filter(Boolean);
+
+    // Debug dump — visible in F12 console
+    console.log('[MapViewer] World:', W, 'x', H, '| minY:', minY, '| skirtDepth:', skirtDepth);
+    console.log('[MapViewer] Center height:', centerH, '| Center block IDs:', surface[ci], surface[ci+1], surface[ci+2]);
+    console.log('[MapViewer] Height range:', Math.min(...Array.from(heights).slice(0,1000)), '-', Math.max(...Array.from(heights).slice(0,1000)));
+    console.log('[MapViewer] Palette entries 0-5:', paletteArr.slice(0,6).map(b=>`${b.id}:${b.name}`).join(', '));
+    console.log('[MapViewer] Surface sample (first 10):', Array.from(surface.slice(0, 10)).join(','));
+    console.log('[MapViewer] heights sample (first 10):', Array.from(heights.slice(0, 10)).join(','));
+
     // Optional textures
     const texFiles = [...files].filter(([k]) => k.endsWith('.png') && k !== 'heightmap.png');
     if (texFiles.length) {
@@ -278,7 +292,7 @@ async function loadWorld(files) {
     document.getElementById('mv-load').style.display = 'none';
     document.getElementById('mv-viewer').style.display = 'flex';
     await new Promise(r => requestAnimationFrame(r));
-    initScene();
+    initScene(centerH);
     showProgress(false);
     setTool('nav');
     animate();
@@ -406,7 +420,7 @@ async function buildAtlas(texFiles) {
 // SCENE INIT
 // ══════════════════════════════════════════════════════════════════════════════
 
-function initScene() {
+function initScene(centerH) {
   const canvas = document.getElementById('mv-canvas');
   const W2 = canvas.parentElement.clientWidth || window.innerWidth;
   const H2 = canvas.parentElement.clientHeight || (window.innerHeight - 64);
@@ -419,10 +433,13 @@ function initScene() {
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x87ceeb);
-  scene.fog = new THREE.Fog(0x87ceeb, 400, 1200);
+  scene.fog = new THREE.Fog(0x87ceeb, 600, 2000);
 
-  camera = new THREE.PerspectiveCamera(70, canvas.clientWidth / canvas.clientHeight, 0.5, 2000);
-  cam.tx = W / 2; cam.ty = 80; cam.tz = H / 2;
+  camera = new THREE.PerspectiveCamera(70, canvas.clientWidth / canvas.clientHeight, 0.5, 3000);
+  // Position camera at center of world, above actual terrain height
+  const terrainY = (centerH !== undefined && isFinite(centerH)) ? centerH : 64;
+  cam.tx = W / 2; cam.ty = terrainY + 20; cam.tz = H / 2;
+  cam.r = 200;
   updateCamera();
 
   // Lighting
@@ -496,6 +513,14 @@ function getBiomeTint(biomeId, face, blockId) {
 function buildChunk(cx, cz) {
   const key = cx + '_' + cz;
   if (chunks.has(key)) return;
+  try {
+    _buildChunkInner(cx, cz, key);
+  } catch (err) {
+    console.error('[MapViewer] buildChunk error at', cx, cz, err);
+    chunks.set(key, { solid: null, water: null }); // mark as attempted to avoid retry spam
+  }
+}
+function _buildChunkInner(cx, cz, key) {
 
   const sx = cx * CHUNK, sz = cz * CHUNK;
   const ex = Math.min(sx + CHUNK, W), ez = Math.min(sz + CHUNK, H);
@@ -522,6 +547,7 @@ function buildChunk(cx, cz) {
     for (let mx = sx; mx < ex; mx++) {
       const idx = mz * W + mx;
       const my = heights[idx];
+      if (!isFinite(my)) continue; // bad height data
       const bid = surface[idx];
       if (!bid) continue; // air
       const water = waterArr[idx];
@@ -745,6 +771,8 @@ function updateChunks() {
 
 let lastChunkUpdate = 0;
 const CHUNKS_PER_FRAME = 3;
+let statsEl = null;
+let frameCount = 0;
 function animate() {
   animId = requestAnimationFrame(animate);
   processKeys();
@@ -756,6 +784,16 @@ function animate() {
   const now = performance.now();
   if (now - lastChunkUpdate > 300) { updateChunks(); lastChunkUpdate = now; }
   renderer.render(scene, camera);
+  // Stats overlay (every 30 frames)
+  frameCount++;
+  if (frameCount % 30 === 0) {
+    if (!statsEl) statsEl = document.getElementById('mv-stats');
+    if (statsEl) {
+      const loaded = chunks.size, queued = chunkQueue.length;
+      const camP = camera.position;
+      statsEl.innerHTML = `World: ${W}×${H} | Chunks: ${loaded} loaded, ${queued} queued<br>Cam: ${Math.round(camP.x)}, ${Math.round(camP.y)}, ${Math.round(camP.z)}`;
+    }
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
