@@ -233,12 +233,12 @@ async function loadWorld(files) {
 
     console.log('meta:', JSON.stringify(meta));
 
-    W = meta.width ?? meta.worldWidth ?? 0;
-    H = meta.height ?? meta.worldHeight ?? meta.worldDepth ?? 0;
-    minY = meta.minHeight ?? meta.minY ?? -64;
-    skirtDepth = meta.skirtDepth ?? 4;
+    W = meta.width ?? meta.worldWidth ?? meta.sizeX ?? meta.size ?? 0;
+    H = meta.height ?? meta.worldHeight ?? meta.worldDepth ?? meta.depth ?? meta.length ?? meta.sizeZ ?? meta.worldLength ?? W;
+    minY = meta.minHeight ?? meta.minY ?? meta.minY ?? -64;
+    skirtDepth = meta.skirtDepth ?? meta.skirtSize ?? 4;
 
-    if (!W || !H) throw new Error(`Invalid world dimensions from meta.json: width=${W} height=${H}. Check field names.`);
+    if (!W || !H) throw new Error(`Could not read world dimensions. meta.json keys: ${Object.keys(meta).join(', ')}`);
 
     showProgress(true, 'Loading heightmap…');
     heights = await parseHeightmap(files.get('heightmap.png'));
