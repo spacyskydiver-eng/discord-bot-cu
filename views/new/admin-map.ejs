@@ -454,6 +454,30 @@ const BLOCK_TEX_MAP = {
   snow_block:      { top:'snow',             side:'snow',             bottom:'snow' },
 };
 
+// Non-solid blocks: plants, carpets, rails, etc.
+// When one of these is the surface block, render the block BELOW it instead —
+// so a grass-covered field shows grass_block texture, not a solid grass-plant cube.
+const NON_SOLID = new Set([
+  'short_grass','grass','tall_grass','large_fern','fern','dead_bush',
+  'dandelion','poppy','blue_orchid','allium','azure_bluet','oxeye_daisy',
+  'cornflower','lily_of_the_valley','wither_rose','spore_blossom',
+  'red_tulip','orange_tulip','white_tulip','pink_tulip',
+  'sunflower','lilac','peony','rose_bush','pitcher_plant','pink_petals',
+  'seagrass','tall_seagrass','kelp','kelp_plant','sea_pickle','turtle_egg',
+  'lily_pad','glow_lichen','moss_carpet','vine','hanging_roots','dripleaf',
+  'big_dripleaf','small_dripleaf','cave_vines','cave_vines_plant',
+  'oak_sapling','spruce_sapling','birch_sapling','jungle_sapling',
+  'acacia_sapling','dark_oak_sapling','cherry_sapling','mangrove_propagule',
+  'sugar_cane','bamboo','cactus',
+  'wheat','carrots','potatoes','beetroots','nether_wart','sweet_berry_bush',
+  'chorus_flower','chorus_plant',
+  'torch','wall_torch','soul_torch','redstone_torch',
+  'rail','powered_rail','detector_rail','activator_rail',
+  'redstone_wire','lever','button','pressure_plate','tripwire',
+  'snow','snow_layer','carpet',
+  'cobweb','string','chain','ladder','iron_bars',
+]);
+
 // Logs follow a standard pattern
 const LOG_TYPES = ['oak','spruce','birch','jungle','acacia','dark_oak','mangrove','cherry','bamboo','crimson','warped'];
 
@@ -468,9 +492,14 @@ function blockTexNames(name) {
   return { top:name, side:name, bottom:name };
 }
 
+let blockName = {};  // id → bare name (no namespace), built once
+let nonSolidIds = new Set(); // block IDs that are plants/non-solid
+
 function buildBlockColors() {
   for (const b of paletteArr) {
     const name = (b.name || '').replace(/^minecraft:/, '');
+    blockName[b.id] = name;
+    if (NON_SOLID.has(name)) nonSolidIds.add(b.id);
     const col = DEFAULT_COLORS[name] ?? '#888888';
     blockCol[b.id] = typeof col === 'number' ? null : new THREE.Color(col);
   }
@@ -703,10 +732,16 @@ function _buildChunkInner(cx, cz, key) {
       if (!isFinite(my)) continue; // bad height data
       const bid = surface[idx];
       if (!bid) continue; // air
+      // For non-solid surface blocks (plants/flowers/etc), show the block below
+      let displayBid = bid;
+      if (nonSolidIds.has(bid)) {
+        const below = skirtArr[idx * skirtDepth];
+        if (below) displayBid = below;
+      }
       const water = waterArr[idx];
       const biomeId = biomes[idx];
-      const tc = getBiomeTint(biomeId, 'top', bid);
-      const bColor = blockCol[bid] || new THREE.Color(0x888888);
+      const tc = getBiomeTint(biomeId, 'top', displayBid);
+      const bColor = blockCol[displayBid] || new THREE.Color(0x888888);
       const br = bColor.r, bg = bColor.g, bb = bColor.b;
 
       // World coords (centered)
@@ -714,7 +749,7 @@ function _buildChunkInner(cx, cz, key) {
 
       // TOP FACE
       {
-        const uvv = getUV(bid, 'top') || fallbackUV();
+        const uvv = getUV(displayBid, 'top') || fallbackUV();
         const cr = atlasTex ? tc[0] : br * tc[0], cg = atlasTex ? tc[1] : bg * tc[1], cb2 = atlasTex ? tc[2] : bb * tc[2];
         addQuad(
           [wx, wy+1, wz], [wx+1, wy+1, wz], [wx+1, wy+1, wz+1], [wx, wy+1, wz+1],
