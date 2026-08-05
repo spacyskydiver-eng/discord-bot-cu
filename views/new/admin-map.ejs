@@ -150,6 +150,7 @@ let animId = null;
 
 // ── Textures ──────────────────────────────────────────────────────────────────
 let atlasTex = null;
+let waterTex = null;
 let uvCache = {};    // texName -> [u0,v0,u1,v1]
 let blockUV = {};    // blockId -> {top,side,bottom} each [u0,v0,u1,v1]
 let blockCol = {};   // blockId -> THREE.Color (fallback)
@@ -507,6 +508,10 @@ async function autoLoadTextures() {
   ac.width = ac.height = ATLAS;
   const actx = ac.getContext('2d');
   actx.imageSmoothingEnabled = false;
+  // Pre-fill white (alpha=1) — empty slots must be opaque so alphaTest doesn't cull
+  // blocks whose texture file doesn't exist. White × vertex_color = vertex_color.
+  actx.fillStyle = '#FFFFFF';
+  actx.fillRect(0, 0, ATLAS, ATLAS);
 
   await Promise.all(texNames.map(n => new Promise(res => {
     const img = new Image();
@@ -536,6 +541,29 @@ async function autoLoadTextures() {
     const t = blockTexNames(name);
     blockUV[b.id] = { top: uvCache[t.top]||null, side: uvCache[t.side]||null, bottom: uvCache[t.bottom]||null };
   }
+
+  // Load water texture separately (animated spritesheet — use top 16×16 frame only)
+  try {
+    const wr = await fetch('/mc-textures/water_still.png');
+    if (wr.ok) {
+      const wblob = await wr.blob();
+      await new Promise(res => {
+        const wimg = new Image();
+        wimg.onload = () => {
+          const wc = document.createElement('canvas'); wc.width = wc.height = 16;
+          const wctx = wc.getContext('2d');
+          wctx.drawImage(wimg, 0, 0, 16, 16, 0, 0, 16, 16); // first frame
+          waterTex = new THREE.CanvasTexture(wc);
+          waterTex.magFilter = THREE.NearestFilter;
+          waterTex.minFilter = THREE.NearestFilter;
+          waterTex.wrapS = waterTex.wrapT = THREE.RepeatWrapping;
+          URL.revokeObjectURL(wblob); res();
+        };
+        wimg.onerror = res;
+        wimg.src = URL.createObjectURL(wblob);
+      });
+    }
+  } catch (_) {}
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -580,7 +608,9 @@ function initScene(centerH) {
   solidMat = atlasTex
     ? new THREE.MeshLambertMaterial({ map: atlasTex, vertexColors: true, alphaTest: 0.1, side: THREE.DoubleSide })
     : new THREE.MeshLambertMaterial({ vertexColors: true });
-  waterMat = new THREE.MeshLambertMaterial({ color: 0x3f76e4, transparent: true, opacity: 0.72, side: THREE.DoubleSide });
+  waterMat = waterTex
+    ? new THREE.MeshLambertMaterial({ map: waterTex, color: 0x5599dd, transparent: true, opacity: 0.82, side: THREE.DoubleSide })
+    : new THREE.MeshLambertMaterial({ color: 0x3f76e4, transparent: true, opacity: 0.72, side: THREE.DoubleSide });
 
   solidGroup = new THREE.Group(); scene.add(solidGroup);
   waterGroup = new THREE.Group(); scene.add(waterGroup);
@@ -662,7 +692,9 @@ function _buildChunkInner(cx, cz, key) {
     }
   }
 
-  function fallbackUV() { return [0, 0, 1/32, 1/32]; } // tiny atlas corner for solid color
+  // Last atlas slot — always empty white since palette << 4096 slots total
+  const _fuv = [(ATLAS-TEX)/ATLAS, (ATLAS-TEX)/ATLAS, 1.0, 1.0];
+  function fallbackUV() { return _fuv; }
 
   for (let mz = sz; mz < ez; mz++) {
     for (let mx = sx; mx < ex; mx++) {
