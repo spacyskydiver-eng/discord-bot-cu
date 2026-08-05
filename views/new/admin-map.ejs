@@ -56,10 +56,15 @@
     <h2>Map Viewer</h2>
     <p>Load your scanner output to view the world in 3D. Optionally include the block textures folder for textured rendering.</p>
     <div class="mv-drop" id="mv-drop">
-      <input type="file" id="mv-file-input" multiple accept=".json,.png,.bin">
+      <input type="file" id="mv-file-input" multiple accept=".json,.png,.bin" style="display:none">
+      <input type="file" id="mv-folder-input" webkitdirectory style="display:none">
       <div class="mv-drop-icon">📂</div>
-      <div class="mv-drop-label">Drop scanner output files or click to browse</div>
-      <div class="mv-drop-sub">Select all at once: meta.json, palette.json, biome_palette.json, heightmap.png, blocks.bin, biomes.bin + any texture PNGs</div>
+      <div class="mv-drop-label">Drop the scan3d-output folder here</div>
+      <div class="mv-drop-sub" style="margin-bottom:14px">Or use one of the buttons below</div>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button onclick="event.stopPropagation();document.getElementById('mv-folder-input').click()" style="background:rgba(91,227,143,.12);border:1px solid rgba(91,227,143,.3);color:#5be38f;font-family:'Baloo 2';font-weight:800;font-size:13px;padding:8px 18px;border-radius:8px;cursor:pointer">Select Folder</button>
+        <button onclick="event.stopPropagation();document.getElementById('mv-file-input').click()" style="background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--muted);font-family:'Baloo 2';font-weight:700;font-size:13px;padding:8px 18px;border-radius:8px;cursor:pointer">Select Files</button>
+      </div>
     </div>
     <div class="mv-files-hint">
       Required: meta.json &nbsp;·&nbsp; palette.json &nbsp;·&nbsp; biome_palette.json<br>
@@ -165,15 +170,48 @@ const planColors = { spawn: '#5be38f', mining: '#fbbf24', contested: '#f87171', 
 
 const drop = document.getElementById('mv-drop');
 const fileInput = document.getElementById('mv-file-input');
-drop.addEventListener('click', () => fileInput.click());
+const folderInput = document.getElementById('mv-folder-input');
+
 drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('dragover'); });
 drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
-drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
-fileInput.addEventListener('change', () => handleFiles(fileInput.files));
-
-function handleFiles(fileList) {
+drop.addEventListener('drop', async e => {
+  e.preventDefault(); drop.classList.remove('dragover');
   const map = new Map();
-  for (const f of fileList) map.set(f.name, f);
+  const items = [...(e.dataTransfer.items || [])];
+  await Promise.all(items.map(item => {
+    if (item.kind !== 'file') return;
+    const entry = item.webkitGetAsEntry ? item.webkitGetAsEntry() : null;
+    if (entry && entry.isDirectory) return readDir(entry, map);
+    const f = item.getAsFile();
+    if (f) map.set(f.name, f);
+  }));
+  startLoad(map);
+});
+
+fileInput.addEventListener('change', () => {
+  const map = new Map();
+  for (const f of fileInput.files) map.set(f.name, f);
+  startLoad(map);
+});
+folderInput.addEventListener('change', () => {
+  const map = new Map();
+  for (const f of folderInput.files) map.set(f.name, f);
+  startLoad(map);
+});
+
+function readDir(dirEntry, map) {
+  return new Promise(res => {
+    const reader = dirEntry.createReader();
+    const readAll = () => reader.readEntries(async entries => {
+      if (!entries.length) return res();
+      await Promise.all(entries.map(e => e.isDirectory ? readDir(e, map) : new Promise(r => e.file(f => { map.set(f.name, f); r(); }))));
+      readAll();
+    });
+    readAll();
+  });
+}
+
+function startLoad(map) {
   const required = ['meta.json','palette.json','biome_palette.json','heightmap.png','blocks.bin','biomes.bin'];
   const missing = required.filter(r => !map.has(r));
   if (missing.length) { alert('Missing required files:\n' + missing.join('\n')); return; }
