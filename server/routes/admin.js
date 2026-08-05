@@ -461,6 +461,9 @@ router.post('/nation-leader/:id/delete', async (req, res) => {
   res.redirect('/admin#tab-hundred');
 });
 
+// Map viewer
+router.get('/map', (req, res) => res.render('new/admin-map'));
+
 // Nations portal
 router.get('/nations', async (req, res) => {
   const nations = (await db.query(
