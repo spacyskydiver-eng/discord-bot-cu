@@ -686,8 +686,8 @@ function getBiomeTint(biomeId, face, blockId) {
   const biome = biomePal.find ? biomePal.find(b => b.id === biomeId) : (biomePal[biomeId] || null);
   if (!biome) return [1, 1, 1];
   const col = (name => {
-    if (/grass_block|short_grass|grass$|fern/.test(name)) return biome.grass_color || biome.grassColor;
-    if (/leaves/.test(name)) return biome.foliage_color || biome.foliageColor;
+    if (/grass_block|short_grass|grass$|fern/.test(name)) return biome.grass_color || biome.grassColor || '#79c05a';
+    if (/leaves/.test(name)) return biome.foliage_color || biome.foliageColor || '#59ae30';
     return null;
   })(blockName);
   if (!col) return [1, 1, 1];
@@ -736,11 +736,14 @@ function _buildChunkInner(cx, cz, key) {
       if (!isFinite(my)) continue; // bad height data
       const bid = surface[idx];
       if (!bid) continue; // air
-      // For non-solid surface blocks (plants/flowers/etc), show the block below
+      // For non-solid surface blocks (plants, multi-block cactus/tall grass, etc.)
+      // traverse skirt depth until we find a solid (non-plant) block below
       let displayBid = bid;
       if (nonSolidIds.has(bid)) {
-        const below = skirtArr[idx * skirtDepth];
-        if (below) displayBid = below;
+        for (let d = 0; d < skirtDepth; d++) {
+          const below = skirtArr[idx * skirtDepth + d];
+          if (below && !nonSolidIds.has(below)) { displayBid = below; break; }
+        }
       }
       const water = waterArr[idx];
       const biomeId = biomes[idx];
@@ -822,39 +825,38 @@ function _buildChunkInner(cx, cz, key) {
 }
 
 function emitSideFace(wx, wz, yBot, yTop, dx, dz, nx, nz, bid, pos, norm, uv, col) {
-  const uvv = getUV(bid, 'side') || getUV(bid, 'top') || [0, 0, 1/32, 1/32];
+  const uvv = getUV(bid, 'side') || getUV(bid, 'top') || [(ATLAS-TEX)/ATLAS, (ATLAS-TEX)/ATLAS, 1.0, 1.0];
   const bColor = blockCol[bid] || new THREE.Color(0x888888);
-  const r = bColor.r, g = bColor.g, b = bColor.b;
-  // Determine the 4 corners of the side face quad
-  let p0, p1, p2, p3;
-  const h = yTop - yBot + 1;
-  if (dx === 1) {
-    p0 = [wx+1, yBot,   wz  ]; p1 = [wx+1, yBot,   wz+1];
-    p2 = [wx+1, yTop+1, wz+1]; p3 = [wx+1, yTop+1, wz  ];
-  } else if (dx === -1) {
-    p0 = [wx,   yBot,   wz+1]; p1 = [wx,   yBot,   wz  ];
-    p2 = [wx,   yTop+1, wz  ]; p3 = [wx,   yTop+1, wz+1];
-  } else if (dz === 1) {
-    p0 = [wx+1, yBot,   wz+1]; p1 = [wx,   yBot,   wz+1];
-    p2 = [wx,   yTop+1, wz+1]; p3 = [wx+1, yTop+1, wz+1];
-  } else {
-    p0 = [wx,   yBot,   wz  ]; p1 = [wx+1, yBot,   wz  ];
-    p2 = [wx+1, yTop+1, wz  ]; p3 = [wx,   yTop+1, wz  ];
-  }
-  // Two tris — CCW winding so face normal points outward
-  // p0/p1 = face bottom (yBot), p2/p3 = face top (yTop+1)
-  // uvv=[u0,v0,u1,v1] with flipY=false: v0=canvas-top, v1=canvas-bottom
-  // face top → texture top (v0), face bottom → texture bottom (v1)
-  const verts = [p0,p2,p1, p0,p3,p2];
-  const uvs = [
-    [uvv[0],uvv[3]],[uvv[2],uvv[1]],[uvv[2],uvv[3]],
-    [uvv[0],uvv[3]],[uvv[0],uvv[1]],[uvv[2],uvv[1]],
-  ];
-  for (let i=0;i<6;i++) {
-    pos.push(...verts[i]);
-    norm.push(nx, 0, nz);
-    uv.push(...uvs[i]);
-    col.push(r, g, b);
+  // When atlas is loaded, textures supply their own colour — use white vertex colour.
+  // Without atlas, use the block's DEFAULT_COLORS as the vertex colour.
+  const r = atlasTex ? 1 : bColor.r;
+  const g = atlasTex ? 1 : bColor.g;
+  const b2 = atlasTex ? 1 : bColor.b;
+
+  // Emit one 1-block-high quad per Y level so the texture tiles correctly (no stretching)
+  for (let y = yBot; y <= yTop; y++) {
+    let p0, p1, p2, p3;
+    if (dx === 1) {
+      p0=[wx+1,y,wz];   p1=[wx+1,y,wz+1]; p2=[wx+1,y+1,wz+1]; p3=[wx+1,y+1,wz];
+    } else if (dx === -1) {
+      p0=[wx,y,wz+1];   p1=[wx,y,wz];     p2=[wx,y+1,wz];     p3=[wx,y+1,wz+1];
+    } else if (dz === 1) {
+      p0=[wx+1,y,wz+1]; p1=[wx,y,wz+1];   p2=[wx,y+1,wz+1];   p3=[wx+1,y+1,wz+1];
+    } else {
+      p0=[wx,y,wz];     p1=[wx+1,y,wz];   p2=[wx+1,y+1,wz];   p3=[wx,y+1,wz];
+    }
+    // uvv=[u0,v0,u1,v1]: face top (y+1) → texture top (v0), face bottom (y) → texture bottom (v1)
+    const verts = [p0,p2,p1, p0,p3,p2];
+    const uvs = [
+      [uvv[0],uvv[3]], [uvv[2],uvv[1]], [uvv[2],uvv[3]],
+      [uvv[0],uvv[3]], [uvv[0],uvv[1]], [uvv[2],uvv[1]],
+    ];
+    for (let i = 0; i < 6; i++) {
+      pos.push(...verts[i]);
+      norm.push(nx, 0, nz);
+      uv.push(...uvs[i]);
+      col.push(r, g, b2);
+    }
   }
 }
 
