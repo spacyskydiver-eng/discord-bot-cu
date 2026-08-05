@@ -61,7 +61,7 @@
   <!-- ── File load panel ── -->
   <div id="mv-load">
     <h2>Map Viewer</h2>
-    <p>Load your scanner output to view the world in 3D. Optionally include the block textures folder for textured rendering.</p>
+    <p>Load your scanner output to view the world in 3D. Block textures are loaded automatically.</p>
     <div class="mv-drop" id="mv-drop">
       <input type="file" id="mv-file-input" multiple accept=".json,.png,.bin" style="display:none">
       <input type="file" id="mv-folder-input" webkitdirectory style="display:none">
@@ -75,8 +75,7 @@
     </div>
     <div class="mv-files-hint">
       Required: meta.json &nbsp;·&nbsp; palette.json &nbsp;·&nbsp; biome_palette.json<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; heightmap.png &nbsp;·&nbsp; blocks.bin &nbsp;·&nbsp; biomes.bin<br>
-      Optional: block texture PNGs (e.g. stone.png, grass_block_top.png …)
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; heightmap.png &nbsp;·&nbsp; blocks.bin &nbsp;·&nbsp; biomes.bin
     </div>
   </div>
 
@@ -133,7 +132,7 @@
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CHUNK = 32;
 const RENDER_DIST = 12; // chunks
-const ATLAS = 512;      // atlas texture side (pixels)
+const ATLAS = 1024;     // atlas texture side (pixels) — 64×64 = 4096 slots
 const TEX = 16;         // block texture size
 
 // ── World state ───────────────────────────────────────────────────────────────
@@ -267,6 +266,10 @@ async function loadWorld(files) {
 
     buildBlockColors();
 
+    // Auto-load Minecraft textures from server
+    showProgress(true, 'Loading block textures…');
+    await autoLoadTextures();
+
     // Compute center terrain height for camera positioning
     const ci = Math.floor(H / 2) * W + Math.floor(W / 2);
     const centerH = isFinite(heights[ci]) ? heights[ci] : 64;
@@ -279,13 +282,6 @@ async function loadWorld(files) {
     console.log('[MapViewer] Palette entries 0-5:', paletteArr.slice(0,6).map(b=>`${b.id}:${b.name}`).join(', '));
     console.log('[MapViewer] Surface sample (first 10):', Array.from(surface.slice(0, 10)).join(','));
     console.log('[MapViewer] heights sample (first 10):', Array.from(heights.slice(0, 10)).join(','));
-
-    // Optional textures
-    const texFiles = [...files].filter(([k]) => k.endsWith('.png') && k !== 'heightmap.png');
-    if (texFiles.length) {
-      showProgress(true, `Building texture atlas (${texFiles.length} textures)…`);
-      await buildAtlas(texFiles.map(([,f]) => f));
-    }
 
     showProgress(true, 'Initialising scene…');
     // Show viewer first so the canvas has real dimensions before Three.js inits
@@ -435,53 +431,110 @@ const DEFAULT_COLORS = {
   water:'#3f76e4',lava:'#e06020',bedrock:'#4a4a4a',coal_ore:'#808080',
   iron_ore:'#9a8070',gold_ore:'#a89040',diamond_ore:'#40a0a0',
   emerald_ore:'#40a060',snow:'#ffffff',ice:'#80b0ff',clay:'#9090a0',
-  gravel_path:'#a09060',farmland:'#7a5030',hay_block:'#c0a020',
-  pumpkin:'#d08020',melon:'#80a040',cactus:'#4a8030',
+  farmland:'#7a5030',hay_bale:'#c0a020',pumpkin:'#d08020',melon:'#80a040',
 };
+
+// Blocks whose top/side/bottom use different texture file names
+const BLOCK_TEX_MAP = {
+  grass_block:     { top:'grass_block_top', side:'grass_block_side', bottom:'dirt' },
+  mycelium:        { top:'mycelium_top',     side:'mycelium_side',    bottom:'dirt' },
+  podzol:          { top:'podzol_top',       side:'podzol_side',      bottom:'dirt' },
+  dirt_path:       { top:'dirt_path_top',    side:'dirt_path_side',   bottom:'dirt' },
+  farmland:        { top:'farmland_moist',   side:'dirt',             bottom:'dirt' },
+  tnt:             { top:'tnt_top',          side:'tnt_side',         bottom:'tnt_bottom' },
+  bookshelf:       { top:'oak_planks',       side:'bookshelf',        bottom:'oak_planks' },
+  crafting_table:  { top:'crafting_table_top', side:'crafting_table_side', bottom:'oak_planks' },
+  furnace:         { top:'furnace_top',      side:'furnace_front',    bottom:'furnace_top' },
+  blast_furnace:   { top:'blast_furnace_top',side:'blast_furnace_front',bottom:'blast_furnace_top' },
+  smoker:          { top:'smoker_top',       side:'smoker_front',     bottom:'smoker_bottom' },
+  dispenser:       { top:'furnace_top',      side:'dispenser_front',  bottom:'furnace_top' },
+  hay_block:       { top:'hay_block_top',    side:'hay_block_side',   bottom:'hay_block_top' },
+  quartz_block:    { top:'quartz_block_top', side:'quartz_block_side',bottom:'quartz_block_bottom' },
+  snow_block:      { top:'snow',             side:'snow',             bottom:'snow' },
+};
+
+// Logs follow a standard pattern
+const LOG_TYPES = ['oak','spruce','birch','jungle','acacia','dark_oak','mangrove','cherry','bamboo','crimson','warped'];
+
+function blockTexNames(name) {
+  if (BLOCK_TEX_MAP[name]) return BLOCK_TEX_MAP[name];
+  // Log / stripped log pattern
+  for (const w of LOG_TYPES) {
+    if (name === w+'_log' || name === 'stripped_'+w+'_log') return { top:name+'_top', side:name, bottom:name+'_top' };
+    if (name === w+'_wood' || name === 'stripped_'+w+'_wood') return { top:name, side:name, bottom:name };
+  }
+  if (name === 'bamboo_block' || name === 'stripped_bamboo_block') return { top:name+'_top', side:name, bottom:name+'_top' };
+  return { top:name, side:name, bottom:name };
+}
 
 function buildBlockColors() {
   for (const b of paletteArr) {
     const name = (b.name || '').replace(/^minecraft:/, '');
-    const col = DEFAULT_COLORS[name] || '#888888';
+    const col = DEFAULT_COLORS[name] ?? '#888888';
     blockCol[b.id] = typeof col === 'number' ? null : new THREE.Color(col);
   }
 }
 
-async function buildAtlas(texFiles) {
-  const c = document.createElement('canvas');
-  c.width = c.height = ATLAS;
-  const ctx = c.getContext('2d');
-  ctx.imageSmoothingEnabled = false;
-  let slot = 0;
-  const nameMap = {};
-  await Promise.all(texFiles.map(f => new Promise(res => {
+// Fetch textures from /mc-textures/ and build atlas automatically
+async function autoLoadTextures() {
+  // Collect unique texture names needed for this palette
+  const needed = new Set();
+  for (const b of paletteArr) {
+    const name = (b.name || '').replace(/^minecraft:/, '');
+    const t = blockTexNames(name);
+    needed.add(t.top); needed.add(t.side);
+  }
+
+  // Fetch all in parallel, silently skip 404s
+  const fetched = {}; // texName → blob URL
+  await Promise.all([...needed].map(async n => {
+    try {
+      const r = await fetch(`/mc-textures/${encodeURIComponent(n)}.png`);
+      if (r.ok) { fetched[n] = URL.createObjectURL(await r.blob()); }
+    } catch (_) {}
+  }));
+
+  const texNames = Object.keys(fetched);
+  if (!texNames.length) { console.warn('[MapViewer] No textures loaded from /mc-textures/'); return; }
+  console.log(`[MapViewer] Loaded ${texNames.length} textures`);
+
+  // Pre-assign atlas slots, then draw
+  const slotMap = {};
+  texNames.forEach((n, i) => { slotMap[n] = i; });
+
+  const spr = ATLAS / TEX; // slots per row
+  const ac = document.createElement('canvas');
+  ac.width = ac.height = ATLAS;
+  const actx = ac.getContext('2d');
+  actx.imageSmoothingEnabled = false;
+
+  await Promise.all(texNames.map(n => new Promise(res => {
     const img = new Image();
     img.onload = () => {
-      const col = slot % (ATLAS / TEX), row = Math.floor(slot / (ATLAS / TEX));
-      ctx.drawImage(img, col * TEX, row * TEX, TEX, TEX);
-      const texName = f.name.replace(/\.png$/i, '');
-      nameMap[texName] = slot;
-      slot++;
-      URL.revokeObjectURL(img.src); res();
+      const s = slotMap[n], col = s % spr, row = Math.floor(s / spr);
+      actx.drawImage(img, col * TEX, row * TEX, TEX, TEX);
+      URL.revokeObjectURL(fetched[n]); res();
     };
     img.onerror = res;
-    img.src = URL.createObjectURL(f);
+    img.src = fetched[n];
   })));
 
-  atlasTex = new THREE.CanvasTexture(c);
+  atlasTex = new THREE.CanvasTexture(ac);
   atlasTex.magFilter = THREE.NearestFilter;
   atlasTex.minFilter = THREE.NearestMipmapLinearFilter;
   atlasTex.generateMipmaps = true;
+
   uvCache = {};
-  for (const [name, s] of Object.entries(nameMap)) {
-    const col = s % (ATLAS / TEX), row = Math.floor(s / (ATLAS / TEX));
-    uvCache[name] = [col * TEX / ATLAS, row * TEX / ATLAS, (col+1) * TEX / ATLAS, (row+1) * TEX / ATLAS];
+  for (const [n, s] of Object.entries(slotMap)) {
+    const col = s % spr, row = Math.floor(s / spr);
+    uvCache[n] = [col*TEX/ATLAS, row*TEX/ATLAS, (col+1)*TEX/ATLAS, (row+1)*TEX/ATLAS];
   }
 
+  blockUV = {};
   for (const b of paletteArr) {
-    const tx = b.textures || {};
-    const resolve = k => uvCache[tx[k]] || uvCache[b.name] || null;
-    blockUV[b.id] = { top: resolve('top') || resolve('all'), side: resolve('side') || resolve('all'), bottom: resolve('bottom') || resolve('all') };
+    const name = (b.name || '').replace(/^minecraft:/, '');
+    const t = blockTexNames(name);
+    blockUV[b.id] = { top: uvCache[t.top]||null, side: uvCache[t.side]||null, bottom: uvCache[t.bottom]||null };
   }
 }
 
@@ -523,11 +576,11 @@ function initScene(centerH) {
   sun.shadow.camera.right = sun.shadow.camera.top = 800;
   scene.add(sun);
 
-  // Materials
+  // Materials — alphaTest handles leaf/glass transparency cutouts
   solidMat = atlasTex
-    ? new THREE.MeshLambertMaterial({ map: atlasTex, vertexColors: true })
+    ? new THREE.MeshLambertMaterial({ map: atlasTex, vertexColors: true, alphaTest: 0.1, side: THREE.DoubleSide })
     : new THREE.MeshLambertMaterial({ vertexColors: true });
-  waterMat = new THREE.MeshLambertMaterial({ color: 0x3f76e4, transparent: true, opacity: 0.65, side: THREE.FrontSide });
+  waterMat = new THREE.MeshLambertMaterial({ color: 0x3f76e4, transparent: true, opacity: 0.72, side: THREE.DoubleSide });
 
   solidGroup = new THREE.Group(); scene.add(solidGroup);
   waterGroup = new THREE.Group(); scene.add(waterGroup);
@@ -664,12 +717,12 @@ function _buildChunkInner(cx, cz, key) {
         emitSideFace(wx, wz, runStart, my, dx, dz, nx, nz, runBid, pos, norm, uv, col);
       }
 
-      // WATER SURFACE (CCW winding for +Y normal)
+      // WATER SURFACE — CCW winding matching addQuad corrected top face
       if (water > my) {
         const wy2 = water;
         wpos.push(
-          wx,wy2+1,wz+1, wx+1,wy2+1,wz, wx+1,wy2+1,wz+1,
-          wx,wy2+1,wz+1, wx,wy2+1,wz,   wx+1,wy2+1,wz
+          wx,wy2+1,wz,   wx+1,wy2+1,wz+1, wx+1,wy2+1,wz,   // tri 1: p0,p2,p1 → +Y normal
+          wx,wy2+1,wz,   wx,wy2+1,wz+1,   wx+1,wy2+1,wz+1   // tri 2: p0,p3,p2 → +Y normal
         );
         for (let i=0;i<6;i++) { wnorm.push(0,1,0); wuv.push(0,0); }
       }
