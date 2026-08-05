@@ -525,6 +525,9 @@ async function autoLoadTextures() {
   }));
 
   const texNames = Object.keys(fetched);
+  // Show diagnostic on the page so we can see without opening F12
+  const dbgEl = document.getElementById('mv-stats');
+  if (dbgEl) dbgEl.innerHTML = `Textures fetched: ${texNames.length} / needed: ${needed.size}`;
   if (!texNames.length) { console.warn('[MapViewer] No textures loaded from /mc-textures/'); return; }
   console.log(`[MapViewer] Loaded ${texNames.length} textures`);
 
@@ -988,7 +991,8 @@ function animate() {
     if (statsEl) {
       const loaded = chunks.size, queued = chunkQueue.length;
       const camP = camera.position;
-      statsEl.innerHTML = `World: ${W}×${H} | Chunks: ${loaded} loaded, ${queued} queued<br>Cam: ${Math.round(camP.x)}, ${Math.round(camP.y)}, ${Math.round(camP.z)}`;
+      const texCount = Object.keys(blockUV).length;
+      statsEl.innerHTML = `World: ${W}×${H} | Chunks: ${loaded} loaded, ${queued} queued<br>Cam: ${Math.round(camP.x)}, ${Math.round(camP.y)}, ${Math.round(camP.z)}<br>Atlas: ${atlasTex ? 'loaded' : 'MISSING'} | blockUV: ${texCount} entries`;
     }
   }
 }
