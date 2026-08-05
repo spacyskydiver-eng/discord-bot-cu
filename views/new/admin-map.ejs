@@ -334,7 +334,8 @@ async function parseHeightmap(file) {
 
 function parseBlocksBin(ab) {
   const dv = new DataView(ab);
-  let off = 4; // skip big-endian int32 header
+  // header: width,length,skirtDepth,originX,originZ,resolution = 6 × int32 = 24 bytes
+  let off = 24;
   const cols = W * H;
   const strideBytes = 2 + skirtDepth * 2 + 2; // surfaceId + skirt[] + waterY
   const surf = new Uint16Array(cols);
@@ -373,7 +374,8 @@ const DEFAULT_COLORS = {
 
 function buildBlockColors() {
   for (const b of paletteArr) {
-    const col = DEFAULT_COLORS[b.name] || '#888888';
+    const name = (b.name || '').replace(/^minecraft:/, '');
+    const col = DEFAULT_COLORS[name] || '#888888';
     blockCol[b.id] = typeof col === 'number' ? null : new THREE.Color(col);
   }
 }
@@ -531,10 +533,9 @@ function _buildChunkInner(cx, cz, key) {
 
   function addQuad(p0, p1, p2, p3, nx, ny, nz, u0, v0, u1, v1, r, g, b, toSolid) {
     const P = toSolid ? pos : wpos, N = toSolid ? norm : wnorm, U = toSolid ? uv : wuv;
-    // p0-p1-p2 and p0-p2-p3
-    const verts = [p0, p1, p2, p0, p2, p3];
-    // UVs for quad corners
-    const uvs = [[u0,v1],[u1,v1],[u1,v0],[u0,v1],[u1,v0],[u0,v0]];
+    // CCW winding: p0-p2-p1 and p0-p3-p2 (so front face points toward viewer)
+    const verts = [p0, p2, p1, p0, p3, p2];
+    const uvs = [[u0,v1],[u1,v0],[u1,v1],[u0,v1],[u0,v0],[u1,v0]];
     for (let i = 0; i < 6; i++) {
       P.push(...verts[i]); N.push(nx, ny, nz); U.push(...uvs[i]);
       if (toSolid) col.push(r, g, b);
@@ -596,10 +597,13 @@ function _buildChunkInner(cx, cz, key) {
         emitSideFace(wx, wz, runStart, my, dx, dz, nx, nz, runBid, pos, norm, uv, col);
       }
 
-      // WATER SURFACE
+      // WATER SURFACE (CCW winding for +Y normal)
       if (water > my) {
         const wy2 = water;
-        wpos.push(wx,wy2+1,wz, wx+1,wy2+1,wz, wx+1,wy2+1,wz+1, wx,wy2+1,wz, wx+1,wy2+1,wz+1, wx,wy2+1,wz+1);
+        wpos.push(
+          wx,wy2+1,wz+1, wx+1,wy2+1,wz, wx+1,wy2+1,wz+1,
+          wx,wy2+1,wz+1, wx,wy2+1,wz,   wx+1,wy2+1,wz
+        );
         for (let i=0;i<6;i++) { wnorm.push(0,1,0); wuv.push(0,0); }
       }
     }
@@ -646,11 +650,11 @@ function emitSideFace(wx, wz, yBot, yTop, dx, dz, nx, nz, bid, pos, norm, uv, co
     p0 = [wx,   yBot,   wz  ]; p1 = [wx+1, yBot,   wz  ];
     p2 = [wx+1, yTop+1, wz  ]; p3 = [wx,   yTop+1, wz  ];
   }
-  // Two tris
-  const verts = [p0,p1,p2, p0,p2,p3];
+  // Two tris — CCW winding so face normal points outward
+  const verts = [p0,p2,p1, p0,p3,p2];
   const uvs = [
-    [uvv[0],uvv[1]],[uvv[2],uvv[1]],[uvv[2],uvv[3]],
-    [uvv[0],uvv[1]],[uvv[2],uvv[3]],[uvv[0],uvv[3]],
+    [uvv[0],uvv[1]],[uvv[2],uvv[3]],[uvv[2],uvv[1]],
+    [uvv[0],uvv[1]],[uvv[0],uvv[3]],[uvv[2],uvv[3]],
   ];
   for (let i=0;i<6;i++) {
     pos.push(...verts[i]);
