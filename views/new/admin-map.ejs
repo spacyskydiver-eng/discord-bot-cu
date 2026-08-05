@@ -228,8 +228,21 @@ async function loadWorld(files) {
   try {
     showProgress(true, 'Parsing JSON…');
     meta = JSON.parse(await files.get('meta.json').text());
-    paletteArr = JSON.parse(await files.get('palette.json').text());
-    biomePal = JSON.parse(await files.get('biome_palette.json').text());
+    const rawPalette = JSON.parse(await files.get('palette.json').text());
+    const rawBiome   = JSON.parse(await files.get('biome_palette.json').text());
+
+    // Normalise palette to array of {id, name, textures}
+    paletteArr = Array.isArray(rawPalette)
+      ? rawPalette
+      : Object.entries(rawPalette).map(([k, v]) =>
+          typeof v === 'object' ? { id: isNaN(k) ? v.id ?? k : +k, name: v.name ?? k, textures: v.textures, ...v }
+                                : { id: +k, name: String(v) });
+    // Normalise biome palette to array of {id, ...}
+    biomePal = Array.isArray(rawBiome)
+      ? rawBiome
+      : Object.entries(rawBiome).map(([k, v]) =>
+          typeof v === 'object' ? { id: isNaN(k) ? v.id ?? k : +k, ...v }
+                                : { id: +k, name: String(v) });
 
     console.log('meta:', JSON.stringify(meta));
 
