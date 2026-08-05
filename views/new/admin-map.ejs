@@ -15,8 +15,8 @@
 .mv-drop-sub{font-size:12px;color:var(--muted);margin-top:4px}
 .mv-files-hint{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;padding:14px 18px;font-size:12px;color:var(--muted);font-family:monospace;text-align:left;line-height:1.8}
 /* Viewer layout */
-#mv-viewer{display:none;flex:1;position:relative;overflow:hidden}
-#mv-canvas{display:block;width:100%;height:100%}
+#mv-viewer{display:none;flex:1;position:relative;overflow:hidden;flex-direction:column}
+#mv-canvas{display:block;width:100%!important;height:100%!important;flex:1}
 /* Progress overlay */
 #mv-progress{display:none;position:absolute;inset:0;background:rgba(12,13,16,.92);z-index:200;flex-direction:column;align-items:center;justify-content:center;gap:14px}
 #mv-progress p{font-family:'Baloo 2';font-weight:700;font-size:14px;color:#e0e2ed;margin:0}
@@ -273,9 +273,11 @@ async function loadWorld(files) {
     }
 
     showProgress(true, 'Initialising scene…');
-    initScene();
+    // Show viewer first so the canvas has real dimensions before Three.js inits
     document.getElementById('mv-load').style.display = 'none';
-    document.getElementById('mv-viewer').style.display = '';
+    document.getElementById('mv-viewer').style.display = 'flex';
+    await new Promise(r => requestAnimationFrame(r));
+    initScene();
     showProgress(false);
     setTool('nav');
     animate();
@@ -405,10 +407,12 @@ async function buildAtlas(texFiles) {
 
 function initScene() {
   const canvas = document.getElementById('mv-canvas');
+  const W2 = canvas.parentElement.clientWidth || window.innerWidth;
+  const H2 = canvas.parentElement.clientHeight || (window.innerHeight - 64);
 
   renderer = new THREE.WebGLRenderer({ canvas, antialias: false, logarithmicDepthBuffer: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+  renderer.setSize(W2, H2);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -445,9 +449,11 @@ function initScene() {
   // Controls
   setupControls(canvas);
   window.addEventListener('resize', () => {
-    camera.aspect = canvas.clientWidth / canvas.clientHeight;
+    const rw = canvas.parentElement.clientWidth || window.innerWidth;
+    const rh = canvas.parentElement.clientHeight || (window.innerHeight - 64);
+    camera.aspect = rw / rh;
     camera.updateProjectionMatrix();
-    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    renderer.setSize(rw, rh);
   });
 }
 
