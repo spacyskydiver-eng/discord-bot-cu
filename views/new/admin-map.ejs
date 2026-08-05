@@ -156,7 +156,7 @@ let blockUV = {};    // blockId -> {top,side,bottom} each [u0,v0,u1,v1]
 let blockCol = {};   // blockId -> THREE.Color (fallback)
 
 // ── Camera ────────────────────────────────────────────────────────────────────
-const cam = { theta: 0.6, phi: 1.0, r: 400, tx: 0, ty: 0, tz: 0 };
+const cam = { theta: 0.6, phi: 0.35, r: 300, tx: 0, ty: 0, tz: 0 };
 const keys = {};
 let dragging = false, dragBtn = -1, lx = 0, ly = 0;
 let pendingLabelPos = null;
@@ -305,17 +305,11 @@ async function loadWorld(files) {
 async function parseHeightmap(file) {
   const ab = await file.arrayBuffer();
   try {
-    // Try 16-bit via UPNG
-    const png = UPNG.decode(ab);
-    if (png.depth === 16 && (png.ctype === 0 || png.ctype === 4)) {
-      const dv = new DataView(png.data.buffer ?? png.data);
-      const ch = png.ctype === 4 ? 2 : 1; // gray-alpha or gray
-      const out = new Float32Array(png.width * png.height);
-      for (let i = 0; i < out.length; i++) out[i] = dv.getUint16(i * ch * 2, false) + minY;
-      return out;
-    }
-  } catch (_) {}
-  // Fallback: canvas 8-bit
+    return await parsePNG16Gray(new Uint8Array(ab));
+  } catch (e) {
+    console.warn('[MapViewer] 16-bit PNG decode failed, using 8-bit canvas fallback:', e.message);
+  }
+  // Canvas 8-bit fallback (loses precision for heights > 255)
   return new Promise(res => {
     const img = new Image();
     img.onload = () => {
@@ -323,13 +317,86 @@ async function parseHeightmap(file) {
       const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0);
       const d = ctx.getImageData(0, 0, img.width, img.height).data;
       const out = new Float32Array(img.width * img.height);
-      for (let i = 0; i < out.length; i++) {
-        out[i] = ((d[i*4] << 8) | d[i*4+1]) + minY;
-      }
+      for (let i = 0; i < out.length; i++) out[i] = d[i*4] + minY; // 8-bit gray → R channel
       URL.revokeObjectURL(img.src); res(out);
     };
-    img.src = URL.createObjectURL(file);
+    img.onerror = () => res(new Float32Array(W * H).fill(minY));
+    img.src = URL.createObjectURL(new Blob([ab]));
   });
+}
+
+// Direct 16-bit grayscale PNG decoder — UPNG always converts to 8-bit which
+// destroys precision for values < 256, so we parse raw bytes ourselves.
+async function parsePNG16Gray(bytes) {
+  if (bytes[0] !== 137 || bytes[1] !== 80) throw new Error('Not a PNG');
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let off = 8, imgW = 0, imgH = 0, depth = 0, colorType = 0;
+  const idatParts = [];
+
+  while (off + 12 <= bytes.length) {
+    const len = dv.getUint32(off); off += 4;
+    const type = String.fromCharCode(bytes[off], bytes[off+1], bytes[off+2], bytes[off+3]); off += 4;
+    if (type === 'IHDR') {
+      imgW = dv.getUint32(off); imgH = dv.getUint32(off+4);
+      depth = bytes[off+8]; colorType = bytes[off+9];
+    } else if (type === 'IDAT') {
+      idatParts.push(bytes.slice(off, off + len));
+    } else if (type === 'IEND') { break; }
+    off += len + 4;
+  }
+
+  if (!imgW || !imgH) throw new Error('IHDR not found');
+  if (depth !== 16 || colorType !== 0) throw new Error(`depth=${depth} ctype=${colorType} — not 16-bit grayscale`);
+
+  // Concatenate all IDAT chunks then decompress (zlib = deflate with 2-byte header)
+  const totalLen = idatParts.reduce((s, p) => s + p.length, 0);
+  const idat = new Uint8Array(totalLen);
+  let pos = 0;
+  for (const p of idatParts) { idat.set(p, pos); pos += p.length; }
+
+  const ds = new DecompressionStream('deflate');
+  const w2 = ds.writable.getWriter(), r2 = ds.readable.getReader();
+  w2.write(idat); w2.close();
+
+  const rawChunks = []; let rawTotal = 0;
+  while (true) {
+    const { done, value } = await r2.read();
+    if (done) break;
+    rawChunks.push(value); rawTotal += value.length;
+  }
+  const raw = new Uint8Array(rawTotal);
+  pos = 0;
+  for (const c of rawChunks) { raw.set(c, pos); pos += c.length; }
+
+  // Apply PNG reverse filters scanline by scanline, extract u16 big-endian pixels
+  const bpp = 2; // 1 channel × 2 bytes
+  const stride = imgW * bpp;
+  const out = new Float32Array(imgW * imgH);
+  let prev = new Uint8Array(stride), rawOff = 0;
+
+  for (let y = 0; y < imgH; y++) {
+    const ft = raw[rawOff++];
+    const curr = raw.slice(rawOff, rawOff + stride); rawOff += stride;
+    if (ft === 1) { // Sub
+      for (let i = bpp; i < stride; i++) curr[i] = (curr[i] + curr[i-bpp]) & 0xFF;
+    } else if (ft === 2) { // Up
+      for (let i = 0; i < stride; i++) curr[i] = (curr[i] + prev[i]) & 0xFF;
+    } else if (ft === 3) { // Average
+      for (let i = 0; i < stride; i++) {
+        const a = i >= bpp ? curr[i-bpp] : 0;
+        curr[i] = (curr[i] + Math.floor((a + prev[i]) / 2)) & 0xFF;
+      }
+    } else if (ft === 4) { // Paeth
+      for (let i = 0; i < stride; i++) {
+        const a = i >= bpp ? curr[i-bpp] : 0, b = prev[i], c2 = i >= bpp ? prev[i-bpp] : 0;
+        const p2 = a + b - c2, pa = Math.abs(p2-a), pb = Math.abs(p2-b), pc2 = Math.abs(p2-c2);
+        curr[i] = (curr[i] + (pa <= pb && pa <= pc2 ? a : pb <= pc2 ? b : c2)) & 0xFF;
+      }
+    }
+    for (let x = 0; x < imgW; x++) out[y * imgW + x] = ((curr[x*2] << 8) | curr[x*2+1]) + minY;
+    prev = curr;
+  }
+  return out;
 }
 
 function parseBlocksBin(ab) {
@@ -441,7 +508,7 @@ function initScene(centerH) {
   // Position camera at center of world, above actual terrain height
   const terrainY = (centerH !== undefined && isFinite(centerH)) ? centerH : 64;
   cam.tx = W / 2; cam.ty = terrainY + 20; cam.tz = H / 2;
-  cam.r = 200;
+  cam.r = 300;
   updateCamera();
 
   // Lighting
@@ -679,13 +746,24 @@ function updateCamera() {
   camera.lookAt(cam.tx, cam.ty, cam.tz);
 }
 
+function doPan(dx, dy) {
+  const right = new THREE.Vector3(), up = new THREE.Vector3(), fwd = new THREE.Vector3();
+  camera.matrix.extractBasis(right, up, fwd);
+  const spd = cam.r * 0.0015;
+  cam.tx -= right.x * dx * spd; cam.tz -= right.z * dx * spd;
+  cam.tx += fwd.x * dy * spd * 0.5; cam.tz += fwd.z * dy * spd * 0.5;
+  updateCamera();
+}
+
 function setupControls(canvas) {
   canvas.addEventListener('mousedown', e => {
-    if (e.button === 1 || e.button === 2) {
+    if (e.button === 0) {
+      if (planMode !== 'nav') { handlePlanClick(e); return; }
+      dragging = true; dragBtn = 0; lx = e.clientX; ly = e.clientY;
+    } else if (e.button === 1 || e.button === 2) {
       dragging = true; dragBtn = e.button; lx = e.clientX; ly = e.clientY;
       e.preventDefault();
     }
-    if (e.button === 0 && planMode !== 'nav') handlePlanClick(e);
   });
   canvas.addEventListener('contextmenu', e => e.preventDefault());
   window.addEventListener('mouseup', () => { dragging = false; });
@@ -693,23 +771,18 @@ function setupControls(canvas) {
     if (dragging) {
       const dx = e.clientX - lx, dy = e.clientY - ly;
       lx = e.clientX; ly = e.clientY;
-      if (dragBtn === 2) { // orbit
+      if (dragBtn === 0 || dragBtn === 1) { // left or middle = pan
+        doPan(dx, dy);
+      } else if (dragBtn === 2) { // right = orbit
         cam.theta -= dx * 0.005;
-        cam.phi = Math.max(0.1, Math.min(Math.PI * 0.48, cam.phi + dy * 0.005));
-        updateCamera();
-      } else if (dragBtn === 1) { // pan
-        const right = new THREE.Vector3(), up = new THREE.Vector3(), fwd = new THREE.Vector3();
-        camera.matrix.extractBasis(right, up, fwd);
-        const spd = cam.r * 0.001;
-        cam.tx -= right.x * dx * spd; cam.tz -= right.z * dx * spd;
-        cam.tx += fwd.x * dy * spd * 0.5; cam.tz += fwd.z * dy * spd * 0.5;
+        cam.phi = Math.max(0.05, Math.min(Math.PI * 0.48, cam.phi + dy * 0.005));
         updateCamera();
       }
     }
     updateCoords(e);
   });
   canvas.addEventListener('wheel', e => {
-    cam.r = Math.max(10, Math.min(2000, cam.r * (1 + e.deltaY * 0.001)));
+    cam.r = Math.max(10, Math.min(3000, cam.r * (1 + e.deltaY * 0.001)));
     updateCamera();
     e.preventDefault();
   }, { passive: false });
@@ -719,7 +792,7 @@ function setupControls(canvas) {
 
 function processKeys() {
   if (!camera) return;
-  const spd = cam.r * 0.01;
+  const spd = Math.max(cam.r * 0.02, 8); // fast enough to cross the map in reasonable time
   const right = new THREE.Vector3(), up = new THREE.Vector3(), fwd = new THREE.Vector3();
   camera.matrix.extractBasis(right, up, fwd);
   fwd.y = 0; fwd.normalize(); right.y = 0; right.normalize();
