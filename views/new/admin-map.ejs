@@ -18,7 +18,7 @@
 #mv-viewer{display:none;flex:1;position:relative;overflow:hidden}
 #mv-canvas{display:block;width:100%;height:100%}
 /* Progress overlay */
-#mv-progress{display:none;position:absolute;inset:0;background:rgba(12,13,16,.85);z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+#mv-progress{display:none;position:absolute;inset:0;background:rgba(12,13,16,.92);z-index:200;flex-direction:column;align-items:center;justify-content:center;gap:14px}
 #mv-progress p{font-family:'Baloo 2';font-weight:700;font-size:14px;color:#e0e2ed;margin:0}
 .mv-prog-bar{width:260px;height:4px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
 .mv-prog-fill{height:100%;width:60%;background:linear-gradient(90deg,#22863a,#5be38f);border-radius:4px;animation:mvprog 1.2s ease-in-out infinite alternate}
@@ -51,6 +51,13 @@
 </style>
 
 <div id="mv-root">
+  <!-- Progress overlay (covers whole root) -->
+  <div id="mv-progress">
+    <p id="mv-prog-text">Loading…</p>
+    <div class="mv-prog-bar"><div class="mv-prog-fill"></div></div>
+    <p id="mv-prog-err" style="color:#f87171;font-size:12px;max-width:400px;text-align:center;display:none"></p>
+  </div>
+
   <!-- ── File load panel ── -->
   <div id="mv-load">
     <h2>Map Viewer</h2>
@@ -76,11 +83,6 @@
   <!-- ── 3D viewer ── -->
   <div id="mv-viewer">
     <canvas id="mv-canvas"></canvas>
-
-    <div id="mv-progress">
-      <p id="mv-prog-text">Loading…</p>
-      <div class="mv-prog-bar"><div class="mv-prog-fill"></div></div>
-    </div>
 
     <div id="mv-toolbar">
       <div class="mv-tool" id="tool-nav" onclick="setTool('nav')">✦ Navigate</div>
@@ -223,42 +225,51 @@ function startLoad(map) {
 // ══════════════════════════════════════════════════════════════════════════════
 
 async function loadWorld(files) {
-  showProgress(true, 'Parsing JSON…');
-  meta = JSON.parse(await files.get('meta.json').text());
-  paletteArr = JSON.parse(await files.get('palette.json').text());
-  biomePal = JSON.parse(await files.get('biome_palette.json').text());
+  try {
+    showProgress(true, 'Parsing JSON…');
+    meta = JSON.parse(await files.get('meta.json').text());
+    paletteArr = JSON.parse(await files.get('palette.json').text());
+    biomePal = JSON.parse(await files.get('biome_palette.json').text());
 
-  W = meta.width ?? meta.worldWidth ?? 0;
-  H = meta.height ?? meta.worldHeight ?? meta.worldDepth ?? 0;
-  minY = meta.minHeight ?? meta.minY ?? -64;
-  skirtDepth = meta.skirtDepth ?? 4;
+    console.log('meta:', JSON.stringify(meta));
 
-  showProgress(true, 'Loading heightmap…');
-  heights = await parseHeightmap(files.get('heightmap.png'));
+    W = meta.width ?? meta.worldWidth ?? 0;
+    H = meta.height ?? meta.worldHeight ?? meta.worldDepth ?? 0;
+    minY = meta.minHeight ?? meta.minY ?? -64;
+    skirtDepth = meta.skirtDepth ?? 4;
 
-  showProgress(true, 'Parsing blocks.bin…');
-  const bl = parseBlocksBin(await files.get('blocks.bin').arrayBuffer());
-  surface = bl.surface; skirtArr = bl.skirt; waterArr = bl.water;
+    if (!W || !H) throw new Error(`Invalid world dimensions from meta.json: width=${W} height=${H}. Check field names.`);
 
-  showProgress(true, 'Parsing biomes.bin…');
-  biomes = parseBiomesBin(await files.get('biomes.bin').arrayBuffer());
+    showProgress(true, 'Loading heightmap…');
+    heights = await parseHeightmap(files.get('heightmap.png'));
 
-  buildBlockColors();
+    showProgress(true, 'Parsing blocks.bin…');
+    const bl = parseBlocksBin(await files.get('blocks.bin').arrayBuffer());
+    surface = bl.surface; skirtArr = bl.skirt; waterArr = bl.water;
 
-  // Optional textures
-  const texFiles = [...files].filter(([k]) => k.endsWith('.png') && k !== 'heightmap.png');
-  if (texFiles.length) {
-    showProgress(true, `Building texture atlas (${texFiles.length} textures)…`);
-    await buildAtlas(texFiles.map(([,f]) => f));
+    showProgress(true, 'Parsing biomes.bin…');
+    biomes = parseBiomesBin(await files.get('biomes.bin').arrayBuffer());
+
+    buildBlockColors();
+
+    // Optional textures
+    const texFiles = [...files].filter(([k]) => k.endsWith('.png') && k !== 'heightmap.png');
+    if (texFiles.length) {
+      showProgress(true, `Building texture atlas (${texFiles.length} textures)…`);
+      await buildAtlas(texFiles.map(([,f]) => f));
+    }
+
+    showProgress(true, 'Initialising scene…');
+    initScene();
+    document.getElementById('mv-load').style.display = 'none';
+    document.getElementById('mv-viewer').style.display = '';
+    showProgress(false);
+    setTool('nav');
+    animate();
+  } catch (err) {
+    console.error('Map load error:', err);
+    showProgress(true, 'Failed to load — check the browser console (F12) for details', String(err));
   }
-
-  showProgress(true, 'Initialising scene…');
-  initScene();
-  document.getElementById('mv-load').style.display = 'none';
-  document.getElementById('mv-viewer').style.display = '';
-  showProgress(false);
-  setTool('nav');
-  animate();
 }
 
 async function parseHeightmap(file) {
@@ -910,10 +921,13 @@ window.loadPlanFile = function(input) {
 // HELPERS
 // ══════════════════════════════════════════════════════════════════════════════
 
-function showProgress(visible, text) {
+function showProgress(visible, text, err) {
   const el = document.getElementById('mv-progress');
   el.style.display = visible ? 'flex' : 'none';
   if (text) document.getElementById('mv-prog-text').textContent = text;
+  const errEl = document.getElementById('mv-prog-err');
+  if (err) { errEl.textContent = err; errEl.style.display = ''; }
+  else errEl.style.display = 'none';
 }
 
 // Expose globals needed by inline onclick handlers
