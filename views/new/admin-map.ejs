@@ -557,6 +557,7 @@ async function autoLoadTextures() {
   })));
 
   atlasTex = new THREE.CanvasTexture(ac);
+  atlasTex.flipY = false; // atlas UV math uses V=0 at canvas top; don't flip
   atlasTex.magFilter = THREE.NearestFilter;
   atlasTex.minFilter = THREE.NearestMipmapLinearFilter;
   atlasTex.generateMipmaps = true;
@@ -841,10 +842,13 @@ function emitSideFace(wx, wz, yBot, yTop, dx, dz, nx, nz, bid, pos, norm, uv, co
     p2 = [wx+1, yTop+1, wz  ]; p3 = [wx,   yTop+1, wz  ];
   }
   // Two tris — CCW winding so face normal points outward
+  // p0/p1 = face bottom (yBot), p2/p3 = face top (yTop+1)
+  // uvv=[u0,v0,u1,v1] with flipY=false: v0=canvas-top, v1=canvas-bottom
+  // face top → texture top (v0), face bottom → texture bottom (v1)
   const verts = [p0,p2,p1, p0,p3,p2];
   const uvs = [
-    [uvv[0],uvv[1]],[uvv[2],uvv[3]],[uvv[2],uvv[1]],
-    [uvv[0],uvv[1]],[uvv[0],uvv[3]],[uvv[2],uvv[3]],
+    [uvv[0],uvv[3]],[uvv[2],uvv[1]],[uvv[2],uvv[3]],
+    [uvv[0],uvv[3]],[uvv[0],uvv[1]],[uvv[2],uvv[1]],
   ];
   for (let i=0;i<6;i++) {
     pos.push(...verts[i]);
