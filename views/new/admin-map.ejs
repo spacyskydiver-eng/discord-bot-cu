@@ -1600,6 +1600,31 @@ function updateCamera() {
   camera.lookAt(cam.tx, ty, cam.tz);
 }
 
+// groundHeight is "the topmost solid material in this column", which for a
+// leaf-topped column is the canopy shelf itself, not the forest floor - a
+// real player standing under a tree is on the ground *beneath* the canopy,
+// not balanced on top of the leaves. Walks past the leaf (and anything else
+// non-solid or also leaves) to find the first real, non-leaf solid material
+// below, so Walk Mode actually plants you on the forest floor a player
+// would be standing on instead of teleporting you up into the canopy -
+// otherwise every walk-mode investigation of a tree-area bug starts from
+// the wrong vantage point entirely.
+function realGroundHeightAt(idx) {
+  const gb = groundBlock[idx];
+  if (!gb || !blockName[gb]?.endsWith('_leaves')) return groundHeight[idx];
+  const rs = runStart[idx], rc = runCount[idx];
+  let d = 0;
+  for (let r = 0; r < rc; r++) {
+    const bid = runBlockIds[rs + r];
+    const len = runLengths[rs + r];
+    if (bid && !isWalkPast(bid) && !blockName[bid]?.endsWith('_leaves')) {
+      return groundHeight[idx] - 1 - d;
+    }
+    d += len;
+  }
+  return groundHeight[idx]; // no real ground within recorded depth - fall back to the canopy top
+}
+
 // Real terrain height at world (x,z), clamped to the loaded grid - used by
 // walk mode to keep the camera standing on the ground instead of needing to
 // manually fly to a guessed height. Falls back to the last known height for
@@ -1608,7 +1633,7 @@ function terrainHeightAt(x, z) {
   const gx = Math.min(W - 1, Math.max(0, Math.round(x)));
   const gz = Math.min(H - 1, Math.max(0, Math.round(z)));
   const idx = gz * W + gx;
-  const gh = groundHeight ? groundHeight[idx] : undefined;
+  const gh = groundHeight ? realGroundHeightAt(idx) : undefined;
   return isFinite(gh) ? gh : cam.ty;
 }
 
