@@ -145,6 +145,10 @@ let heights, surface, skirtArr, waterArr, biomes;
 // plantShift is 1 for those columns (0 otherwise) so getBlockAtDepth can offset
 // its skirt indexing to match. The plant itself is drawn separately as a cross.
 let groundHeight, groundBlock, plantShift;
+// floorHeight/floorBlock (NaN/0 when absent): a deeper real-ground surface
+// found below an air gap in this column's skirt - e.g. a tree canopy
+// floating above the forest floor. See computeGroundHeights.
+let floorHeight, floorBlock;
 let W = 0, H = 0, minY = 0, skirtDepth = 4;
 
 // ── Three.js ──────────────────────────────────────────────────────────────────
@@ -634,6 +638,8 @@ function computeGroundHeights() {
   groundHeight = new Float32Array(n);
   groundBlock = new Uint16Array(n);
   plantShift = new Uint8Array(n);
+  floorHeight = new Float32Array(n).fill(NaN);
+  floorBlock = new Uint16Array(n);
   for (let i = 0; i < n; i++) {
     const s = surface[i];
     if (s && nonSolidIds.has(s)) {
@@ -655,6 +661,32 @@ function computeGroundHeights() {
     }
     groundHeight[i] = heights[i];
     groundBlock[i] = s;
+  }
+
+  // A column's own solid top (groundHeight/groundBlock above) can still be
+  // floating over real ground with nothing connecting them - e.g. a tree
+  // canopy column, whose recorded surface is a leaf block sitting several
+  // empty blocks above the actual forest floor. That floor data IS present
+  // in the skirt, but until now nothing ever drew it: side walls only
+  // appear where a *shorter neighbour* triggers one, so a canopy column
+  // boxed in by same-height canopy on all four sides had literally no
+  // geometry below its own top face - sky was visible straight through any
+  // gap in the leaves. Scan each column's skirt for a solid-air-solid
+  // pattern (real ground reappearing after a gap) and remember it so it can
+  // be drawn as an extra floor patch regardless of neighbour heights.
+  for (let i = 0; i < n; i++) {
+    const shift = plantShift[i];
+    let sawGap = false;
+    for (let depth = 1; depth <= skirtDepth - shift; depth++) {
+      const d = depth - 1 + shift;
+      const b = skirtArr[i * skirtDepth + d];
+      if (!b || nonSolidIds.has(b)) { sawGap = true; continue; }
+      if (sawGap) {
+        floorHeight[i] = groundHeight[i] - depth;
+        floorBlock[i] = b;
+      }
+      break;
+    }
   }
 }
 
@@ -890,7 +922,14 @@ function getBlockAtDepth(idx, depth) {
   if (depth === 0) return groundBlock[idx];
   const d = depth - 1 + shift;
   if (d < skirtDepth) return skirtArr[idx * skirtDepth + d];
-  return 1; // stone fallback
+  // Deeper than the recorded skirt (e.g. a very tall tree next to a much
+  // shorter neighbour, needing more wall than skirtDepth blocks). Repeat the
+  // deepest recorded block rather than guessing: this used to hardcode
+  // block id 1 as "stone", but palette ids are assigned per-world in scan
+  // order - id 1 is whatever block that world happened to register first
+  // (often dirt, not stone), so it rendered as an unrelated, wrong-colored
+  // block wherever a wall ran past the recorded depth.
+  return skirtArr[idx * skirtDepth + skirtDepth - 1];
 }
 
 function getUV(blockId, face) {
@@ -1011,6 +1050,25 @@ function _buildChunkInner(cx, cz, key) {
         addQuad(
           [wx, wy+1, wz], [wx+1, wy+1, wz], [wx+1, wy+1, wz+1], [wx, wy+1, wz+1],
           0, 1, 0, uvv[0], uvv[1], uvv[2], uvv[3], cr, cg, cb2, true
+        );
+      }
+
+      // FLOOR PATCH — real ground sitting below an air gap under this
+      // column's own solid top (see computeGroundHeights): most commonly a
+      // tree canopy column floating above the forest floor. Drawn
+      // unconditionally (not just where a shorter neighbour exposes it) so
+      // there's always something visible looking through gaps in a canopy,
+      // instead of sky straight through to the horizon.
+      if (!isNaN(floorHeight[idx])) {
+        const fbid = floorBlock[idx];
+        const ftc = getBiomeTint(biomeId, 'top', fbid);
+        const fColor = blockCol[fbid] || new THREE.Color(0x888888);
+        const fr = atlasTex ? ftc[0] : fColor.r * ftc[0], fg = atlasTex ? ftc[1] : fColor.g * ftc[1], fb2 = atlasTex ? ftc[2] : fColor.b * ftc[2];
+        const fuvv = getUV(fbid, 'top') || fallbackUV();
+        const fy = floorHeight[idx];
+        addQuad(
+          [wx, fy+1, wz], [wx+1, fy+1, wz], [wx+1, fy+1, wz+1], [wx, fy+1, wz+1],
+          0, 1, 0, fuvv[0], fuvv[1], fuvv[2], fuvv[3], fr, fg, fb2, true
         );
       }
 
