@@ -1193,6 +1193,52 @@ function _buildChunkInner(cx, cz, key) {
   const _fuv = [(ATLAS-TEX)/ATLAS, (ATLAS-TEX)/ATLAS, 1.0, 1.0];
   function fallbackUV() { return _fuv; }
 
+  // Draws one decorative non-solid block (grass, a flower, a snow layer...)
+  // as a cross billboard or flat layer at world Y `y`, tinted for `biomeId`.
+  // `aboveBid` is only used to infer a double-tall plant's upper/lower half
+  // on older scans that didn't record the half= property directly (see
+  // DOUBLE_TALL comment) - pass 0 if there's nothing recorded immediately
+  // above this layer (or it doesn't matter, e.g. calling from self-skirt).
+  // Shared by both the top-of-column plant stack and self-skirt below,
+  // since a snow layer (or any other decorative block) can appear either
+  // place: real leaf/snow data is very often several *interleaved* snow
+  // layers and leaf shelves stacked within one tree's canopy, not just one
+  // snow layer on top - every one of those needs its own sprite drawn, or
+  // whichever ones aren't the very topmost simply vanish (neither a wall
+  // nor a sprite drawn for them), leaving real, see-through gaps exactly at
+  // the height a real player would see a thin snow layer resting on a leaf
+  // shelf.
+  function drawPlantSprite(wx, wz, biomeId, plantBid, y, aboveBid) {
+    if (!plantBid || noRenderIds.has(plantBid)) return;
+    const name = blockName[plantBid];
+    const plantTc = getBiomeTint(biomeId, 'top', plantBid);
+    let uvv;
+    if (DOUBLE_TALL.has(name)) {
+      const half = blockProps[plantBid]?.half;
+      let suffix;
+      if (half === 'upper') suffix = '_top';
+      else if (half === 'lower') suffix = '_bottom';
+      else suffix = aboveBid === plantBid ? '_bottom' : '_top';
+      uvv = uvCache[name + suffix] || getUV(plantBid, 'top') || fallbackUV();
+    } else {
+      uvv = getUV(plantBid, 'top') || fallbackUV();
+    }
+    const plantColor = blockCol[plantBid] || new THREE.Color(0xffffff);
+    const pr = atlasTex ? plantTc[0] : plantColor.r * plantTc[0];
+    const pg = atlasTex ? plantTc[1] : plantColor.g * plantTc[1];
+    const pb = atlasTex ? plantTc[2] : plantColor.b * plantTc[2];
+    if (isFlatLayer(name)) {
+      // Real snow accumulates 1-8 layers deep (a full layers=8 stack is the
+      // same height as a solid snow_block); use the actual recorded depth
+      // when the scan captured it instead of a fixed thin slab.
+      const layers = +blockProps[plantBid]?.layers;
+      const frac = layers >= 1 && layers <= 8 ? layers / 8 : 0.1;
+      addFlatLayer(wx, y, wz, uvv, pr, pg, pb, frac);
+    } else {
+      addCross(wx, y, wz, uvv, pr, pg, pb);
+    }
+  }
+
   const DIRS4 = [
     { dx: 1, dz: 0, nx: 1, nz: 0 },
     { dx:-1, dz: 0, nx:-1, nz: 0 },
@@ -1325,11 +1371,24 @@ function _buildChunkInner(cx, cz, key) {
           const segStart = d0, segEnd = d0 + len;
           d0 = segEnd;
           if (segEnd <= skip) continue; // entirely within the already-consumed region
+          const effStart = Math.max(segStart, skip);
           if (bid && !isWalkPast(bid)) {
-            const effStart = Math.max(segStart, skip);
             const yTop = wy - 1 - effStart;
             const yBot = wy - effStart - (segEnd - effStart);
             emitSelfRun(idx, mx, mz, wx, wz, yBot, yTop, bid, biomeId);
+          } else if (bid) {
+            // A decorative non-solid block (almost always a snow layer)
+            // buried inside the canopy, not just sitting on top of it - real
+            // spruce/dark-oak trees in snowy biomes very often have several
+            // separate snow layers resting on internal foliage shelves, not
+            // just the very top. It's correctly not solid (no wall - a snow
+            // layer doesn't block a side view), but it still needs its own
+            // sprite drawn at each depth it occupies, or that whole
+            // Y-range silently has nothing at all: no wall (correct) *and*
+            // no visible layer (wrong) - exactly the gap a player would spot
+            // as "the snow's floating" or "I can see clean through the tree
+            // here" once the solid shelves above and below it are drawn.
+            for (let d = effStart; d < segEnd; d++) drawPlantSprite(wx, wz, biomeId, bid, wy - 1 - d, 0);
           }
         }
       }
@@ -1342,43 +1401,9 @@ function _buildChunkInner(cx, cz, key) {
       const layerBlockAt = k => k === 0 ? surface[idx] : blockAtRunDepth(idx, k - 1);
       for (let k = 0; k < layerCount; k++) {
         const plantBid = layerBlockAt(k);
-        if (!plantBid || noRenderIds.has(plantBid)) continue; // e.g. a player head - nothing to draw
-        const name = blockName[plantBid];
-        const plantTc = getBiomeTint(biomeId, 'top', plantBid);
-        let uvv;
-        if (DOUBLE_TALL.has(name)) {
-          // Both halves share one block id (see DOUBLE_TALL comment). Newer
-          // scans capture the real half=upper/lower property directly
-          // (blockProps); fall back to inferring it from whichever
-          // neighbouring layer in the stack shares this same block id for
-          // older scans that only ever recorded the bare name.
-          const half = blockProps[plantBid]?.half;
-          let suffix;
-          if (half === 'upper') suffix = '_top';
-          else if (half === 'lower') suffix = '_bottom';
-          else {
-            const aboveBid = k > 0 ? layerBlockAt(k - 1) : 0;
-            suffix = aboveBid === plantBid ? '_bottom' : '_top';
-          }
-          uvv = uvCache[name + suffix] || getUV(plantBid, 'top') || fallbackUV();
-        } else {
-          uvv = getUV(plantBid, 'top') || fallbackUV();
-        }
-        const plantColor = blockCol[plantBid] || new THREE.Color(0xffffff);
-        const pr = atlasTex ? plantTc[0] : plantColor.r * plantTc[0];
-        const pg = atlasTex ? plantTc[1] : plantColor.g * plantTc[1];
-        const pb = atlasTex ? plantTc[2] : plantColor.b * plantTc[2];
         const layerBaseY = wy + (layerCount - k - 1); // top of whatever this layer sits on
-        if (isFlatLayer(name)) {
-          // Real snow accumulates 1-8 layers deep (a full layers=8 stack is
-          // the same height as a solid snow_block); use the actual recorded
-          // depth when the scan captured it instead of a fixed thin slab.
-          const layers = +blockProps[plantBid]?.layers;
-          const frac = layers >= 1 && layers <= 8 ? layers / 8 : 0.1;
-          addFlatLayer(wx, layerBaseY + 1, wz, uvv, pr, pg, pb, frac);
-        } else {
-          addCross(wx, layerBaseY + 1, wz, uvv, pr, pg, pb);
-        }
+        const aboveBid = k > 0 ? layerBlockAt(k - 1) : 0;
+        drawPlantSprite(wx, wz, biomeId, plantBid, layerBaseY + 1, aboveBid);
       }
 
       // SIDE FACES — check 4 neighbours
