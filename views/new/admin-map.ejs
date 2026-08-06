@@ -1108,12 +1108,25 @@ function _buildChunkInner(cx, cz, key) {
   // standing up as a cross. baseY is the Y of the solid surface it rests on.
   // frac (0-1) is how tall to draw it - snow's real "layers" count (1-8)
   // maps directly to this when known; anything else defaults to a thin slab.
+  // Also draws thin side walls down to baseY using the same texture, so a
+  // multi-layer snow patch (or any other flat layer) shows its own colour
+  // all the way around instead of exposing whatever real ground it's
+  // sitting on - visible any time the camera looks at it from a low angle.
   function addFlatLayer(wx, baseY, wz, uvv, r, g, b, frac) {
     const y = baseY + Math.max(0.1, frac ?? 0.1);
     addQuad(
       [wx, y, wz], [wx+1, y, wz], [wx+1, y, wz+1], [wx, y, wz+1],
       0, 1, 0, uvv[0], uvv[1], uvv[2], uvv[3], r, g, b, true
     );
+    const sides = [
+      { p0:[wx+1,baseY,wz],   p1:[wx+1,baseY,wz+1], p2:[wx+1,y,wz+1], p3:[wx+1,y,wz],   n:[1,0,0] },
+      { p0:[wx,baseY,wz+1],   p1:[wx,baseY,wz],     p2:[wx,y,wz],     p3:[wx,y,wz+1],   n:[-1,0,0] },
+      { p0:[wx+1,baseY,wz+1], p1:[wx,baseY,wz+1],   p2:[wx,y,wz+1],   p3:[wx+1,y,wz+1], n:[0,0,1] },
+      { p0:[wx,baseY,wz],     p1:[wx+1,baseY,wz],   p2:[wx+1,y,wz],   p3:[wx,y,wz],     n:[0,0,-1] },
+    ];
+    for (const { p0, p1, p2, p3, n } of sides) {
+      addQuad(p0, p1, p2, p3, n[0], n[1], n[2], uvv[0], uvv[1], uvv[2], uvv[3], r, g, b, true);
+    }
   }
 
   // Last atlas slot — always empty white since palette << 4096 slots total
