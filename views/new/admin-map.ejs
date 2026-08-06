@@ -85,6 +85,7 @@
 
     <div id="mv-toolbar">
       <div class="mv-tool" id="tool-nav" onclick="setTool('nav')">✦ Navigate</div>
+      <div class="mv-tool" id="tool-walk" onclick="toggleWalkMode()">🚶 Walk Mode</div>
       <div style="height:6px"></div>
       <div class="mv-tool" onclick="setTool('spawn')">⊕ Spawn Zone</div>
       <div class="mv-tool" onclick="setTool('mining')">⊕ Mining Zone</div>
@@ -182,6 +183,20 @@ const cam = { theta: 0.6, phi: 0.35, r: 300, tx: 0, ty: 0, tz: 0 };
 const keys = {};
 let dragging = false, dragBtn = -1, lx = 0, ly = 0;
 let pendingLabelPos = null;
+
+// Walk mode: collapses the orbit radius to ~0 so the camera sits at (tx,ty,tz)
+// and looks in the theta/phi direction like a first-person view (reusing the
+// same orbit math and the same right-drag-to-look control, just with a radius
+// too small to notice), and makes ty continuously follow the real terrain
+// height under (tx,tz) each frame - like a player walking on the ground -
+// instead of needing to manually fly to a guessed height. Meant for precisely
+// walking up to a specific spot to read its exact block coordinates off the
+// HUD, since eyeballing coordinates from a distant orbit view is unreliable.
+let walkMode = false;
+const WALK_EYE_HEIGHT = 1.7;
+const WALK_R = 0.2;
+let orbitR = 60; // remembered orbit radius to restore when leaving walk mode
+let jumpVel = 0, jumpY = 0;
 
 // ── Planning ──────────────────────────────────────────────────────────────────
 let planMode = 'nav';
@@ -1530,13 +1545,44 @@ function emitSideFace(wx, wz, yBot, yTop, dx, dz, nx, nz, bid, biomeId, pos, nor
 function updateCamera() {
   const sinPhi = Math.sin(cam.phi), cosPhi = Math.cos(cam.phi);
   const sinTh = Math.sin(cam.theta), cosTh = Math.cos(cam.theta);
+  const ty = cam.ty + jumpY;
   camera.position.set(
     cam.tx + cam.r * sinPhi * sinTh,
-    cam.ty + cam.r * cosPhi,
+    ty + cam.r * cosPhi,
     cam.tz + cam.r * sinPhi * cosTh
   );
-  camera.lookAt(cam.tx, cam.ty, cam.tz);
+  camera.lookAt(cam.tx, ty, cam.tz);
 }
+
+// Real terrain height at world (x,z), clamped to the loaded grid - used by
+// walk mode to keep the camera standing on the ground instead of needing to
+// manually fly to a guessed height. Falls back to the last known height for
+// out-of-bounds/no-data columns rather than snapping to 0.
+function terrainHeightAt(x, z) {
+  const gx = Math.min(W - 1, Math.max(0, Math.round(x)));
+  const gz = Math.min(H - 1, Math.max(0, Math.round(z)));
+  const idx = gz * W + gx;
+  const gh = groundHeight ? groundHeight[idx] : undefined;
+  return isFinite(gh) ? gh : cam.ty;
+}
+
+function toggleWalkMode() {
+  walkMode = !walkMode;
+  const btn = document.getElementById('tool-walk');
+  if (btn) btn.classList.toggle('active', walkMode);
+  if (walkMode) {
+    orbitR = cam.r;
+    cam.r = WALK_R;
+    cam.ty = terrainHeightAt(cam.tx, cam.tz) + WALK_EYE_HEIGHT;
+    jumpVel = 0; jumpY = 0;
+  } else {
+    cam.r = orbitR;
+    jumpVel = 0; jumpY = 0; // don't carry a mid-jump offset into orbit view
+  }
+  updateCamera();
+  updateWalkCoords();
+}
+window.toggleWalkMode = toggleWalkMode;
 
 function doPan(dx, dy) {
   const right = new THREE.Vector3(), up = new THREE.Vector3(), fwd = new THREE.Vector3();
@@ -1578,16 +1624,51 @@ function setupControls(canvas) {
     updateCamera();
     e.preventDefault();
   }, { passive: false });
-  window.addEventListener('keydown', e => { keys[e.code] = true; });
+  window.addEventListener('keydown', e => {
+    keys[e.code] = true;
+    // Space/arrows otherwise scroll the page - a jump or nudge shouldn't
+    // also yank the whole viewport down.
+    if (e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
+  });
   window.addEventListener('keyup',   e => { keys[e.code] = false; });
 }
 
+const WALK_GRAVITY = 0.028;
+const WALK_JUMP_VEL = 0.36;
+
 function processKeys() {
   if (!camera) return;
-  const spd = Math.max(cam.r * 0.02, 8); // fast enough to cross the map in reasonable time
   const right = new THREE.Vector3(), up = new THREE.Vector3(), fwd = new THREE.Vector3();
   camera.matrix.extractBasis(right, up, fwd);
   fwd.y = 0; fwd.normalize(); right.y = 0; right.normalize();
+
+  if (walkMode) {
+    // Fixed, human-scale walking pace (not scaled by orbit radius, which is
+    // pinned tiny in walk mode anyway) - hold Shift to cover ground faster.
+    const spd = keys['ShiftLeft'] || keys['ShiftRight'] ? 0.6 : 0.25;
+    let moved = false;
+    if (keys['KeyW'] || keys['ArrowUp'])    { cam.tx -= fwd.x*spd; cam.tz -= fwd.z*spd; moved = true; }
+    if (keys['KeyS'] || keys['ArrowDown'])  { cam.tx += fwd.x*spd; cam.tz += fwd.z*spd; moved = true; }
+    if (keys['KeyA'] || keys['ArrowLeft'])  { cam.tx -= right.x*spd; cam.tz -= right.z*spd; moved = true; }
+    if (keys['KeyD'] || keys['ArrowRight']) { cam.tx += right.x*spd; cam.tz += right.z*spd; moved = true; }
+    // Stand on the real terrain surface under the current position every
+    // frame, like a player - if you walk over a genuine gap the camera dips
+    // down into it instead of gliding across empty space, which is exactly
+    // the "does the ground actually connect here" check this mode is for.
+    cam.ty = terrainHeightAt(cam.tx, cam.tz) + WALK_EYE_HEIGHT;
+    if (keys['Space'] && jumpY <= 0 && jumpVel === 0) jumpVel = WALK_JUMP_VEL;
+    if (jumpY > 0 || jumpVel > 0) {
+      jumpY += jumpVel;
+      jumpVel -= WALK_GRAVITY;
+      if (jumpY <= 0) { jumpY = 0; jumpVel = 0; }
+      moved = true;
+    }
+    if (moved) updateCamera();
+    updateWalkCoords();
+    return;
+  }
+
+  const spd = Math.max(cam.r * 0.02, 8); // fast enough to cross the map in reasonable time
   if (keys['KeyW'] || keys['ArrowUp'])   { cam.tx -= fwd.x*spd; cam.tz -= fwd.z*spd; }
   if (keys['KeyS'] || keys['ArrowDown']) { cam.tx += fwd.x*spd; cam.tz += fwd.z*spd; }
   if (keys['KeyA'] || keys['ArrowLeft']) { cam.tx -= right.x*spd; cam.tz -= right.z*spd; }
@@ -1671,6 +1752,15 @@ function animate() {
 // ══════════════════════════════════════════════════════════════════════════════
 
 const coordsEl = document.getElementById('mv-coords');
+// The internal scene/grid coordinate system is *local* (0..W-1, 0..H-1), not
+// real Minecraft world coordinates - meta.originX/originZ is the offset
+// between them. Every coordinate shown to the user must add this back, or
+// numbers read off the map (like to report a bug location) won't match what
+// F3 shows in-game at all, off by exactly the scan's origin.
+function toWorldCoords(x, z) {
+  return { wx: Math.round(x + (meta?.originX ?? 0)), wz: Math.round(z + (meta?.originZ ?? 0)) };
+}
+
 function updateCoords(e) {
   if (!camera || !scene) return;
   const canvas = document.getElementById('mv-canvas');
@@ -1678,11 +1768,34 @@ function updateCoords(e) {
   const mx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
   const my = -((e.clientY - rect.top) / rect.height) * 2 + 1;
   raycaster.setFromCamera({ x: mx, y: my }, camera);
-  // Cast against a rough terrain plane at average height
-  const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -(minY + 80));
-  const hit = new THREE.Vector3();
-  raycaster.ray.intersectPlane(plane, hit);
-  if (hit) coordsEl.textContent = `X: ${Math.round(hit.x)}  Y: ${Math.round(-hit.y)}  Z: ${Math.round(hit.z)}`;
+  // Raycast the actual rendered terrain first - this is what makes the
+  // readout trustworthy for pinpointing a bug (it's the real block under the
+  // cursor, not an arbitrary flat plane that only happens to be right at one
+  // fixed height). Falls back to a mid-height plane only when the cursor
+  // isn't over any built geometry at all (e.g. pointing at open sky).
+  const meshes = [];
+  for (const c of chunks.values()) { if (c.solid) meshes.push(c.solid); }
+  const hits = raycaster.intersectObjects(meshes, false);
+  let px, py, pz;
+  if (hits.length) {
+    ({ x: px, y: py, z: pz } = hits[0].point);
+  } else {
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -(minY + 80));
+    const hit = new THREE.Vector3();
+    if (!raycaster.ray.intersectPlane(plane, hit)) return;
+    ({ x: px, y: py, z: pz } = hit);
+  }
+  const { wx, wz } = toWorldCoords(px, pz);
+  coordsEl.textContent = `X: ${wx}  Y: ${Math.round(py)}  Z: ${wz}`;
+}
+
+// Live readout of the walking position itself (not just wherever the mouse
+// happens to be hovering) so the coordinate on screen always matches where
+// you're actually standing while using Walk Mode to hunt down a bug.
+function updateWalkCoords() {
+  if (!walkMode) return;
+  const { wx, wz } = toWorldCoords(cam.tx, cam.tz);
+  coordsEl.textContent = `X: ${wx}  Y: ${Math.round(cam.ty - WALK_EYE_HEIGHT + 1)}  Z: ${wz}  (standing)`;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
