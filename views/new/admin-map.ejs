@@ -539,6 +539,7 @@ const BLOCK_TEX_MAP = {
   hay_block:       { top:'hay_block_top',    side:'hay_block_side',   bottom:'hay_block_top' },
   quartz_block:    { top:'quartz_block_top', side:'quartz_block_side',bottom:'quartz_block_bottom' },
   snow_block:      { top:'snow',             side:'snow',             bottom:'snow' },
+  snow_layer:      { top:'snow',             side:'snow',             bottom:'snow' },
 };
 
 // Non-solid blocks: plants, carpets, rails, etc.
@@ -564,6 +565,29 @@ const NON_SOLID = new Set([
   'snow','snow_layer','carpet',
   'cobweb','string','chain','ladder','iron_bars',
 ]);
+
+// Thin near-horizontal blocks - these sit low and flat across most of the
+// block's footprint, unlike a flower/grass cross which stands upright. Drawn
+// as a single flat quad near the bottom of the block instead of an X
+// billboard (which is what NON_SOLID's other members get); without this
+// split, a snow layer on the ground rendered as a vertical "X" using the
+// snow texture, looking like a strange pale tuft of grass.
+const FLAT_LAYER = new Set([
+  'snow', 'snow_layer', 'moss_carpet', 'lily_pad', 'turtle_egg', 'sea_pickle',
+]);
+function isFlatLayer(name) { return FLAT_LAYER.has(name) || name.endsWith('_carpet'); }
+
+// Double-tall plants: Minecraft stores both halves as the SAME block id with
+// a half=upper/lower blockstate property, but the scan mod only records the
+// bare block Name and drops blockstate properties entirely (see
+// BlockStateEditor.getBlockId, which reads only the palette entry's "Name").
+// So both halves arrive here as identical strings, even though their
+// textures are two separate files (e.g. tall_grass_top.png /
+// tall_grass_bottom.png - there's no plain "tall_grass.png"). Which texture
+// to use is inferred purely from stack position at render time (see the
+// PLANT SPRITE loop): a layer whose immediate neighbour in the stack is the
+// same block id is the paired half; isolated occurrences default to _top.
+const DOUBLE_TALL = new Set(['tall_grass', 'large_fern', 'sunflower', 'lilac', 'peony', 'rose_bush']);
 
 // Logs follow a standard pattern
 const LOG_TYPES = ['oak','spruce','birch','jungle','acacia','dark_oak','mangrove','cherry','bamboo','crimson','warped'];
@@ -599,6 +623,12 @@ function buildBlockColors() {
 // neighbouring solid terrain should line up with the *ground* under a plant,
 // not the plant's own recorded height (otherwise every tuft of grass creates
 // a spurious 1-block ledge in the terrain mesh).
+//
+// plantShift counts how many non-solid layers sit stacked above the real
+// ground (not just 0 or 1): a double-tall plant (its lower half recorded in
+// skirt[0]) or a snow layer sitting on top of grass both need to walk past
+// more than one non-solid entry before reaching solid ground, and each of
+// those layers gets its own sprite drawn on top of one another.
 function computeGroundHeights() {
   const n = W * H;
   groundHeight = new Float32Array(n);
@@ -607,16 +637,21 @@ function computeGroundHeights() {
   for (let i = 0; i < n; i++) {
     const s = surface[i];
     if (s && nonSolidIds.has(s)) {
-      const below = skirtArr[i * skirtDepth + 0];
-      if (below && !nonSolidIds.has(below)) {
-        plantShift[i] = 1;
-        groundHeight[i] = heights[i] - 1;
-        groundBlock[i] = below;
+      let d = 0;
+      while (d < skirtDepth) {
+        const b = skirtArr[i * skirtDepth + d];
+        if (b && !nonSolidIds.has(b)) break;
+        d++;
+      }
+      if (d < skirtDepth) {
+        plantShift[i] = d + 1; // surface + d skirt entries are all non-solid
+        groundHeight[i] = heights[i] - (d + 1);
+        groundBlock[i] = skirtArr[i * skirtDepth + d];
         continue;
       }
-      // No solid block recorded directly under the plant (rare - e.g. shallow
-      // skirt data). Fall back to treating the plant itself as the solid top
-      // rather than leaving a hole; the cross sprite still draws on top of it.
+      // No solid block found anywhere in the recorded skirt (rare - e.g.
+      // shallow skirt data). Fall back to treating the plant itself as the
+      // solid top rather than leaving a hole; its sprite still draws on top.
     }
     groundHeight[i] = heights[i];
     groundBlock[i] = s;
@@ -633,6 +668,7 @@ async function autoLoadTextures() {
     const t = blockTexNames(name);
     needed.add(t.top); needed.add(t.side);
     if (name === 'grass_block') { needed.add('grass_block_side_overlay'); needsGrassOverlay = true; }
+    if (DOUBLE_TALL.has(name)) { needed.add(name + '_top'); needed.add(name + '_bottom'); }
   }
 
   // Fetch all in parallel, silently skip 404s
@@ -937,6 +973,17 @@ function _buildChunkInner(cx, cz, key) {
     }
   }
 
+  // A thin flat quad near the bottom of the block, for snow layers/carpets/
+  // lily pads - things that lie flat across the footprint rather than
+  // standing up as a cross. baseY is the Y of the solid surface it rests on.
+  function addFlatLayer(wx, baseY, wz, uvv, r, g, b) {
+    const y = baseY + 0.1;
+    addQuad(
+      [wx, y, wz], [wx+1, y, wz], [wx+1, y, wz+1], [wx, y, wz+1],
+      0, 1, 0, uvv[0], uvv[1], uvv[2], uvv[3], r, g, b, true
+    );
+  }
+
   // Last atlas slot — always empty white since palette << 4096 slots total
   const _fuv = [(ATLAS-TEX)/ATLAS, (ATLAS-TEX)/ATLAS, 1.0, 1.0];
   function fallbackUV() { return _fuv; }
@@ -967,18 +1014,38 @@ function _buildChunkInner(cx, cz, key) {
         );
       }
 
-      // PLANT SPRITE — a decorative non-solid block (grass, flower, fern...)
-      // sitting on top of this column's real ground, drawn as a cross, not
-      // folded into the solid cube above.
-      if (plantShift[idx]) {
-        const plantBid = surface[idx];
+      // PLANT SPRITE(S) — one or more decorative non-solid blocks (grass,
+      // flowers, ferns, a double-tall plant's two halves, a snow layer on
+      // top of grass...) stacked on this column's real ground. Each layer
+      // is drawn on top of the one below it, not folded into the solid cube.
+      const layerCount = plantShift[idx];
+      const layerBlockAt = k => k === 0 ? surface[idx] : skirtArr[idx * skirtDepth + (k - 1)];
+      for (let k = 0; k < layerCount; k++) {
+        const plantBid = layerBlockAt(k);
+        if (!plantBid) continue;
+        const name = blockName[plantBid];
         const plantTc = getBiomeTint(biomeId, 'top', plantBid);
-        const uvv = getUV(plantBid, 'top') || fallbackUV();
+        let uvv;
+        if (DOUBLE_TALL.has(name)) {
+          // Both halves share one block id (see DOUBLE_TALL comment) - infer
+          // which texture half to use from whichever neighbouring layer in
+          // the stack shares this same block id.
+          const aboveBid = k > 0 ? layerBlockAt(k - 1) : 0;
+          const suffix = aboveBid === plantBid ? '_bottom' : '_top';
+          uvv = uvCache[name + suffix] || getUV(plantBid, 'top') || fallbackUV();
+        } else {
+          uvv = getUV(plantBid, 'top') || fallbackUV();
+        }
         const plantColor = blockCol[plantBid] || new THREE.Color(0xffffff);
         const pr = atlasTex ? plantTc[0] : plantColor.r * plantTc[0];
         const pg = atlasTex ? plantTc[1] : plantColor.g * plantTc[1];
         const pb = atlasTex ? plantTc[2] : plantColor.b * plantTc[2];
-        addCross(wx, wy + 1, wz, uvv, pr, pg, pb);
+        const layerBaseY = wy + (layerCount - k - 1); // top of whatever this layer sits on
+        if (isFlatLayer(name)) {
+          addFlatLayer(wx, layerBaseY + 1, wz, uvv, pr, pg, pb);
+        } else {
+          addCross(wx, layerBaseY + 1, wz, uvv, pr, pg, pb);
+        }
       }
 
       // SIDE FACES — check 4 neighbours
