@@ -1274,23 +1274,26 @@ function _buildChunkInner(cx, cz, key) {
   // material found in a column's own skirt - see the SELF SKIRT comment
   // below for why this needs to exist as its own thing rather than only
   // ever drawing walls where a shorter neighbour triggers them.
-  function emitSelfRun(idx, mx, mz, wx, wz, yBot, yTop, bid, biomeId) {
-    const uvv = getUV(bid, 'top') || fallbackUV();
-    const tc = getBiomeTint(biomeId, 'top', bid);
-    const bColor = blockCol[bid] || new THREE.Color(0x888888);
-    const r = atlasTex ? tc[0] : bColor.r * tc[0];
-    const g = atlasTex ? tc[1] : bColor.g * tc[1];
-    const b = atlasTex ? tc[2] : bColor.b * tc[2];
-    addQuad(
-      [wx, yTop+1, wz], [wx+1, yTop+1, wz], [wx+1, yTop+1, wz+1], [wx, yTop+1, wz+1],
-      0, 1, 0, uvv[0], uvv[1], uvv[2], uvv[3], r, g, b, true
-    );
-    // Only draw a wall face where the neighbour genuinely has nothing at
-    // this exact Y - if it has matching solid material there too (its own
-    // ground, or its own self-skirt run), the two patches should merge
-    // seamlessly instead of both drawing a wall between them. Checked per
-    // Y level (not just once for the whole run) since a neighbour's own
-    // data can easily only cover part of this run's height.
+  // Draws wall faces in all 4 directions for a [yBot,yTop] slice of one
+  // column's own material, but only wherever a neighbour genuinely has
+  // nothing at that exact Y - if the neighbour has matching solid material
+  // there too (its own ground, or its own self-skirt run), the two patches
+  // merge seamlessly instead of both drawing a wall between them. Checked
+  // per Y level (not just once for the whole run), since a neighbour's own
+  // data can easily only cover part of this slice's height.
+  //
+  // This is the *only* place walls get drawn for a leaf-topped column - see
+  // the leaf-topped branch below, which calls this once for the surface
+  // leaf itself and once per self-skirt run, and skips the ordinary
+  // neighbour-height-comparison SIDE FACES pass entirely for such columns.
+  // Both used to run unconditionally and independently re-derive walls for
+  // the same shorter-neighbour exposure, so any leaf-topped column next to
+  // a shorter neighbour got the identical wall geometry emitted twice -
+  // exactly the setup for GPU z-fighting (flickering between the two
+  // coincident draws, sometimes losing to whichever alpha-tested triangle
+  // happens to rasterize second), reported as faces that only *sometimes*
+  // show their texture and otherwise show background straight through.
+  function emitExposedWalls(mx, mz, wx, wz, yBot, yTop, bid, biomeId) {
     for (const {dx, dz, nx, nz} of DIRS4) {
       const nmx = mx + dx, nmz = mz + dz;
       const outOfBounds = nmx < 0 || nmx >= W || nmz < 0 || nmz >= H;
@@ -1316,6 +1319,20 @@ function _buildChunkInner(cx, cz, key) {
       }
       if (wallRunStart >= 0) emitSideFace(wx, wz, wallRunStart, yTop, dx, dz, nx, nz, bid, biomeId, pos, norm, uv, col);
     }
+  }
+
+  function emitSelfRun(idx, mx, mz, wx, wz, yBot, yTop, bid, biomeId) {
+    const uvv = getUV(bid, 'top') || fallbackUV();
+    const tc = getBiomeTint(biomeId, 'top', bid);
+    const bColor = blockCol[bid] || new THREE.Color(0x888888);
+    const r = atlasTex ? tc[0] : bColor.r * tc[0];
+    const g = atlasTex ? tc[1] : bColor.g * tc[1];
+    const b = atlasTex ? tc[2] : bColor.b * tc[2];
+    addQuad(
+      [wx, yTop+1, wz], [wx+1, yTop+1, wz], [wx+1, yTop+1, wz+1], [wx, yTop+1, wz+1],
+      0, 1, 0, uvv[0], uvv[1], uvv[2], uvv[3], r, g, b, true
+    );
+    emitExposedWalls(mx, mz, wx, wz, yBot, yTop, bid, biomeId);
   }
 
   for (let mz = sz; mz < ez; mz++) {
@@ -1381,7 +1398,17 @@ function _buildChunkInner(cx, cz, key) {
       // neighbour-triggered walls) means two adjacent columns' patches
       // merge seamlessly instead of both drawing a redundant, potentially
       // misaligned wall between them.
-      if (blockName[displayBid]?.endsWith('_leaves')) {
+      const isLeafTopped = blockName[displayBid]?.endsWith('_leaves');
+      if (isLeafTopped) {
+        // The surface leaf block itself isn't part of the run list below it
+        // (it's displayBid/groundBlock directly) - wall it the same way as
+        // every self-skirt run below, so self-skirt is the *complete*
+        // wall-drawing mechanism for this column's entire depth, letting the
+        // ordinary SIDE FACES pass be skipped entirely for leaf-topped
+        // columns further down instead of it re-deriving (and duplicating)
+        // the same exposure for the topmost slice.
+        emitExposedWalls(mx, mz, wx, wz, wy, wy, displayBid, biomeId);
+
         // Walk this column's own recorded runs directly - they're already
         // grouped by identical block id, so unlike the old fixed-skirt
         // version there's no need to re-detect run boundaries by hand, and
@@ -1430,8 +1457,19 @@ function _buildChunkInner(cx, cz, key) {
         drawPlantSprite(wx, wz, biomeId, plantBid, layerBaseY + 1, aboveBid);
       }
 
-      // SIDE FACES — check 4 neighbours
-      for (const {dx, dz, nx, nz} of DIRS4) {
+      // SIDE FACES — check 4 neighbours. Skipped for leaf-topped columns:
+      // the block above (surface leaf's own wall, plus every self-skirt run
+      // below it) already covers every Y level of this column's solid
+      // depth, checked against each neighbour's own data exactly the same
+      // way this loop would. Running both unconditionally meant any
+      // leaf-topped column next to a shorter neighbour got the *same* wall
+      // geometry emitted twice - coincident overlapping triangles, a
+      // textbook cause of GPU z-fighting (whichever alpha-tested draw
+      // rasterizes second for a given pixel can lose the fight and show
+      // background through instead of its texture) - which is very likely
+      // what was being reported as blocks whose faces only sometimes render
+      // near trees specifically.
+      if (!isLeafTopped) for (const {dx, dz, nx, nz} of DIRS4) {
         const nx2 = mx + dx, nz2 = mz + dz;
         if (nx2 < 0 || nx2 >= W || nz2 < 0 || nz2 >= H) continue;
         const nidx = nz2 * W + nx2;
