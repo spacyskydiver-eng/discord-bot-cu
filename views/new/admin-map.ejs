@@ -1039,9 +1039,17 @@ function initScene(centerH) {
   solidMat = atlasTex
     ? new THREE.MeshLambertMaterial({ map: atlasTex, vertexColors: true, alphaTest: 0.1, side: THREE.DoubleSide })
     : new THREE.MeshLambertMaterial({ vertexColors: true });
+  // depthWrite:false is standard practice for any semi-transparent material -
+  // without it, a water quad writes full opaque depth even though it only
+  // draws 72-82% opacity, so anything behind it that should show faintly
+  // through can instead get depth-tested away entirely by an *earlier*
+  // water quad in the same draw call (triangles within one mesh aren't
+  // depth-sorted against each other, only whole meshes are) - most visible
+  // wherever water geometry is dense/overlapping, e.g. adjacent lake/river
+  // chunks, showing as solid ground or other water simply missing behind it.
   waterMat = waterTex
-    ? new THREE.MeshLambertMaterial({ map: waterTex, color: 0x5599dd, transparent: true, opacity: 0.82, side: THREE.DoubleSide })
-    : new THREE.MeshLambertMaterial({ color: 0x3f76e4, transparent: true, opacity: 0.72, side: THREE.DoubleSide });
+    ? new THREE.MeshLambertMaterial({ map: waterTex, color: 0x5599dd, transparent: true, opacity: 0.82, side: THREE.DoubleSide, depthWrite: false })
+    : new THREE.MeshLambertMaterial({ color: 0x3f76e4, transparent: true, opacity: 0.72, side: THREE.DoubleSide, depthWrite: false });
 
   solidGroup = new THREE.Group(); scene.add(solidGroup);
   waterGroup = new THREE.Group(); scene.add(waterGroup);
