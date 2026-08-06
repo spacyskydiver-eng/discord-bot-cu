@@ -138,6 +138,13 @@ const TEX = 16;         // block texture size
 // ── World state ───────────────────────────────────────────────────────────────
 let meta, paletteArr, biomePal;
 let heights, surface, skirtArr, waterArr, biomes;
+// Derived once after loading (see computeGroundHeights): groundHeight/groundBlock
+// are the *solid* terrain's top Y and block - equal to heights/surface for an
+// ordinary solid surface, but shifted down one level for columns whose surface
+// is a decorative plant (grass, flowers...), whose real solid ground is skirt[0].
+// plantShift is 1 for those columns (0 otherwise) so getBlockAtDepth can offset
+// its skirt indexing to match. The plant itself is drawn separately as a cross.
+let groundHeight, groundBlock, plantShift;
 let W = 0, H = 0, minY = 0, skirtDepth = 4;
 
 // ── Three.js ──────────────────────────────────────────────────────────────────
@@ -266,6 +273,7 @@ async function loadWorld(files) {
     biomes = parseBiomesBin(await files.get('biomes.bin').arrayBuffer());
 
     buildBlockColors();
+    computeGroundHeights();
 
     // Auto-load Minecraft textures from server
     showProgress(true, 'Loading block textures…');
@@ -584,6 +592,37 @@ function buildBlockColors() {
   }
 }
 
+// Derive groundHeight/groundBlock/plantShift for every column (see the field
+// comments above). Plants (short_grass, flowers, ferns...) should never be
+// treated as solid terrain - real Minecraft renders them as a thin cross
+// sitting on top of the block below, not as a solid textured cube, and
+// neighbouring solid terrain should line up with the *ground* under a plant,
+// not the plant's own recorded height (otherwise every tuft of grass creates
+// a spurious 1-block ledge in the terrain mesh).
+function computeGroundHeights() {
+  const n = W * H;
+  groundHeight = new Float32Array(n);
+  groundBlock = new Uint16Array(n);
+  plantShift = new Uint8Array(n);
+  for (let i = 0; i < n; i++) {
+    const s = surface[i];
+    if (s && nonSolidIds.has(s)) {
+      const below = skirtArr[i * skirtDepth + 0];
+      if (below && !nonSolidIds.has(below)) {
+        plantShift[i] = 1;
+        groundHeight[i] = heights[i] - 1;
+        groundBlock[i] = below;
+        continue;
+      }
+      // No solid block recorded directly under the plant (rare - e.g. shallow
+      // skirt data). Fall back to treating the plant itself as the solid top
+      // rather than leaving a hole; the cross sprite still draws on top of it.
+    }
+    groundHeight[i] = heights[i];
+    groundBlock[i] = s;
+  }
+}
+
 // Fetch textures from /mc-textures/ and build atlas automatically
 async function autoLoadTextures() {
   // Collect unique texture names needed for this palette
@@ -638,6 +677,15 @@ async function autoLoadTextures() {
     const img = new Image();
     img.onload = () => {
       const s = slotMap[n], col = s % spr, row = Math.floor(s / spr);
+      // Clear this cell to fully transparent before drawing. Without this,
+      // the default 'source-over' blend would composite every transparent
+      // source pixel onto the opaque white pre-fill below and bake it in as
+      // solid white/cream - invisible on mostly-opaque block faces, but a
+      // glaring blank card on mostly-transparent sprites like flowers, which
+      // are >85% transparent pixels. (globalCompositeOperation='copy' would
+      // do this in one step, but per spec it clears the *entire* canvas, not
+      // just the drawn rect, wiping every texture drawn before it.)
+      actx.clearRect(col * TEX, row * TEX, TEX, TEX);
       actx.drawImage(img, col * TEX, row * TEX, TEX, TEX);
       if (n === 'grass_block_side') grassBaseImg = img;
       else if (n === 'grass_block_side_overlay') grassOverlayImg = img;
@@ -798,9 +846,13 @@ function initScene(centerH) {
 // ══════════════════════════════════════════════════════════════════════════════
 
 function getBlockAtDepth(idx, depth) {
-  // depth 0 = surface, depth 1 = first skirt block, etc.
-  if (depth === 0) return surface[idx];
-  const d = depth - 1;
+  // depth 0 = the topmost *solid* block (groundBlock), depth 1 = next one
+  // down, etc. Columns with plantShift=1 have their whole depth sequence
+  // shifted by one skirt slot, since skirt[0] became depth 0 (the plant
+  // itself isn't part of the solid depth sequence - it's drawn separately).
+  const shift = plantShift[idx];
+  if (depth === 0) return groundBlock[idx];
+  const d = depth - 1 + shift;
   if (d < skirtDepth) return skirtArr[idx * skirtDepth + d];
   return 1; // stone fallback
 }
@@ -815,18 +867,23 @@ function getUV(blockId, face) {
 }
 
 function getBiomeTint(biomeId, face, blockId) {
-  const blockName = paletteArr.find(b => b.id === blockId)?.name || '';
+  const rawName = paletteArr.find(b => b.id === blockId)?.name || '';
+  const name = rawName.replace(/^minecraft:/, '');
+  // grass_block's side texture is already pre-tinted once, baked into its own
+  // atlas slot (see the composite step in autoLoadTextures) - it must NOT
+  // also get a per-vertex tint here, or it'd be tinted twice over.
+  if (name === 'grass_block' && face === 'side') return [1, 1, 1];
   const biome = biomePal.find ? biomePal.find(b => b.id === biomeId) : (biomePal[biomeId] || null);
   // biome_palette.json only carries {id, name} - the real per-biome colors
   // live in BIOME_COLORS (computed from Minecraft's own data), looked up by
   // biome name. Falls back to plains if the biome name isn't recognized
   // (e.g. a modded biome not in the vanilla table).
   const entry = (biome && BIOME_COLORS[biome.name]) || BIOME_COLORS['minecraft:plains'];
-  const col = (name => {
-    if (/grass_block|short_grass|grass$|fern/.test(name)) return entry.grass;
-    if (/leaves/.test(name)) return entry.foliage;
+  const col = (n => {
+    if (/grass_block|short_grass|grass$|fern/.test(n)) return entry.grass;
+    if (/leaves/.test(n)) return entry.foliage;
     return null;
-  })(blockName);
+  })(name);
   if (!col) return [1, 1, 1];
   const c = new THREE.Color(col);
   return [c.r, c.g, c.b];
@@ -862,6 +919,24 @@ function _buildChunkInner(cx, cz, key) {
     }
   }
 
+  // Two crossed diagonal quads spanning the full block, matching how vanilla
+  // Minecraft renders plants/flowers/grass/ferns - a thin "X" billboard using
+  // the block's own single texture, not a solid textured cube. The material
+  // is double-sided (see solidMat), so one quad per diagonal is enough - each
+  // is visible from both sides.
+  function addCross(wx, wy, wz, uvv, r, g, b) {
+    const u0v1 = [uvv[0],uvv[3]], u1v0 = [uvv[2],uvv[1]], u1v1 = [uvv[2],uvv[3]], u0v0 = [uvv[0],uvv[1]];
+    const diag1 = [[wx,wy,wz], [wx+1,wy,wz+1], [wx+1,wy+1,wz+1], [wx,wy+1,wz]];
+    const diag2 = [[wx+1,wy,wz], [wx,wy,wz+1], [wx,wy+1,wz+1], [wx+1,wy+1,wz]];
+    for (const [p0, p1, p2, p3] of [diag1, diag2]) {
+      const verts = [p0, p2, p1, p0, p3, p2];
+      const uvs = [u0v1, u1v0, u1v1, u0v1, u0v0, u1v0];
+      for (let i = 0; i < 6; i++) {
+        pos.push(...verts[i]); norm.push(0, 1, 0); uv.push(...uvs[i]); col.push(r, g, b);
+      }
+    }
+  }
+
   // Last atlas slot — always empty white since palette << 4096 slots total
   const _fuv = [(ATLAS-TEX)/ATLAS, (ATLAS-TEX)/ATLAS, 1.0, 1.0];
   function fallbackUV() { return _fuv; }
@@ -869,19 +944,10 @@ function _buildChunkInner(cx, cz, key) {
   for (let mz = sz; mz < ez; mz++) {
     for (let mx = sx; mx < ex; mx++) {
       const idx = mz * W + mx;
-      const my = heights[idx];
+      const my = groundHeight[idx];
       if (!isFinite(my)) continue; // bad height data
-      const bid = surface[idx];
-      if (!bid) continue; // air
-      // For non-solid surface blocks (plants, multi-block cactus/tall grass, etc.)
-      // traverse skirt depth until we find a solid (non-plant) block below
-      let displayBid = bid;
-      if (nonSolidIds.has(bid)) {
-        for (let d = 0; d < skirtDepth; d++) {
-          const below = skirtArr[idx * skirtDepth + d];
-          if (below && !nonSolidIds.has(below)) { displayBid = below; break; }
-        }
-      }
+      const displayBid = groundBlock[idx];
+      if (!displayBid) continue; // no data for this column (never generated)
       const water = waterArr[idx];
       const biomeId = biomes[idx];
       const tc = getBiomeTint(biomeId, 'top', displayBid);
@@ -901,6 +967,20 @@ function _buildChunkInner(cx, cz, key) {
         );
       }
 
+      // PLANT SPRITE — a decorative non-solid block (grass, flower, fern...)
+      // sitting on top of this column's real ground, drawn as a cross, not
+      // folded into the solid cube above.
+      if (plantShift[idx]) {
+        const plantBid = surface[idx];
+        const plantTc = getBiomeTint(biomeId, 'top', plantBid);
+        const uvv = getUV(plantBid, 'top') || fallbackUV();
+        const plantColor = blockCol[plantBid] || new THREE.Color(0xffffff);
+        const pr = atlasTex ? plantTc[0] : plantColor.r * plantTc[0];
+        const pg = atlasTex ? plantTc[1] : plantColor.g * plantTc[1];
+        const pb = atlasTex ? plantTc[2] : plantColor.b * plantTc[2];
+        addCross(wx, wy + 1, wz, uvv, pr, pg, pb);
+      }
+
       // SIDE FACES — check 4 neighbours
       const dirs = [
         { dx: 1, dz: 0, nx: 1, nz: 0 },
@@ -912,20 +992,27 @@ function _buildChunkInner(cx, cz, key) {
         const nx2 = mx + dx, nz2 = mz + dz;
         if (nx2 < 0 || nx2 >= W || nz2 < 0 || nz2 >= H) continue;
         const nidx = nz2 * W + nx2;
-        const nh = heights[nidx];
+        if (!groundBlock[nidx]) continue; // neighbour has no data - don't fake a cliff toward it
+        const nh = groundHeight[nidx];
         if (nh >= my) continue; // neighbor is same height or higher; no exposed face
 
-        // Emit faces from nh+1 to my (run-length merged by block)
-        let runStart = nh + 1, runBid = getBlockAtDepth(idx, my - runStart);
-        for (let y = nh + 2; y <= my; y++) {
+        // Emit faces from nh+1 to my (run-length merged by block). Depths
+        // whose resolved block is air or non-solid - e.g. the empty space
+        // under a floating leaf canopy with nothing physically holding it
+        // up - are skipped entirely rather than drawn as a wall: there's
+        // nothing solid there, so a real Minecraft view would show empty
+        // space (or the leaf block's own underside), never a blank cube.
+        let runStart = -1, runBid = 0;
+        for (let y = nh + 1; y <= my; y++) {
           const depth = my - y;
           const b2 = getBlockAtDepth(idx, depth);
-          if (b2 !== runBid) {
-            emitSideFace(wx, wz, runStart, y - 1, dx, dz, nx, nz, runBid, pos, norm, uv, col);
-            runStart = y; runBid = b2;
-          }
+          const solidHere = b2 && !nonSolidIds.has(b2);
+          if (runStart >= 0 && solidHere && b2 === runBid) continue; // extend run
+          if (runStart >= 0) emitSideFace(wx, wz, runStart, y - 1, dx, dz, nx, nz, runBid, biomeId, pos, norm, uv, col);
+          runStart = solidHere ? y : -1;
+          runBid = solidHere ? b2 : 0;
         }
-        emitSideFace(wx, wz, runStart, my, dx, dz, nx, nz, runBid, pos, norm, uv, col);
+        if (runStart >= 0) emitSideFace(wx, wz, runStart, my, dx, dz, nx, nz, runBid, biomeId, pos, norm, uv, col);
       }
 
       // WATER SURFACE — CCW winding matching addQuad corrected top face
@@ -961,14 +1048,16 @@ function _buildChunkInner(cx, cz, key) {
   chunks.set(key, { solid: solidMesh, water: waterMesh });
 }
 
-function emitSideFace(wx, wz, yBot, yTop, dx, dz, nx, nz, bid, pos, norm, uv, col) {
+function emitSideFace(wx, wz, yBot, yTop, dx, dz, nx, nz, bid, biomeId, pos, norm, uv, col) {
   const uvv = getUV(bid, 'side') || getUV(bid, 'top') || [(ATLAS-TEX)/ATLAS, (ATLAS-TEX)/ATLAS, 1.0, 1.0];
   const bColor = blockCol[bid] || new THREE.Color(0x888888);
-  // When atlas is loaded, textures supply their own colour — use white vertex colour.
-  // Without atlas, use the block's DEFAULT_COLORS as the vertex colour.
-  const r = atlasTex ? 1 : bColor.r;
-  const g = atlasTex ? 1 : bColor.g;
-  const b2 = atlasTex ? 1 : bColor.b;
+  // Side faces need the same biome tint as the top face (this was previously
+  // missing entirely, which is why leaves rendered as pale/white blobs - their
+  // texture is grayscale and *meant* to be tinted, and only the top face was).
+  const tc = getBiomeTint(biomeId, 'side', bid);
+  const r = atlasTex ? tc[0] : bColor.r * tc[0];
+  const g = atlasTex ? tc[1] : bColor.g * tc[1];
+  const b2 = atlasTex ? tc[2] : bColor.b * tc[2];
 
   // Emit one 1-block-high quad per Y level so the texture tiles correctly (no stretching)
   for (let y = yBot; y <= yTop; y++) {
