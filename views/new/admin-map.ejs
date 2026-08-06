@@ -864,7 +864,18 @@ async function autoLoadTextures() {
       // do this in one step, but per spec it clears the *entire* canvas, not
       // just the drawn rect, wiping every texture drawn before it.)
       actx.clearRect(col * TEX, row * TEX, TEX, TEX);
-      actx.drawImage(img, col * TEX, row * TEX, TEX, TEX);
+      // Animated textures (water, lava, seagrass, kelp, fire...) ship as a
+      // tall vertical spritesheet - one TEX×TEX frame stacked per animation
+      // frame (e.g. seagrass.png is 16×288, 18 frames) - not a single
+      // TEX×TEX image. Drawing with only a destination rect (as opposed to
+      // also specifying a *source* rect) scales the whole, multi-frame
+      // source image down to fit one atlas cell, squashing every frame
+      // together into a garbled, wrong-colored mess. Taking just the source
+      // image's top TEX×TEX square (frame 0) works correctly for both:
+      // ordinary single-frame textures are exactly TEX×TEX already, and
+      // animated ones get their first frame, matching what water_still.png
+      // already did as a one-off special case below.
+      actx.drawImage(img, 0, 0, TEX, TEX, col * TEX, row * TEX, TEX, TEX);
       if (n === 'grass_block_side') grassBaseImg = img;
       else if (n === 'grass_block_side_overlay') grassOverlayImg = img;
       else URL.revokeObjectURL(fetched[n]);
@@ -1087,6 +1098,15 @@ function getBiomeTint(biomeId, face, blockId) {
   const entry = (biome && BIOME_COLORS[biome.name]) || BIOME_COLORS['minecraft:plains'];
   const col = (n => {
     if (/grass_block|short_grass|grass$|fern/.test(n)) return entry.grass;
+    // Spruce and birch leaves are the two vanilla exceptions that ignore the
+    // per-biome foliage colormap entirely - their texture is already the
+    // final color (a fixed dark green / yellow-green respectively), baked
+    // in by Mojang rather than sampled per-biome like oak/jungle/acacia/
+    // dark_oak leaves are. Applying the biome tint on top of them anyway
+    // (as if they were oak) washed them out into a wrong, over-bright green
+    // that looks nothing like real spruce/birch foliage.
+    if (n === 'spruce_leaves') return '#619961';
+    if (n === 'birch_leaves') return '#80a755';
     if (/leaves/.test(n)) return entry.foliage;
     return null;
   })(name);
@@ -1396,7 +1416,16 @@ function _buildChunkInner(cx, cz, key) {
           wx,wy2+1,wz,   wx+1,wy2+1,wz+1, wx+1,wy2+1,wz,   // tri 1: p0,p2,p1 → +Y normal
           wx,wy2+1,wz,   wx,wy2+1,wz+1,   wx+1,wy2+1,wz+1   // tri 2: p0,p3,p2 → +Y normal
         );
-        for (let i=0;i<6;i++) { wnorm.push(0,1,0); wuv.push(0,0); }
+        for (let i=0;i<6;i++) wnorm.push(0,1,0);
+        // UV = world (x,z) so waterTex's RepeatWrapping tiles one texture
+        // repeat per block, matching every other block's texel scale - these
+        // were previously hardcoded to (0,0) for every vertex, which sampled
+        // a single texel for the whole quad instead of the actual water
+        // texture (a flat, patternless color instead of the real ripple art).
+        wuv.push(
+          wx,wz,   wx+1,wz+1,   wx+1,wz,
+          wx,wz,   wx,wz+1,     wx+1,wz+1
+        );
       }
     }
   }
