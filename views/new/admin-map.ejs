@@ -137,15 +137,30 @@ const TEX = 16;         // block texture size
 
 // ── World state ───────────────────────────────────────────────────────────────
 let meta, paletteArr, biomePal;
-let heights, surface, skirtArr, waterArr, biomes;
+let heights, surface, waterArr, biomes;
+// Per-column material below the surface, run-length encoded (see parseBlocksBin):
+// column i's runs are runBlockIds[runStart[i] .. runStart[i]+runCount[i]) with
+// matching runLengths - e.g. a column with 3 leaf blocks then 40 blocks of air
+// then a log is 3 runs, regardless of how deep the air gap is. This replaced a
+// fixed-size "skirt" array (a flat N-blocks-below-surface window) specifically
+// because a fixed shallow window couldn't reach past a tall tree's vertical
+// foliage gaps - the real gap between two leaf clusters is very often deeper
+// than any fixed window short enough to stay cheap for the other 99% of
+// (boring, uniform) columns. Run-length encoding costs almost nothing extra
+// for uniform ground (still ~2-3 runs no matter how deep you scan) while
+// scaling with a column's actual complexity, so scanning much deeper is free
+// for the common case and correct for the rare one.
+let runBlockIds, runLengths, runStart, runCount;
 // Derived once after loading (see computeGroundHeights): groundHeight/groundBlock
 // are the *solid* terrain's top Y and block - equal to heights/surface for an
-// ordinary solid surface, but shifted down one level for columns whose surface
-// is a decorative plant (grass, flowers...), whose real solid ground is skirt[0].
-// plantShift is 1 for those columns (0 otherwise) so getBlockAtDepth can offset
-// its skirt indexing to match. The plant itself is drawn separately as a cross.
+// ordinary solid surface, but shifted down for columns whose surface is a
+// decorative plant (grass, flowers...), whose real solid ground is found by
+// walking that column's runs. plantShift counts how many depth-units of
+// non-solid material sit above the real ground (0 for an ordinary column) so
+// getBlockAtDepth can offset its run-walking to match. The plant itself is
+// drawn separately as a cross.
 let groundHeight, groundBlock, plantShift;
-let W = 0, H = 0, minY = 0, skirtDepth = 4;
+let W = 0, H = 0, minY = 0, maxDepth = 64;
 
 // ── Three.js ──────────────────────────────────────────────────────────────────
 let scene, camera, renderer;
@@ -280,7 +295,10 @@ async function loadWorld(files) {
     W = meta.width ?? meta.worldWidth ?? meta.sizeX ?? meta.size ?? 0;
     H = meta.height ?? meta.worldHeight ?? meta.worldDepth ?? meta.depth ?? meta.length ?? meta.sizeZ ?? meta.worldLength ?? W;
     minY = meta.minHeight ?? meta.minY ?? meta.minY ?? -64;
-    skirtDepth = meta.skirtDepth ?? meta.skirtSize ?? 4;
+    maxDepth = meta.maxDepth ?? 64;
+    if (meta.blocksFormatVersion !== 2) {
+      throw new Error(`This scan uses an old blocks.bin format (blocksFormatVersion=${meta.blocksFormatVersion ?? 'none'}) that this viewer no longer reads - please re-run /scan3d with the updated mod to produce a new scan.`);
+    }
 
     if (!W || !H) throw new Error(`Could not read world dimensions. meta.json keys: ${Object.keys(meta).join(', ')}`);
 
@@ -289,7 +307,8 @@ async function loadWorld(files) {
 
     showProgress(true, 'Parsing blocks.bin…');
     const bl = parseBlocksBin(await files.get('blocks.bin').arrayBuffer());
-    surface = bl.surface; skirtArr = bl.skirt; waterArr = bl.water;
+    surface = bl.surface; waterArr = bl.water;
+    runBlockIds = bl.runBlockIds; runLengths = bl.runLengths; runStart = bl.runStart; runCount = bl.runCount;
 
     showProgress(true, 'Parsing biomes.bin…');
     biomes = parseBiomesBin(await files.get('biomes.bin').arrayBuffer());
@@ -307,7 +326,7 @@ async function loadWorld(files) {
     const nonZeroBlocks = [surface[ci], surface[ci+1], surface[ci+2], surface[ci-1], surface[ci-2]].filter(Boolean);
 
     // Debug dump — visible in F12 console
-    console.log('[MapViewer] World:', W, 'x', H, '| minY:', minY, '| skirtDepth:', skirtDepth);
+    console.log('[MapViewer] World:', W, 'x', H, '| minY:', minY, '| maxDepth:', maxDepth);
     console.log('[MapViewer] Center height:', centerH, '| Center block IDs:', surface[ci], surface[ci+1], surface[ci+2]);
     console.log('[MapViewer] Height range:', Math.min(...Array.from(heights).slice(0,1000)), '-', Math.max(...Array.from(heights).slice(0,1000)));
     console.log('[MapViewer] Palette entries 0-5:', paletteArr.slice(0,6).map(b=>`${b.id}:${b.name}`).join(', '));
@@ -428,19 +447,48 @@ async function parsePNG16Gray(bytes) {
 
 function parseBlocksBin(ab) {
   const dv = new DataView(ab);
-  // header: width,length,skirtDepth,originX,originZ,resolution = 6 × int32 = 24 bytes
+  // header: width,length,maxDepth,originX,originZ,resolution = 6 × int32 = 24 bytes
+  // (values already known from meta.json - this just skips past them). Each
+  // column is now variable-length: surfaceId (u16), runCount (u16), then
+  // runCount × [blockId (u16), runLength (u16)], then waterY (i16) - see
+  // meta.json's blocksBinLayout note for the authoritative format.
   let off = 24;
   const cols = W * H;
-  const strideBytes = 2 + skirtDepth * 2 + 2; // surfaceId + skirt[] + waterY
   const surf = new Uint16Array(cols);
-  const sk   = new Uint16Array(cols * skirtDepth);
-  const wat  = new Int16Array(cols);
-  for (let i = 0; i < cols; i++, off += strideBytes) {
-    surf[i] = dv.getUint16(off, false);
-    for (let d = 0; d < skirtDepth; d++) sk[i * skirtDepth + d] = dv.getUint16(off + 2 + d * 2, false);
-    wat[i] = dv.getInt16(off + 2 + skirtDepth * 2, false);
+  const wat = new Int16Array(cols);
+  const rStart = new Int32Array(cols);
+  const rCount = new Uint16Array(cols);
+
+  // Total run count isn't known up front - grow the flat run buffers as needed.
+  let cap = cols * 4; // average-case guess; wrong guesses just cost a realloc
+  let rBlock = new Uint16Array(cap);
+  let rLen = new Uint16Array(cap);
+  let w = 0;
+  function ensureCap(extra) {
+    if (w + extra <= cap) return;
+    cap = Math.max(cap * 2, w + extra);
+    const nb = new Uint16Array(cap); nb.set(rBlock.subarray(0, w)); rBlock = nb;
+    const nl = new Uint16Array(cap); nl.set(rLen.subarray(0, w)); rLen = nl;
   }
-  return { surface: surf, skirt: sk, water: wat };
+
+  for (let i = 0; i < cols; i++) {
+    surf[i] = dv.getUint16(off, false); off += 2;
+    const rc = dv.getUint16(off, false); off += 2;
+    ensureCap(rc);
+    rStart[i] = w;
+    rCount[i] = rc;
+    for (let r = 0; r < rc; r++) {
+      rBlock[w] = dv.getUint16(off, false); off += 2;
+      rLen[w] = dv.getUint16(off, false); off += 2;
+      w++;
+    }
+    wat[i] = dv.getInt16(off, false); off += 2;
+  }
+  return {
+    surface: surf, water: wat,
+    runBlockIds: rBlock.subarray(0, w), runLengths: rLen.subarray(0, w),
+    runStart: rStart, runCount: rCount,
+  };
 }
 
 function parseBiomesBin(ab) {
@@ -690,37 +738,41 @@ function isWalkPast(bid) { return nonSolidIds.has(bid) || noRenderIds.has(bid); 
 // not the plant's own recorded height (otherwise every tuft of grass creates
 // a spurious 1-block ledge in the terrain mesh).
 //
-// plantShift counts how many non-solid layers sit stacked above the real
-// ground (not just 0 or 1): a double-tall plant (its lower half recorded in
-// skirt[0]) or a snow layer sitting on top of grass both need to walk past
-// more than one non-solid entry before reaching solid ground, and each of
-// those layers gets its own sprite drawn on top of one another.
+// plantShift counts how many non-solid depth-units sit stacked above the real
+// ground (not just 0 or 1): a double-tall plant (its lower half recorded as
+// the first run below the surface) or a snow layer sitting on top of grass
+// both need to walk past more than one non-solid unit before reaching solid
+// ground, and each of those layers gets its own sprite drawn on top of one
+// another.
 function computeGroundHeights() {
   const n = W * H;
   groundHeight = new Float32Array(n);
   groundBlock = new Uint16Array(n);
-  plantShift = new Uint8Array(n);
+  plantShift = new Uint16Array(n);
   for (let i = 0; i < n; i++) {
     const s = surface[i];
     if (s && isWalkPast(s)) {
-      let d = 0;
-      while (d < skirtDepth) {
-        const b = skirtArr[i * skirtDepth + d];
-        if (b && !isWalkPast(b)) break;
-        d++;
+      const rs = runStart[i], rc = runCount[i];
+      let d = 0; // 0-based depth-units walked so far (below the surface)
+      let foundDepth = -1, foundBlock = 0;
+      for (let r = 0; r < rc; r++) {
+        const bid = runBlockIds[rs + r];
+        if (bid && !isWalkPast(bid)) { foundDepth = d; foundBlock = bid; break; }
+        d += runLengths[rs + r];
       }
-      if (d < skirtDepth) {
-        plantShift[i] = d + 1; // surface + d skirt entries are all non-solid
-        groundHeight[i] = heights[i] - (d + 1);
-        groundBlock[i] = skirtArr[i * skirtDepth + d];
+      if (foundDepth >= 0) {
+        plantShift[i] = foundDepth + 1; // surface + foundDepth run-units are all non-solid
+        groundHeight[i] = heights[i] - (foundDepth + 1);
+        groundBlock[i] = foundBlock;
         continue;
       }
-      // No solid block found anywhere in the recorded skirt (rare - e.g.
-      // shallow skirt data). Fall back to treating the plant itself as the
-      // solid top rather than leaving a hole; its sprite still draws on top.
-      // Unless it's a NO_RENDER block (a player head with nothing solid
-      // found below it) - there's nothing safe to fall back to drawing, so
-      // leave the column with no data rather than showing a broken texture.
+      // No solid block found anywhere in the recorded runs (rare - the scan's
+      // maxDepth ran out before hitting solid ground). Fall back to treating
+      // the plant itself as the solid top rather than leaving a hole; its
+      // sprite still draws on top. Unless it's a NO_RENDER block (a player
+      // head with nothing solid found below it) - there's nothing safe to
+      // fall back to drawing, so leave the column with no data rather than
+      // showing a broken texture.
       if (noRenderIds.has(s)) {
         groundHeight[i] = heights[i];
         groundBlock[i] = 0;
@@ -739,8 +791,14 @@ async function autoLoadTextures() {
   let needsGrassOverlay = false;
   for (const b of paletteArr) {
     const name = (b.name || '').replace(/^minecraft:/, '');
-    const t = blockTexNames(name);
-    needed.add(t.top); needed.add(t.side);
+    // Double-tall plants (large_fern, tall_grass...) have no bare <name>.png
+    // of their own - only split _top/_bottom files exist (added below) - so
+    // blockTexNames's generic name-as-texture fallback would just request a
+    // file that 404s for these.
+    if (!DOUBLE_TALL.has(name)) {
+      const t = blockTexNames(name);
+      needed.add(t.top); needed.add(t.side);
+    }
     if (name === 'grass_block') {
       needed.add('grass_block_side_overlay');
       needsGrassOverlay = true;
@@ -969,23 +1027,37 @@ function initScene(centerH) {
 // CHUNK MESHING
 // ══════════════════════════════════════════════════════════════════════════════
 
+// Block id at 0-based depth-units `d` below a column's surface, walking its
+// run-length-encoded material list directly (no plantShift offset applied -
+// this is the raw recorded sequence, used both by getBlockAtDepth below and
+// by the plant-layer stacking code which needs the layers plantShift skips
+// past, not just what's beneath them).
+function blockAtRunDepth(idx, d) {
+  const rs = runStart[idx], rc = runCount[idx];
+  let acc = 0;
+  for (let r = 0; r < rc; r++) {
+    const len = runLengths[rs + r];
+    if (d < acc + len) return runBlockIds[rs + r];
+    acc += len;
+  }
+  return rc > 0 ? runBlockIds[rs + rc - 1] : 0;
+}
+
 function getBlockAtDepth(idx, depth) {
   // depth 0 = the topmost *solid* block (groundBlock), depth 1 = next one
-  // down, etc. Columns with plantShift=1 have their whole depth sequence
-  // shifted by one skirt slot, since skirt[0] became depth 0 (the plant
-  // itself isn't part of the solid depth sequence - it's drawn separately).
-  const shift = plantShift[idx];
+  // down, etc. Columns with a nonzero plantShift have their whole depth
+  // sequence shifted, since the first plantShift run-units are the plant
+  // itself, not part of the solid depth sequence (it's drawn separately).
+  // Deeper than the recorded runs (the scan's maxDepth ran out - e.g. a very
+  // tall tree next to a much shorter neighbour, needing more wall than was
+  // scanned) falls back to repeating the deepest recorded block rather than
+  // guessing: this used to hardcode block id 1 as "stone", but palette ids
+  // are assigned per-world in scan order - id 1 is whatever block that world
+  // happened to register first (often dirt, not stone), so it rendered as an
+  // unrelated, wrong-colored block wherever a wall ran past the recorded
+  // depth. blockAtRunDepth already does that clamping.
   if (depth === 0) return groundBlock[idx];
-  const d = depth - 1 + shift;
-  if (d < skirtDepth) return skirtArr[idx * skirtDepth + d];
-  // Deeper than the recorded skirt (e.g. a very tall tree next to a much
-  // shorter neighbour, needing more wall than skirtDepth blocks). Repeat the
-  // deepest recorded block rather than guessing: this used to hardcode
-  // block id 1 as "stone", but palette ids are assigned per-world in scan
-  // order - id 1 is whatever block that world happened to register first
-  // (often dirt, not stone), so it rendered as an unrelated, wrong-colored
-  // block wherever a wall ran past the recorded depth.
-  return skirtArr[idx * skirtDepth + skirtDepth - 1];
+  return blockAtRunDepth(idx, depth - 1 + plantShift[idx]);
 }
 
 function getUV(blockId, face) {
@@ -1112,7 +1184,7 @@ function _buildChunkInner(cx, cz, key) {
   // material found in a column's own skirt - see the SELF SKIRT comment
   // below for why this needs to exist as its own thing rather than only
   // ever drawing walls where a shorter neighbour triggers them.
-  function emitSelfRun(wx, wz, yBot, yTop, bid, biomeId) {
+  function emitSelfRun(idx, mx, mz, wx, wz, yBot, yTop, bid, biomeId) {
     const uvv = getUV(bid, 'top') || fallbackUV();
     const tc = getBiomeTint(biomeId, 'top', bid);
     const bColor = blockCol[bid] || new THREE.Color(0x888888);
@@ -1123,8 +1195,36 @@ function _buildChunkInner(cx, cz, key) {
       [wx, yTop+1, wz], [wx+1, yTop+1, wz], [wx+1, yTop+1, wz+1], [wx, yTop+1, wz+1],
       0, 1, 0, uvv[0], uvv[1], uvv[2], uvv[3], r, g, b, true
     );
+    // Only draw a wall face where the neighbour genuinely has nothing at
+    // this exact Y - if it has matching solid material there too (its own
+    // ground, or its own self-skirt run), the two patches should merge
+    // seamlessly instead of both drawing a wall between them. Checked per
+    // Y level (not just once for the whole run) since a neighbour's own
+    // data can easily only cover part of this run's height.
     for (const {dx, dz, nx, nz} of DIRS4) {
-      emitSideFace(wx, wz, yBot, yTop, dx, dz, nx, nz, bid, biomeId, pos, norm, uv, col);
+      const nmx = mx + dx, nmz = mz + dz;
+      const outOfBounds = nmx < 0 || nmx >= W || nmz < 0 || nmz >= H;
+      const nidx = outOfBounds ? -1 : nmz * W + nmx;
+      const noNeighbourData = outOfBounds || !groundBlock[nidx];
+      let wallRunStart = -1;
+      for (let y = yBot; y <= yTop; y++) {
+        let exposed;
+        if (noNeighbourData) {
+          exposed = true; // world edge or unscanned neighbour - nothing to merge with
+        } else {
+          const nMy = groundHeight[nidx];
+          const nDepth = nMy - y;
+          const nBlock = nDepth < 0 ? 0 : getBlockAtDepth(nidx, nDepth);
+          exposed = !nBlock || isWalkPast(nBlock);
+        }
+        if (exposed) {
+          if (wallRunStart < 0) wallRunStart = y;
+        } else if (wallRunStart >= 0) {
+          emitSideFace(wx, wz, wallRunStart, y - 1, dx, dz, nx, nz, bid, biomeId, pos, norm, uv, col);
+          wallRunStart = -1;
+        }
+      }
+      if (wallRunStart >= 0) emitSideFace(wx, wz, wallRunStart, yTop, dx, dz, nx, nz, bid, biomeId, pos, norm, uv, col);
     }
   }
 
@@ -1175,18 +1275,43 @@ function _buildChunkInner(cx, cz, key) {
       // height differences at all (canopy tends to be a fairly uniform
       // blob), so this is the only way that column's trunk/floor data ever
       // gets drawn.
+      //
+      // Every wall face is checked against the actual neighbouring column's
+      // own data at that exact Y level (not just drawn unconditionally):
+      // in a dense forest, hundreds of adjacent columns are *all*
+      // leaf-topped and each independently computes its own floor/trunk
+      // material, so unconditionally boxing each one in its own 4 walls
+      // produced a shattered mess of disconnected floating pillars with
+      // sky gaps between them wherever neighbouring columns' self-skirt
+      // data didn't line up perfectly - this is what was actually causing
+      // "sky with no surface at all" under trees, confirmed by rendering
+      // this exact real-world data locally. Skipping the wall whenever the
+      // neighbour has matching solid material at the same Y (via
+      // getBlockAtDepth, the same lookup already used for the normal
+      // neighbour-triggered walls) means two adjacent columns' patches
+      // merge seamlessly instead of both drawing a redundant, potentially
+      // misaligned wall between them.
       if (blockName[displayBid]?.endsWith('_leaves')) {
-        let runStart = -1, runBid = 0;
-        const maxDepth = skirtDepth - plantShift[idx];
-        for (let depth = 1; depth <= maxDepth; depth++) {
-          const b = skirtArr[idx * skirtDepth + (depth - 1 + plantShift[idx])];
-          const solidHere = b && !isWalkPast(b);
-          if (runStart >= 0 && solidHere && b === runBid) continue; // extend run
-          if (runStart >= 0) emitSelfRun(wx, wz, wy - (depth - 1), wy - runStart, runBid, biomeId);
-          runStart = solidHere ? depth : -1;
-          runBid = solidHere ? b : 0;
+        // Walk this column's own recorded runs directly - they're already
+        // grouped by identical block id, so unlike the old fixed-skirt
+        // version there's no need to re-detect run boundaries by hand, and
+        // no depth cap short of whatever the scan actually captured.
+        const rs = runStart[idx], rc = runCount[idx];
+        const skip = plantShift[idx]; // run-depth-units already consumed elsewhere
+        let d0 = 0; // 0-based depth-units at the start of the current run
+        for (let r = 0; r < rc; r++) {
+          const bid = runBlockIds[rs + r];
+          const len = runLengths[rs + r];
+          const segStart = d0, segEnd = d0 + len;
+          d0 = segEnd;
+          if (segEnd <= skip) continue; // entirely within the already-consumed region
+          if (bid && !isWalkPast(bid)) {
+            const effStart = Math.max(segStart, skip);
+            const yTop = wy - 1 - effStart;
+            const yBot = wy - effStart - (segEnd - effStart);
+            emitSelfRun(idx, mx, mz, wx, wz, yBot, yTop, bid, biomeId);
+          }
         }
-        if (runStart >= 0) emitSelfRun(wx, wz, wy - maxDepth, wy - runStart, runBid, biomeId);
       }
 
       // PLANT SPRITE(S) — one or more decorative non-solid blocks (grass,
@@ -1194,7 +1319,7 @@ function _buildChunkInner(cx, cz, key) {
       // top of grass...) stacked on this column's real ground. Each layer
       // is drawn on top of the one below it, not folded into the solid cube.
       const layerCount = plantShift[idx];
-      const layerBlockAt = k => k === 0 ? surface[idx] : skirtArr[idx * skirtDepth + (k - 1)];
+      const layerBlockAt = k => k === 0 ? surface[idx] : blockAtRunDepth(idx, k - 1);
       for (let k = 0; k < layerCount; k++) {
         const plantBid = layerBlockAt(k);
         if (!plantBid || noRenderIds.has(plantBid)) continue; // e.g. a player head - nothing to draw
