@@ -544,6 +544,18 @@ const BLOCK_TEX_MAP = {
   quartz_block:    { top:'quartz_block_top', side:'quartz_block_side',bottom:'quartz_block_bottom' },
   snow_block:      { top:'snow',             side:'snow',             bottom:'snow' },
   snow_layer:      { top:'snow',             side:'snow',             bottom:'snow' },
+  cactus:          { top:'cactus_top',       side:'cactus_side',      bottom:'cactus_bottom' },
+  // 'grass' is the pre-1.20 name for what's now short_grass - some scans
+  // may still record either name depending on the world's/mod's version.
+  grass:           { top:'short_grass',      side:'short_grass',      bottom:'short_grass' },
+  // No plain water.png exists (only water_still/water_flow) - defensive
+  // mapping in case a water block ever ends up needing a static texture
+  // (the live water surface itself is rendered separately, see waterArr).
+  water:           { top:'water_still',      side:'water_still',      bottom:'water_still' },
+  // The mod doesn't capture the "age" property (see DOUBLE_TALL comment for
+  // the same limitation with blockstate data generally), so growth stage is
+  // unknown - default to the mature-looking texture.
+  cocoa:           { top:'cocoa_stage2',     side:'cocoa_stage2',     bottom:'cocoa_stage2' },
 };
 
 // Non-solid blocks: plants, carpets, rails, etc.
@@ -560,7 +572,7 @@ const NON_SOLID = new Set([
   'big_dripleaf','small_dripleaf','cave_vines','cave_vines_plant',
   'oak_sapling','spruce_sapling','birch_sapling','jungle_sapling',
   'acacia_sapling','dark_oak_sapling','cherry_sapling','mangrove_propagule',
-  'sugar_cane','bamboo','cactus',
+  'sugar_cane','bamboo',
   'wheat','carrots','potatoes','beetroots','nether_wart','sweet_berry_bush',
   'chorus_flower','chorus_plant',
   'torch','wall_torch','soul_torch','redstone_torch',
@@ -569,6 +581,14 @@ const NON_SOLID = new Set([
   'snow','snow_layer','carpet',
   'cobweb','string','chain','ladder','iron_bars',
 ]);
+
+// Blocks with no static, name-based texture we can source at all - a player
+// head's visible texture is that player's live skin (fetched from Mojang at
+// render time in-game), not a fixed file, so there's nothing in
+// /mc-textures/ to show. Treated like NON_SOLID for ground-height purposes
+// (walk past it to find the real block it's sitting on) but never actually
+// drawn - showing broken/fallback geometry would look worse than nothing.
+const NO_RENDER = new Set(['player_head', 'player_wall_head']);
 
 // Thin near-horizontal blocks - these sit low and flat across most of the
 // block's footprint, unlike a flower/grass cross which stands upright. Drawn
@@ -591,7 +611,7 @@ function isFlatLayer(name) { return FLAT_LAYER.has(name) || name.endsWith('_carp
 // to use is inferred purely from stack position at render time (see the
 // PLANT SPRITE loop): a layer whose immediate neighbour in the stack is the
 // same block id is the paired half; isolated occurrences default to _top.
-const DOUBLE_TALL = new Set(['tall_grass', 'large_fern', 'sunflower', 'lilac', 'peony', 'rose_bush']);
+const DOUBLE_TALL = new Set(['tall_grass', 'large_fern', 'sunflower', 'lilac', 'peony', 'rose_bush', 'tall_seagrass']);
 
 // Logs follow a standard pattern
 const LOG_TYPES = ['oak','spruce','birch','jungle','acacia','dark_oak','mangrove','cherry','bamboo','crimson','warped'];
@@ -601,24 +621,46 @@ function blockTexNames(name) {
   // Log / stripped log pattern
   for (const w of LOG_TYPES) {
     if (name === w+'_log' || name === 'stripped_'+w+'_log') return { top:name+'_top', side:name, bottom:name+'_top' };
-    if (name === w+'_wood' || name === 'stripped_'+w+'_wood') return { top:name, side:name, bottom:name };
+    if (name === w+'_wood' || name === 'stripped_'+w+'_wood') {
+      // The full-bark "wood" block (as opposed to "log") has no ring pattern
+      // on any face - it's the same bark texture as its _log counterpart's
+      // side, applied to all 6 faces. There's no standalone oak_wood.png
+      // etc. file; only oak_log.png (the bark texture) exists.
+      const logName = name.replace('_wood', '_log');
+      return { top:logName, side:logName, bottom:logName };
+    }
   }
   if (name === 'bamboo_block' || name === 'stripped_bamboo_block') return { top:name+'_top', side:name, bottom:name+'_top' };
+  // Fences/gates have no texture of their own - vanilla textures them with
+  // the matching wood type's plank texture (nether_brick_fence uses the
+  // brick texture instead, since it isn't a wood type).
+  if (name === 'nether_brick_fence') return { top:'nether_bricks', side:'nether_bricks', bottom:'nether_bricks' };
+  if (name.endsWith('_fence') || name.endsWith('_fence_gate')) {
+    const base = name.replace(/_fence(_gate)?$/, '') + '_planks';
+    return { top:base, side:base, bottom:base };
+  }
   return { top:name, side:name, bottom:name };
 }
 
 let blockName = {};  // id → bare name (no namespace), built once
 let nonSolidIds = new Set(); // block IDs that are plants/non-solid
+let noRenderIds = new Set(); // block IDs we deliberately never draw (see NO_RENDER)
 
 function buildBlockColors() {
   for (const b of paletteArr) {
     const name = (b.name || '').replace(/^minecraft:/, '');
     blockName[b.id] = name;
     if (NON_SOLID.has(name)) nonSolidIds.add(b.id);
+    if (NO_RENDER.has(name)) noRenderIds.add(b.id);
     const col = DEFAULT_COLORS[name] ?? '#888888';
     blockCol[b.id] = typeof col === 'number' ? null : new THREE.Color(col);
   }
 }
+
+// Solid for the purposes of "is there real, drawable terrain here" - true
+// non-solid plants AND blocks we refuse to render (see NO_RENDER) both need
+// to be walked past to find the actual ground/wall material beneath them.
+function isWalkPast(bid) { return nonSolidIds.has(bid) || noRenderIds.has(bid); }
 
 // Derive groundHeight/groundBlock/plantShift for every column (see the field
 // comments above). Plants (short_grass, flowers, ferns...) should never be
@@ -642,11 +684,11 @@ function computeGroundHeights() {
   floorBlock = new Uint16Array(n);
   for (let i = 0; i < n; i++) {
     const s = surface[i];
-    if (s && nonSolidIds.has(s)) {
+    if (s && isWalkPast(s)) {
       let d = 0;
       while (d < skirtDepth) {
         const b = skirtArr[i * skirtDepth + d];
-        if (b && !nonSolidIds.has(b)) break;
+        if (b && !isWalkPast(b)) break;
         d++;
       }
       if (d < skirtDepth) {
@@ -658,6 +700,14 @@ function computeGroundHeights() {
       // No solid block found anywhere in the recorded skirt (rare - e.g.
       // shallow skirt data). Fall back to treating the plant itself as the
       // solid top rather than leaving a hole; its sprite still draws on top.
+      // Unless it's a NO_RENDER block (a player head with nothing solid
+      // found below it) - there's nothing safe to fall back to drawing, so
+      // leave the column with no data rather than showing a broken texture.
+      if (noRenderIds.has(s)) {
+        groundHeight[i] = heights[i];
+        groundBlock[i] = 0;
+        continue;
+      }
     }
     groundHeight[i] = heights[i];
     groundBlock[i] = s;
@@ -680,7 +730,7 @@ function computeGroundHeights() {
     for (let depth = 1; depth <= skirtDepth - shift; depth++) {
       const d = depth - 1 + shift;
       const b = skirtArr[i * skirtDepth + d];
-      if (!b || nonSolidIds.has(b)) { sawGap = true; continue; }
+      if (!b || isWalkPast(b)) { sawGap = true; continue; }
       if (sawGap) {
         floorHeight[i] = groundHeight[i] - depth;
         floorBlock[i] = b;
@@ -1080,7 +1130,7 @@ function _buildChunkInner(cx, cz, key) {
       const layerBlockAt = k => k === 0 ? surface[idx] : skirtArr[idx * skirtDepth + (k - 1)];
       for (let k = 0; k < layerCount; k++) {
         const plantBid = layerBlockAt(k);
-        if (!plantBid) continue;
+        if (!plantBid || noRenderIds.has(plantBid)) continue; // e.g. a player head - nothing to draw
         const name = blockName[plantBid];
         const plantTc = getBiomeTint(biomeId, 'top', plantBid);
         let uvv;
@@ -1131,7 +1181,7 @@ function _buildChunkInner(cx, cz, key) {
         for (let y = nh + 1; y <= my; y++) {
           const depth = my - y;
           const b2 = getBlockAtDepth(idx, depth);
-          const solidHere = b2 && !nonSolidIds.has(b2);
+          const solidHere = b2 && !isWalkPast(b2);
           if (runStart >= 0 && solidHere && b2 === runBid) continue; // extend run
           if (runStart >= 0) emitSideFace(wx, wz, runStart, y - 1, dx, dz, nx, nz, runBid, biomeId, pos, norm, uv, col);
           runStart = solidHere ? y : -1;
