@@ -145,10 +145,6 @@ let heights, surface, skirtArr, waterArr, biomes;
 // plantShift is 1 for those columns (0 otherwise) so getBlockAtDepth can offset
 // its skirt indexing to match. The plant itself is drawn separately as a cross.
 let groundHeight, groundBlock, plantShift;
-// floorHeight/floorBlock (NaN/0 when absent): a deeper real-ground surface
-// found below an air gap in this column's skirt - e.g. a tree canopy
-// floating above the forest floor. See computeGroundHeights.
-let floorHeight, floorBlock;
 let W = 0, H = 0, minY = 0, skirtDepth = 4;
 
 // ── Three.js ──────────────────────────────────────────────────────────────────
@@ -704,8 +700,6 @@ function computeGroundHeights() {
   groundHeight = new Float32Array(n);
   groundBlock = new Uint16Array(n);
   plantShift = new Uint8Array(n);
-  floorHeight = new Float32Array(n).fill(NaN);
-  floorBlock = new Uint16Array(n);
   for (let i = 0; i < n; i++) {
     const s = surface[i];
     if (s && isWalkPast(s)) {
@@ -735,32 +729,6 @@ function computeGroundHeights() {
     }
     groundHeight[i] = heights[i];
     groundBlock[i] = s;
-  }
-
-  // A column's own solid top (groundHeight/groundBlock above) can still be
-  // floating over real ground with nothing connecting them - e.g. a tree
-  // canopy column, whose recorded surface is a leaf block sitting several
-  // empty blocks above the actual forest floor. That floor data IS present
-  // in the skirt, but until now nothing ever drew it: side walls only
-  // appear where a *shorter neighbour* triggers one, so a canopy column
-  // boxed in by same-height canopy on all four sides had literally no
-  // geometry below its own top face - sky was visible straight through any
-  // gap in the leaves. Scan each column's skirt for a solid-air-solid
-  // pattern (real ground reappearing after a gap) and remember it so it can
-  // be drawn as an extra floor patch regardless of neighbour heights.
-  for (let i = 0; i < n; i++) {
-    const shift = plantShift[i];
-    let sawGap = false;
-    for (let depth = 1; depth <= skirtDepth - shift; depth++) {
-      const d = depth - 1 + shift;
-      const b = skirtArr[i * skirtDepth + d];
-      if (!b || isWalkPast(b)) { sawGap = true; continue; }
-      if (sawGap) {
-        floorHeight[i] = groundHeight[i] - depth;
-        floorBlock[i] = b;
-      }
-      break;
-    }
   }
 }
 
@@ -1133,6 +1101,33 @@ function _buildChunkInner(cx, cz, key) {
   const _fuv = [(ATLAS-TEX)/ATLAS, (ATLAS-TEX)/ATLAS, 1.0, 1.0];
   function fallbackUV() { return _fuv; }
 
+  const DIRS4 = [
+    { dx: 1, dz: 0, nx: 1, nz: 0 },
+    { dx:-1, dz: 0, nx:-1, nz: 0 },
+    { dx: 0, dz: 1, nx: 0, nz: 1 },
+    { dx: 0, dz:-1, nx: 0, nz:-1 },
+  ];
+
+  // A capped box (top face + 4 side walls) for one contiguous run of solid
+  // material found in a column's own skirt - see the SELF SKIRT comment
+  // below for why this needs to exist as its own thing rather than only
+  // ever drawing walls where a shorter neighbour triggers them.
+  function emitSelfRun(wx, wz, yBot, yTop, bid, biomeId) {
+    const uvv = getUV(bid, 'top') || fallbackUV();
+    const tc = getBiomeTint(biomeId, 'top', bid);
+    const bColor = blockCol[bid] || new THREE.Color(0x888888);
+    const r = atlasTex ? tc[0] : bColor.r * tc[0];
+    const g = atlasTex ? tc[1] : bColor.g * tc[1];
+    const b = atlasTex ? tc[2] : bColor.b * tc[2];
+    addQuad(
+      [wx, yTop+1, wz], [wx+1, yTop+1, wz], [wx+1, yTop+1, wz+1], [wx, yTop+1, wz+1],
+      0, 1, 0, uvv[0], uvv[1], uvv[2], uvv[3], r, g, b, true
+    );
+    for (const {dx, dz, nx, nz} of DIRS4) {
+      emitSideFace(wx, wz, yBot, yTop, dx, dz, nx, nz, bid, biomeId, pos, norm, uv, col);
+    }
+  }
+
   for (let mz = sz; mz < ez; mz++) {
     for (let mx = sx; mx < ex; mx++) {
       const idx = mz * W + mx;
@@ -1159,23 +1154,39 @@ function _buildChunkInner(cx, cz, key) {
         );
       }
 
-      // FLOOR PATCH — real ground sitting below an air gap under this
-      // column's own solid top (see computeGroundHeights): most commonly a
-      // tree canopy column floating above the forest floor. Drawn
-      // unconditionally (not just where a shorter neighbour exposes it) so
-      // there's always something visible looking through gaps in a canopy,
-      // instead of sky straight through to the horizon.
-      if (!isNaN(floorHeight[idx])) {
-        const fbid = floorBlock[idx];
-        const ftc = getBiomeTint(biomeId, 'top', fbid);
-        const fColor = blockCol[fbid] || new THREE.Color(0x888888);
-        const fr = atlasTex ? ftc[0] : fColor.r * ftc[0], fg = atlasTex ? ftc[1] : fColor.g * ftc[1], fb2 = atlasTex ? ftc[2] : fColor.b * ftc[2];
-        const fuvv = getUV(fbid, 'top') || fallbackUV();
-        const fy = floorHeight[idx];
-        addQuad(
-          [wx, fy+1, wz], [wx+1, fy+1, wz], [wx+1, fy+1, wz+1], [wx, fy+1, wz+1],
-          0, 1, 0, fuvv[0], fuvv[1], fuvv[2], fuvv[3], fr, fg, fb2, true
-        );
+      // SELF SKIRT — a leaf-topped column's own recorded material below its
+      // top, drawn regardless of whether any neighbour is short enough to
+      // expose a wall the normal way. This is what makes a tree canopy
+      // column show its trunk and its forest floor: its skirt often
+      // contains real solid data further down - a log run continuing the
+      // trunk under the canopy, then an air gap, then the real ground -
+      // none of which a neighbour-height comparison alone would ever
+      // expose if surrounding canopy is the same height on every side.
+      //
+      // Gated on the column's own top being leaves specifically (not e.g.
+      // "no neighbour is shorter", which is trivially true for *any*
+      // ordinary flat terrain too, since same-height neighbours count as
+      // "not shorter") - ordinary ground's skirt is just a boring
+      // dirt/stone run that would look identical whether drawn here or via
+      // the normal neighbour-triggered wall the moment a real height
+      // difference exposes it, so self-rendering it here too would only
+      // add many times more geometry for zero visual difference. Leaves
+      // are different: a leaf-topped column is very often never exposed by
+      // height differences at all (canopy tends to be a fairly uniform
+      // blob), so this is the only way that column's trunk/floor data ever
+      // gets drawn.
+      if (blockName[displayBid]?.endsWith('_leaves')) {
+        let runStart = -1, runBid = 0;
+        const maxDepth = skirtDepth - plantShift[idx];
+        for (let depth = 1; depth <= maxDepth; depth++) {
+          const b = skirtArr[idx * skirtDepth + (depth - 1 + plantShift[idx])];
+          const solidHere = b && !isWalkPast(b);
+          if (runStart >= 0 && solidHere && b === runBid) continue; // extend run
+          if (runStart >= 0) emitSelfRun(wx, wz, wy - (depth - 1), wy - runStart, runBid, biomeId);
+          runStart = solidHere ? depth : -1;
+          runBid = solidHere ? b : 0;
+        }
+        if (runStart >= 0) emitSelfRun(wx, wz, wy - maxDepth, wy - runStart, runBid, biomeId);
       }
 
       // PLANT SPRITE(S) — one or more decorative non-solid blocks (grass,
@@ -1226,13 +1237,7 @@ function _buildChunkInner(cx, cz, key) {
       }
 
       // SIDE FACES — check 4 neighbours
-      const dirs = [
-        { dx: 1, dz: 0, nx: 1, nz: 0 },
-        { dx:-1, dz: 0, nx:-1, nz: 0 },
-        { dx: 0, dz: 1, nx: 0, nz: 1 },
-        { dx: 0, dz:-1, nx: 0, nz:-1 },
-      ];
-      for (const {dx, dz, nx, nz} of dirs) {
+      for (const {dx, dz, nx, nz} of DIRS4) {
         const nx2 = mx + dx, nz2 = mz + dz;
         if (nx2 < 0 || nx2 >= W || nz2 < 0 || nz2 >= H) continue;
         const nidx = nz2 * W + nx2;
