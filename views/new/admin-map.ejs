@@ -1001,7 +1001,15 @@ function initScene(centerH) {
   updateCamera();
 
   // Lighting
-  const amb = new THREE.AmbientLight(0xffffff, 0.6);
+  // Ambient was 0.6 - low-contrast, pale blocks (white/light gray terracotta,
+  // and other pale-textured blocks) sitting in the sun's shadow got dark
+  // enough with only that much ambient fill that they were genuinely hard to
+  // tell apart from empty background: reported as "block faces not
+  // rendering, you can see straight through to the sky" - confirmed via
+  // raycasting that the geometry and texture were both actually correct;
+  // it was purely a lighting/contrast problem for anything shadowed and
+  // pale to begin with. Raised so shadowed faces stay clearly legible.
+  const amb = new THREE.AmbientLight(0xffffff, 1.0);
   scene.add(amb);
   const sun = new THREE.DirectionalLight(0xfffce0, 1.2);
   sun.position.set(200, 400, 100);
