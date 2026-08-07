@@ -4,6 +4,7 @@ const db = require('../../db');
 const { sendDiscordDM } = require('../discord-dm');
 const multer = require('multer');
 const path = require('path');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -464,6 +465,21 @@ router.post('/nation-leader/:id/delete', async (req, res) => {
 // Map viewer
 router.get('/map', (req, res) => res.render('new/admin-map'));
 router.get('/map-v2', (req, res) => res.render('new/admin-map-v2'));
+
+// BlueMap (our fork - see BlueMap-fork on Alex's machine) renders the real
+// single-player world locally and is exposed over a Cloudflare Tunnel, since
+// this is a single-player world (not a hosted server) and the rendered
+// output (~700MB of tiles) is far too large to commit to this repo or fit
+// on Render's ephemeral disk. BLUEMAP_TUNNEL_URL should be set on Render
+// once the tunnel has a stable address; the literal fallback here is only
+// for while that's being set up and WILL go stale (quick Cloudflare Tunnels
+// get a new random hostname every time they're restarted).
+const BLUEMAP_TARGET = process.env.BLUEMAP_TUNNEL_URL || 'https://tonight-papers-lace-breed.trycloudflare.com';
+router.use('/bluemap', createProxyMiddleware({
+  target: BLUEMAP_TARGET,
+  changeOrigin: true,
+  ws: true,
+}));
 
 // Nations portal
 router.get('/nations', async (req, res) => {
