@@ -132,9 +132,21 @@
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CHUNK = 32;
-const RENDER_DIST = 12; // chunks
 const ATLAS = 1024;     // atlas texture side (pixels) — 64×64 = 4096 slots
 const TEX = 16;         // block texture size
+// LOD bands, in chunks (×CHUNK blocks) from the camera - see the LOD TIERS
+// comment near buildTierChunk for why: full per-block detail everywhere
+// would mean building real voxel geometry for the whole map at once, which
+// is what made the page laggy. Only the "near" band gets that; "mid" is a
+// full-resolution top+walls-only view (cheap - one quad per column instead
+// of a whole column of solid geometry); "far" is the same thing sampled
+// coarser, covering the rest of the map cheaply enough to build once, up
+// front, for the entire world so the whole map is visible immediately
+// instead of only filling in as you fly around.
+const NEAR_RADIUS = 6;   // chunks - full per-block detail
+const MID_RADIUS = 18;   // chunks - full-resolution top+walls
+const UNLOAD_BUFFER = 3; // hysteresis so chunks near a band edge don't thrash
+const FAR_STEP = 4;      // blocks per sampled cell in the far band
 
 // ── World state ───────────────────────────────────────────────────────────────
 let meta, paletteArr, biomePal;
@@ -158,8 +170,11 @@ let W = 0, H = 0, minY = 0, maxDepth = 64;
 let scene, camera, renderer;
 let solidMat, waterMat, planeMat;
 let solidGroup, waterGroup, planGroup;
-let chunks = new Map();
-let chunkQueue = [];
+let chunks = new Map();     // "near"/"mid" tier, keyed by cx_cz - one entry per chunk, tier can change over time
+let chunkQueue = [];        // pending near/mid (re)builds, closest first
+let farTiles = new Map();   // "far" tier, keyed by cx_cz - built once for the whole map, never unloaded
+let farQueue = [];          // pending far builds, closest-to-initial-camera first
+let farTotalTiles = 0;
 let animId = null;
 
 // ── Textures ──────────────────────────────────────────────────────────────────
@@ -344,6 +359,7 @@ async function loadWorld(files) {
     document.getElementById('mv-viewer').style.display = 'flex';
     await new Promise(r => requestAnimationFrame(r));
     initScene(centerH);
+    queueAllFarTiles();
     showProgress(false);
     setTool('nav');
     animate();
@@ -942,9 +958,14 @@ function initScene(centerH) {
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x87ceeb);
-  scene.fog = new THREE.Fog(0x87ceeb, 600, 2000);
+  // Pushed well past the old 600-2000 range so the far LOD tier (built for
+  // the *entire* map, see queueAllFarTiles) is actually visible out to the
+  // horizon instead of fading into fog a few hundred blocks out - the whole
+  // point of having it. Farthest possible corner-to-corner distance on a
+  // 3001×3001 map is ~4243 blocks; 6000/7000 leaves margin.
+  scene.fog = new THREE.Fog(0x87ceeb, 2500, 7000);
 
-  camera = new THREE.PerspectiveCamera(70, canvas.clientWidth / canvas.clientHeight, 0.5, 3000);
+  camera = new THREE.PerspectiveCamera(70, canvas.clientWidth / canvas.clientHeight, 0.5, 6500);
   // Position camera at center of world, above actual terrain height
   const terrainY = (centerH !== undefined && isFinite(centerH)) ? centerH : 64;
   cam.tx = W / 2; cam.ty = terrainY + 20; cam.tz = H / 2;
@@ -1094,18 +1115,20 @@ function getBiomeTint(biomeId, face, blockId) {
   return [c.r, c.g, c.b];
 }
 
-function buildChunk(cx, cz) {
+function buildNearChunk(cx, cz) {
   const key = cx + '_' + cz;
-  if (chunks.has(key)) return;
+  const existing = chunks.get(key);
+  if (existing && existing.tier === 'near') return;
+  if (existing) disposeChunk(existing);
   try {
-    _buildChunkInner(cx, cz, key);
+    _buildNearChunkInner(cx, cz, key);
   } catch (err) {
-    console.error('[MapViewer] buildChunk error at', cx, cz, err);
-    chunks.set(key, { solid: null, water: null }); // mark as attempted to avoid retry spam
+    console.error('[MapViewer] buildNearChunk error at', cx, cz, err);
+    chunks.set(key, { solid: null, water: null, tier: 'near' }); // mark as attempted to avoid retry spam
   }
 }
 
-function _buildChunkInner(cx, cz, key) {
+function _buildNearChunkInner(cx, cz, key) {
 
   const sx = cx * CHUNK, sz = cz * CHUNK;
   const ex = Math.min(sx + CHUNK, W), ez = Math.min(sz + CHUNK, H);
@@ -1324,16 +1347,6 @@ function _buildChunkInner(cx, cz, key) {
     }
   }
 
-  function makeGeo(p, n, u, c) {
-    if (!p.length) return null;
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(p), 3));
-    geo.setAttribute('normal',   new THREE.BufferAttribute(new Float32Array(n), 3));
-    geo.setAttribute('uv',       new THREE.BufferAttribute(new Float32Array(u), 2));
-    if (c) geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(c), 3));
-    return geo;
-  }
-
   const solidGeo = makeGeo(pos, norm, uv, col);
   const waterGeo = makeGeo(wpos, wnorm, wuv, null);
 
@@ -1342,7 +1355,164 @@ function _buildChunkInner(cx, cz, key) {
   if (solidMesh) { solidMesh.receiveShadow = true; solidGroup.add(solidMesh); }
   if (waterMesh) waterGroup.add(waterMesh);
 
-  chunks.set(key, { solid: solidMesh, water: waterMesh });
+  chunks.set(key, { solid: solidMesh, water: waterMesh, tier: 'near' });
+}
+
+function makeGeo(p, n, u, c) {
+  if (!p.length) return null;
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(p), 3));
+  geo.setAttribute('normal',   new THREE.BufferAttribute(new Float32Array(n), 3));
+  geo.setAttribute('uv',       new THREE.BufferAttribute(new Float32Array(u), 2));
+  if (c) geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(c), 3));
+  return geo;
+}
+
+function disposeChunk(ch) {
+  if (ch.solid) { solidGroup.remove(ch.solid); ch.solid.geometry.dispose(); }
+  if (ch.water) { waterGroup.remove(ch.water); ch.water.geometry.dispose(); }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LOD TIERS — cheap approximate geometry for everything that isn't close to
+// the camera. _buildNearChunkInner (full per-block detail, real neighbour
+// lookups for every face) is what makes close-up terrain finally look
+// correct, but building that for the *entire* map at once is exactly what
+// made the page laggy - nine million columns' worth of real per-voxel
+// geometry is a lot regardless of how correct it is. Real map viewers
+// (BlueMap etc.) solve this the same way this does: full detail only near
+// the camera, a much cheaper simplified representation everywhere else, so
+// "see the whole map to the horizon" doesn't require building voxel
+// geometry for the whole world - just a coarser one, using the same real
+// recorded surface/height/water data (never invented), one flat top quad
+// (+ walls at real height drops) per sampled column instead of a full
+// column of solid geometry. `step` controls how many world blocks each
+// sampled cell covers - 1 for the "mid" band (same resolution as a real
+// column, just top-only), larger for "far" (fewer, bigger cells covering
+// the rest of the map cheaply).
+function buildTierChunk(cx, cz, step, targetMap, tierName) {
+  const key = cx + '_' + cz;
+  const existing = targetMap.get(key);
+  if (existing && existing.tier === tierName) return;
+  if (existing) { disposeChunk(existing); targetMap.delete(key); }
+  try {
+    _buildTierChunkInner(cx, cz, key, step, targetMap, tierName);
+  } catch (err) {
+    console.error('[MapViewer] buildTierChunk error at', cx, cz, tierName, err);
+    targetMap.set(key, { solid: null, water: null, tier: tierName });
+  }
+}
+
+function _buildTierChunkInner(cx, cz, key, step, targetMap, tierName) {
+  const sx = cx * CHUNK, sz = cz * CHUNK;
+  const ex = Math.min(sx + CHUNK, W), ez = Math.min(sz + CHUNK, H);
+
+  const pos = [], norm = [], uv = [], col = [];
+  const wpos = [], wnorm = [], wuv = [];
+
+  function addFlatQuad(x0, x1, z0, z1, y, bid, biomeId) {
+    const uvv = getUV(bid, 'top') || [(ATLAS-TEX)/ATLAS, (ATLAS-TEX)/ATLAS, 1.0, 1.0];
+    const tc = getBiomeTint(biomeId, 'top', bid);
+    const bColor = blockCol[bid] || new THREE.Color(0x888888);
+    const r = atlasTex ? tc[0] : bColor.r * tc[0];
+    const g = atlasTex ? tc[1] : bColor.g * tc[1];
+    const b = atlasTex ? tc[2] : bColor.b * tc[2];
+    const p0=[x0,y,z0], p1=[x1,y,z0], p2=[x1,y,z1], p3=[x0,y,z1];
+    const verts = [p0,p2,p1, p0,p3,p2];
+    const uvs = [[uvv[0],uvv[3]],[uvv[2],uvv[1]],[uvv[2],uvv[3]], [uvv[0],uvv[3]],[uvv[0],uvv[1]],[uvv[2],uvv[1]]];
+    for (let i = 0; i < 6; i++) { pos.push(...verts[i]); norm.push(0,1,0); uv.push(...uvs[i]); col.push(r,g,b); }
+  }
+
+  function addWallQuad(x0, x1, z0, z1, yBot, yTop, dx, dz, bid, biomeId) {
+    const uvv = getUV(bid, 'side') || getUV(bid, 'top') || [(ATLAS-TEX)/ATLAS, (ATLAS-TEX)/ATLAS, 1.0, 1.0];
+    const tc = getBiomeTint(biomeId, 'side', bid);
+    const bColor = blockCol[bid] || new THREE.Color(0x888888);
+    const r = atlasTex ? tc[0] : bColor.r * tc[0];
+    const g = atlasTex ? tc[1] : bColor.g * tc[1];
+    const b = atlasTex ? tc[2] : bColor.b * tc[2];
+    let p0, p1, p2, p3;
+    if (dx === 1) { p0=[x1,yBot,z0]; p1=[x1,yBot,z1]; p2=[x1,yTop,z1]; p3=[x1,yTop,z0]; }
+    else if (dx === -1) { p0=[x0,yBot,z1]; p1=[x0,yBot,z0]; p2=[x0,yTop,z0]; p3=[x0,yTop,z1]; }
+    else if (dz === 1) { p0=[x1,yBot,z1]; p1=[x0,yBot,z1]; p2=[x0,yTop,z1]; p3=[x1,yTop,z1]; }
+    else { p0=[x0,yBot,z0]; p1=[x1,yBot,z0]; p2=[x1,yTop,z0]; p3=[x0,yTop,z0]; }
+    const verts = [p0,p2,p1, p0,p3,p2];
+    const uvs = [[uvv[0],uvv[3]],[uvv[2],uvv[1]],[uvv[2],uvv[3]], [uvv[0],uvv[3]],[uvv[0],uvv[1]],[uvv[2],uvv[1]]];
+    for (let i = 0; i < 6; i++) { pos.push(...verts[i]); norm.push(dx,0,dz); uv.push(...uvs[i]); col.push(r,g,b); }
+  }
+
+  // The recorded surface block is very often a decorative non-solid one
+  // (grass, a flower, a sapling...) sitting on the real ground - drawing
+  // *that* as a full flat top quad looks like small colored specks
+  // scattered across otherwise-solid-looking terrain (most of a flower's
+  // texture is transparent, so alphaTest barely cuts anything and you get a
+  // tiny colored splotch instead of solid ground). LOD tiles don't draw
+  // individual plant sprites at all (this is a distance view, not a
+  // close-up), so they should show the real ground surface underneath
+  // instead, same as the near tier's per-block walk (just short-circuited -
+  // a plant's solid support is almost always the very next run entry, so
+  // this stays a small bounded walk, not a full column decode).
+  function sampleAt(mx, mz) {
+    if (mx < 0 || mx >= W || mz < 0 || mz >= H) return null;
+    const idx = mz * W + mx;
+    let bid = surface[idx], y = heights[idx];
+    if (bid && isWalkPast(bid)) {
+      const rs = runStart[idx], rc = runCount[idx];
+      let d = 0, found = false;
+      for (let r = 0; r < rc; r++) {
+        const rbid = runBlockIds[rs + r];
+        if (rbid && !isWalkPast(rbid)) { bid = rbid; y = heights[idx] - 1 - d; found = true; break; }
+        d += runLengths[rs + r];
+      }
+      if (!found) { bid = surface[idx]; y = heights[idx]; } // nothing solid recorded - fall back to the plant itself
+    }
+    if (!bid) return null;
+    return { bid, y, water: waterArr[idx], biomeId: biomes[idx] };
+  }
+
+  for (let mz = sz; mz < ez; mz += step) {
+    for (let mx = sx; mx < ex; mx += step) {
+      const s = sampleAt(mx, mz);
+      if (!s) continue;
+      const x0 = mx, x1 = Math.min(mx + step, ex), z0 = mz, z1 = Math.min(mz + step, ez);
+
+      addFlatQuad(x0, x1, z0, z1, s.y + 1, s.bid, s.biomeId);
+
+      const dirs = [
+        { dx: 1, dz: 0, nx: mx + step, nz: mz },
+        { dx:-1, dz: 0, nx: mx - step, nz: mz },
+        { dx: 0, dz: 1, nx: mx, nz: mz + step },
+        { dx: 0, dz:-1, nx: mx, nz: mz - step },
+      ];
+      for (const { dx, dz, nx, nz } of dirs) {
+        const n = sampleAt(nx, nz);
+        if (!n) continue; // no neighbour data (map edge/ungenerated) - don't fake a cliff
+        if (n.y >= s.y) continue;
+        addWallQuad(x0, x1, z0, z1, n.y + 1, s.y + 1, dx, dz, s.bid, s.biomeId);
+      }
+
+      if (s.water > s.y) {
+        const wy2 = s.water;
+        wpos.push(
+          x0,wy2+1,z0,  x1,wy2+1,z1,  x1,wy2+1,z0,
+          x0,wy2+1,z0,  x0,wy2+1,z1,  x1,wy2+1,z1
+        );
+        for (let i=0;i<6;i++) wnorm.push(0,1,0);
+        wuv.push(
+          x0,z0,  x1,z1,  x1,z0,
+          x0,z0,  x0,z1,  x1,z1
+        );
+      }
+    }
+  }
+
+  const solidGeo = makeGeo(pos, norm, uv, col);
+  const waterGeo = makeGeo(wpos, wnorm, wuv, null);
+  const solidMesh = solidGeo ? new THREE.Mesh(solidGeo, solidMat) : null;
+  const waterMesh = waterGeo ? new THREE.Mesh(waterGeo, waterMat) : null;
+  if (solidMesh) { solidMesh.receiveShadow = false; solidGroup.add(solidMesh); }
+  if (waterMesh) waterGroup.add(waterMesh);
+
+  targetMap.set(key, { solid: solidMesh, water: waterMesh, tier: tierName });
 }
 
 function emitSideFace(wx, wz, yBot, yTop, dx, dz, nx, nz, bid, biomeId, pos, norm, uv, col) {
@@ -1528,34 +1698,66 @@ function processKeys() {
 // CHUNK MANAGEMENT
 // ══════════════════════════════════════════════════════════════════════════════
 
+// One-time sweep queuing every chunk in the whole map for the far LOD tier,
+// closest-to-camera first so the view fills in from where you're standing
+// outward. Called once right after the world loads (see loadWorld) - far
+// tiles are cheap enough (one sample every FAR_STEP blocks) that building
+// all of them for the entire map is the point: it's what makes "see the
+// whole map, distant horizons included" true from the moment loading
+// finishes, not something that only fills in as you fly around.
+function queueAllFarTiles() {
+  const maxCX = Math.ceil(W / CHUNK), maxCZ = Math.ceil(H / CHUNK);
+  const camChunkX = Math.round(cam.tx / CHUNK), camChunkZ = Math.round(cam.tz / CHUNK);
+  farQueue = [];
+  for (let cz = 0; cz < maxCZ; cz++) {
+    for (let cx = 0; cx < maxCX; cx++) {
+      const dx = cx - camChunkX, dz = cz - camChunkZ;
+      farQueue.push({ cx, cz, key: cx + '_' + cz, d2: dx*dx + dz*dz });
+    }
+  }
+  farQueue.sort((a, b) => a.d2 - b.d2);
+  farTotalTiles = farQueue.length;
+}
+
 function updateChunks() {
   const camChunkX = Math.floor(camera.position.x / CHUNK);
   const camChunkZ = Math.floor(camera.position.z / CHUNK);
   const maxCX = Math.ceil(W / CHUNK), maxCZ = Math.ceil(H / CHUNK);
-  const queued = new Set(chunkQueue.map(c => c.key));
+  const queued = new Map(chunkQueue.map(c => [c.key, c]));
 
-  // Queue chunks sorted closest-first
-  for (let dz = -RENDER_DIST; dz <= RENDER_DIST; dz++) {
-    for (let dx = -RENDER_DIST; dx <= RENDER_DIST; dx++) {
+  // Queue chunks needing (re)build sorted closest-first - a chunk already
+  // loaded but at the wrong tier (camera moved closer/farther since it was
+  // built) counts as needing a rebuild too.
+  for (let dz = -MID_RADIUS; dz <= MID_RADIUS; dz++) {
+    for (let dx = -MID_RADIUS; dx <= MID_RADIUS; dx++) {
       const d2 = dx*dx + dz*dz;
-      if (d2 > RENDER_DIST * RENDER_DIST) continue;
+      if (d2 > MID_RADIUS * MID_RADIUS) continue;
       const cx = camChunkX + dx, cz = camChunkZ + dz;
       if (cx < 0 || cz < 0 || cx >= maxCX || cz >= maxCZ) continue;
       const key = cx + '_' + cz;
-      if (!chunks.has(key) && !queued.has(key)) {
-        chunkQueue.push({ cx, cz, key, d2 });
-        queued.add(key);
+      const desiredTier = d2 <= NEAR_RADIUS * NEAR_RADIUS ? 'near' : 'mid';
+      const existing = chunks.get(key);
+      if (existing && existing.tier === desiredTier) continue;
+      if (!queued.has(key)) {
+        const q = { cx, cz, key, d2, tier: desiredTier };
+        chunkQueue.push(q);
+        queued.set(key, q);
+      } else {
+        queued.get(key).tier = desiredTier; // camera moved again before the old request was processed
       }
     }
   }
   chunkQueue.sort((a, b) => a.d2 - b.d2);
 
-  // Unload distant chunks
+  // Unload chunks that fell outside the mid band entirely - the far tile
+  // underneath them is always there, so there's nothing left to show once
+  // this finer-detail mesh is gone.
+  const unloadDist2 = (MID_RADIUS + UNLOAD_BUFFER) * (MID_RADIUS + UNLOAD_BUFFER);
   for (const [key, ch] of chunks) {
     const [cx, cz] = key.split('_').map(Number);
-    if (Math.abs(cx - camChunkX) > RENDER_DIST + 3 || Math.abs(cz - camChunkZ) > RENDER_DIST + 3) {
-      if (ch.solid) { solidGroup.remove(ch.solid); ch.solid.geometry.dispose(); }
-      if (ch.water) { waterGroup.remove(ch.water); ch.water.geometry.dispose(); }
+    const dx = cx - camChunkX, dz = cz - camChunkZ;
+    if (dx*dx + dz*dz > unloadDist2) {
+      disposeChunk(ch);
       chunks.delete(key);
     }
   }
@@ -1566,7 +1768,8 @@ function updateChunks() {
 // ══════════════════════════════════════════════════════════════════════════════
 
 let lastChunkUpdate = 0;
-const CHUNKS_PER_FRAME = 3;
+const CHUNKS_PER_FRAME = 3;   // near/mid tier - real per-block work, keep this small
+const FAR_CHUNKS_PER_FRAME = 40; // far tier - cheap sampled cells, can afford many more per frame
 let statsEl = null;
 let frameCount = 0;
 function animate() {
@@ -1575,7 +1778,15 @@ function animate() {
   // Build a few queued chunks per frame to avoid freezing the main thread
   for (let i = 0; i < CHUNKS_PER_FRAME && chunkQueue.length > 0; i++) {
     const c = chunkQueue.shift();
-    if (!chunks.has(c.key)) buildChunk(c.cx, c.cz);
+    const existing = chunks.get(c.key);
+    if (!existing || existing.tier !== c.tier) {
+      if (c.tier === 'near') buildNearChunk(c.cx, c.cz);
+      else buildTierChunk(c.cx, c.cz, 1, chunks, 'mid');
+    }
+  }
+  for (let i = 0; i < FAR_CHUNKS_PER_FRAME && farQueue.length > 0; i++) {
+    const c = farQueue.shift();
+    if (!farTiles.has(c.key)) buildTierChunk(c.cx, c.cz, FAR_STEP, farTiles, 'far');
   }
   const now = performance.now();
   if (now - lastChunkUpdate > 300) { updateChunks(); lastChunkUpdate = now; }
@@ -1586,9 +1797,10 @@ function animate() {
     if (!statsEl) statsEl = document.getElementById('mv-stats');
     if (statsEl) {
       const loaded = chunks.size, queued = chunkQueue.length;
+      const nearCount = [...chunks.values()].filter(c => c.tier === 'near').length;
       const camP = camera.position;
       const texCount = Object.keys(blockUV).length;
-      statsEl.innerHTML = `World: ${W}×${H} | Chunks: ${loaded} loaded, ${queued} queued<br>Cam: ${Math.round(camP.x)}, ${Math.round(camP.y)}, ${Math.round(camP.z)}<br>Atlas: ${atlasTex ? 'loaded' : 'MISSING'} | blockUV: ${texCount} entries`;
+      statsEl.innerHTML = `World: ${W}×${H} | Near/mid: ${loaded} (${nearCount} near), ${queued} queued<br>Far tiles: ${farTiles.size}/${farTotalTiles}${farQueue.length ? ' (' + farQueue.length + ' queued)' : ''}<br>Cam: ${Math.round(camP.x)}, ${Math.round(camP.y)}, ${Math.round(camP.z)}<br>Atlas: ${atlasTex ? 'loaded' : 'MISSING'} | blockUV: ${texCount} entries`;
     }
   }
 }
@@ -1621,6 +1833,7 @@ function updateCoords(e) {
   // isn't over any built geometry at all (e.g. pointing at open sky).
   const meshes = [];
   for (const c of chunks.values()) { if (c.solid) meshes.push(c.solid); }
+  for (const c of farTiles.values()) { if (c.solid) meshes.push(c.solid); }
   const hits = raycaster.intersectObjects(meshes, false);
   let px, py, pz;
   if (hits.length) {
