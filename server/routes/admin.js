@@ -463,6 +463,7 @@ router.post('/nation-leader/:id/delete', async (req, res) => {
 
 // Map viewer
 router.get('/map', (req, res) => res.render('new/admin-map'));
+router.get('/map-v2', (req, res) => res.render('new/admin-map-v2'));
 
 // Nations portal
 router.get('/nations', async (req, res) => {

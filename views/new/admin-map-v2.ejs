@@ -1,0 +1,1843 @@
+<%- include('partials/head', { pageTitle: 'Map Viewer V2' }) %>
+<%- include('partials/header') %>
+
+<style>
+#mv-root{position:fixed;top:64px;left:0;right:0;bottom:0;background:#0c0d10;display:flex;flex-direction:column;overflow:hidden}
+/* Load panel */
+#mv-load{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:20px;padding:40px}
+#mv-load h2{font-family:'Baloo 2';font-weight:800;font-size:22px;color:#e0e2ed;margin:0}
+#mv-load p{font-size:13px;color:var(--muted);margin:0;max-width:480px;text-align:center;line-height:1.7}
+.mv-drop{border:2px dashed rgba(255,255,255,.15);border-radius:16px;padding:40px 60px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s}
+.mv-drop:hover,.mv-drop.dragover{border-color:rgba(91,227,143,.5);background:rgba(91,227,143,.04)}
+.mv-drop input{display:none}
+.mv-drop-icon{font-size:40px;margin-bottom:12px;opacity:.5}
+.mv-drop-label{font-family:'Baloo 2';font-weight:700;font-size:14px;color:#c9ccdb}
+.mv-drop-sub{font-size:12px;color:var(--muted);margin-top:4px}
+.mv-files-hint{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;padding:14px 18px;font-size:12px;color:var(--muted);font-family:monospace;text-align:left;line-height:1.8}
+/* Viewer layout */
+#mv-viewer{display:none;flex:1;position:relative;overflow:hidden;flex-direction:column}
+#mv-canvas{display:block;width:100%!important;height:100%!important;flex:1}
+/* Progress overlay */
+#mv-progress{display:none;position:absolute;inset:0;background:rgba(12,13,16,.92);z-index:200;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+#mv-progress p{font-family:'Baloo 2';font-weight:700;font-size:14px;color:#e0e2ed;margin:0}
+.mv-prog-bar{width:260px;height:4px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
+.mv-prog-fill{height:100%;width:60%;background:linear-gradient(90deg,#22863a,#5be38f);border-radius:4px;animation:mvprog 1.2s ease-in-out infinite alternate}
+@keyframes mvprog{from{width:20%}to{width:80%}}
+/* Toolbar */
+#mv-toolbar{position:absolute;top:14px;left:14px;z-index:10;display:flex;flex-direction:column;gap:6px}
+.mv-tool{background:rgba(17,18,22,.9);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-family:'Baloo 2';font-weight:700;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;transition:border-color .15s,color .15s}
+.mv-tool:hover{border-color:rgba(91,227,143,.4);color:#c9ccdb}
+.mv-tool.active{border-color:rgba(91,227,143,.6);color:#5be38f;background:rgba(91,227,143,.06)}
+/* Coords */
+#mv-coords{position:absolute;bottom:14px;left:14px;z-index:10;background:rgba(17,18,22,.85);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-family:monospace;font-size:12px;color:#c9ccdb}
+/* Info panel */
+#mv-panel{position:absolute;top:14px;right:14px;z-index:10;width:220px;background:rgba(17,18,22,.92);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+#mv-panel-header{padding:10px 14px;font-family:'Baloo 2';font-weight:800;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+#mv-plan-list{max-height:320px;overflow-y:auto;padding:6px}
+.mv-plan-item{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;font-family:'Baloo 2';font-weight:700;font-size:12px;color:#c9ccdb}
+.mv-plan-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.mv-plan-del{margin-left:auto;cursor:pointer;color:var(--muted);font-size:10px;opacity:.6}
+.mv-plan-del:hover{opacity:1;color:#f87171}
+#mv-panel-actions{padding:8px;border-top:1px solid var(--line);display:flex;gap:6px}
+.mv-act{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:6px;padding:5px 0;font-family:'Baloo 2';font-weight:700;font-size:11px;color:var(--muted);cursor:pointer;text-align:center}
+.mv-act:hover{background:rgba(255,255,255,.09);color:#e0e2ed}
+/* Poly finish button */
+#mv-poly-finish{display:none;position:absolute;bottom:50px;left:50%;transform:translateX(-50%);z-index:20;background:#22863a;color:#fff;border:none;border-radius:8px;padding:8px 22px;font-family:'Baloo 2';font-weight:800;font-size:13px;cursor:pointer}
+/* Label input */
+#mv-label-input{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:30;background:rgba(17,18,22,.96);border:1px solid var(--line);border-radius:12px;padding:20px;min-width:260px}
+#mv-label-input input{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#fff;outline:none;box-sizing:border-box}
+#mv-label-input .mv-li-btns{display:flex;gap:8px;margin-top:10px}
+#mv-label-input button{flex:1;padding:7px;border-radius:7px;font-family:'Baloo 2';font-weight:800;font-size:12px;cursor:pointer;border:none}
+</style>
+
+<div id="mv-root">
+  <!-- Progress overlay (covers whole root) -->
+  <div id="mv-progress">
+    <p id="mv-prog-text">Loading…</p>
+    <div class="mv-prog-bar"><div class="mv-prog-fill"></div></div>
+    <p id="mv-prog-err" style="color:#f87171;font-size:12px;max-width:400px;text-align:center;display:none"></p>
+  </div>
+
+  <!-- ── File load panel ── -->
+  <div id="mv-load">
+    <h2>Map Viewer V2</h2>
+    <p>Every block, rendered directly from real scan data - true per-block geometry with no approximations, like a schematic viewer. Load a /scan3dv2 output folder. Block textures are loaded automatically.</p>
+    <div class="mv-drop" id="mv-drop">
+      <input type="file" id="mv-file-input" multiple accept=".json,.png,.bin" style="display:none">
+      <input type="file" id="mv-folder-input" webkitdirectory style="display:none">
+      <div class="mv-drop-icon">📂</div>
+      <div class="mv-drop-label">Drop the scan3d-v2-output folder here</div>
+      <div class="mv-drop-sub" style="margin-bottom:14px">Or use one of the buttons below</div>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button onclick="event.stopPropagation();document.getElementById('mv-folder-input').click()" style="background:rgba(91,227,143,.12);border:1px solid rgba(91,227,143,.3);color:#5be38f;font-family:'Baloo 2';font-weight:800;font-size:13px;padding:8px 18px;border-radius:8px;cursor:pointer">Select Folder</button>
+        <button onclick="event.stopPropagation();document.getElementById('mv-file-input').click()" style="background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--muted);font-family:'Baloo 2';font-weight:700;font-size:13px;padding:8px 18px;border-radius:8px;cursor:pointer">Select Files</button>
+      </div>
+    </div>
+    <div class="mv-files-hint">
+      Required: meta.json &nbsp;·&nbsp; palette.json &nbsp;·&nbsp; biome_palette.json<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; heightmap.png &nbsp;·&nbsp; blocks.bin &nbsp;·&nbsp; biomes.bin
+    </div>
+  </div>
+
+  <!-- ── 3D viewer ── -->
+  <div id="mv-viewer">
+    <canvas id="mv-canvas"></canvas>
+
+    <div id="mv-toolbar">
+      <div class="mv-tool" id="tool-nav" onclick="setTool('nav')">✦ Navigate</div>
+      <div class="mv-tool" id="tool-walk" onclick="toggleWalkMode()">🚶 Walk Mode</div>
+      <div style="height:6px"></div>
+      <div class="mv-tool" onclick="setTool('spawn')">⊕ Spawn Zone</div>
+      <div class="mv-tool" onclick="setTool('mining')">⊕ Mining Zone</div>
+      <div class="mv-tool" onclick="setTool('contested')">⊕ Contested Zone</div>
+      <div class="mv-tool" onclick="setTool('polygon')">⬡ Draw Border</div>
+      <div class="mv-tool" onclick="setTool('label')">T Label</div>
+      <div style="height:6px"></div>
+      <div class="mv-tool" onclick="exportPNG()">↓ Export PNG</div>
+    </div>
+
+    <div id="mv-coords">X: — &nbsp;Y: — &nbsp;Z: —</div>
+    <div id="mv-stats" style="position:absolute;bottom:14px;right:14px;z-index:10;background:rgba(17,18,22,.85);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-family:monospace;font-size:11px;color:var(--muted);line-height:1.6"></div>
+
+    <div id="mv-panel">
+      <div id="mv-panel-header">
+        Plan
+        <span id="mv-plan-count" style="font-weight:600;color:var(--muted)">0 items</span>
+      </div>
+      <div id="mv-plan-list"></div>
+      <div id="mv-panel-actions">
+        <div class="mv-act" onclick="savePlan()">Save JSON</div>
+        <div class="mv-act" onclick="document.getElementById('mv-plan-file').click()">Load JSON</div>
+        <input type="file" id="mv-plan-file" accept=".json" style="display:none" onchange="loadPlanFile(this)">
+      </div>
+    </div>
+
+    <button id="mv-poly-finish" onclick="finishPolygon()">Finish Border</button>
+
+    <div id="mv-label-input">
+      <input id="mv-label-text" type="text" placeholder="Enter label text…" onkeydown="if(event.key==='Enter')confirmLabel()">
+      <div class="mv-li-btns">
+        <button onclick="confirmLabel()" style="background:#22863a;color:#fff">Add</button>
+        <button onclick="cancelLabel()" style="background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--muted)">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/upng-js@2.1.0/UPNG.js"></script>
+<script>
+(function () {
+'use strict';
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+const CHUNK = 32;
+const RENDER_DIST = 12; // chunks
+const ATLAS = 1024;     // atlas texture side (pixels) — 64×64 = 4096 slots
+const TEX = 16;         // block texture size
+
+// ── World state ───────────────────────────────────────────────────────────────
+let meta, paletteArr, biomePal;
+let heights, surface, waterArr, biomes;
+// Per-column material below the surface, run-length encoded (see parseBlocksBin):
+// column i's runs are runBlockIds[runStart[i] .. runStart[i]+runCount[i]) with
+// matching runLengths - e.g. a column with 3 leaf blocks then 40 blocks of air
+// then a log is 3 runs, regardless of how deep the air gap is. This replaced a
+// fixed-size "skirt" array (a flat N-blocks-below-surface window) specifically
+// because a fixed shallow window couldn't reach past a tall tree's vertical
+// foliage gaps - the real gap between two leaf clusters is very often deeper
+// than any fixed window short enough to stay cheap for the other 99% of
+// (boring, uniform) columns. Run-length encoding costs almost nothing extra
+// for uniform ground (still ~2-3 runs no matter how deep you scan) while
+// scaling with a column's actual complexity, so scanning much deeper is free
+// for the common case and correct for the rare one.
+let runBlockIds, runLengths, runStart, runCount;
+let W = 0, H = 0, minY = 0, maxDepth = 64;
+
+// ── Three.js ──────────────────────────────────────────────────────────────────
+let scene, camera, renderer;
+let solidMat, waterMat, planeMat;
+let solidGroup, waterGroup, planGroup;
+let chunks = new Map();
+let chunkQueue = [];
+let animId = null;
+
+// ── Textures ──────────────────────────────────────────────────────────────────
+let atlasTex = null;
+let waterTex = null;
+let uvCache = {};    // texName -> [u0,v0,u1,v1]
+let blockUV = {};    // blockId -> {top,side,bottom} each [u0,v0,u1,v1]
+let blockCol = {};   // blockId -> THREE.Color (fallback)
+
+// ── Camera ────────────────────────────────────────────────────────────────────
+const cam = { theta: 0.6, phi: 0.35, r: 300, tx: 0, ty: 0, tz: 0 };
+const keys = {};
+let dragging = false, dragBtn = -1, lx = 0, ly = 0;
+let pendingLabelPos = null;
+
+// Walk mode: collapses the orbit radius to ~0 so the camera sits at (tx,ty,tz)
+// and looks in the theta/phi direction like a first-person view (reusing the
+// same orbit math and the same right-drag-to-look control, just with a radius
+// too small to notice), and makes ty continuously follow the real terrain
+// height under (tx,tz) each frame - like a player walking on the ground -
+// instead of needing to manually fly to a guessed height. Meant for precisely
+// walking up to a specific spot to read its exact block coordinates off the
+// HUD, since eyeballing coordinates from a distant orbit view is unreliable.
+let walkMode = false;
+const WALK_EYE_HEIGHT = 1.7;
+const WALK_R = 0.2;
+let orbitR = 60; // remembered orbit radius to restore when leaving walk mode
+let jumpVel = 0, jumpY = 0;
+
+// ── Planning ──────────────────────────────────────────────────────────────────
+let planMode = 'nav';
+let polyPts = [], polyLine = null;
+let plan = { markers: [], polygons: [], labels: [] };
+const raycaster = new THREE.Raycaster();
+const planColors = { spawn: '#5be38f', mining: '#fbbf24', contested: '#f87171', polygon: '#74c0fc', label: '#e0e2ed' };
+
+// ══════════════════════════════════════════════════════════════════════════════
+// FILE UI
+// ══════════════════════════════════════════════════════════════════════════════
+
+const drop = document.getElementById('mv-drop');
+const fileInput = document.getElementById('mv-file-input');
+const folderInput = document.getElementById('mv-folder-input');
+
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('dragover'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+drop.addEventListener('drop', async e => {
+  e.preventDefault(); drop.classList.remove('dragover');
+  const map = new Map();
+  const items = [...(e.dataTransfer.items || [])];
+  await Promise.all(items.map(item => {
+    if (item.kind !== 'file') return;
+    const entry = item.webkitGetAsEntry ? item.webkitGetAsEntry() : null;
+    if (entry && entry.isDirectory) return readDir(entry, map);
+    const f = item.getAsFile();
+    if (f) map.set(f.name, f);
+  }));
+  startLoad(map);
+});
+
+fileInput.addEventListener('change', () => {
+  const map = new Map();
+  for (const f of fileInput.files) map.set(f.name, f);
+  startLoad(map);
+});
+folderInput.addEventListener('change', () => {
+  const map = new Map();
+  for (const f of folderInput.files) map.set(f.name, f);
+  startLoad(map);
+});
+
+function readDir(dirEntry, map) {
+  return new Promise(res => {
+    const reader = dirEntry.createReader();
+    const readAll = () => reader.readEntries(async entries => {
+      if (!entries.length) return res();
+      await Promise.all(entries.map(e => e.isDirectory ? readDir(e, map) : new Promise(r => e.file(f => { map.set(f.name, f); r(); }))));
+      readAll();
+    });
+    readAll();
+  });
+}
+
+function startLoad(map) {
+  const required = ['meta.json','palette.json','biome_palette.json','heightmap.png','blocks.bin','biomes.bin'];
+  const missing = required.filter(r => !map.has(r));
+  if (missing.length) { alert('Missing required files:\n' + missing.join('\n')); return; }
+  loadWorld(map);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DATA LOADING
+// ══════════════════════════════════════════════════════════════════════════════
+
+async function loadWorld(files) {
+  try {
+    showProgress(true, 'Parsing JSON…');
+    meta = JSON.parse(await files.get('meta.json').text());
+    const rawPalette = JSON.parse(await files.get('palette.json').text());
+    const rawBiome   = JSON.parse(await files.get('biome_palette.json').text());
+
+    // Normalise palette to array of {id, name, textures}
+    paletteArr = Array.isArray(rawPalette)
+      ? rawPalette
+      : Object.entries(rawPalette).map(([k, v]) =>
+          typeof v === 'object' ? { id: isNaN(k) ? v.id ?? k : +k, name: v.name ?? k, textures: v.textures, ...v }
+                                : { id: +k, name: String(v) });
+    // The scan mod can record blockstate Properties alongside the block
+    // Name, e.g. "minecraft:snow[layers=3]" or "minecraft:oak_log[axis=y]"
+    // (older scans, or blocks with no properties, are just the bare name).
+    // Strip the "minecraft:" prefix and split off "[...]" into a separate
+    // props object here, once, so every other lookup in this file can keep
+    // treating b.name as a plain bare name like before - only the few
+    // property-aware call sites (see e.g. isFlatLayer's layers handling,
+    // DOUBLE_TALL's half handling) need to look at b.props.
+    for (const b of paletteArr) {
+      let n = (b.name || '').replace(/^minecraft:/, '');
+      const bracket = n.indexOf('[');
+      b.props = {};
+      if (bracket >= 0) {
+        const propsStr = n.slice(bracket + 1, n.endsWith(']') ? -1 : undefined);
+        n = n.slice(0, bracket);
+        for (const pair of propsStr.split(',')) {
+          const eq = pair.indexOf('=');
+          if (eq > 0) b.props[pair.slice(0, eq)] = pair.slice(eq + 1);
+        }
+      }
+      b.name = n;
+    }
+    // Normalise biome palette to array of {id, ...}
+    biomePal = Array.isArray(rawBiome)
+      ? rawBiome
+      : Object.entries(rawBiome).map(([k, v]) =>
+          typeof v === 'object' ? { id: isNaN(k) ? v.id ?? k : +k, ...v }
+                                : { id: +k, name: String(v) });
+
+    console.log('meta:', JSON.stringify(meta));
+
+    W = meta.width ?? meta.worldWidth ?? meta.sizeX ?? meta.size ?? 0;
+    H = meta.height ?? meta.worldHeight ?? meta.worldDepth ?? meta.depth ?? meta.length ?? meta.sizeZ ?? meta.worldLength ?? W;
+    minY = meta.minHeight ?? meta.minY ?? meta.minY ?? -64;
+    maxDepth = meta.maxDepth ?? 64;
+    if (meta.blocksFormatVersion !== 2) {
+      throw new Error(`This scan uses an old blocks.bin format (blocksFormatVersion=${meta.blocksFormatVersion ?? 'none'}) that this viewer no longer reads - please re-run /scan3d with the updated mod to produce a new scan.`);
+    }
+
+    if (!W || !H) throw new Error(`Could not read world dimensions. meta.json keys: ${Object.keys(meta).join(', ')}`);
+
+    showProgress(true, 'Loading heightmap…');
+    heights = await parseHeightmap(files.get('heightmap.png'));
+
+    showProgress(true, 'Parsing blocks.bin…');
+    const bl = parseBlocksBin(await files.get('blocks.bin').arrayBuffer());
+    surface = bl.surface; waterArr = bl.water;
+    runBlockIds = bl.runBlockIds; runLengths = bl.runLengths; runStart = bl.runStart; runCount = bl.runCount;
+
+    showProgress(true, 'Parsing biomes.bin…');
+    biomes = parseBiomesBin(await files.get('biomes.bin').arrayBuffer());
+
+    buildBlockColors();
+
+    // Auto-load Minecraft textures from server
+    showProgress(true, 'Loading block textures…');
+    await autoLoadTextures();
+
+    // Compute center terrain height for camera positioning
+    const ci = Math.floor(H / 2) * W + Math.floor(W / 2);
+    const centerH = isFinite(heights[ci]) ? heights[ci] : 64;
+    const nonZeroBlocks = [surface[ci], surface[ci+1], surface[ci+2], surface[ci-1], surface[ci-2]].filter(Boolean);
+
+    // Debug dump — visible in F12 console
+    console.log('[MapViewer] World:', W, 'x', H, '| minY:', minY, '| maxDepth:', maxDepth);
+    console.log('[MapViewer] Center height:', centerH, '| Center block IDs:', surface[ci], surface[ci+1], surface[ci+2]);
+    console.log('[MapViewer] Height range:', Math.min(...Array.from(heights).slice(0,1000)), '-', Math.max(...Array.from(heights).slice(0,1000)));
+    console.log('[MapViewer] Palette entries 0-5:', paletteArr.slice(0,6).map(b=>`${b.id}:${b.name}`).join(', '));
+    console.log('[MapViewer] Surface sample (first 10):', Array.from(surface.slice(0, 10)).join(','));
+    console.log('[MapViewer] heights sample (first 10):', Array.from(heights.slice(0, 10)).join(','));
+
+    showProgress(true, 'Initialising scene…');
+    // Show viewer first so the canvas has real dimensions before Three.js inits
+    document.getElementById('mv-load').style.display = 'none';
+    document.getElementById('mv-viewer').style.display = 'flex';
+    await new Promise(r => requestAnimationFrame(r));
+    initScene(centerH);
+    showProgress(false);
+    setTool('nav');
+    animate();
+  } catch (err) {
+    console.error('Map load error:', err);
+    showProgress(true, 'Failed to load — check the browser console (F12) for details', String(err));
+  }
+}
+
+async function parseHeightmap(file) {
+  const ab = await file.arrayBuffer();
+  try {
+    return await parsePNG16Gray(new Uint8Array(ab));
+  } catch (e) {
+    console.warn('[MapViewer] 16-bit PNG decode failed, using 8-bit canvas fallback:', e.message);
+  }
+  // Canvas 8-bit fallback (loses precision for heights > 255)
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+      const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0);
+      const d = ctx.getImageData(0, 0, img.width, img.height).data;
+      const out = new Float32Array(img.width * img.height);
+      for (let i = 0; i < out.length; i++) out[i] = d[i*4] + minY; // 8-bit gray → R channel
+      URL.revokeObjectURL(img.src); res(out);
+    };
+    img.onerror = () => res(new Float32Array(W * H).fill(minY));
+    img.src = URL.createObjectURL(new Blob([ab]));
+  });
+}
+
+// Direct 16-bit grayscale PNG decoder — UPNG always converts to 8-bit which
+// destroys precision for values < 256, so we parse raw bytes ourselves.
+async function parsePNG16Gray(bytes) {
+  if (bytes[0] !== 137 || bytes[1] !== 80) throw new Error('Not a PNG');
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let off = 8, imgW = 0, imgH = 0, depth = 0, colorType = 0;
+  const idatParts = [];
+
+  while (off + 12 <= bytes.length) {
+    const len = dv.getUint32(off); off += 4;
+    const type = String.fromCharCode(bytes[off], bytes[off+1], bytes[off+2], bytes[off+3]); off += 4;
+    if (type === 'IHDR') {
+      imgW = dv.getUint32(off); imgH = dv.getUint32(off+4);
+      depth = bytes[off+8]; colorType = bytes[off+9];
+    } else if (type === 'IDAT') {
+      idatParts.push(bytes.slice(off, off + len));
+    } else if (type === 'IEND') { break; }
+    off += len + 4;
+  }
+
+  if (!imgW || !imgH) throw new Error('IHDR not found');
+  if (depth !== 16 || colorType !== 0) throw new Error(`depth=${depth} ctype=${colorType} — not 16-bit grayscale`);
+
+  // Concatenate all IDAT chunks then decompress (zlib = deflate with 2-byte header)
+  const totalLen = idatParts.reduce((s, p) => s + p.length, 0);
+  const idat = new Uint8Array(totalLen);
+  let pos = 0;
+  for (const p of idatParts) { idat.set(p, pos); pos += p.length; }
+
+  const ds = new DecompressionStream('deflate');
+  const w2 = ds.writable.getWriter(), r2 = ds.readable.getReader();
+  w2.write(idat); w2.close();
+
+  const rawChunks = []; let rawTotal = 0;
+  while (true) {
+    const { done, value } = await r2.read();
+    if (done) break;
+    rawChunks.push(value); rawTotal += value.length;
+  }
+  const raw = new Uint8Array(rawTotal);
+  pos = 0;
+  for (const c of rawChunks) { raw.set(c, pos); pos += c.length; }
+
+  // Apply PNG reverse filters scanline by scanline, extract u16 big-endian pixels
+  const bpp = 2; // 1 channel × 2 bytes
+  const stride = imgW * bpp;
+  const out = new Float32Array(imgW * imgH);
+  let prev = new Uint8Array(stride), rawOff = 0;
+
+  for (let y = 0; y < imgH; y++) {
+    const ft = raw[rawOff++];
+    const curr = raw.slice(rawOff, rawOff + stride); rawOff += stride;
+    if (ft === 1) { // Sub
+      for (let i = bpp; i < stride; i++) curr[i] = (curr[i] + curr[i-bpp]) & 0xFF;
+    } else if (ft === 2) { // Up
+      for (let i = 0; i < stride; i++) curr[i] = (curr[i] + prev[i]) & 0xFF;
+    } else if (ft === 3) { // Average
+      for (let i = 0; i < stride; i++) {
+        const a = i >= bpp ? curr[i-bpp] : 0;
+        curr[i] = (curr[i] + Math.floor((a + prev[i]) / 2)) & 0xFF;
+      }
+    } else if (ft === 4) { // Paeth
+      for (let i = 0; i < stride; i++) {
+        const a = i >= bpp ? curr[i-bpp] : 0, b = prev[i], c2 = i >= bpp ? prev[i-bpp] : 0;
+        const p2 = a + b - c2, pa = Math.abs(p2-a), pb = Math.abs(p2-b), pc2 = Math.abs(p2-c2);
+        curr[i] = (curr[i] + (pa <= pb && pa <= pc2 ? a : pb <= pc2 ? b : c2)) & 0xFF;
+      }
+    }
+    for (let x = 0; x < imgW; x++) out[y * imgW + x] = ((curr[x*2] << 8) | curr[x*2+1]) + minY;
+    prev = curr;
+  }
+  return out;
+}
+
+function parseBlocksBin(ab) {
+  const dv = new DataView(ab);
+  // header: width,length,maxDepth,originX,originZ,resolution = 6 × int32 = 24 bytes
+  // (values already known from meta.json - this just skips past them). Each
+  // column is now variable-length: surfaceId (u16), runCount (u16), then
+  // runCount × [blockId (u16), runLength (u16)], then waterY (i16) - see
+  // meta.json's blocksBinLayout note for the authoritative format.
+  let off = 24;
+  const cols = W * H;
+  const surf = new Uint16Array(cols);
+  const wat = new Int16Array(cols);
+  const rStart = new Int32Array(cols);
+  const rCount = new Uint16Array(cols);
+
+  // Total run count isn't known up front - grow the flat run buffers as needed.
+  let cap = cols * 4; // average-case guess; wrong guesses just cost a realloc
+  let rBlock = new Uint16Array(cap);
+  let rLen = new Uint16Array(cap);
+  let w = 0;
+  function ensureCap(extra) {
+    if (w + extra <= cap) return;
+    cap = Math.max(cap * 2, w + extra);
+    const nb = new Uint16Array(cap); nb.set(rBlock.subarray(0, w)); rBlock = nb;
+    const nl = new Uint16Array(cap); nl.set(rLen.subarray(0, w)); rLen = nl;
+  }
+
+  for (let i = 0; i < cols; i++) {
+    surf[i] = dv.getUint16(off, false); off += 2;
+    const rc = dv.getUint16(off, false); off += 2;
+    ensureCap(rc);
+    rStart[i] = w;
+    rCount[i] = rc;
+    for (let r = 0; r < rc; r++) {
+      rBlock[w] = dv.getUint16(off, false); off += 2;
+      rLen[w] = dv.getUint16(off, false); off += 2;
+      w++;
+    }
+    wat[i] = dv.getInt16(off, false); off += 2;
+  }
+  return {
+    surface: surf, water: wat,
+    runBlockIds: rBlock.subarray(0, w), runLengths: rLen.subarray(0, w),
+    runStart: rStart, runCount: rCount,
+  };
+}
+
+function parseBiomesBin(ab) {
+  // row-major z outer/x inner, u16 per column, no header
+  return new Uint16Array(ab);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// BLOCK COLORS + TEXTURE ATLAS
+// ══════════════════════════════════════════════════════════════════════════════
+
+const DEFAULT_COLORS = {
+  air:0,stone:'#9a9a9a',granite:'#9c6a5d',diorite:'#c8c8c8',andesite:'#8a8a8a',
+  grass_block:'#7ab648',dirt:'#8b5e3c',coarse_dirt:'#7a5238',gravel:'#9b9b9b',
+  sand:'#dbd4a0',sandstone:'#d5c987',cobblestone:'#858585',oak_log:'#6e4f2a',
+  oak_leaves:'#5d9c31',birch_log:'#d5cebc',birch_leaves:'#7aaa48',
+  spruce_log:'#4a3320',spruce_leaves:'#3b5c2f',jungle_log:'#5a3c1a',
+  jungle_leaves:'#4c8c1a',acacia_log:'#684d2e',acacia_leaves:'#6a9c2c',
+  water:'#3f76e4',lava:'#e06020',bedrock:'#4a4a4a',coal_ore:'#808080',
+  iron_ore:'#9a8070',gold_ore:'#a89040',diamond_ore:'#40a0a0',
+  emerald_ore:'#40a060',snow:'#ffffff',ice:'#80b0ff',clay:'#9090a0',
+  farmland:'#7a5030',hay_bale:'#c0a020',pumpkin:'#d08020',melon:'#80a040',
+};
+
+// Real per-biome grass/foliage/water tint colors for all 65 vanilla biomes.
+// Not guessed - computed directly from Minecraft's own data: each biome's
+// actual temperature/downfall/effects overrides (data/minecraft/worldgen/
+// biome/*.json) sampled against the real colormap gradients Minecraft itself
+// uses (assets/minecraft/textures/colormap/grass.png, foliage.png), same
+// formula the client uses: x=(1-temperature)*255, y=(1-downfall*temperature)*255.
+// Biomes with an explicit effects.grass_color/foliage_color override (e.g.
+// badlands, swamp) use that directly instead, matching vanilla exactly.
+// One approximation: "swamp"-modifier biomes (swamp, mangrove_swamp) normally
+// blend two colors via per-block Perlin noise; here they use the static
+// midpoint of those two colors instead of varying per-position.
+const BIOME_COLORS = {
+  'minecraft:badlands': {grass:'#90814d',foliage:'#9e814d',water:'#3f76e4'},
+  'minecraft:bamboo_jungle': {grass:'#59c93c',foliage:'#30bb0b',water:'#3f76e4'},
+  'minecraft:basalt_deltas': {grass:'#bfb755',foliage:'#aea42a',water:'#3f76e4'},
+  'minecraft:beach': {grass:'#91bd59',foliage:'#77ab2f',water:'#3f76e4'},
+  'minecraft:birch_forest': {grass:'#88bb67',foliage:'#6ba941',water:'#3f76e4'},
+  'minecraft:cherry_grove': {grass:'#b6db61',foliage:'#b6db61',water:'#5db7ef'},
+  'minecraft:cold_ocean': {grass:'#8eb971',foliage:'#71a74d',water:'#3d57d6'},
+  'minecraft:crimson_forest': {grass:'#bfb755',foliage:'#aea42a',water:'#3f76e4'},
+  'minecraft:dark_forest': {grass:'#507a32',foliage:'#59ae30',water:'#3f76e4'},
+  'minecraft:deep_cold_ocean': {grass:'#8eb971',foliage:'#71a74d',water:'#3d57d6'},
+  'minecraft:deep_dark': {grass:'#91bd59',foliage:'#77ab2f',water:'#3f76e4'},
+  'minecraft:deep_frozen_ocean': {grass:'#8eb971',foliage:'#71a74d',water:'#3938c9'},
+  'minecraft:deep_lukewarm_ocean': {grass:'#8eb971',foliage:'#71a74d',water:'#45adf2'},
+  'minecraft:deep_ocean': {grass:'#8eb971',foliage:'#71a74d',water:'#3f76e4'},
+  'minecraft:desert': {grass:'#bfb755',foliage:'#aea42a',water:'#3f76e4'},
+  'minecraft:dripstone_caves': {grass:'#91bd59',foliage:'#77ab2f',water:'#3f76e4'},
+  'minecraft:end_barrens': {grass:'#8eb971',foliage:'#71a74d',water:'#3f76e4'},
+  'minecraft:end_highlands': {grass:'#8eb971',foliage:'#71a74d',water:'#3f76e4'},
+  'minecraft:end_midlands': {grass:'#8eb971',foliage:'#71a74d',water:'#3f76e4'},
+  'minecraft:eroded_badlands': {grass:'#90814d',foliage:'#9e814d',water:'#3f76e4'},
+  'minecraft:flower_forest': {grass:'#79c05a',foliage:'#59ae30',water:'#3f76e4'},
+  'minecraft:forest': {grass:'#79c05a',foliage:'#59ae30',water:'#3f76e4'},
+  'minecraft:frozen_ocean': {grass:'#80b497',foliage:'#60a17b',water:'#3938c9'},
+  'minecraft:frozen_peaks': {grass:'#80b497',foliage:'#60a17b',water:'#3f76e4'},
+  'minecraft:frozen_river': {grass:'#80b497',foliage:'#60a17b',water:'#3938c9'},
+  'minecraft:grove': {grass:'#80b497',foliage:'#60a17b',water:'#3f76e4'},
+  'minecraft:ice_spikes': {grass:'#80b497',foliage:'#60a17b',water:'#3f76e4'},
+  'minecraft:jagged_peaks': {grass:'#80b497',foliage:'#60a17b',water:'#3f76e4'},
+  'minecraft:jungle': {grass:'#59c93c',foliage:'#30bb0b',water:'#3f76e4'},
+  'minecraft:lukewarm_ocean': {grass:'#8eb971',foliage:'#71a74d',water:'#45adf2'},
+  'minecraft:lush_caves': {grass:'#8eb971',foliage:'#71a74d',water:'#3f76e4'},
+  'minecraft:mangrove_swamp': {grass:'#5b733a',foliage:'#8db127',water:'#3a7a6a'},
+  'minecraft:meadow': {grass:'#83bb6d',foliage:'#64a948',water:'#0e4ecf'},
+  'minecraft:mushroom_fields': {grass:'#55c93f',foliage:'#2bbb0f',water:'#3f76e4'},
+  'minecraft:nether_wastes': {grass:'#bfb755',foliage:'#aea42a',water:'#3f76e4'},
+  'minecraft:ocean': {grass:'#8eb971',foliage:'#71a74d',water:'#3f76e4'},
+  'minecraft:old_growth_birch_forest': {grass:'#88bb67',foliage:'#6ba941',water:'#3f76e4'},
+  'minecraft:old_growth_pine_taiga': {grass:'#86b87f',foliage:'#68a55f',water:'#3f76e4'},
+  'minecraft:old_growth_spruce_taiga': {grass:'#86b783',foliage:'#68a464',water:'#3f76e4'},
+  'minecraft:pale_garden': {grass:'#778272',foliage:'#878d76',water:'#76889d'},
+  'minecraft:plains': {grass:'#91bd59',foliage:'#77ab2f',water:'#3f76e4'},
+  'minecraft:river': {grass:'#8eb971',foliage:'#71a74d',water:'#3f76e4'},
+  'minecraft:savanna': {grass:'#bfb755',foliage:'#aea42a',water:'#3f76e4'},
+  'minecraft:savanna_plateau': {grass:'#bfb755',foliage:'#aea42a',water:'#3f76e4'},
+  'minecraft:small_end_islands': {grass:'#8eb971',foliage:'#71a74d',water:'#3f76e4'},
+  'minecraft:snowy_beach': {grass:'#83b593',foliage:'#64a278',water:'#3d57d6'},
+  'minecraft:snowy_plains': {grass:'#80b497',foliage:'#60a17b',water:'#3f76e4'},
+  'minecraft:snowy_slopes': {grass:'#80b497',foliage:'#60a17b',water:'#3f76e4'},
+  'minecraft:snowy_taiga': {grass:'#80b497',foliage:'#60a17b',water:'#3d57d6'},
+  'minecraft:soul_sand_valley': {grass:'#bfb755',foliage:'#aea42a',water:'#3f76e4'},
+  'minecraft:sparse_jungle': {grass:'#64c73f',foliage:'#3eb80f',water:'#3f76e4'},
+  'minecraft:stony_peaks': {grass:'#9abe4b',foliage:'#82ac1e',water:'#3f76e4'},
+  'minecraft:stony_shore': {grass:'#8ab689',foliage:'#6da36b',water:'#3f76e4'},
+  'minecraft:sunflower_plains': {grass:'#91bd59',foliage:'#77ab2f',water:'#3f76e4'},
+  'minecraft:swamp': {grass:'#5b733a',foliage:'#6a7039',water:'#617b64'},
+  'minecraft:taiga': {grass:'#86b783',foliage:'#68a464',water:'#3f76e4'},
+  'minecraft:the_end': {grass:'#8eb971',foliage:'#71a74d',water:'#3f76e4'},
+  'minecraft:the_void': {grass:'#8eb971',foliage:'#71a74d',water:'#3f76e4'},
+  'minecraft:warm_ocean': {grass:'#8eb971',foliage:'#71a74d',water:'#43d5ee'},
+  'minecraft:warped_forest': {grass:'#bfb755',foliage:'#aea42a',water:'#3f76e4'},
+  'minecraft:windswept_forest': {grass:'#8ab689',foliage:'#6da36b',water:'#3f76e4'},
+  'minecraft:windswept_gravelly_hills': {grass:'#8ab689',foliage:'#6da36b',water:'#3f76e4'},
+  'minecraft:windswept_hills': {grass:'#8ab689',foliage:'#6da36b',water:'#3f76e4'},
+  'minecraft:windswept_savanna': {grass:'#bfb755',foliage:'#aea42a',water:'#3f76e4'},
+  'minecraft:wooded_badlands': {grass:'#90814d',foliage:'#9e814d',water:'#3f76e4'},
+};
+
+// Blocks whose top/side/bottom use different texture file names
+const BLOCK_TEX_MAP = {
+  grass_block:     { top:'grass_block_top', side:'grass_block_side', bottom:'dirt' },
+  mycelium:        { top:'mycelium_top',     side:'mycelium_side',    bottom:'dirt' },
+  podzol:          { top:'podzol_top',       side:'podzol_side',      bottom:'dirt' },
+  dirt_path:       { top:'dirt_path_top',    side:'dirt_path_side',   bottom:'dirt' },
+  farmland:        { top:'farmland_moist',   side:'dirt',             bottom:'dirt' },
+  tnt:             { top:'tnt_top',          side:'tnt_side',         bottom:'tnt_bottom' },
+  bookshelf:       { top:'oak_planks',       side:'bookshelf',        bottom:'oak_planks' },
+  crafting_table:  { top:'crafting_table_top', side:'crafting_table_side', bottom:'oak_planks' },
+  furnace:         { top:'furnace_top',      side:'furnace_front',    bottom:'furnace_top' },
+  blast_furnace:   { top:'blast_furnace_top',side:'blast_furnace_front',bottom:'blast_furnace_top' },
+  smoker:          { top:'smoker_top',       side:'smoker_front',     bottom:'smoker_bottom' },
+  dispenser:       { top:'furnace_top',      side:'dispenser_front',  bottom:'furnace_top' },
+  hay_block:       { top:'hay_block_top',    side:'hay_block_side',   bottom:'hay_block_top' },
+  quartz_block:    { top:'quartz_block_top', side:'quartz_block_side',bottom:'quartz_block_bottom' },
+  snow_block:      { top:'snow',             side:'snow',             bottom:'snow' },
+  snow_layer:      { top:'snow',             side:'snow',             bottom:'snow' },
+  cactus:          { top:'cactus_top',       side:'cactus_side',      bottom:'cactus_bottom' },
+  // 'grass' is the pre-1.20 name for what's now short_grass - some scans
+  // may still record either name depending on the world's/mod's version.
+  grass:           { top:'short_grass',      side:'short_grass',      bottom:'short_grass' },
+  // No plain water.png exists (only water_still/water_flow) - defensive
+  // mapping in case a water block ever ends up needing a static texture
+  // (the live water surface itself is rendered separately, see waterArr).
+  water:           { top:'water_still',      side:'water_still',      bottom:'water_still' },
+  // The mod doesn't capture the "age" property (see DOUBLE_TALL comment for
+  // the same limitation with blockstate data generally), so growth stage is
+  // unknown - default to the mature-looking texture.
+  cocoa:           { top:'cocoa_stage2',     side:'cocoa_stage2',     bottom:'cocoa_stage2' },
+};
+
+// Non-solid blocks: plants, carpets, rails, etc.
+// When one of these is the surface block, render the block BELOW it instead —
+// so a grass-covered field shows grass_block texture, not a solid grass-plant cube.
+const NON_SOLID = new Set([
+  'short_grass','grass','tall_grass','large_fern','fern','dead_bush',
+  'short_dry_grass','tall_dry_grass','bush','leaf_litter','firefly_bush',
+  'dandelion','poppy','blue_orchid','allium','azure_bluet','oxeye_daisy',
+  'cornflower','lily_of_the_valley','wither_rose','spore_blossom',
+  'red_tulip','orange_tulip','white_tulip','pink_tulip','wildflowers',
+  'sunflower','lilac','peony','rose_bush','pitcher_plant','pink_petals',
+  'seagrass','tall_seagrass','kelp','kelp_plant','sea_pickle','turtle_egg',
+  'lily_pad','glow_lichen','moss_carpet','vine','hanging_roots','dripleaf',
+  'big_dripleaf','small_dripleaf','cave_vines','cave_vines_plant',
+  'oak_sapling','spruce_sapling','birch_sapling','jungle_sapling',
+  'acacia_sapling','dark_oak_sapling','cherry_sapling','mangrove_propagule',
+  'sugar_cane','bamboo',
+  'wheat','carrots','potatoes','beetroots','nether_wart','sweet_berry_bush',
+  'chorus_flower','chorus_plant','brown_mushroom','red_mushroom',
+  'torch','wall_torch','soul_torch','redstone_torch',
+  'rail','powered_rail','detector_rail','activator_rail',
+  'redstone_wire','lever','button','pressure_plate','tripwire',
+  'snow','snow_layer','carpet',
+  'cobweb','string','chain','ladder','iron_bars',
+]);
+
+// Blocks with no static, name-based texture we can source at all - a player
+// head's visible texture is that player's live skin (fetched from Mojang at
+// render time in-game), not a fixed file, so there's nothing in
+// /mc-textures/ to show. Treated like NON_SOLID for ground-height purposes
+// (walk past it to find the real block it's sitting on) but never actually
+// drawn - showing broken/fallback geometry would look worse than nothing.
+const NO_RENDER = new Set(['player_head', 'player_wall_head']);
+
+// Thin near-horizontal blocks - these sit low and flat across most of the
+// block's footprint, unlike a flower/grass cross which stands upright. Drawn
+// as a single flat quad near the bottom of the block instead of an X
+// billboard (which is what NON_SOLID's other members get); without this
+// split, a snow layer on the ground rendered as a vertical "X" using the
+// snow texture, looking like a strange pale tuft of grass.
+const FLAT_LAYER = new Set([
+  'snow', 'snow_layer', 'moss_carpet', 'lily_pad', 'turtle_egg', 'sea_pickle',
+]);
+function isFlatLayer(name) { return FLAT_LAYER.has(name) || name.endsWith('_carpet'); }
+
+// Double-tall plants: Minecraft stores both halves as the SAME block id with
+// a half=upper/lower blockstate property, but the scan mod only records the
+// bare block Name and drops blockstate properties entirely (see
+// BlockStateEditor.getBlockId, which reads only the palette entry's "Name").
+// So both halves arrive here as identical strings, even though their
+// textures are two separate files (e.g. tall_grass_top.png /
+// tall_grass_bottom.png - there's no plain "tall_grass.png"). Which texture
+// to use is inferred purely from stack position at render time (see the
+// PLANT SPRITE loop): a layer whose immediate neighbour in the stack is the
+// same block id is the paired half; isolated occurrences default to _top.
+const DOUBLE_TALL = new Set(['tall_grass', 'large_fern', 'sunflower', 'lilac', 'peony', 'rose_bush', 'tall_seagrass']);
+
+// Logs follow a standard pattern
+const LOG_TYPES = ['oak','spruce','birch','jungle','acacia','dark_oak','mangrove','cherry','bamboo','crimson','warped'];
+
+function blockTexNames(name) {
+  if (BLOCK_TEX_MAP[name]) return BLOCK_TEX_MAP[name];
+  // Log / stripped log pattern
+  for (const w of LOG_TYPES) {
+    if (name === w+'_log' || name === 'stripped_'+w+'_log') return { top:name+'_top', side:name, bottom:name+'_top' };
+    if (name === w+'_wood' || name === 'stripped_'+w+'_wood') {
+      // The full-bark "wood" block (as opposed to "log") has no ring pattern
+      // on any face - it's the same bark texture as its _log counterpart's
+      // side, applied to all 6 faces. There's no standalone oak_wood.png
+      // etc. file; only oak_log.png (the bark texture) exists.
+      const logName = name.replace('_wood', '_log');
+      return { top:logName, side:logName, bottom:logName };
+    }
+  }
+  if (name === 'bamboo_block' || name === 'stripped_bamboo_block') return { top:name+'_top', side:name, bottom:name+'_top' };
+  // Fences/gates have no texture of their own - vanilla textures them with
+  // the matching wood type's plank texture (nether_brick_fence uses the
+  // brick texture instead, since it isn't a wood type).
+  if (name === 'nether_brick_fence') return { top:'nether_bricks', side:'nether_bricks', bottom:'nether_bricks' };
+  if (name.endsWith('_fence') || name.endsWith('_fence_gate')) {
+    const base = name.replace(/_fence(_gate)?$/, '') + '_planks';
+    return { top:base, side:base, bottom:base };
+  }
+  return { top:name, side:name, bottom:name };
+}
+
+let blockName = {};  // id → bare name (no namespace), built once
+let blockProps = {};  // id → blockstate properties object (see palette parsing in loadWorld), built once
+let nonSolidIds = new Set(); // block IDs that are plants/non-solid
+let noRenderIds = new Set(); // block IDs we deliberately never draw (see NO_RENDER)
+
+function buildBlockColors() {
+  for (const b of paletteArr) {
+    const name = (b.name || '').replace(/^minecraft:/, '');
+    blockName[b.id] = name;
+    blockProps[b.id] = b.props || {};
+    if (NON_SOLID.has(name)) nonSolidIds.add(b.id);
+    if (NO_RENDER.has(name)) noRenderIds.add(b.id);
+    const col = DEFAULT_COLORS[name] ?? '#888888';
+    blockCol[b.id] = typeof col === 'number' ? null : new THREE.Color(col);
+  }
+}
+
+// Solid for the purposes of "is there real, drawable terrain here" - true
+// non-solid plants AND blocks we refuse to render (see NO_RENDER) both need
+// to be walked past to find the actual ground/wall material beneath them.
+function isWalkPast(bid) { return nonSolidIds.has(bid) || noRenderIds.has(bid); }
+
+// Fetch textures from /mc-textures/ and build atlas automatically
+async function autoLoadTextures() {
+  // Collect unique texture names needed for this palette
+  const needed = new Set();
+  let needsGrassOverlay = false;
+  for (const b of paletteArr) {
+    const name = (b.name || '').replace(/^minecraft:/, '');
+    // Double-tall plants (large_fern, tall_grass...) have no bare <name>.png
+    // of their own - only split _top/_bottom files exist (added below) - so
+    // blockTexNames's generic name-as-texture fallback would just request a
+    // file that 404s for these.
+    if (!DOUBLE_TALL.has(name)) {
+      const t = blockTexNames(name);
+      needed.add(t.top); needed.add(t.side);
+    }
+    if (name === 'grass_block') {
+      needed.add('grass_block_side_overlay');
+      needsGrassOverlay = true;
+      // A snowy grass_block (winter biomes, or just below a snow layer)
+      // shows the same white top texture as a plain snow block in vanilla
+      // (not green grass) and a half snow/half dirt transition strip on its
+      // sides - the scan now records this as its own palette entry
+      // (grass_block[snowy=true]) rather than folding it into the plain
+      // grass_block id, so it's handled per-block below.
+      if (b.props?.snowy === 'true') { needed.add('grass_block_snow'); needed.add('snow'); }
+    }
+    if (DOUBLE_TALL.has(name)) { needed.add(name + '_top'); needed.add(name + '_bottom'); }
+  }
+
+  // Fetch all in parallel, silently skip 404s
+  const fetched = {}; // texName → blob URL
+  await Promise.all([...needed].map(async n => {
+    try {
+      const r = await fetch(`/mc-textures/${encodeURIComponent(n)}.png`);
+      if (r.ok) { fetched[n] = URL.createObjectURL(await r.blob()); }
+    } catch (_) {}
+  }));
+
+  const texNames = Object.keys(fetched);
+  // Show diagnostic on the page so we can see without opening F12
+  const dbgEl = document.getElementById('mv-stats');
+  if (dbgEl) dbgEl.innerHTML = `Textures fetched: ${texNames.length} / needed: ${needed.size}`;
+  if (!texNames.length) { console.warn('[MapViewer] No textures loaded from /mc-textures/'); return; }
+  console.log(`[MapViewer] Loaded ${texNames.length} textures`);
+
+  // Pre-assign atlas slots, then draw. One extra synthetic slot is reserved
+  // for the grass_block side composite (base + tinted overlay) built below.
+  const GRASS_SIDE_SLOT_KEY = 'grass_block_side@composited';
+  const slotMap = {};
+  texNames.forEach((n, i) => { slotMap[n] = i; });
+  const hasGrassOverlay = needsGrassOverlay && fetched['grass_block_side'] && fetched['grass_block_side_overlay'];
+  if (hasGrassOverlay) slotMap[GRASS_SIDE_SLOT_KEY] = texNames.length;
+
+  const spr = ATLAS / TEX; // slots per row
+  const ac = document.createElement('canvas');
+  ac.width = ac.height = ATLAS;
+  const actx = ac.getContext('2d');
+  actx.imageSmoothingEnabled = false;
+  // Pre-fill white (alpha=1) — empty slots must be opaque so alphaTest doesn't cull
+  // blocks whose texture file doesn't exist. White × vertex_color = vertex_color.
+  actx.fillStyle = '#FFFFFF';
+  actx.fillRect(0, 0, ATLAS, ATLAS);
+
+  // Keep references to the loaded grass images (base + overlay) so the
+  // compositing step below can reuse them instead of re-fetching.
+  let grassBaseImg = null, grassOverlayImg = null;
+
+  await Promise.all(texNames.map(n => new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      const s = slotMap[n], col = s % spr, row = Math.floor(s / spr);
+      // Clear this cell to fully transparent before drawing. Without this,
+      // the default 'source-over' blend would composite every transparent
+      // source pixel onto the opaque white pre-fill below and bake it in as
+      // solid white/cream - invisible on mostly-opaque block faces, but a
+      // glaring blank card on mostly-transparent sprites like flowers, which
+      // are >85% transparent pixels. (globalCompositeOperation='copy' would
+      // do this in one step, but per spec it clears the *entire* canvas, not
+      // just the drawn rect, wiping every texture drawn before it.)
+      actx.clearRect(col * TEX, row * TEX, TEX, TEX);
+      // Animated textures (water, lava, seagrass, kelp, fire...) ship as a
+      // tall vertical spritesheet - one TEX×TEX frame stacked per animation
+      // frame (e.g. seagrass.png is 16×288, 18 frames) - not a single
+      // TEX×TEX image. Drawing with only a destination rect (as opposed to
+      // also specifying a *source* rect) scales the whole, multi-frame
+      // source image down to fit one atlas cell, squashing every frame
+      // together into a garbled, wrong-colored mess. Taking just the source
+      // image's top TEX×TEX square (frame 0) works correctly for both:
+      // ordinary single-frame textures are exactly TEX×TEX already, and
+      // animated ones get their first frame, matching what water_still.png
+      // already did as a one-off special case below.
+      actx.drawImage(img, 0, 0, TEX, TEX, col * TEX, row * TEX, TEX, TEX);
+      if (n === 'grass_block_side') grassBaseImg = img;
+      else if (n === 'grass_block_side_overlay') grassOverlayImg = img;
+      else URL.revokeObjectURL(fetched[n]);
+      res();
+    };
+    img.onerror = res;
+    img.src = fetched[n];
+  })));
+
+  // Real Minecraft draws grass_block's side face as its plain dirt-colored
+  // base texture with a separate, biome-tinted "overlay" (just the green
+  // fringe near the top) layered on top - the base itself is NOT tinted.
+  // Bake that composite once here (using a fixed plains-green tint, since
+  // the atlas is shared across the whole scan and can't vary per biome per
+  // vertex the way the top face's per-column tint does) into its own slot,
+  // so grass sides show a correct green-fringe-over-brown-dirt look instead
+  // of the plain untinted base texture.
+  if (hasGrassOverlay && grassBaseImg && grassOverlayImg) {
+    const tint = BIOME_COLORS['minecraft:plains'].grass;
+    const tinted = document.createElement('canvas');
+    tinted.width = tinted.height = TEX;
+    const tctx = tinted.getContext('2d');
+    tctx.imageSmoothingEnabled = false;
+    tctx.drawImage(grassOverlayImg, 0, 0, TEX, TEX);
+    tctx.globalCompositeOperation = 'source-in'; // recolor the overlay, keep its own alpha shape
+    tctx.fillStyle = tint;
+    tctx.fillRect(0, 0, TEX, TEX);
+
+    const composite = document.createElement('canvas');
+    composite.width = composite.height = TEX;
+    const cctx = composite.getContext('2d');
+    cctx.imageSmoothingEnabled = false;
+    cctx.drawImage(grassBaseImg, 0, 0, TEX, TEX); // untinted dirt-brown base
+    cctx.drawImage(tinted, 0, 0); // tinted overlay on top, respecting its alpha
+
+    const s = slotMap[GRASS_SIDE_SLOT_KEY], col = s % spr, row = Math.floor(s / spr);
+    actx.drawImage(composite, col * TEX, row * TEX, TEX, TEX);
+  }
+  if (fetched['grass_block_side']) URL.revokeObjectURL(fetched['grass_block_side']);
+  if (fetched['grass_block_side_overlay']) URL.revokeObjectURL(fetched['grass_block_side_overlay']);
+
+  atlasTex = new THREE.CanvasTexture(ac);
+  atlasTex.flipY = false; // atlas UV math uses V=0 at canvas top; don't flip
+  atlasTex.magFilter = THREE.NearestFilter;
+  // No mipmaps: the atlas packs 16x16 textures edge-to-edge with zero padding,
+  // so auto-generated mip levels blend pixels across cell boundaries - i.e.
+  // any two adjacent textures in the atlas bleed into each other once a block
+  // is far enough away to sample a lower mip level (most of a wide view).
+  // That's what was producing the flat/muddy look instead of real Minecraft's
+  // sharp, unfiltered block textures. NearestFilter with no mipmaps samples
+  // exactly one texel from the full-res atlas every time - no bleeding, and
+  // it matches vanilla's own blocky look (Minecraft doesn't mip its blocks either).
+  atlasTex.minFilter = THREE.NearestFilter;
+  atlasTex.generateMipmaps = false;
+
+  uvCache = {};
+  for (const [n, s] of Object.entries(slotMap)) {
+    const col = s % spr, row = Math.floor(s / spr);
+    uvCache[n] = [col*TEX/ATLAS, row*TEX/ATLAS, (col+1)*TEX/ATLAS, (row+1)*TEX/ATLAS];
+  }
+
+  blockUV = {};
+  for (const b of paletteArr) {
+    const name = (b.name || '').replace(/^minecraft:/, '');
+    // grass_block_snow.png is the *side* texture (a half snow-cap/half dirt
+    // transition strip) - the top face of snowy grass uses the same plain
+    // white texture as any other snow-covered block.
+    const isSnowyGrass = name === 'grass_block' && b.props?.snowy === 'true';
+    const t = isSnowyGrass ? { top:'snow', side:'grass_block_snow', bottom:'dirt' } : blockTexNames(name);
+    const sideUV = (name === 'grass_block' && !isSnowyGrass && uvCache[GRASS_SIDE_SLOT_KEY]) || uvCache[t.side] || null;
+    blockUV[b.id] = { top: uvCache[t.top]||null, side: sideUV, bottom: uvCache[t.bottom]||null };
+  }
+
+  // Load water texture separately (animated spritesheet — use top 16×16 frame only)
+  try {
+    const wr = await fetch('/mc-textures/water_still.png');
+    if (wr.ok) {
+      const wblob = await wr.blob();
+      await new Promise(res => {
+        const wimg = new Image();
+        wimg.onload = () => {
+          const wc = document.createElement('canvas'); wc.width = wc.height = 16;
+          const wctx = wc.getContext('2d');
+          wctx.drawImage(wimg, 0, 0, 16, 16, 0, 0, 16, 16); // first frame
+          waterTex = new THREE.CanvasTexture(wc);
+          waterTex.magFilter = THREE.NearestFilter;
+          waterTex.minFilter = THREE.NearestFilter;
+          waterTex.wrapS = waterTex.wrapT = THREE.RepeatWrapping;
+          URL.revokeObjectURL(wblob); res();
+        };
+        wimg.onerror = res;
+        wimg.src = URL.createObjectURL(wblob);
+      });
+    }
+  } catch (_) {}
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SCENE INIT
+// ══════════════════════════════════════════════════════════════════════════════
+
+function initScene(centerH) {
+  const canvas = document.getElementById('mv-canvas');
+  const W2 = canvas.parentElement.clientWidth || window.innerWidth;
+  const H2 = canvas.parentElement.clientHeight || (window.innerHeight - 64);
+
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: false, logarithmicDepthBuffer: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(W2, H2);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x87ceeb);
+  scene.fog = new THREE.Fog(0x87ceeb, 600, 2000);
+
+  camera = new THREE.PerspectiveCamera(70, canvas.clientWidth / canvas.clientHeight, 0.5, 3000);
+  // Position camera at center of world, above actual terrain height
+  const terrainY = (centerH !== undefined && isFinite(centerH)) ? centerH : 64;
+  cam.tx = W / 2; cam.ty = terrainY + 20; cam.tz = H / 2;
+  cam.r = 300;
+  updateCamera();
+
+  // Lighting
+  // Ambient was 0.6 - low-contrast, pale blocks (white/light gray terracotta,
+  // and other pale-textured blocks) sitting in the sun's shadow got dark
+  // enough with only that much ambient fill that they were genuinely hard to
+  // tell apart from empty background: reported as "block faces not
+  // rendering, you can see straight through to the sky" - confirmed via
+  // raycasting that the geometry and texture were both actually correct;
+  // it was purely a lighting/contrast problem for anything shadowed and
+  // pale to begin with. Raised so shadowed faces stay clearly legible.
+  const amb = new THREE.AmbientLight(0xffffff, 1.0);
+  scene.add(amb);
+  const sun = new THREE.DirectionalLight(0xfffce0, 1.2);
+  sun.position.set(200, 400, 100);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.near = 1; sun.shadow.camera.far = 1500;
+  sun.shadow.camera.left = sun.shadow.camera.bottom = -800;
+  sun.shadow.camera.right = sun.shadow.camera.top = 800;
+  scene.add(sun);
+
+  // Materials — alphaTest handles leaf/glass transparency cutouts
+  solidMat = atlasTex
+    ? new THREE.MeshLambertMaterial({ map: atlasTex, vertexColors: true, alphaTest: 0.1, side: THREE.DoubleSide })
+    : new THREE.MeshLambertMaterial({ vertexColors: true });
+  // depthWrite:false is standard practice for any semi-transparent material -
+  // without it, a water quad writes full opaque depth even though it only
+  // draws 72-82% opacity, so anything behind it that should show faintly
+  // through can instead get depth-tested away entirely by an *earlier*
+  // water quad in the same draw call (triangles within one mesh aren't
+  // depth-sorted against each other, only whole meshes are) - most visible
+  // wherever water geometry is dense/overlapping, e.g. adjacent lake/river
+  // chunks, showing as solid ground or other water simply missing behind it.
+  waterMat = waterTex
+    ? new THREE.MeshLambertMaterial({ map: waterTex, color: 0x5599dd, transparent: true, opacity: 0.82, side: THREE.DoubleSide, depthWrite: false })
+    : new THREE.MeshLambertMaterial({ color: 0x3f76e4, transparent: true, opacity: 0.72, side: THREE.DoubleSide, depthWrite: false });
+
+  solidGroup = new THREE.Group(); scene.add(solidGroup);
+  waterGroup = new THREE.Group(); scene.add(waterGroup);
+  planGroup  = new THREE.Group(); scene.add(planGroup);
+
+  // Controls
+  setupControls(canvas);
+  window.addEventListener('resize', () => {
+    const rw = canvas.parentElement.clientWidth || window.innerWidth;
+    const rh = canvas.parentElement.clientHeight || (window.innerHeight - 64);
+    camera.aspect = rw / rh;
+    camera.updateProjectionMatrix();
+    renderer.setSize(rw, rh);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CHUNK MESHING
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Expands one column's run-length-encoded material into a dense per-Y block
+// id lookup, from its recorded surface down through every run - the full,
+// real block sequence, not an approximation. Returns null for a column with
+// no data at all (never generated).
+function decodeColumn(idx) {
+  const s = surface[idx];
+  if (!s) return null;
+  const yTop = heights[idx];
+  const rs = runStart[idx], rc = runCount[idx];
+  let total = 1;
+  for (let r = 0; r < rc; r++) total += runLengths[rs + r];
+  const arr = new Uint16Array(total);
+  arr[0] = s;
+  let w = 1;
+  for (let r = 0; r < rc; r++) {
+    const bid = runBlockIds[rs + r], len = runLengths[rs + r];
+    for (let i = 0; i < len; i++) arr[w++] = bid;
+  }
+  return { yTop, yBot: yTop - total + 1, arr };
+}
+
+// Block id at world Y `y` within an already-decoded column, or 0 (air / no
+// data / above the recorded surface / below the recorded depth) - a `dec` of
+// null (out-of-bounds or ungenerated neighbour) is handled the same way, so
+// callers never need a separate null check.
+function blockAtWorldY(dec, y) {
+  if (!dec || y > dec.yTop || y < dec.yBot) return 0;
+  return dec.arr[dec.yTop - y];
+}
+
+// The topmost real, solid, non-leaf block in a column - used for Walk Mode
+// and initial camera placement so you stand on the forest floor under a
+// tree, not balanced on top of its canopy. Derived directly from the full
+// per-block data (no separate "groundHeight" bookkeeping needed).
+function realGroundY(idx) {
+  const dec = decodeColumn(idx);
+  if (!dec) return heights[idx];
+  for (let y = dec.yTop; y >= dec.yBot; y--) {
+    const bid = blockAtWorldY(dec, y);
+    if (bid && !isWalkPast(bid) && !blockName[bid]?.endsWith('_leaves')) return y;
+  }
+  return heights[idx];
+}
+
+function getUV(blockId, face) {
+  const uv = blockUV[blockId];
+  if (uv) {
+    const v = uv[face] || uv.side || uv.top;
+    if (v) return v;
+  }
+  return null; // use vertex color
+}
+
+function getBiomeTint(biomeId, face, blockId) {
+  const name = blockName[blockId] || '';
+  // grass_block's side texture is already pre-tinted once, baked into its own
+  // atlas slot (see the composite step in autoLoadTextures) - it must NOT
+  // also get a per-vertex tint here, or it'd be tinted twice over.
+  if (name === 'grass_block' && face === 'side') return [1, 1, 1];
+  // A snowy grass_block shows the same plain white texture on every face as
+  // a snow block, not tinted grass - tinting it would look like green-stained
+  // snow.
+  if (name === 'grass_block' && blockProps[blockId]?.snowy === 'true') return [1, 1, 1];
+  const biome = biomePal.find ? biomePal.find(b => b.id === biomeId) : (biomePal[biomeId] || null);
+  // biome_palette.json only carries {id, name} - the real per-biome colors
+  // live in BIOME_COLORS (computed from Minecraft's own data), looked up by
+  // biome name. Falls back to plains if the biome name isn't recognized
+  // (e.g. a modded biome not in the vanilla table).
+  const entry = (biome && BIOME_COLORS[biome.name]) || BIOME_COLORS['minecraft:plains'];
+  const col = (n => {
+    if (/grass_block|short_grass|grass$|fern/.test(n)) return entry.grass;
+    // Spruce and birch leaves are the two vanilla exceptions that ignore the
+    // per-biome foliage colormap entirely - their texture is already the
+    // final color (a fixed dark green / yellow-green respectively), baked
+    // in by Mojang rather than sampled per-biome like oak/jungle/acacia/
+    // dark_oak leaves are. Applying the biome tint on top of them anyway
+    // (as if they were oak) washed them out into a wrong, over-bright green
+    // that looks nothing like real spruce/birch foliage.
+    if (n === 'spruce_leaves') return '#619961';
+    if (n === 'birch_leaves') return '#80a755';
+    if (/leaves/.test(n)) return entry.foliage;
+    return null;
+  })(name);
+  if (!col) return [1, 1, 1];
+  const c = new THREE.Color(col);
+  return [c.r, c.g, c.b];
+}
+
+function buildChunk(cx, cz) {
+  const key = cx + '_' + cz;
+  if (chunks.has(key)) return;
+  try {
+    _buildChunkInner(cx, cz, key);
+  } catch (err) {
+    console.error('[MapViewer] buildChunk error at', cx, cz, err);
+    chunks.set(key, { solid: null, water: null }); // mark as attempted to avoid retry spam
+  }
+}
+
+function _buildChunkInner(cx, cz, key) {
+
+  const sx = cx * CHUNK, sz = cz * CHUNK;
+  const ex = Math.min(sx + CHUNK, W), ez = Math.min(sz + CHUNK, H);
+
+  // Solid geometry arrays
+  const pos = [], norm = [], uv = [], col = [];
+  const wpos = [], wnorm = [], wuv = [];
+
+  function addQuad(p0, p1, p2, p3, nx, ny, nz, u0, v0, u1, v1, r, g, b, toSolid) {
+    const P = toSolid ? pos : wpos, N = toSolid ? norm : wnorm, U = toSolid ? uv : wuv;
+    // CCW winding: p0-p2-p1 and p0-p3-p2 (so front face points toward viewer)
+    const verts = [p0, p2, p1, p0, p3, p2];
+    const uvs = [[u0,v1],[u1,v0],[u1,v1],[u0,v1],[u0,v0],[u1,v0]];
+    for (let i = 0; i < 6; i++) {
+      P.push(...verts[i]); N.push(nx, ny, nz); U.push(...uvs[i]);
+      if (toSolid) col.push(r, g, b);
+    }
+  }
+
+  // Two crossed diagonal quads spanning the full block, matching how vanilla
+  // Minecraft renders plants/flowers/grass/ferns - a thin "X" billboard using
+  // the block's own single texture, not a solid textured cube. The material
+  // is double-sided (see solidMat), so one quad per diagonal is enough - each
+  // is visible from both sides.
+  function addCross(wx, wy, wz, uvv, r, g, b) {
+    const u0v1 = [uvv[0],uvv[3]], u1v0 = [uvv[2],uvv[1]], u1v1 = [uvv[2],uvv[3]], u0v0 = [uvv[0],uvv[1]];
+    const diag1 = [[wx,wy,wz], [wx+1,wy,wz+1], [wx+1,wy+1,wz+1], [wx,wy+1,wz]];
+    const diag2 = [[wx+1,wy,wz], [wx,wy,wz+1], [wx,wy+1,wz+1], [wx+1,wy+1,wz]];
+    for (const [p0, p1, p2, p3] of [diag1, diag2]) {
+      const verts = [p0, p2, p1, p0, p3, p2];
+      const uvs = [u0v1, u1v0, u1v1, u0v1, u0v0, u1v0];
+      for (let i = 0; i < 6; i++) {
+        pos.push(...verts[i]); norm.push(0, 1, 0); uv.push(...uvs[i]); col.push(r, g, b);
+      }
+    }
+  }
+
+  // A thin flat quad near the bottom of the block, for snow layers/carpets/
+  // lily pads - things that lie flat across the footprint rather than
+  // standing up as a cross. baseY is the Y of the solid surface it rests on.
+  // frac (0-1) is how tall to draw it - snow's real "layers" count (1-8)
+  // maps directly to this when known; anything else defaults to a thin slab.
+  // Also draws thin side walls down to baseY using the same texture, so a
+  // multi-layer snow patch (or any other flat layer) shows its own colour
+  // all the way around instead of exposing whatever real ground it's
+  // sitting on - visible any time the camera looks at it from a low angle.
+  function addFlatLayer(wx, baseY, wz, uvv, r, g, b, frac) {
+    const y = baseY + Math.max(0.1, frac ?? 0.1);
+    addQuad(
+      [wx, y, wz], [wx+1, y, wz], [wx+1, y, wz+1], [wx, y, wz+1],
+      0, 1, 0, uvv[0], uvv[1], uvv[2], uvv[3], r, g, b, true
+    );
+    const sides = [
+      { p0:[wx+1,baseY,wz],   p1:[wx+1,baseY,wz+1], p2:[wx+1,y,wz+1], p3:[wx+1,y,wz],   n:[1,0,0] },
+      { p0:[wx,baseY,wz+1],   p1:[wx,baseY,wz],     p2:[wx,y,wz],     p3:[wx,y,wz+1],   n:[-1,0,0] },
+      { p0:[wx+1,baseY,wz+1], p1:[wx,baseY,wz+1],   p2:[wx,y,wz+1],   p3:[wx+1,y,wz+1], n:[0,0,1] },
+      { p0:[wx,baseY,wz],     p1:[wx+1,baseY,wz],   p2:[wx+1,y,wz],   p3:[wx,y,wz],     n:[0,0,-1] },
+    ];
+    for (const { p0, p1, p2, p3, n } of sides) {
+      addQuad(p0, p1, p2, p3, n[0], n[1], n[2], uvv[0], uvv[1], uvv[2], uvv[3], r, g, b, true);
+    }
+  }
+
+  // Last atlas slot — always empty white since palette << 4096 slots total
+  const _fuv = [(ATLAS-TEX)/ATLAS, (ATLAS-TEX)/ATLAS, 1.0, 1.0];
+  function fallbackUV() { return _fuv; }
+
+  // Draws one decorative non-solid block (grass, a flower, a snow layer...)
+  // as a cross billboard or flat layer at world Y `y`, tinted for `biomeId`.
+  // `aboveBid` is only used to infer a double-tall plant's upper/lower half
+  // on older scans that didn't record the half= property directly (see
+  // DOUBLE_TALL comment) - pass 0 if there's nothing recorded immediately
+  // above this layer (or it doesn't matter, e.g. calling from self-skirt).
+  // Shared by both the top-of-column plant stack and self-skirt below,
+  // since a snow layer (or any other decorative block) can appear either
+  // place: real leaf/snow data is very often several *interleaved* snow
+  // layers and leaf shelves stacked within one tree's canopy, not just one
+  // snow layer on top - every one of those needs its own sprite drawn, or
+  // whichever ones aren't the very topmost simply vanish (neither a wall
+  // nor a sprite drawn for them), leaving real, see-through gaps exactly at
+  // the height a real player would see a thin snow layer resting on a leaf
+  // shelf.
+  function drawPlantSprite(wx, wz, biomeId, plantBid, y, aboveBid) {
+    if (!plantBid || noRenderIds.has(plantBid)) return;
+    const name = blockName[plantBid];
+    const plantTc = getBiomeTint(biomeId, 'top', plantBid);
+    let uvv;
+    if (DOUBLE_TALL.has(name)) {
+      const half = blockProps[plantBid]?.half;
+      let suffix;
+      if (half === 'upper') suffix = '_top';
+      else if (half === 'lower') suffix = '_bottom';
+      else suffix = aboveBid === plantBid ? '_bottom' : '_top';
+      uvv = uvCache[name + suffix] || getUV(plantBid, 'top') || fallbackUV();
+    } else {
+      uvv = getUV(plantBid, 'top') || fallbackUV();
+    }
+    const plantColor = blockCol[plantBid] || new THREE.Color(0xffffff);
+    const pr = atlasTex ? plantTc[0] : plantColor.r * plantTc[0];
+    const pg = atlasTex ? plantTc[1] : plantColor.g * plantTc[1];
+    const pb = atlasTex ? plantTc[2] : plantColor.b * plantTc[2];
+    if (isFlatLayer(name)) {
+      // Real snow accumulates 1-8 layers deep (a full layers=8 stack is the
+      // same height as a solid snow_block); use the actual recorded depth
+      // when the scan captured it instead of a fixed thin slab.
+      const layers = +blockProps[plantBid]?.layers;
+      const frac = layers >= 1 && layers <= 8 ? layers / 8 : 0.1;
+      addFlatLayer(wx, y, wz, uvv, pr, pg, pb, frac);
+    } else {
+      addCross(wx, y, wz, uvv, pr, pg, pb);
+    }
+  }
+
+  const DIRS4 = [
+    { dx: 1, dz: 0, nx: 1, nz: 0 },
+    { dx:-1, dz: 0, nx:-1, nz: 0 },
+    { dx: 0, dz: 1, nx: 0, nz: 1 },
+    { dx: 0, dz:-1, nx: 0, nz:-1 },
+  ];
+
+  // Decode cache local to this chunk build - every column this chunk's own
+  // columns need to check (themselves plus their 4 neighbours) gets decoded
+  // at most once here, even though neighbouring columns get looked up
+  // repeatedly (once per shared edge).
+  const decCache = new Map();
+  function decAt(mx, mz) {
+    if (mx < 0 || mx >= W || mz < 0 || mz >= H) return null;
+    const idx = mz * W + mx;
+    let d = decCache.get(idx);
+    if (d === undefined) { d = decodeColumn(idx); decCache.set(idx, d); }
+    return d;
+  }
+
+  for (let mz = sz; mz < ez; mz++) {
+    for (let mx = sx; mx < ex; mx++) {
+      const idx = mz * W + mx;
+      const dec = decAt(mx, mz);
+      if (!dec) continue; // no data for this column (never generated)
+      const biomeId = biomes[idx];
+      const wx = mx, wz = mz;
+      const decN = DIRS4.map(({ dx, dz }) => decAt(mx + dx, mz + dz));
+
+      // Walk every real recorded block in this column top to bottom. Every
+      // face's visibility is a direct lookup against the actual neighbouring
+      // block - up/down within this same decoded column, sideways into the
+      // 4 neighbouring columns' own decoded data - never inferred from
+      // heights or special-cased by block type. A block fully enclosed by
+      // solid neighbours on all 6 sides emits nothing, so dense interior
+      // terrain (stone deep underground, the inside of a hill) costs
+      // nothing despite being fully present in the data.
+      let aboveBid = 0;
+      for (let y = dec.yTop; y >= dec.yBot; y--) {
+        const bid = blockAtWorldY(dec, y);
+        if (bid && isWalkPast(bid)) {
+          // Decorative non-solid block (grass, a flower, a snow layer, a
+          // torch...) - drawn as its own sprite/flat layer, not a cube, at
+          // whatever depth it actually occurs (surface or buried inside a
+          // canopy - both handled identically, since both are just "the
+          // real recorded block at this Y").
+          drawPlantSprite(wx, wz, biomeId, bid, y, aboveBid);
+        } else if (bid) {
+          const uvvTop = getUV(bid, 'top') || fallbackUV();
+          const tcTop = getBiomeTint(biomeId, 'top', bid);
+          const bColor = blockCol[bid] || new THREE.Color(0x888888);
+
+          const upBid = blockAtWorldY(dec, y + 1);
+          if (!upBid || isWalkPast(upBid)) {
+            const r = atlasTex ? tcTop[0] : bColor.r * tcTop[0];
+            const g = atlasTex ? tcTop[1] : bColor.g * tcTop[1];
+            const b = atlasTex ? tcTop[2] : bColor.b * tcTop[2];
+            addQuad(
+              [wx, y+1, wz], [wx+1, y+1, wz], [wx+1, y+1, wz+1], [wx, y+1, wz+1],
+              0, 1, 0, uvvTop[0], uvvTop[1], uvvTop[2], uvvTop[3], r, g, b, true
+            );
+          }
+
+          const downBid = blockAtWorldY(dec, y - 1);
+          if (!downBid || isWalkPast(downBid)) {
+            const uvvBot = getUV(bid, 'bottom') || fallbackUV();
+            const tcBot = getBiomeTint(biomeId, 'bottom', bid);
+            const r = atlasTex ? tcBot[0] : bColor.r * tcBot[0];
+            const g = atlasTex ? tcBot[1] : bColor.g * tcBot[1];
+            const b = atlasTex ? tcBot[2] : bColor.b * tcBot[2];
+            addQuad(
+              [wx, y, wz], [wx+1, y, wz], [wx+1, y, wz+1], [wx, y, wz+1],
+              0, -1, 0, uvvBot[0], uvvBot[1], uvvBot[2], uvvBot[3], r, g, b, true
+            );
+          }
+
+          for (let d4 = 0; d4 < 4; d4++) {
+            const { dx, dz, nx, nz } = DIRS4[d4];
+            const nBid = blockAtWorldY(decN[d4], y);
+            if (!nBid || isWalkPast(nBid)) {
+              emitSideFace(wx, wz, y, y, dx, dz, nx, nz, bid, biomeId, pos, norm, uv, col);
+            }
+          }
+        }
+        aboveBid = bid;
+      }
+
+      // WATER SURFACE — one flat plane at the recorded water height,
+      // whenever it sits above this column's recorded surface.
+      const water = waterArr[idx];
+      if (water > dec.yTop) {
+        const wy2 = water;
+        wpos.push(
+          wx,wy2+1,wz,   wx+1,wy2+1,wz+1, wx+1,wy2+1,wz,   // tri 1: p0,p2,p1 → +Y normal
+          wx,wy2+1,wz,   wx,wy2+1,wz+1,   wx+1,wy2+1,wz+1   // tri 2: p0,p3,p2 → +Y normal
+        );
+        for (let i=0;i<6;i++) wnorm.push(0,1,0);
+        wuv.push(
+          wx,wz,   wx+1,wz+1,   wx+1,wz,
+          wx,wz,   wx,wz+1,     wx+1,wz+1
+        );
+      }
+    }
+  }
+
+  function makeGeo(p, n, u, c) {
+    if (!p.length) return null;
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(p), 3));
+    geo.setAttribute('normal',   new THREE.BufferAttribute(new Float32Array(n), 3));
+    geo.setAttribute('uv',       new THREE.BufferAttribute(new Float32Array(u), 2));
+    if (c) geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(c), 3));
+    return geo;
+  }
+
+  const solidGeo = makeGeo(pos, norm, uv, col);
+  const waterGeo = makeGeo(wpos, wnorm, wuv, null);
+
+  const solidMesh = solidGeo ? new THREE.Mesh(solidGeo, solidMat) : null;
+  const waterMesh = waterGeo ? new THREE.Mesh(waterGeo, waterMat) : null;
+  if (solidMesh) { solidMesh.receiveShadow = true; solidGroup.add(solidMesh); }
+  if (waterMesh) waterGroup.add(waterMesh);
+
+  chunks.set(key, { solid: solidMesh, water: waterMesh });
+}
+
+function emitSideFace(wx, wz, yBot, yTop, dx, dz, nx, nz, bid, biomeId, pos, norm, uv, col) {
+  const uvv = getUV(bid, 'side') || getUV(bid, 'top') || [(ATLAS-TEX)/ATLAS, (ATLAS-TEX)/ATLAS, 1.0, 1.0];
+  const bColor = blockCol[bid] || new THREE.Color(0x888888);
+  // Side faces need the same biome tint as the top face (this was previously
+  // missing entirely, which is why leaves rendered as pale/white blobs - their
+  // texture is grayscale and *meant* to be tinted, and only the top face was).
+  const tc = getBiomeTint(biomeId, 'side', bid);
+  const r = atlasTex ? tc[0] : bColor.r * tc[0];
+  const g = atlasTex ? tc[1] : bColor.g * tc[1];
+  const b2 = atlasTex ? tc[2] : bColor.b * tc[2];
+
+  // Emit one 1-block-high quad per Y level so the texture tiles correctly (no stretching)
+  for (let y = yBot; y <= yTop; y++) {
+    let p0, p1, p2, p3;
+    if (dx === 1) {
+      p0=[wx+1,y,wz];   p1=[wx+1,y,wz+1]; p2=[wx+1,y+1,wz+1]; p3=[wx+1,y+1,wz];
+    } else if (dx === -1) {
+      p0=[wx,y,wz+1];   p1=[wx,y,wz];     p2=[wx,y+1,wz];     p3=[wx,y+1,wz+1];
+    } else if (dz === 1) {
+      p0=[wx+1,y,wz+1]; p1=[wx,y,wz+1];   p2=[wx,y+1,wz+1];   p3=[wx+1,y+1,wz+1];
+    } else {
+      p0=[wx,y,wz];     p1=[wx+1,y,wz];   p2=[wx+1,y+1,wz];   p3=[wx,y+1,wz];
+    }
+    // uvv=[u0,v0,u1,v1]: face top (y+1) → texture top (v0), face bottom (y) → texture bottom (v1)
+    const verts = [p0,p2,p1, p0,p3,p2];
+    const uvs = [
+      [uvv[0],uvv[3]], [uvv[2],uvv[1]], [uvv[2],uvv[3]],
+      [uvv[0],uvv[3]], [uvv[0],uvv[1]], [uvv[2],uvv[1]],
+    ];
+    for (let i = 0; i < 6; i++) {
+      pos.push(...verts[i]);
+      norm.push(nx, 0, nz);
+      uv.push(...uvs[i]);
+      col.push(r, g, b2);
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CAMERA CONTROLS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function updateCamera() {
+  const sinPhi = Math.sin(cam.phi), cosPhi = Math.cos(cam.phi);
+  const sinTh = Math.sin(cam.theta), cosTh = Math.cos(cam.theta);
+  const ty = cam.ty + jumpY;
+  camera.position.set(
+    cam.tx + cam.r * sinPhi * sinTh,
+    ty + cam.r * cosPhi,
+    cam.tz + cam.r * sinPhi * cosTh
+  );
+  camera.lookAt(cam.tx, ty, cam.tz);
+}
+
+// Real terrain height at world (x,z), clamped to the loaded grid - used by
+// walk mode to keep the camera standing on the ground instead of needing to
+// manually fly to a guessed height. Falls back to the last known height for
+// out-of-bounds/no-data columns rather than snapping to 0. realGroundY (see
+// decodeColumn) already walks past leaves/plants to the real solid ground.
+function terrainHeightAt(x, z) {
+  const gx = Math.min(W - 1, Math.max(0, Math.round(x)));
+  const gz = Math.min(H - 1, Math.max(0, Math.round(z)));
+  const idx = gz * W + gx;
+  const gh = surface ? realGroundY(idx) : undefined;
+  return isFinite(gh) ? gh : cam.ty;
+}
+
+function toggleWalkMode() {
+  walkMode = !walkMode;
+  const btn = document.getElementById('tool-walk');
+  if (btn) btn.classList.toggle('active', walkMode);
+  if (walkMode) {
+    orbitR = cam.r;
+    cam.r = WALK_R;
+    cam.ty = terrainHeightAt(cam.tx, cam.tz) + WALK_EYE_HEIGHT;
+    jumpVel = 0; jumpY = 0;
+  } else {
+    cam.r = orbitR;
+    jumpVel = 0; jumpY = 0; // don't carry a mid-jump offset into orbit view
+  }
+  updateCamera();
+  updateWalkCoords();
+}
+window.toggleWalkMode = toggleWalkMode;
+
+function doPan(dx, dy) {
+  const right = new THREE.Vector3(), up = new THREE.Vector3(), fwd = new THREE.Vector3();
+  camera.matrix.extractBasis(right, up, fwd);
+  const spd = cam.r * 0.0015;
+  cam.tx -= right.x * dx * spd; cam.tz -= right.z * dx * spd;
+  cam.tx += fwd.x * dy * spd * 0.5; cam.tz += fwd.z * dy * spd * 0.5;
+  updateCamera();
+}
+
+function setupControls(canvas) {
+  canvas.addEventListener('mousedown', e => {
+    if (e.button === 0) {
+      if (planMode !== 'nav') { handlePlanClick(e); return; }
+      dragging = true; dragBtn = 0; lx = e.clientX; ly = e.clientY;
+    } else if (e.button === 1 || e.button === 2) {
+      dragging = true; dragBtn = e.button; lx = e.clientX; ly = e.clientY;
+      e.preventDefault();
+    }
+  });
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+  window.addEventListener('mouseup', () => { dragging = false; });
+  window.addEventListener('mousemove', e => {
+    if (dragging) {
+      const dx = e.clientX - lx, dy = e.clientY - ly;
+      lx = e.clientX; ly = e.clientY;
+      if (dragBtn === 0 || dragBtn === 1) { // left or middle = pan
+        doPan(dx, dy);
+      } else if (dragBtn === 2) { // right = orbit
+        cam.theta -= dx * 0.005;
+        cam.phi = Math.max(0.05, Math.min(Math.PI * 0.48, cam.phi + dy * 0.005));
+        updateCamera();
+      }
+    }
+    updateCoords(e);
+  });
+  canvas.addEventListener('wheel', e => {
+    cam.r = Math.max(10, Math.min(3000, cam.r * (1 + e.deltaY * 0.001)));
+    updateCamera();
+    e.preventDefault();
+  }, { passive: false });
+  window.addEventListener('keydown', e => {
+    keys[e.code] = true;
+    // Space/arrows otherwise scroll the page - a jump or nudge shouldn't
+    // also yank the whole viewport down.
+    if (e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
+  });
+  window.addEventListener('keyup',   e => { keys[e.code] = false; });
+}
+
+const WALK_GRAVITY = 0.028;
+const WALK_JUMP_VEL = 0.36;
+
+function processKeys() {
+  if (!camera) return;
+  const right = new THREE.Vector3(), up = new THREE.Vector3(), fwd = new THREE.Vector3();
+  camera.matrix.extractBasis(right, up, fwd);
+  fwd.y = 0; fwd.normalize(); right.y = 0; right.normalize();
+
+  if (walkMode) {
+    // Fixed, human-scale walking pace (not scaled by orbit radius, which is
+    // pinned tiny in walk mode anyway) - hold Shift to cover ground faster.
+    const spd = keys['ShiftLeft'] || keys['ShiftRight'] ? 0.6 : 0.25;
+    let moved = false;
+    if (keys['KeyW'] || keys['ArrowUp'])    { cam.tx -= fwd.x*spd; cam.tz -= fwd.z*spd; moved = true; }
+    if (keys['KeyS'] || keys['ArrowDown'])  { cam.tx += fwd.x*spd; cam.tz += fwd.z*spd; moved = true; }
+    if (keys['KeyA'] || keys['ArrowLeft'])  { cam.tx -= right.x*spd; cam.tz -= right.z*spd; moved = true; }
+    if (keys['KeyD'] || keys['ArrowRight']) { cam.tx += right.x*spd; cam.tz += right.z*spd; moved = true; }
+    // Stand on the real terrain surface under the current position every
+    // frame, like a player - if you walk over a genuine gap the camera dips
+    // down into it instead of gliding across empty space, which is exactly
+    // the "does the ground actually connect here" check this mode is for.
+    cam.ty = terrainHeightAt(cam.tx, cam.tz) + WALK_EYE_HEIGHT;
+    if (keys['Space'] && jumpY <= 0 && jumpVel === 0) jumpVel = WALK_JUMP_VEL;
+    if (jumpY > 0 || jumpVel > 0) {
+      jumpY += jumpVel;
+      jumpVel -= WALK_GRAVITY;
+      if (jumpY <= 0) { jumpY = 0; jumpVel = 0; }
+      moved = true;
+    }
+    if (moved) updateCamera();
+    updateWalkCoords();
+    return;
+  }
+
+  const spd = Math.max(cam.r * 0.02, 8); // fast enough to cross the map in reasonable time
+  if (keys['KeyW'] || keys['ArrowUp'])   { cam.tx -= fwd.x*spd; cam.tz -= fwd.z*spd; }
+  if (keys['KeyS'] || keys['ArrowDown']) { cam.tx += fwd.x*spd; cam.tz += fwd.z*spd; }
+  if (keys['KeyA'] || keys['ArrowLeft']) { cam.tx -= right.x*spd; cam.tz -= right.z*spd; }
+  if (keys['KeyD'] || keys['ArrowRight']){ cam.tx += right.x*spd; cam.tz += right.z*spd; }
+  if (keys['Space'])     cam.ty += spd;
+  if (keys['ShiftLeft']) cam.ty -= spd;
+  if (Object.values(keys).some(Boolean)) updateCamera();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CHUNK MANAGEMENT
+// ══════════════════════════════════════════════════════════════════════════════
+
+function updateChunks() {
+  const camChunkX = Math.floor(camera.position.x / CHUNK);
+  const camChunkZ = Math.floor(camera.position.z / CHUNK);
+  const maxCX = Math.ceil(W / CHUNK), maxCZ = Math.ceil(H / CHUNK);
+  const queued = new Set(chunkQueue.map(c => c.key));
+
+  // Queue chunks sorted closest-first
+  for (let dz = -RENDER_DIST; dz <= RENDER_DIST; dz++) {
+    for (let dx = -RENDER_DIST; dx <= RENDER_DIST; dx++) {
+      const d2 = dx*dx + dz*dz;
+      if (d2 > RENDER_DIST * RENDER_DIST) continue;
+      const cx = camChunkX + dx, cz = camChunkZ + dz;
+      if (cx < 0 || cz < 0 || cx >= maxCX || cz >= maxCZ) continue;
+      const key = cx + '_' + cz;
+      if (!chunks.has(key) && !queued.has(key)) {
+        chunkQueue.push({ cx, cz, key, d2 });
+        queued.add(key);
+      }
+    }
+  }
+  chunkQueue.sort((a, b) => a.d2 - b.d2);
+
+  // Unload distant chunks
+  for (const [key, ch] of chunks) {
+    const [cx, cz] = key.split('_').map(Number);
+    if (Math.abs(cx - camChunkX) > RENDER_DIST + 3 || Math.abs(cz - camChunkZ) > RENDER_DIST + 3) {
+      if (ch.solid) { solidGroup.remove(ch.solid); ch.solid.geometry.dispose(); }
+      if (ch.water) { waterGroup.remove(ch.water); ch.water.geometry.dispose(); }
+      chunks.delete(key);
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ANIMATION
+// ══════════════════════════════════════════════════════════════════════════════
+
+let lastChunkUpdate = 0;
+const CHUNKS_PER_FRAME = 3;
+let statsEl = null;
+let frameCount = 0;
+function animate() {
+  animId = requestAnimationFrame(animate);
+  processKeys();
+  // Build a few queued chunks per frame to avoid freezing the main thread
+  for (let i = 0; i < CHUNKS_PER_FRAME && chunkQueue.length > 0; i++) {
+    const c = chunkQueue.shift();
+    if (!chunks.has(c.key)) buildChunk(c.cx, c.cz);
+  }
+  const now = performance.now();
+  if (now - lastChunkUpdate > 300) { updateChunks(); lastChunkUpdate = now; }
+  renderer.render(scene, camera);
+  // Stats overlay (every 30 frames)
+  frameCount++;
+  if (frameCount % 30 === 0) {
+    if (!statsEl) statsEl = document.getElementById('mv-stats');
+    if (statsEl) {
+      const loaded = chunks.size, queued = chunkQueue.length;
+      const camP = camera.position;
+      const texCount = Object.keys(blockUV).length;
+      statsEl.innerHTML = `World: ${W}×${H} | Chunks: ${loaded} loaded, ${queued} queued<br>Cam: ${Math.round(camP.x)}, ${Math.round(camP.y)}, ${Math.round(camP.z)}<br>Atlas: ${atlasTex ? 'loaded' : 'MISSING'} | blockUV: ${texCount} entries`;
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// COORDINATE READOUT
+// ══════════════════════════════════════════════════════════════════════════════
+
+const coordsEl = document.getElementById('mv-coords');
+// The internal scene/grid coordinate system is *local* (0..W-1, 0..H-1), not
+// real Minecraft world coordinates - meta.originX/originZ is the offset
+// between them. Every coordinate shown to the user must add this back, or
+// numbers read off the map (like to report a bug location) won't match what
+// F3 shows in-game at all, off by exactly the scan's origin.
+function toWorldCoords(x, z) {
+  return { wx: Math.round(x + (meta?.originX ?? 0)), wz: Math.round(z + (meta?.originZ ?? 0)) };
+}
+
+function updateCoords(e) {
+  if (!camera || !scene) return;
+  const canvas = document.getElementById('mv-canvas');
+  const rect = canvas.getBoundingClientRect();
+  const mx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  const my = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera({ x: mx, y: my }, camera);
+  // Raycast the actual rendered terrain first - this is what makes the
+  // readout trustworthy for pinpointing a bug (it's the real block under the
+  // cursor, not an arbitrary flat plane that only happens to be right at one
+  // fixed height). Falls back to a mid-height plane only when the cursor
+  // isn't over any built geometry at all (e.g. pointing at open sky).
+  const meshes = [];
+  for (const c of chunks.values()) { if (c.solid) meshes.push(c.solid); }
+  const hits = raycaster.intersectObjects(meshes, false);
+  let px, py, pz;
+  if (hits.length) {
+    ({ x: px, y: py, z: pz } = hits[0].point);
+  } else {
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -(minY + 80));
+    const hit = new THREE.Vector3();
+    if (!raycaster.ray.intersectPlane(plane, hit)) return;
+    ({ x: px, y: py, z: pz } = hit);
+  }
+  const { wx, wz } = toWorldCoords(px, pz);
+  coordsEl.textContent = `X: ${wx}  Y: ${Math.round(py)}  Z: ${wz}`;
+}
+
+// Live readout of the walking position itself (not just wherever the mouse
+// happens to be hovering) so the coordinate on screen always matches where
+// you're actually standing while using Walk Mode to hunt down a bug.
+function updateWalkCoords() {
+  if (!walkMode) return;
+  const { wx, wz } = toWorldCoords(cam.tx, cam.tz);
+  coordsEl.textContent = `X: ${wx}  Y: ${Math.round(cam.ty - WALK_EYE_HEIGHT + 1)}  Z: ${wz}  (standing)`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PLANNING TOOLS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function setTool(mode) {
+  planMode = mode;
+  document.querySelectorAll('.mv-tool').forEach(el => el.classList.remove('active'));
+  const toolMap = { nav: 'tool-nav', spawn: null, mining: null, contested: null, polygon: null, label: null };
+  const id = 'tool-' + mode;
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  else document.querySelectorAll('.mv-tool').forEach(el => { if (el.textContent.trim().toLowerCase().includes(mode)) el.classList.add('active'); });
+  document.getElementById('mv-poly-finish').style.display = mode === 'polygon' ? '' : 'none';
+  if (mode !== 'polygon') { polyPts = []; if (polyLine) { planGroup.remove(polyLine); polyLine = null; } }
+}
+
+function getTerrainHit(e) {
+  const canvas = document.getElementById('mv-canvas');
+  const rect = canvas.getBoundingClientRect();
+  const mx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  const my = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera({ x: mx, y: my }, camera);
+  // Cast against elevated plane for approximate hit
+  const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -(minY + 80));
+  const hit = new THREE.Vector3();
+  return raycaster.ray.intersectPlane(plane, hit) ? hit : null;
+}
+
+function handlePlanClick(e) {
+  const hit = getTerrainHit(e);
+  if (!hit) return;
+  if (planMode === 'polygon') {
+    polyPts.push(hit.clone());
+    updatePolyLine();
+    return;
+  }
+  if (planMode === 'label') {
+    pendingLabelPos = hit.clone();
+    const li = document.getElementById('mv-label-input');
+    li.style.display = '';
+    document.getElementById('mv-label-text').focus();
+    return;
+  }
+  if (['spawn','mining','contested'].includes(planMode)) {
+    placeMarker(hit, planMode);
+  }
+}
+
+function placeMarker(pos, type) {
+  const color = new THREE.Color(planColors[type]);
+  const geo = new THREE.SphereGeometry(3, 8, 6);
+  const mat = new THREE.MeshBasicMaterial({ color });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.copy(pos).setY(pos.y + 4);
+  planGroup.add(mesh);
+  const item = { type, pos: { x: Math.round(pos.x), y: Math.round(pos.y), z: Math.round(pos.z) }, mesh };
+  plan.markers.push(item);
+  refreshPlanUI();
+}
+
+function updatePolyLine() {
+  if (polyLine) { planGroup.remove(polyLine); polyLine = null; }
+  if (polyPts.length < 2) return;
+  const geo = new THREE.BufferGeometry().setFromPoints(polyPts.map(p => p.clone().setY(p.y + 2)));
+  polyLine = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0x74c0fc, linewidth: 2 }));
+  planGroup.add(polyLine);
+}
+
+function finishPolygon() {
+  if (polyPts.length < 3) { alert('Need at least 3 points for a border.'); return; }
+  const pts = polyPts.map(p => ({ x: Math.round(p.x), y: Math.round(p.y), z: Math.round(p.z) }));
+  plan.polygons.push({ pts, mesh: polyLine });
+  polyPts = []; polyLine = null;
+  refreshPlanUI();
+}
+
+function confirmLabel() {
+  const text = document.getElementById('mv-label-text').value.trim();
+  if (!text || !pendingLabelPos) return;
+  document.getElementById('mv-label-input').style.display = 'none';
+  document.getElementById('mv-label-text').value = '';
+  const pos = pendingLabelPos;
+  pendingLabelPos = null;
+  plan.labels.push({ text, pos: { x: Math.round(pos.x), y: Math.round(pos.y), z: Math.round(pos.z) } });
+  // Sprite label
+  const c = document.createElement('canvas'); c.width = 256; c.height = 64;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = 'rgba(17,18,22,0.85)'; ctx.roundRect(4,4,248,56,10); ctx.fill();
+  ctx.fillStyle = '#e0e2ed'; ctx.font = 'bold 24px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(text, 128, 32);
+  const tex = new THREE.CanvasTexture(c);
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false }));
+  sprite.position.copy(pos).setY(pos.y + 20);
+  sprite.scale.set(40, 10, 1);
+  planGroup.add(sprite);
+  refreshPlanUI();
+}
+
+function cancelLabel() {
+  document.getElementById('mv-label-input').style.display = 'none';
+  document.getElementById('mv-label-text').value = '';
+  pendingLabelPos = null;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PLAN UI
+// ══════════════════════════════════════════════════════════════════════════════
+
+function refreshPlanUI() {
+  const list = document.getElementById('mv-plan-list');
+  const total = plan.markers.length + plan.polygons.length + plan.labels.length;
+  document.getElementById('mv-plan-count').textContent = total + ' item' + (total !== 1 ? 's' : '');
+  list.innerHTML = '';
+  plan.markers.forEach((m, i) => {
+    const d = document.createElement('div'); d.className = 'mv-plan-item';
+    d.innerHTML = `<span class="mv-plan-dot" style="background:${planColors[m.type]}"></span>${m.type} (${m.pos.x},${m.pos.z})<span class="mv-plan-del" onclick="deleteMarker(${i})">✕</span>`;
+    list.appendChild(d);
+  });
+  plan.polygons.forEach((p, i) => {
+    const d = document.createElement('div'); d.className = 'mv-plan-item';
+    d.innerHTML = `<span class="mv-plan-dot" style="background:${planColors.polygon}"></span>Border (${p.pts.length} pts)<span class="mv-plan-del" onclick="deletePolygon(${i})">✕</span>`;
+    list.appendChild(d);
+  });
+  plan.labels.forEach((l, i) => {
+    const d = document.createElement('div'); d.className = 'mv-plan-item';
+    d.innerHTML = `<span class="mv-plan-dot" style="background:${planColors.label}"></span>"${l.text}"<span class="mv-plan-del" onclick="deleteLabel(${i})">✕</span>`;
+    list.appendChild(d);
+  });
+}
+
+window.deleteMarker = i => {
+  const m = plan.markers.splice(i, 1)[0];
+  if (m.mesh) { planGroup.remove(m.mesh); m.mesh.geometry.dispose(); }
+  refreshPlanUI();
+};
+window.deletePolygon = i => {
+  const p = plan.polygons.splice(i, 1)[0];
+  if (p.mesh) { planGroup.remove(p.mesh); p.mesh.geometry.dispose(); }
+  refreshPlanUI();
+};
+window.deleteLabel = i => { plan.labels.splice(i, 1); refreshPlanUI(); };
+
+// ══════════════════════════════════════════════════════════════════════════════
+// EXPORT / SAVE / LOAD
+// ══════════════════════════════════════════════════════════════════════════════
+
+function exportPNG() {
+  renderer.render(scene, camera);
+  const url = renderer.domElement.toDataURL('image/png');
+  const a = document.createElement('a'); a.href = url; a.download = 'map-view.png'; a.click();
+}
+
+function savePlan() {
+  const data = {
+    markers: plan.markers.map(m => ({ type: m.type, pos: m.pos })),
+    polygons: plan.polygons.map(p => ({ pts: p.pts })),
+    labels: plan.labels.map(l => ({ text: l.text, pos: l.pos })),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'event-plan.json'; a.click();
+}
+
+window.loadPlanFile = function(input) {
+  const file = input.files[0]; if (!file) return;
+  file.text().then(t => {
+    const data = JSON.parse(t);
+    (data.markers || []).forEach(m => placeMarker(new THREE.Vector3(m.pos.x, m.pos.y, m.pos.z), m.type));
+    refreshPlanUI();
+  });
+  input.value = '';
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function showProgress(visible, text, err) {
+  const el = document.getElementById('mv-progress');
+  el.style.display = visible ? 'flex' : 'none';
+  if (text) document.getElementById('mv-prog-text').textContent = text;
+  const errEl = document.getElementById('mv-prog-err');
+  if (err) { errEl.textContent = err; errEl.style.display = ''; }
+  else errEl.style.display = 'none';
+}
+
+// Expose globals needed by inline onclick handlers
+window.setTool = setTool;
+window.finishPolygon = finishPolygon;
+window.confirmLabel = confirmLabel;
+window.cancelLabel = cancelLabel;
+window.savePlan = savePlan;
+window.exportPNG = exportPNG;
+
+})();
+</script>
+
+<%- include('partials/foot') %>
