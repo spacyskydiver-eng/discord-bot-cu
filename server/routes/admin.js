@@ -475,6 +475,17 @@ router.get('/map-v2', (req, res) => res.render('new/admin-map-v2'));
 // for while that's being set up and WILL go stale (quick Cloudflare Tunnels
 // get a new random hostname every time they're restarted).
 const BLUEMAP_TARGET = process.env.BLUEMAP_TUNNEL_URL || 'https://tonight-papers-lace-breed.trycloudflare.com';
+// BlueMap's HTML references its own assets with relative paths ("./assets/
+// ..."), which the browser resolves against the CURRENT URL - without a
+// trailing slash, "/admin/bluemap" is treated as a file, so "./assets/x"
+// resolves to "/admin/assets/x" (wrong) instead of "/admin/bluemap/assets/x"
+// (right). Redirect the bare path to the slash-terminated one so it works
+// regardless of how someone navigates here (typed URL, bookmark, nav link).
+// A string route here would match "/bluemap" AND "/bluemap/" (Express's
+// default non-strict routing), redirecting the already-correct slash
+// version right back to itself. The regex forces an exact, no-trailing-
+// slash-only match.
+router.get(/^\/bluemap$/, (req, res) => res.redirect(301, '/admin/bluemap/'));
 router.use('/bluemap', createProxyMiddleware({
   target: BLUEMAP_TARGET,
   changeOrigin: true,
