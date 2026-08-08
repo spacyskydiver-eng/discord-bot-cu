@@ -1,0 +1,92 @@
+<%- include('partials/head', { pageTitle: 'Map Regions' }) %>
+<%- include('partials/header') %>
+
+<style>
+.mr-wrap { max-width: 980px; margin: 0 auto; padding: 24px 16px 60px; }
+.mr-title { font-family: 'Baloo 2'; font-weight: 800; font-size: 22px; margin: 0 0 4px; }
+.mr-sub { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
+.mr-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 20px; }
+.mr-card h3 { font-family: 'Baloo 2'; font-weight: 800; font-size: 14px; margin: 0 0 14px; }
+.mr-form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.mr-form-row label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--muted); font-family: 'Baloo 2'; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.mr-form-row input, .mr-form-row select {
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
+  padding: 8px 10px; color: var(--text); font-family: 'Inter'; font-size: 13px; outline: none;
+}
+.mr-form-row input[type="number"] { width: 90px; }
+.mr-form-row input[type="text"] { width: 200px; }
+.mr-btn {
+  background: #3b82f6; color: #fff; border: none; border-radius: 8px; padding: 9px 18px;
+  font-family: 'Baloo 2'; font-weight: 700; font-size: 13px; cursor: pointer; align-self: flex-end;
+}
+.mr-btn:hover { background: #2563eb; }
+.mr-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.mr-table th { text-align: left; padding: 8px 10px; color: var(--muted); font-family: 'Baloo 2'; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid var(--line); }
+.mr-table td { padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.mr-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: middle; margin-right: 6px; border: 1px solid rgba(255,255,255,.2); }
+.mr-badge { font-family: 'Baloo 2'; font-weight: 700; font-size: 10px; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; }
+.mr-badge.mining { background: rgba(59,130,246,.15); color: #60a5fa; }
+.mr-badge.contested { background: rgba(239,68,68,.15); color: #f87171; }
+.mr-del { color: #f87171; font-size: 12px; background: none; border: none; cursor: pointer; font-family: 'Inter'; }
+.mr-note { color: var(--muted); font-size: 12px; margin-top: 10px; }
+</style>
+
+<div class="mr-wrap">
+  <h1 class="mr-title">Map Regions</h1>
+  <p class="mr-sub">Mining regions and contested zones, rendered as toggleable 3D borders on BlueMap. Changes here apply the next time the local sync script runs (not instant).</p>
+
+  <div class="mr-card">
+    <h3>Add Region</h3>
+    <form method="POST" action="/admin/map-regions/save">
+      <div class="mr-form-row">
+        <label>Name<input type="text" name="name" required placeholder="e.g. North Ridge Mine"></label>
+        <label>Type
+          <select name="region_type" required>
+            <option value="mining">Mining Region</option>
+            <option value="contested">Contested Zone</option>
+          </select>
+        </label>
+        <label>Color<input type="color" name="color" value="#ff3b3b"></label>
+      </div>
+      <div class="mr-form-row">
+        <label>Corner 1 X<input type="number" name="min_x" required></label>
+        <label>Corner 1 Z<input type="number" name="min_z" required></label>
+        <label>Corner 2 X<input type="number" name="max_x" required></label>
+        <label>Corner 2 Z<input type="number" name="max_z" required></label>
+        <label>Min Y<input type="number" name="min_y" value="-64"></label>
+        <label>Max Y<input type="number" name="max_y" value="320"></label>
+        <button type="submit" class="mr-btn">Save Region</button>
+      </div>
+      <p class="mr-note">Corners can be in any order (opposite corners of the region's box) — X/Z are world block coordinates, same as F3 in-game.</p>
+    </form>
+  </div>
+
+  <div class="mr-card">
+    <h3>Existing Regions</h3>
+    <table class="mr-table">
+      <thead>
+        <tr><th>Name</th><th>Type</th><th>Bounds</th><th>Y Range</th><th></th></tr>
+      </thead>
+      <tbody>
+        <% regions.forEach(r => { %>
+        <tr>
+          <td><span class="mr-swatch" style="background:<%= r.color %>"></span><%= r.name %></td>
+          <td><span class="mr-badge <%= r.region_type %>"><%= r.region_type %></span></td>
+          <td>(<%= r.min_x %>, <%= r.min_z %>) → (<%= r.max_x %>, <%= r.max_z %>)</td>
+          <td><%= r.min_y %> to <%= r.max_y %></td>
+          <td>
+            <form method="POST" action="/admin/map-regions/<%= r.id %>/delete" style="display:inline" onsubmit="return confirm('Delete this region?')">
+              <button type="submit" class="mr-del">Delete</button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+        <% if (regions.length === 0) { %>
+        <tr><td colspan="5" style="color:var(--muted)">No regions yet.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('partials/foot') %>

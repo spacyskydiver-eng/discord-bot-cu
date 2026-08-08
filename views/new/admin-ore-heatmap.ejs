@@ -1,0 +1,123 @@
+<%- include('partials/head', { pageTitle: 'Ore Heatmaps' }) %>
+<%- include('partials/header') %>
+
+<style>
+.oh-wrap { max-width: 980px; margin: 0 auto; padding: 24px 16px 60px; }
+.oh-title { font-family: 'Baloo 2'; font-weight: 800; font-size: 22px; margin: 0 0 4px; }
+.oh-sub { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
+.oh-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 20px; }
+.oh-card h3 { font-family: 'Baloo 2'; font-weight: 800; font-size: 14px; margin: 0 0 14px; }
+.oh-form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; align-items: flex-end; }
+.oh-form-row label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--muted); font-family: 'Baloo 2'; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.oh-form-row input, .oh-form-row select {
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
+  padding: 8px 10px; color: var(--text); font-family: 'Inter'; font-size: 13px; outline: none;
+}
+.oh-form-row input[type="number"] { width: 90px; }
+.oh-form-row input[type="text"] { width: 200px; }
+.oh-btn {
+  background: #3b82f6; color: #fff; border: none; border-radius: 8px; padding: 9px 18px;
+  font-family: 'Baloo 2'; font-weight: 700; font-size: 13px; cursor: pointer;
+}
+.oh-btn:hover { background: #2563eb; }
+.oh-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.oh-table th { text-align: left; padding: 8px 10px; color: var(--muted); font-family: 'Baloo 2'; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid var(--line); }
+.oh-table td { padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.oh-badge { font-family: 'Baloo 2'; font-weight: 700; font-size: 10px; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; }
+.oh-badge.pending { background: rgba(234,179,8,.15); color: #eab308; }
+.oh-badge.done { background: rgba(34,197,94,.15); color: #4ade80; }
+.oh-badge.error { background: rgba(239,68,68,.15); color: #f87171; }
+.oh-count { font-family: 'Baloo 2'; font-weight: 800; }
+.oh-del, .oh-rescan { font-size: 12px; background: none; border: none; cursor: pointer; font-family: 'Inter'; margin-right: 10px; }
+.oh-del { color: #f87171; }
+.oh-rescan { color: #60a5fa; }
+.oh-note { color: var(--muted); font-size: 12px; margin-top: 10px; }
+</style>
+
+<div class="oh-wrap">
+  <h1 class="oh-title">Ore Heatmaps</h1>
+  <p class="oh-sub">Scan a region for a specific block type and show it as a toggleable 3D density overlay on BlueMap, plus the exact total count. Scans run locally (needs direct access to the world files) — a request here is picked up and processed the next time the local sync script runs.</p>
+
+  <div class="oh-card">
+    <h3>New Scan</h3>
+    <form method="POST" action="/admin/ore-heatmap/scan">
+      <div class="oh-form-row">
+        <label>Label<input type="text" name="name" placeholder="e.g. Diamond Ore - North Ridge"></label>
+        <label>Block ID<input type="text" name="block_id" required placeholder="minecraft:diamond_ore"></label>
+        <% if (regions.length > 0) { %>
+        <label>Copy bounds from region
+          <select id="regionPicker">
+            <option value="">— pick a saved region —</option>
+            <% regions.forEach(r => { %>
+            <option value="<%= r.min_x %>,<%= r.min_z %>,<%= r.max_x %>,<%= r.max_z %>,<%= r.min_y %>,<%= r.max_y %>"><%= r.name %></option>
+            <% }) %>
+          </select>
+        </label>
+        <% } %>
+      </div>
+      <div class="oh-form-row">
+        <label>Min X<input type="number" name="min_x" id="min_x" required></label>
+        <label>Min Z<input type="number" name="min_z" id="min_z" required></label>
+        <label>Max X<input type="number" name="max_x" id="max_x" required></label>
+        <label>Max Z<input type="number" name="max_z" id="max_z" required></label>
+        <label>Min Y<input type="number" name="min_y" id="min_y" value="-64"></label>
+        <label>Max Y<input type="number" name="max_y" id="max_y" value="320"></label>
+        <button type="submit" class="oh-btn">Queue Scan</button>
+      </div>
+      <p class="oh-note">Block ID is the full Minecraft id, e.g. <code>minecraft:diamond_ore</code>, <code>minecraft:deepslate_diamond_ore</code>.</p>
+    </form>
+  </div>
+
+  <div class="oh-card">
+    <h3>Scans</h3>
+    <table class="oh-table">
+      <thead>
+        <tr><th>Label</th><th>Block</th><th>Bounds</th><th>Status</th><th>Total Found</th><th>Scanned</th><th></th></tr>
+      </thead>
+      <tbody>
+        <% heatmaps.forEach(h => { %>
+        <tr>
+          <td><%= h.name %></td>
+          <td><code><%= h.block_id %></code></td>
+          <td>(<%= h.min_x %>, <%= h.min_z %>) → (<%= h.max_x %>, <%= h.max_z %>)</td>
+          <td>
+            <span class="oh-badge <%= h.status %>"><%= h.status %></span>
+            <% if (h.status === 'error' && h.error_message) { %><div class="oh-note"><%= h.error_message %></div><% } %>
+          </td>
+          <td class="oh-count"><%= h.total_count !== null ? Number(h.total_count).toLocaleString() : '—' %></td>
+          <td><%= h.scanned_at ? new Date(h.scanned_at).toLocaleString() : '—' %></td>
+          <td>
+            <form method="POST" action="/admin/ore-heatmap/<%= h.id %>/rescan" style="display:inline">
+              <button type="submit" class="oh-rescan">Rescan</button>
+            </form>
+            <form method="POST" action="/admin/ore-heatmap/<%= h.id %>/delete" style="display:inline" onsubmit="return confirm('Delete this heatmap?')">
+              <button type="submit" class="oh-del">Delete</button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+        <% if (heatmaps.length === 0) { %>
+        <tr><td colspan="7" style="color:var(--muted)">No scans yet.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+var picker = document.getElementById('regionPicker');
+if (picker) {
+  picker.addEventListener('change', function () {
+    if (!this.value) return;
+    var parts = this.value.split(',');
+    document.getElementById('min_x').value = parts[0];
+    document.getElementById('min_z').value = parts[1];
+    document.getElementById('max_x').value = parts[2];
+    document.getElementById('max_z').value = parts[3];
+    document.getElementById('min_y').value = parts[4];
+    document.getElementById('max_y').value = parts[5];
+  });
+}
+</script>
+
+<%- include('partials/foot') %>

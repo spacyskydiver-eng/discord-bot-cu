@@ -1039,4 +1039,107 @@ router.post('/webhook/send', async (req, res) => {
   }
 });
 
+// Mining regions / contested zones / ore heatmaps for the BlueMap overlay.
+// This bot runs on Render, but the actual world files and the BlueMap
+// process only exist on Alex's local machine (see the BlueMap proxy setup
+// above) - so these routes only manage rows in the shared Postgres DB.
+// A separate local script (BlueMap-render/bluemap-sync.js, run on Alex's
+// machine) polls this same DB, does the actual ore scanning (needs local
+// access to the region files) and regenerates/reloads BlueMap's markers.
+// Changes here show up on the live map after that script's next sync pass
+// (a periodic local re-check), not instantly - see the commit message for
+// why a live companion-plugin bridge was skipped for now.
+db.query(`
+  CREATE TABLE IF NOT EXISTS map_regions (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    region_type TEXT NOT NULL CHECK (region_type IN ('mining','contested')),
+    min_x INT NOT NULL, min_z INT NOT NULL, max_x INT NOT NULL, max_z INT NOT NULL,
+    min_y INT NOT NULL DEFAULT -64, max_y INT NOT NULL DEFAULT 320,
+    color TEXT NOT NULL DEFAULT '#ff3b3b',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+  )
+`).catch(console.error);
+
+db.query(`
+  CREATE TABLE IF NOT EXISTS ore_heatmaps (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    block_id TEXT NOT NULL,
+    min_x INT NOT NULL, min_z INT NOT NULL, max_x INT NOT NULL, max_z INT NOT NULL,
+    min_y INT NOT NULL DEFAULT -64, max_y INT NOT NULL DEFAULT 320,
+    status TEXT NOT NULL DEFAULT 'pending',
+    total_count BIGINT,
+    grid_data JSONB,
+    error_message TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    scanned_at TIMESTAMPTZ
+  )
+`).catch(console.error);
+
+router.get('/map-regions', requireAdminOrStaff, async (req, res) => {
+  const regions = (await db.query(`SELECT * FROM map_regions ORDER BY region_type, name`)).rows;
+  res.render('new/admin-map-regions', { regions });
+});
+
+router.post('/map-regions/save', requireAdminOrStaff, async (req, res) => {
+  const { id, name, region_type, min_x, min_z, max_x, max_z, min_y, max_y, color } = req.body;
+  const values = [
+    name, region_type,
+    Math.min(parseInt(min_x), parseInt(max_x)), Math.min(parseInt(min_z), parseInt(max_z)),
+    Math.max(parseInt(min_x), parseInt(max_x)), Math.max(parseInt(min_z), parseInt(max_z)),
+    parseInt(min_y) || -64, parseInt(max_y) || 320,
+    color || '#ff3b3b'
+  ];
+  if (id) {
+    await db.query(
+      `UPDATE map_regions SET name=$1, region_type=$2, min_x=$3, min_z=$4, max_x=$5, max_z=$6, min_y=$7, max_y=$8, color=$9, updated_at=NOW() WHERE id=$10`,
+      [...values, id]
+    );
+  } else {
+    await db.query(
+      `INSERT INTO map_regions (name, region_type, min_x, min_z, max_x, max_z, min_y, max_y, color) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+      values
+    );
+  }
+  res.redirect('/admin/map-regions');
+});
+
+router.post('/map-regions/:id/delete', requireAdminOrStaff, async (req, res) => {
+  await db.query(`DELETE FROM map_regions WHERE id=$1`, [req.params.id]);
+  res.redirect('/admin/map-regions');
+});
+
+router.get('/ore-heatmap', requireAdminOrStaff, async (req, res) => {
+  const heatmaps = (await db.query(`SELECT id, name, block_id, min_x, min_z, max_x, max_z, min_y, max_y, status, total_count, error_message, created_at, scanned_at FROM ore_heatmaps ORDER BY created_at DESC`)).rows;
+  const regions = (await db.query(`SELECT id, name, min_x, min_z, max_x, max_z, min_y, max_y FROM map_regions ORDER BY name`)).rows;
+  res.render('new/admin-ore-heatmap', { heatmaps, regions });
+});
+
+router.post('/ore-heatmap/scan', requireAdminOrStaff, async (req, res) => {
+  const { name, block_id, min_x, min_z, max_x, max_z, min_y, max_y } = req.body;
+  await db.query(
+    `INSERT INTO ore_heatmaps (name, block_id, min_x, min_z, max_x, max_z, min_y, max_y, status)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pending')`,
+    [
+      name || block_id, block_id,
+      Math.min(parseInt(min_x), parseInt(max_x)), Math.min(parseInt(min_z), parseInt(max_z)),
+      Math.max(parseInt(min_x), parseInt(max_x)), Math.max(parseInt(min_z), parseInt(max_z)),
+      parseInt(min_y) || -64, parseInt(max_y) || 320
+    ]
+  );
+  res.redirect('/admin/ore-heatmap');
+});
+
+router.post('/ore-heatmap/:id/delete', requireAdminOrStaff, async (req, res) => {
+  await db.query(`DELETE FROM ore_heatmaps WHERE id=$1`, [req.params.id]);
+  res.redirect('/admin/ore-heatmap');
+});
+
+router.post('/ore-heatmap/:id/rescan', requireAdminOrStaff, async (req, res) => {
+  await db.query(`UPDATE ore_heatmaps SET status='pending', error_message=NULL WHERE id=$1`, [req.params.id]);
+  res.redirect('/admin/ore-heatmap');
+});
+
 module.exports = router;
