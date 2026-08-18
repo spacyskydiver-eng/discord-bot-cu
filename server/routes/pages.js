@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const router = express.Router();
 const db = require('../../db');
 
@@ -344,6 +345,11 @@ router.get('/design-preview/on', (req, res) => {
 router.get('/design-preview/off', (req, res) => {
   req.session.designPreview = false;
   res.redirect(req.query.return || '/');
+});
+
+// Experimental internal tool — accessible only via direct link
+router.get('/tools/mining-regions', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../public/tools/mining-regions.html'));
 });
 
 module.exports = router;

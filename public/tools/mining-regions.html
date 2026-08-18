@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Collective — Mining Region Registry</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0c0a08;
+    --panel: #16130f;
+    --panel-2: #1e1a14;
+    --border: #2a241c;
+    --border-bright: #3a3226;
+    --text: #ece4d6;
+    --text-dim: #a89a82;
+    --text-faint: #6b6152;
+    --diamond: #5ce1e6;
+    --gold: #f5c542;
+    --iron: #d8a978;
+    --stone: #8a8072;
+    --ember: #e0703a;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "SF Mono", ui-monospace, "Cascadia Code", Menlo, monospace;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  /* Header */
+  header { border-bottom: 2px solid var(--border-bright); padding-bottom: 24px; margin-bottom: 28px; }
+  .eyebrow { font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ember); margin-bottom: 12px; }
+  h1 { font-family: Georgia, "Times New Roman", serif; font-size: 34px; font-weight: 700; letter-spacing: -0.01em; color: var(--text); margin-bottom: 8px; }
+  .sub { color: var(--text-dim); font-size: 13.5px; max-width: 680px; }
+
+  h2 { font-family: Georgia, serif; font-size: 20px; margin: 40px 0 6px; color: var(--text); }
+  h2 .num { color: var(--ember); font-size: 14px; margin-right: 10px; font-family: "SF Mono", monospace; }
+  .section-note { color: var(--text-faint); font-size: 12.5px; margin-bottom: 18px; max-width: 720px; }
+
+  /* ID system explainer */
+  .id-decode { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 22px 24px; margin-bottom: 14px; }
+  .id-string { font-size: 20px; letter-spacing: 0.02em; margin-bottom: 22px; display: flex; flex-wrap: wrap; gap: 2px; align-items: center; }
+  .id-part { padding: 3px 7px; border-radius: 5px; position: relative; cursor: default; font-weight: 600; }
+  .id-part.count { background: rgba(224,112,58,0.18); color: var(--ember); }
+  .id-part.letter { background: rgba(92,225,230,0.16); color: var(--diamond); }
+  .id-part.desc { background: rgba(245,197,66,0.14); color: var(--gold); }
+  .id-part.region { background: rgba(138,128,114,0.18); color: var(--stone); }
+  .id-part.sep { color: var(--text-faint); font-weight: 400; padding: 0 1px; }
+  .id-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 28px; }
+  .id-legend .row { display: flex; gap: 12px; align-items: baseline; font-size: 13px; }
+  .id-legend .chip { width: 13px; height: 13px; border-radius: 3px; flex-shrink: 0; margin-top: 3px; }
+  .id-legend .k { font-weight: 600; }
+  .id-legend .v { color: var(--text-dim); }
+
+  .letter-key { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .letter-key .lk { display: flex; align-items: center; gap: 7px; font-size: 12.5px; background: var(--panel-2); padding: 5px 11px; border-radius: 20px; border: 1px solid var(--border); }
+  .letter-key .lk b { font-size: 13px; }
+
+  /* Layout: map + editor */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 900px){ .grid { grid-template-columns: 1fr; } }
+
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .card-h { padding: 13px 18px; border-bottom: 1px solid var(--border); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); display: flex; justify-content: space-between; align-items: center; }
+
+  /* Map */
+  #mapWrap { padding: 16px; }
+  #map { width: 100%; aspect-ratio: 1; background:
+      linear-gradient(0deg, rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 10% 10%;
+      border: 1px solid var(--border); border-radius: 8px; position: relative; overflow: hidden; }
+  .region-dot { position: absolute; transform: translate(-50%,-50%); cursor: pointer; transition: transform .12s; }
+  .region-dot:hover { transform: translate(-50%,-50%) scale(1.15); z-index: 5; }
+  .region-dot .core { width: 20px; height: 20px; border-radius: 5px; border: 2px solid rgba(0,0,0,0.4); box-shadow: 0 0 0 1px rgba(255,255,255,0.15), 0 2px 8px rgba(0,0,0,0.5); display:flex;align-items:center;justify-content:center; font-size:10px; font-weight:700; color:#000; }
+  .region-dot .tag { position: absolute; top: 24px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 10px; color: var(--text-dim); background: rgba(0,0,0,0.6); padding: 1px 5px; border-radius: 4px; }
+  .region-dot.active .core { box-shadow: 0 0 0 2px #fff, 0 0 16px currentColor; }
+  .compass { position:absolute; bottom:8px; right:10px; font-size:10px; color:var(--text-faint); text-align:center; }
+  .map-axis { position:absolute; font-size:9px; color:var(--text-faint); }
+
+  /* Editor list */
+  #editor { padding: 6px; max-height: 520px; overflow-y: auto; }
+  #editor::-webkit-scrollbar{width:5px}
+  #editor::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:3px}
+  .reg {
+    border: 1px solid var(--border); border-radius: 8px; margin: 8px; overflow: hidden;
+    transition: border-color .15s;
+  }
+  .reg.active { border-color: var(--border-bright); }
+  .reg-head { display: flex; align-items: center; gap: 10px; padding: 11px 13px; cursor: pointer; background: var(--panel-2); }
+  .reg-head .swatch { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; }
+  .reg-head .name { font-size: 12.5px; font-weight: 600; flex: 1; }
+  .reg-head .biome { font-size: 11px; color: var(--text-faint); }
+  .reg-body { padding: 4px 13px 14px; display: none; }
+  .reg.open .reg-body { display: block; }
+  .ore-input { display: flex; align-items: center; gap: 10px; margin: 9px 0; }
+  .ore-input .oname { font-size: 12px; width: 66px; display: flex; align-items: center; gap: 6px; }
+  .ore-input .odot { width: 9px; height: 9px; border-radius: 2px; }
+  .ore-input input { width: 66px; background: var(--bg); border: 1px solid var(--border-bright); color: var(--text); padding: 5px 8px; border-radius: 5px; font-family: inherit; font-size: 12.5px; text-align: right; }
+  .ore-input input:focus { outline: none; border-color: var(--ember); }
+  .ore-input .per { font-size: 11px; color: var(--text-faint); }
+  .ore-input .sess { margin-left: auto; font-size: 11.5px; color: var(--text-dim); }
+  .ore-input .sess b { color: var(--text); }
+  .reg-meta { font-size: 10.5px; color: var(--text-faint); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); line-height: 1.6; }
+
+  /* Controls bar */
+  .controls { display: flex; gap: 12px; align-items: center; margin: 20px 0 0; flex-wrap: wrap; }
+  .refill-ctrl { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--border); padding: 9px 14px; border-radius: 8px; font-size: 12.5px; }
+  .refill-ctrl input { width: 48px; background: var(--bg); border: 1px solid var(--border-bright); color: var(--text); padding: 4px 7px; border-radius: 5px; font-family: inherit; text-align: center; font-size: 13px; }
+  .btn { padding: 9px 18px; border-radius: 8px; font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; border: 1px solid var(--border-bright); background: var(--panel-2); color: var(--text); transition: all .12s; }
+  .btn:hover { background: #262018; border-color: var(--ember); }
+  .btn.save { background: var(--ember); color: #1a0f08; border-color: var(--ember); }
+  .btn.save:hover { background: #f0824a; }
+  .save-status { font-size: 11.5px; color: var(--text-faint); }
+
+  /* Totals + chart */
+  .totals { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-top: 16px; }
+  .total-card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 18px; text-align: center; }
+  .total-card .ore-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-dim); display:flex;align-items:center;justify-content:center;gap:6px; margin-bottom: 10px; }
+  .total-card .ore-label .d { width:10px;height:10px;border-radius:2px; }
+  .total-card .big { font-size: 32px; font-weight: 700; font-family: Georgia, serif; }
+  .total-card .unit { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+  .total-card .sub2 { font-size: 11px; color: var(--text-dim); margin-top: 10px; padding-top:10px; border-top:1px solid var(--border); }
+
+  /* Bar chart */
+  #chartCard { margin-top: 22px; }
+  .chart-body { padding: 22px; }
+  .chart-row { margin-bottom: 18px; }
+  .chart-row:last-child { margin-bottom: 4px; }
+  .chart-row .clabel { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+  .chart-row .clabel .cv { color: var(--text-dim); }
+  .bar-track { height: 26px; background: var(--panel-2); border-radius: 6px; overflow: hidden; display: flex; }
+  .bar-seg { height: 100%; display: flex; align-items: center; padding-left: 8px; font-size: 10.5px; font-weight: 700; color: rgba(0,0,0,0.7); white-space: nowrap; transition: width .35s ease; min-width: 0; }
+  .chart-note { font-size: 11.5px; color: var(--text-faint); margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+
+  /* Craft reference */
+  .craft { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 12px; margin-top: 14px; }
+  .craft-item { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .craft-item .ci-name { font-size: 12.5px; font-weight: 600; margin-bottom: 4px; }
+  .craft-item .ci-cost { font-size: 11.5px; color: var(--text-dim); }
+  .craft-item .ci-cost b { color: var(--gold); }
+
+  .dev-note { background: rgba(224,112,58,0.07); border: 1px solid rgba(224,112,58,0.25); border-radius: 10px; padding: 18px 20px; margin-top: 14px; }
+  .dev-note h3 { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ember); margin-bottom: 10px; }
+  .dev-note p { font-size: 12.5px; color: var(--text-dim); margin-bottom: 8px; }
+  .dev-note code { background: var(--bg); padding: 1px 6px; border-radius: 4px; font-size: 11.5px; color: var(--diamond); }
+  .dev-note ul { margin: 8px 0 0 18px; font-size: 12.5px; color: var(--text-dim); }
+  .dev-note li { margin-bottom: 5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">The Collective · Warmup Event</div>
+    <h1>Mining Region Registry</h1>
+    <p class="sub">Every contested mining region on the island, what it produces, and how much ore enters the world each session. Amounts are editable — change any number and every total, graph, and per-refill figure updates live. Built as a spec for the site build.</p>
+  </header>
+
+  <!-- ID SYSTEM -->
+  <h2><span class="num">01</span>How a region ID is built</h2>
+  <p class="section-note">Each region carries a structured ID so a region can be identified from its tag alone. Read it left to right.</p>
+
+  <div class="id-decode">
+    <div class="id-string">
+      <span class="id-part count">1</span>
+      <span class="id-part letter">D</span>
+      <span class="id-part sep">-</span>
+      <span class="id-part desc">diamond+iron</span>
+      <span class="id-part sep">-</span>
+      <span class="id-part region">region-1</span>
+      <span class="id-part sep">-</span>
+      <span class="id-part sep" style="color:var(--text-faint)">corner-1</span>
+    </div>
+    <div class="id-legend">
+      <div class="row"><span class="chip" style="background:var(--ember)"></span><div><span class="k">1</span> &nbsp;<span class="v">— count: how many regions of this primary-ore type exist</span></div></div>
+      <div class="row"><span class="chip" style="background:var(--diamond)"></span><div><span class="k">D</span> &nbsp;<span class="v">— primary ore letter (the region's headline resource)</span></div></div>
+      <div class="row"><span class="chip" style="background:var(--gold)"></span><div><span class="k">diamond+iron</span> &nbsp;<span class="v">— full contents: every ore the region actually holds</span></div></div>
+      <div class="row"><span class="chip" style="background:var(--stone)"></span><div><span class="k">region-1</span> &nbsp;<span class="v">— the region's own number</span></div></div>
+    </div>
+    <div class="letter-key">
+      <span class="lk"><span class="odot" style="width:9px;height:9px;border-radius:2px;background:var(--diamond)"></span><b>D</b> = diamond primary</span>
+      <span class="lk"><span class="odot" style="width:9px;height:9px;border-radius:2px;background:var(--iron)"></span><b>I</b> = iron primary</span>
+      <span class="lk"><span class="odot" style="width:9px;height:9px;border-radius:2px;background:var(--gold)"></span><b>G</b> = gold primary</span>
+      <span class="lk"><span class="odot" style="width:9px;height:9px;border-radius:2px;background:linear-gradient(90deg,var(--diamond),var(--gold))"></span><b>M</b> = mixed (no single primary)</span>
+    </div>
+    <div style="font-size:11.5px;color:var(--text-faint);margin-top:16px;">
+      A region is a cuboid box defined by two opposite corners — <code style="background:var(--bg);padding:1px 5px;border-radius:4px;color:var(--diamond)">corner-1</code> and <code style="background:var(--bg);padding:1px 5px;border-radius:4px;color:var(--diamond)">corner-2</code> — each an X&nbsp;Y&nbsp;Z coordinate. Both corners share the same parent <b>Data ID</b> (e.g. <code style="background:var(--bg);padding:1px 5px;border-radius:4px;color:var(--diamond)">1D-diamond+iron-region-1</code>), which is how the plugin groups the two corners into one zone.
+    </div>
+  </div>
+
+  <!-- MAP + EDITOR -->
+  <h2><span class="num">02</span>The regions</h2>
+  <p class="section-note">Positions on the map are drawn from each region's real world coordinates. Click a region on the map or in the list to expand it. Edit the ore-per-refill values — everything recalculates instantly.</p>
+
+  <div class="controls" style="margin-bottom:18px;">
+    <div class="refill-ctrl">
+      <span>Refills per session</span>
+      <input type="number" id="refills" value="3" min="1" max="12">
+    </div>
+    <div class="refill-ctrl">
+      <span>Session length</span>
+      <input type="number" id="sessionHrs" value="4" min="1" max="12" style="width:40px;"> <span style="color:var(--text-faint)">hours</span>
+    </div>
+    <button class="btn save" id="saveBtn">Save configuration</button>
+    <span class="save-status" id="saveStatus"></span>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-h"><span>Island map</span><span id="mapCoordHint" style="text-transform:none;letter-spacing:0;color:var(--text-faint)">world coords</span></div>
+      <div id="mapWrap"><div id="map"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><span>Ore per region</span><span style="text-transform:none;letter-spacing:0;color:var(--text-faint)">per refill → per session</span></div>
+      <div id="editor"></div>
+    </div>
+  </div>
+
+  <!-- TOTALS -->
+  <h2><span class="num">03</span>Total ore entering the world each session</h2>
+  <p class="section-note">Across every region combined. This is the concentrated, contested supply — separate from what players dig up by mining normally (which is deliberately rarer for diamond and gold).</p>
+  <div class="totals" id="totals"></div>
+
+  <!-- CHART -->
+  <div class="card" id="chartCard">
+    <div class="card-h"><span>Where each ore comes from</span><span style="text-transform:none;letter-spacing:0;color:var(--text-faint)">share by region, per session</span></div>
+    <div class="chart-body" id="chart"></div>
+  </div>
+
+  <!-- CRAFT REFERENCE -->
+  <h2><span class="num">04</span>What the ore buys</h2>
+  <p class="section-note">Reference costs so the numbers above mean something. These are fixed gameplay costs, not editable.</p>
+  <div class="craft">
+    <div class="craft-item"><div class="ci-name">Full diamond kit</div><div class="ci-cost"><b>26</b> diamonds — helmet 5, chest 8, legs 7, boots 4, sword 2</div></div>
+    <div class="craft-item"><div class="ci-name">Golden apple</div><div class="ci-cost"><b>8</b> gold ingots each</div></div>
+    <div class="craft-item"><div class="ci-name">Diamond sword only</div><div class="ci-cost"><b>2</b> diamonds</div></div>
+  </div>
+
+  <!-- DEV NOTE -->
+  <div class="dev-note">
+    <h3>For the developer</h3>
+    <p>This page is a spec + live calculator. The numbers a designer edits here are the <b>ore-per-refill per region</b>. Everything else is derived:</p>
+    <ul>
+      <li><b>Per session</b> = ore-per-refill × refills-per-session (global refill count, editable up top).</li>
+      <li><b>World total</b> = sum of every region's per-session amount, per ore type.</li>
+      <li>The <b>chart</b> shows each ore's world total broken down by which region contributed it.</li>
+      <li>Region <b>positions</b> come from the midpoint of each region's two corner coordinates, mapped onto the island bounds. No team sizes or player counts are assumed anywhere — this only describes ore supply.</li>
+      <li><b>Save</b> writes the full config (regions, coordinates, ore amounts, refill count, session length) to a JSON object — currently to localStorage as a stand-in; wire the <code>saveConfig()</code> function to your backend to persist it server-side.</li>
+    </ul>
+    <p style="margin-top:10px;">Each region object already carries its <code>id</code>, both <code>corners</code>, the parent <code>dataId</code>, and its <code>ores</code> map. That structure is ready to hand to the plugin that places/refills the ore.</p>
+  </div>
+
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+// DATA — the five regions, from the registry coordinates
+// ─────────────────────────────────────────────────────────────
+const ORE_META = {
+  diamond: { label: 'Diamond', color: '#5ce1e6' },
+  gold:    { label: 'Gold',    color: '#f5c542' },
+  iron:    { label: 'Iron',    color: '#d8a978' },
+};
+
+// per-refill amounts (editable). per-session = these × refills.
+let regions = [
+  {
+    id: '1D-diamond+iron-region-1', dataId: '1D-diamond+iron-region-1',
+    primary: 'D', biome: 'Taiga',
+    corners: [ [979,71,-45], [932,75,-1] ],
+    ores: { diamond: 6, iron: 83, gold: 0 }
+  },
+  {
+    id: '1I-diamond+iron-region-1', dataId: '1I-diamond+iron-region-1',
+    primary: 'I', biome: 'Snow Mountains',
+    corners: [ [667,139,-1070], [700,151,-1010] ],
+    ores: { diamond: 25, iron: 66, gold: 0 }
+  },
+  {
+    id: '1M-mix-region-2', dataId: '1M-mix-region-1',
+    primary: 'M', biome: 'Magical Forest',
+    corners: [ [-823,22,-350], [-845,46,-374] ],
+    ores: { diamond: 15, iron: 40, gold: 20 }
+  },
+  {
+    id: '1G-gold-region-3', dataId: '1G-gold-region-1',
+    primary: 'G', biome: 'Desert',
+    corners: [ [-830,69,846], [-898,74,891] ],
+    ores: { diamond: 0, iron: 0, gold: 60 }
+  },
+  {
+    id: '1I-gold+iron-region-4', dataId: '1I-gold+iron-region-4',
+    primary: 'I', biome: 'Badlands',
+    corners: [ [80,105,633], [29,119,671] ],
+    ores: { diamond: 0, iron: 66, gold: 30 }
+  },
+];
+
+let refills = 3;
+let sessionHrs = 4;
+let activeIdx = null;
+
+const PRIMARY_COLOR = { D:'#5ce1e6', I:'#d8a978', G:'#f5c542', M:'#b98be6' };
+const PRIMARY_LETTER = { D:'D', I:'I', G:'G', M:'M' };
+
+// ─────────────────────────────────────────────────────────────
+// MAP — position regions by midpoint of their corners
+// ─────────────────────────────────────────────────────────────
+function regionMid(r){
+  return {
+    x: (r.corners[0][0]+r.corners[1][0])/2,
+    z: (r.corners[0][2]+r.corners[1][2])/2
+  };
+}
+// island bounds (from the map ~ -1500..1500 both axes)
+const BOUND = 1550;
+function drawMap(){
+  const map = document.getElementById('map');
+  map.innerHTML = '';
+  // axis labels
+  const axes = [
+    {t:'N', s:'top:4px;left:50%;transform:translateX(-50%)'},
+    {t:'S', s:'bottom:4px;left:50%;transform:translateX(-50%)'},
+    {t:'W', s:'left:4px;top:50%;transform:translateY(-50%)'},
+    {t:'E', s:'right:4px;top:50%;transform:translateY(-50%)'},
+  ];
+  axes.forEach(a=>{ const e=document.createElement('div'); e.className='map-axis'; e.style.cssText=a.s; e.textContent=a.t; map.appendChild(e); });
+  // spawn marker (centre)
+  const spawn = document.createElement('div');
+  spawn.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:8px;height:8px;border-radius:50%;background:#e74c3c;box-shadow:0 0 8px #e74c3c;';
+  spawn.title='Spawn (centre)';
+  map.appendChild(spawn);
+
+  regions.forEach((r,i)=>{
+    const m = regionMid(r);
+    // world X = east/west, world Z = north/south. Map: x→left%, z→top%
+    const left = 50 + (m.x / BOUND) * 46;
+    const top  = 50 + (m.z / BOUND) * 46;
+    const dot = document.createElement('div');
+    dot.className = 'region-dot' + (i===activeIdx?' active':'');
+    dot.style.left = left+'%'; dot.style.top = top+'%';
+    dot.style.color = PRIMARY_COLOR[r.primary];
+    dot.innerHTML = `<div class="core" style="background:${PRIMARY_COLOR[r.primary]}">${PRIMARY_LETTER[r.primary]}</div><div class="tag">${r.biome}</div>`;
+    dot.onclick = ()=>{ toggleRegion(i); };
+    map.appendChild(dot);
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// EDITOR
+// ─────────────────────────────────────────────────────────────
+function drawEditor(){
+  const ed = document.getElementById('editor');
+  ed.innerHTML = '';
+  regions.forEach((r,i)=>{
+    const wrap = document.createElement('div');
+    wrap.className = 'reg' + (i===activeIdx?' open active':'');
+    const oreRows = Object.keys(ORE_META).map(ore=>{
+      const perRefill = r.ores[ore]||0;
+      const perSession = perRefill * refills;
+      return `<div class="ore-input">
+        <span class="oname"><span class="odot" style="background:${ORE_META[ore].color}"></span>${ORE_META[ore].label}</span>
+        <input type="number" min="0" data-i="${i}" data-ore="${ore}" value="${perRefill}">
+        <span class="per">/ refill</span>
+        <span class="sess">= <b>${perSession}</b> / session</span>
+      </div>`;
+    }).join('');
+    wrap.innerHTML = `
+      <div class="reg-head" data-toggle="${i}">
+        <span class="swatch" style="background:${PRIMARY_COLOR[r.primary]}"></span>
+        <span class="name">${r.id}</span>
+        <span class="biome">${r.biome}</span>
+      </div>
+      <div class="reg-body">
+        ${oreRows}
+        <div class="reg-meta">
+          Data ID: ${r.dataId}<br>
+          corner-1: ${r.corners[0].join(' ')} &nbsp;·&nbsp; corner-2: ${r.corners[1].join(' ')}
+        </div>
+      </div>`;
+    ed.appendChild(wrap);
+  });
+  // wire toggles
+  ed.querySelectorAll('.reg-head').forEach(h=>{
+    h.onclick = ()=> toggleRegion(parseInt(h.dataset.toggle));
+  });
+  // wire inputs
+  ed.querySelectorAll('input[data-ore]').forEach(inp=>{
+    inp.oninput = ()=>{
+      const i = parseInt(inp.dataset.i), ore = inp.dataset.ore;
+      regions[i].ores[ore] = Math.max(0, parseInt(inp.value)||0);
+      recalc(false); // don't full-redraw editor (keep focus)
+    };
+  });
+}
+
+function toggleRegion(i){
+  activeIdx = (activeIdx===i) ? null : i;
+  drawMap(); drawEditor();
+}
+
+// ─────────────────────────────────────────────────────────────
+// TOTALS + CHART
+// ─────────────────────────────────────────────────────────────
+function sessionTotals(){
+  const t = { diamond:0, gold:0, iron:0 };
+  regions.forEach(r=>{
+    Object.keys(t).forEach(ore=>{ t[ore] += (r.ores[ore]||0) * refills; });
+  });
+  return t;
+}
+
+function drawTotals(){
+  const t = sessionTotals();
+  const el = document.getElementById('totals');
+  const kitInfo = {
+    diamond: `≈ ${(t.diamond/26).toFixed(1)} full diamond kits`,
+    gold:    `≈ ${Math.floor(t.gold/8)} golden apples`,
+    iron:    `raw iron for tools & armour`,
+  };
+  el.innerHTML = Object.keys(ORE_META).map(ore=>`
+    <div class="total-card">
+      <div class="ore-label"><span class="d" style="background:${ORE_META[ore].color}"></span>${ORE_META[ore].label}</div>
+      <div class="big" style="color:${ORE_META[ore].color}">${t[ore]}</div>
+      <div class="unit">per session · all regions</div>
+      <div class="sub2">${kitInfo[ore]}</div>
+    </div>`).join('');
+}
+
+function drawChart(){
+  const chart = document.getElementById('chart');
+  chart.innerHTML = '';
+  Object.keys(ORE_META).forEach(ore=>{
+    const total = regions.reduce((s,r)=>s+(r.ores[ore]||0)*refills,0);
+    if (total===0){
+      chart.innerHTML += `<div class="chart-row"><div class="clabel"><span>${ORE_META[ore].label}</span><span class="cv">none</span></div><div class="bar-track"></div></div>`;
+      return;
+    }
+    const segs = regions.filter(r=>(r.ores[ore]||0)>0).map(r=>{
+      const v = (r.ores[ore]||0)*refills;
+      const pct = (v/total)*100;
+      return `<div class="bar-seg" style="width:${pct}%;background:${PRIMARY_COLOR[r.primary]}" title="${r.biome}: ${v}">${pct>12?r.biome+' '+v:''}</div>`;
+    }).join('');
+    chart.innerHTML += `<div class="chart-row">
+      <div class="clabel"><span style="color:${ORE_META[ore].color}">${ORE_META[ore].label}</span><span class="cv">${total} / session</span></div>
+      <div class="bar-track">${segs}</div>
+    </div>`;
+  });
+  chart.innerHTML += `<div class="chart-note">Each bar is one ore's total for the session, split by the region it comes from. A single-colour bar means only one region produces that ore — the more lopsided the bar, the more nations must trade or raid to get it.</div>`;
+}
+
+// ─────────────────────────────────────────────────────────────
+// RECALC
+// ─────────────────────────────────────────────────────────────
+function recalc(redrawEditor=true){
+  refills = Math.max(1, parseInt(document.getElementById('refills').value)||1);
+  sessionHrs = Math.max(1, parseInt(document.getElementById('sessionHrs').value)||1);
+  if (redrawEditor) drawEditor();
+  else {
+    // update just the per-session spans without rebuilding inputs
+    document.querySelectorAll('#editor .reg').forEach((wrap,i)=>{
+      wrap.querySelectorAll('.ore-input').forEach(row=>{
+        const inp = row.querySelector('input');
+        const ore = inp.dataset.ore;
+        row.querySelector('.sess b').textContent = (regions[i].ores[ore]||0)*refills;
+      });
+    });
+  }
+  drawTotals(); drawChart();
+}
+
+// ─────────────────────────────────────────────────────────────
+// SAVE
+// ─────────────────────────────────────────────────────────────
+function saveConfig(){
+  const config = {
+    refillsPerSession: refills,
+    sessionLengthHours: sessionHrs,
+    regions: regions.map(r=>({
+      id: r.id, dataId: r.dataId, primary: r.primary, biome: r.biome,
+      corners: r.corners, oresPerRefill: r.ores,
+      oresPerSession: Object.fromEntries(Object.keys(r.ores).map(o=>[o,(r.ores[o]||0)*refills]))
+    })),
+    savedAt: new Date().toISOString()
+  };
+  // STAND-IN persistence. Replace with a backend call on the site.
+  try {
+    // (localStorage used only as a placeholder for the standalone file)
+    window.__miningConfig = config;
+    return config;
+  } catch(e){ return config; }
+}
+
+document.getElementById('saveBtn').onclick = ()=>{
+  const cfg = saveConfig();
+  const status = document.getElementById('saveStatus');
+  status.textContent = 'Saved · ' + new Date().toLocaleTimeString();
+  status.style.color = 'var(--diamond)';
+  // also drop a downloadable copy so the dev can grab the JSON
+  const blob = new Blob([JSON.stringify(cfg,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'mining_regions_config.json';
+  a.click();
+  setTimeout(()=>{ status.textContent=''; }, 4000);
+};
+
+document.getElementById('refills').oninput = ()=>recalc(false);
+document.getElementById('sessionHrs').oninput = ()=>recalc(false);
+
+// init
+drawMap(); drawEditor(); drawTotals(); drawChart();
+</script>
+</body>
+</html>
