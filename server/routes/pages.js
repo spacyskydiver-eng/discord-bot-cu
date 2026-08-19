@@ -352,4 +352,43 @@ router.get('/tools/mining-regions', (req, res) => {
   res.sendFile(path.join(__dirname, '../../public/tools/mining-regions.html'));
 });
 
+// ── 150 Player Event: session availability (no login required, linked via DM) ──
+
+router.get('/150-availability', async (req, res) => {
+  const uid = req.query.uid || null;
+  let app = null;
+  if (uid) {
+    const r = await db.query(
+      `SELECT id, status, session_availability, ign, discord_tag FROM hundred_applications WHERE discord_id = $1`,
+      [uid]
+    );
+    app = r.rows[0] || null;
+  }
+  res.render('new/event-availability', { uid, app, query: req.query });
+});
+
+router.post('/150-availability/submit', async (req, res) => {
+  const uid = req.body.uid;
+  if (!uid) return res.redirect('/150-availability?error=invalid');
+  let sessions = req.body.sessions;
+  try { sessions = JSON.parse(sessions); } catch(_) { sessions = []; }
+  if (!Array.isArray(sessions)) sessions = [];
+  sessions = sessions.map(Number).filter(n => n >= 1 && n <= 6);
+  await db.query(
+    `UPDATE hundred_applications SET session_availability=$1 WHERE discord_id=$2`,
+    [JSON.stringify(sessions), uid]
+  );
+  res.redirect(`/150-availability?uid=${encodeURIComponent(uid)}&saved=1`);
+});
+
+router.post('/150-availability/withdraw', async (req, res) => {
+  const uid = req.body.uid;
+  if (!uid) return res.redirect('/150-availability?error=invalid');
+  await db.query(
+    `UPDATE hundred_applications SET status='withdrawn', session_availability='[]'::jsonb WHERE discord_id=$1`,
+    [uid]
+  );
+  res.redirect(`/150-availability?uid=${encodeURIComponent(uid)}&withdrawn=1`);
+});
+
 module.exports = router;

@@ -1142,4 +1142,44 @@ router.post('/ore-heatmap/:id/rescan', requireAdminOrStaff, async (req, res) => 
   res.redirect('/admin/ore-heatmap');
 });
 
+// ── 150-player event availability DMs ────────────────────────────────────────
+
+const AVAILABILITY_DM = (discordId) =>
+  `📅 **150 Player Event — Session Availability**\n\n` +
+  `Hi! We need to confirm which sessions you can attend for the upcoming **150 Player Event**.\n\n` +
+  `**Please click the link below to let us know your availability:**\n` +
+  `https://cuevents.xyz/150-availability?uid=${discordId}\n\n` +
+  `You can select the sessions you can make, or withdraw your application if you can't attend any of them.\n\n` +
+  `_If you have any questions, reach out to staff in the Discord server._`;
+
+// Send test DM to darthmaul1112 only
+router.post('/send-availability-dm-test', async (req, res) => {
+  const TEST_ID = '933421117211815987';
+  await sendDiscordDM(TEST_ID, AVAILABILITY_DM(TEST_ID));
+  res.json({ ok: true, sent_to: TEST_ID });
+});
+
+// Send to ALL pending hundred_applications
+router.post('/send-availability-dms-all', async (req, res) => {
+  const apps = (await db.query(
+    `SELECT discord_id FROM hundred_applications WHERE status NOT IN ('withdrawn','declined')`
+  )).rows;
+  let sent = 0;
+  for (const app of apps) {
+    await sendDiscordDM(app.discord_id, AVAILABILITY_DM(app.discord_id));
+    sent++;
+    // Small delay to avoid Discord rate limits
+    await new Promise(r => setTimeout(r, 400));
+  }
+  res.json({ ok: true, sent });
+});
+
+// Close the most recent event (500-player applications)
+router.post('/event/close-current', async (req, res) => {
+  await db.query(
+    `UPDATE events SET is_open=false WHERE id=(SELECT id FROM events ORDER BY created_at DESC LIMIT 1)`
+  );
+  res.json({ ok: true, closed: true });
+});
+
 module.exports = router;
