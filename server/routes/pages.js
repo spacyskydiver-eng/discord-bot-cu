@@ -378,7 +378,7 @@ router.post('/150-availability/submit', async (req, res) => {
     `UPDATE hundred_applications SET session_availability=$1 WHERE discord_id=$2`,
     [JSON.stringify(sessions), uid]
   );
-  res.redirect(`/150-availability?uid=${encodeURIComponent(uid)}&saved=1`);
+  res.redirect('/my-application-hundred');
 });
 
 router.post('/150-availability/withdraw', async (req, res) => {
@@ -388,7 +388,7 @@ router.post('/150-availability/withdraw', async (req, res) => {
     `UPDATE hundred_applications SET status='withdrawn', session_availability='[]'::jsonb WHERE discord_id=$1`,
     [uid]
   );
-  res.redirect(`/150-availability?uid=${encodeURIComponent(uid)}&withdrawn=1`);
+  res.redirect('/my-application-hundred');
 });
 
 module.exports = router;
