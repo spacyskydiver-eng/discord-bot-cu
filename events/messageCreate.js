@@ -21,7 +21,7 @@ const APPLY_KEYWORDS = [
   'is there an application', 'link to apply', 'link to the application'
 ];
 
-const SITE = process.env.WEBSITE_URL || 'https://collective-union-events.onrender.com';
+const SITE = 'https://cuevents.xyz';
 
 const NATION_FORUM_ID = '1531798329397215242';
 
@@ -72,18 +72,15 @@ module.exports = async (message) => {
 
   if (EVENT_KEYWORDS.some(kw => lower.includes(kw))) {
     return message.reply(
-      'The event runs across **10 sessions** starting <t:1755360000:F>.\n' +
-      '**Full schedule:**\n' +
-      'Session 1 — <t:1755360000:F>\n' +
-      'Session 2 — <t:1755446400:F>\n' +
-      'Session 3 — <t:1755619200:F>\n' +
-      'Session 4 — <t:1755792000:F>\n' +
-      'Session 5 — <t:1755964800:F>\n' +
-      'Session 6 — <t:1756137600:F>\n' +
-      'Session 7 — <t:1756310400:F>\n' +
-      'Session 8 — <t:1756483200:F>\n' +
-      'Session 9 — <t:1756656000:F>\n' +
-      'Session 10 — <t:1756828800:F>\n' +
+      '**150 Player Event — Session Schedule**\n' +
+      'The event runs across **6 sessions**, one per day:\n\n' +
+      'Session 1 — <t:1789142400:F>\n' +
+      'Session 2 — <t:1789228800:F>\n' +
+      'Session 3 — <t:1789315200:F>\n' +
+      'Session 4 — <t:1789401600:F>\n' +
+      'Session 5 — <t:1789488000:F>\n' +
+      'Session 6 — <t:1789574400:F>\n\n' +
+      'Permanent death · No forced teams · PvP disabled session 1.\n' +
       'This is **not** a 24/7 server.'
     );
   }
@@ -91,8 +88,8 @@ module.exports = async (message) => {
   if (APPLY_KEYWORDS.some(kw => lower.includes(kw))) {
     return message.reply(
       '**Applications are open!** Apply here:\n' +
-      SITE + '/apply\n\n' +
-      'If you are accepted you will be notified via DM and given a role.'
+      SITE + '/applications\n\n' +
+      'If you are accepted you will be notified via DM.'
     );
   }
 
@@ -225,7 +222,7 @@ async function alertStaff(message, flag) {
     `**Message:**`,
     `> ${message.content.slice(0, 800).replace(/\n/g, '\n> ')}`,
     ``,
-    `View in staff portal: ${process.env.WEBSITE_URL || 'https://collective-union-events.onrender.com'}/admin/nations/${message.guild.id}`,
+    `View in staff portal: https://cuevents.xyz/admin/nations/${message.guild.id}`,
   ].join('\n');
 
   for (const id of allIds) {
