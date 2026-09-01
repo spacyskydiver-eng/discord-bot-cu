@@ -19,4 +19,14 @@ async function sendDiscordDM(userId, content) {
   } catch (_) {}
 }
 
-module.exports = { sendDiscordDM };
+async function giveDiscordRole(userId, guildId, roleId) {
+  if (!process.env.DISCORD_TOKEN || !userId || !guildId || !roleId) return;
+  try {
+    await fetch(`${DISCORD_API}/guilds/${guildId}/members/${userId}/roles/${roleId}`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bot ${process.env.DISCORD_TOKEN}`, 'Content-Length': '0' }
+    });
+  } catch (_) {}
+}
+
+module.exports = { sendDiscordDM, giveDiscordRole };

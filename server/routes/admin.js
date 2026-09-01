@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../../db');
-const { sendDiscordDM } = require('../discord-dm');
+const { sendDiscordDM, giveDiscordRole } = require('../discord-dm');
+const CU_GUILD_ID = '1449004906068312189';
+const ROLE_150_PLAYER = '1544302037158731878';
 const multer = require('multer');
 const path = require('path');
 const { createProxyMiddleware } = require('http-proxy-middleware');
@@ -393,9 +395,12 @@ router.post('/hundred/:id/accept', async (req, res) => {
   await db.query(
     `UPDATE hundred_applications SET status='accepted', accepted_at=NOW() WHERE id=$1`, [req.params.id]
   );
-  if (app) sendDiscordDM(app.discord_id,
-    `**150 Player Event — Application Accepted!**\n\nCongratulations ${app.ign || ''} — you've been accepted into the 150 Player Event. Keep an eye out for further details.`
-  );
+  if (app) {
+    giveDiscordRole(app.discord_id, CU_GUILD_ID, ROLE_150_PLAYER);
+    sendDiscordDM(app.discord_id,
+      `**150 Player Event — Application Accepted!**\n\nCongratulations ${app.ign || ''} — you've been accepted into the 150 Player Event. Keep an eye out for further details.`
+    );
+  }
   res.redirect(`/admin/hundred/${req.params.id}`);
 });
 
