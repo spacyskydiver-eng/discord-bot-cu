@@ -389,6 +389,16 @@ router.get('/hundred/:id', async (req, res) => {
   res.render('new/admin-hundred-application', { app, friendApps, notApplied });
 });
 
+async function nextPendingHundred(currentId) {
+  const r = await db.query(
+    `SELECT id FROM hundred_applications
+     WHERE status = 'pending' AND id != $1
+     ORDER BY submitted_at ASC LIMIT 1`,
+    [currentId]
+  );
+  return r.rows[0]?.id || null;
+}
+
 router.post('/hundred/:id/accept', async (req, res) => {
   const appRes = await db.query(`SELECT discord_id, ign FROM hundred_applications WHERE id = $1`, [req.params.id]);
   const app = appRes.rows[0];
@@ -401,7 +411,8 @@ router.post('/hundred/:id/accept', async (req, res) => {
       `**150 Player Event — Application Accepted!**\n\nCongratulations ${app.ign || ''} — you've been accepted into the 150 Player Event. Keep an eye out for further details.`
     );
   }
-  res.redirect(`/admin/hundred/${req.params.id}`);
+  const next = await nextPendingHundred(req.params.id);
+  res.redirect(next ? `/admin/hundred/${next}` : `/admin#tab-hundred`);
 });
 
 router.post('/hundred/:id/decline', async (req, res) => {
@@ -413,7 +424,8 @@ router.post('/hundred/:id/decline', async (req, res) => {
   if (app) sendDiscordDM(app.discord_id,
     `**150 Player Event — Application Update**\n\nHi ${app.ign || ''}, unfortunately your application for the 150 Player Event has not been successful this time. Thank you for applying.`
   );
-  res.redirect(`/admin/hundred/${req.params.id}`);
+  const next = await nextPendingHundred(req.params.id);
+  res.redirect(next ? `/admin/hundred/${next}` : `/admin#tab-hundred`);
 });
 
 router.post('/hundred/:id/reset', async (req, res) => {
