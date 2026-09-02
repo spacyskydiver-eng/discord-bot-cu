@@ -38,8 +38,8 @@
       </div>
     <% } else { %>
       <div class="vcard">
-        <h1 class="vtitle">Verify your Minecraft username</h1>
-        <p class="vsub">We need to confirm your Minecraft account to add you to the server whitelist. Enter your exact username below — we'll check it against Mojang to make sure it's valid.</p>
+        <h1 class="vtitle">Ready check — 150 Player Event</h1>
+        <p class="vsub">The event is almost here! To confirm you're ready to play, enter your Minecraft username below. We'll verify it's a valid account — this makes sure everything is good to go before we finalise the whitelist.</p>
 
         <div class="vcurr">
           <% if (app.discord_avatar) { %>
@@ -75,11 +75,11 @@
           >
           <div id="ignStatus" class="vstatus"></div>
 
-          <button type="submit" class="vbtn" id="submitBtn">Verify &amp; save username</button>
+          <button type="submit" class="vbtn" id="submitBtn">Confirm I'm ready</button>
         </form>
 
         <% if (saved) { %>
-          <div class="vcheck" style="display:block">✓ Username saved — <strong><%= app.ign %></strong> is verified.</div>
+          <div class="vcheck" style="display:block">✓ You're confirmed ready — see you there, <strong><%= app.ign %></strong>!</div>
         <% } %>
       </div>
     <% } %>
