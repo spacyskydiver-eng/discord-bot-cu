@@ -36,6 +36,12 @@
         <div class="vtitle" style="margin-bottom:10px">Application withdrawn</div>
         <p class="vsub" style="margin:0">Your application has been withdrawn. Contact staff if this is a mistake.</p>
       </div>
+    <% } else if (app.ign_verified) { %>
+      <div class="vcard" style="text-align:center">
+        <div style="font-size:48px;margin-bottom:12px">✅</div>
+        <div class="vtitle" style="margin-bottom:8px">You're all confirmed!</div>
+        <p class="vsub" style="margin:0">Your Minecraft username <strong><%= app.ign %></strong> is verified and you're on the list. See you at the event!</p>
+      </div>
     <% } else { %>
       <div class="vcard">
         <h1 class="vtitle">Ready check — 150 Player Event</h1>
@@ -77,10 +83,6 @@
 
           <button type="submit" class="vbtn" id="submitBtn">Confirm I'm ready</button>
         </form>
-
-        <% if (saved) { %>
-          <div class="vcheck" style="display:block">✓ You're confirmed ready — see you there, <strong><%= app.ign %></strong>!</div>
-        <% } %>
       </div>
     <% } %>
 

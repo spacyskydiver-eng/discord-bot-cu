@@ -431,10 +431,10 @@ router.post('/150-verify-ign/submit', async (req, res) => {
   }
 
   await db.query(
-    `UPDATE hundred_applications SET ign = $1 WHERE discord_id = $2`,
+    `UPDATE hundred_applications SET ign = $1, ign_verified = true WHERE discord_id = $2`,
     [ign, uid]
   );
-  res.redirect('/150-verify-ign?uid=' + encodeURIComponent(uid) + '&saved=1');
+  res.redirect('/');
 });
 
 module.exports = router;
