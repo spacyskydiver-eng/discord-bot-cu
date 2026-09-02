@@ -391,4 +391,50 @@ router.post('/150-availability/withdraw', async (req, res) => {
   res.redirect('/my-application-hundred');
 });
 
+// ── 150 Player Event: IGN verification (no login required, linked via DM) ──
+
+router.get('/150-verify-ign', async (req, res) => {
+  const uid = req.query.uid || null;
+  let app = null;
+  if (uid) {
+    const r = await db.query(
+      `SELECT * FROM hundred_applications WHERE discord_id = $1`,
+      [uid]
+    );
+    app = r.rows[0] || null;
+  }
+  res.render('new/verify-ign', { app, error: req.query.error || null, saved: req.query.saved === '1' });
+});
+
+router.post('/150-verify-ign/submit', async (req, res) => {
+  const uid = req.body.uid;
+  const ign = (req.body.ign || '').trim();
+  if (!uid || !ign) return res.redirect('/150-verify-ign?uid=' + encodeURIComponent(uid || '') + '&error=invalid');
+
+  // Validate via Mojang API
+  let valid = false;
+  try {
+    const mojangRes = await fetch(`https://api.mojang.com/users/profiles/minecraft/${encodeURIComponent(ign)}`);
+    if (mojangRes.status === 200) {
+      valid = true;
+    } else if (mojangRes.status === 404 || mojangRes.status === 204) {
+      valid = false;
+    } else {
+      return res.redirect('/150-verify-ign?uid=' + encodeURIComponent(uid) + '&error=server');
+    }
+  } catch (_) {
+    return res.redirect('/150-verify-ign?uid=' + encodeURIComponent(uid) + '&error=server');
+  }
+
+  if (!valid) {
+    return res.redirect('/150-verify-ign?uid=' + encodeURIComponent(uid) + '&error=invalid');
+  }
+
+  await db.query(
+    `UPDATE hundred_applications SET ign = $1 WHERE discord_id = $2`,
+    [ign, uid]
+  );
+  res.redirect('/150-verify-ign?uid=' + encodeURIComponent(uid) + '&saved=1');
+});
+
 module.exports = router;

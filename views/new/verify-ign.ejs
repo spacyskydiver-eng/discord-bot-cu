@@ -1,0 +1,115 @@
+<%- include('partials/head', { pageTitle: '150 Player Event — Verify Minecraft Username' }) %>
+<%- include('partials/header') %>
+
+<style>
+.vw { max-width: 520px; margin: 0 auto; padding: 40px 20px 80px; }
+.vcard { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px 24px; margin-bottom: 16px; }
+.vtitle { font-family: 'Baloo 2'; font-weight: 800; font-size: 22px; color: var(--text); margin: 0 0 6px; }
+.vsub   { font-size: 13px; color: var(--muted); margin: 0 0 24px; line-height: 1.6; }
+.vlabel { font-family: 'Baloo 2'; font-weight: 700; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; display: block; }
+.vinput { width: 100%; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 13px 14px; font-family: 'Baloo 2'; font-weight: 700; font-size: 15px; color: var(--text); outline: none; box-sizing: border-box; transition: border-color .15s; }
+.vinput:focus { border-color: rgba(116,192,252,.5); }
+.vinput.error { border-color: rgba(248,113,113,.5); }
+.vinput.ok    { border-color: rgba(91,227,143,.5); }
+.vbtn { width: 100%; margin-top: 16px; background: var(--banner-1); border: none; border-radius: 10px; padding: 14px; font-family: 'Baloo 2'; font-weight: 800; font-size: 15px; color: #fff; cursor: pointer; transition: opacity .15s; }
+.vbtn:disabled { opacity: .5; cursor: not-allowed; }
+.vstatus { margin-top: 12px; font-family: 'Baloo 2'; font-weight: 700; font-size: 13px; min-height: 20px; }
+.vstatus.err  { color: #f87171; }
+.vstatus.ok   { color: #5be38f; }
+.vcurr { display: flex; align-items: center; gap: 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 20px; }
+.vcurr-avatar { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
+.vcurr-name { font-family: 'Baloo 2'; font-weight: 800; font-size: 14px; color: var(--text); }
+.vcurr-tag  { font-size: 12px; color: var(--muted); }
+.vcheck { background: rgba(91,227,143,.08); border: 1px solid rgba(91,227,143,.25); border-radius: 10px; padding: 14px; text-align: center; font-family: 'Baloo 2'; font-weight: 700; font-size: 14px; color: #5be38f; margin-top: 16px; display: none; }
+</style>
+
+<main class="wrap">
+  <div class="vw">
+
+    <% if (!app) { %>
+      <div class="vcard" style="text-align:center">
+        <div class="vtitle" style="margin-bottom:10px">Application not found</div>
+        <p class="vsub" style="margin:0">We couldn't find a 150 Player Event application linked to this account. Make sure you're using the link from your DM.</p>
+      </div>
+    <% } else if (app.status === 'withdrawn') { %>
+      <div class="vcard" style="text-align:center">
+        <div class="vtitle" style="margin-bottom:10px">Application withdrawn</div>
+        <p class="vsub" style="margin:0">Your application has been withdrawn. Contact staff if this is a mistake.</p>
+      </div>
+    <% } else { %>
+      <div class="vcard">
+        <h1 class="vtitle">Verify your Minecraft username</h1>
+        <p class="vsub">We need to confirm your Minecraft account to add you to the server whitelist. Enter your exact username below — we'll check it against Mojang to make sure it's valid.</p>
+
+        <div class="vcurr">
+          <% if (app.discord_avatar) { %>
+            <img class="vcurr-avatar" src="https://cdn.discordapp.com/avatars/<%= app.discord_id %>/<%= app.discord_avatar %>.png" onerror="this.style.display='none'">
+          <% } %>
+          <div>
+            <div class="vcurr-name"><%= app.discord_tag || app.discord_username %></div>
+            <div class="vcurr-tag">150 Player Event applicant</div>
+          </div>
+        </div>
+
+        <% if (error === 'invalid') { %>
+          <div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#f87171">
+            That Minecraft username doesn't exist. Double-check the spelling and try again.
+          </div>
+        <% } %>
+        <% if (error === 'server') { %>
+          <div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#f87171">
+            Something went wrong. Please try again in a moment.
+          </div>
+        <% } %>
+
+        <form method="POST" action="/150-verify-ign/submit" id="ignForm">
+          <input type="hidden" name="uid" value="<%= app.discord_id %>">
+
+          <label class="vlabel" for="ignInput">Minecraft username</label>
+          <input
+            type="text" id="ignInput" name="ign" class="vinput"
+            placeholder="<%= app.ign || 'YourUsername' %>"
+            value="<%= app.ign || '' %>"
+            maxlength="16" autocomplete="off" spellcheck="false"
+            oninput="onIgnInput()"
+          >
+          <div id="ignStatus" class="vstatus"></div>
+
+          <button type="submit" class="vbtn" id="submitBtn">Verify &amp; save username</button>
+        </form>
+
+        <% if (saved) { %>
+          <div class="vcheck" style="display:block">✓ Username saved — <strong><%= app.ign %></strong> is verified.</div>
+        <% } %>
+      </div>
+    <% } %>
+
+  </div>
+</main>
+
+<script>
+var currentVal = document.getElementById('ignInput') ? document.getElementById('ignInput').value : '';
+
+function onIgnInput() {
+  var v = document.getElementById('ignInput').value.trim();
+  var st = document.getElementById('ignStatus');
+  var btn = document.getElementById('submitBtn');
+  if (!v) { st.textContent = ''; st.className = 'vstatus'; btn.disabled = true; return; }
+  if (!/^[A-Za-z0-9_]{1,16}$/.test(v)) {
+    st.textContent = 'Usernames can only contain letters, numbers, and underscores (max 16 chars).';
+    st.className = 'vstatus err';
+    btn.disabled = true;
+    return;
+  }
+  st.textContent = '';
+  st.className = 'vstatus';
+  btn.disabled = false;
+}
+
+// init button state
+if (document.getElementById('submitBtn')) {
+  document.getElementById('submitBtn').disabled = !document.getElementById('ignInput').value.trim();
+}
+</script>
+
+<%- include('partials/foot') %>
