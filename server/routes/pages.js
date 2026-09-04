@@ -396,18 +396,21 @@ router.post('/150-availability/withdraw', async (req, res) => {
 router.get('/150-verify-ign', async (req, res) => {
   const uid = req.query.uid || null;
   let app = null;
+  let appSource = null;
   if (uid) {
-    const r = await db.query(
-      `SELECT * FROM hundred_applications WHERE discord_id = $1`,
-      [uid]
-    );
-    app = r.rows[0] || null;
+    const r = await db.query(`SELECT * FROM hundred_applications WHERE discord_id = $1`, [uid]);
+    if (r.rows[0]) { app = r.rows[0]; appSource = 'hundred'; }
+    else {
+      const r2 = await db.query(`SELECT * FROM nation_leader_applications WHERE discord_id = $1 AND accepted = true`, [uid]);
+      if (r2.rows[0]) { app = r2.rows[0]; appSource = 'nation'; }
+    }
   }
-  res.render('new/verify-ign', { app, error: req.query.error || null, saved: req.query.saved === '1' });
+  res.render('new/verify-ign', { app, appSource, error: req.query.error || null, saved: req.query.saved === '1' });
 });
 
 router.post('/150-verify-ign/submit', async (req, res) => {
   const uid = req.body.uid;
+  const appSource = req.body.app_source;
   const ign = (req.body.ign || '').trim();
   if (!uid || !ign) return res.redirect('/150-verify-ign?uid=' + encodeURIComponent(uid || '') + '&error=invalid');
 
@@ -430,10 +433,17 @@ router.post('/150-verify-ign/submit', async (req, res) => {
     return res.redirect('/150-verify-ign?uid=' + encodeURIComponent(uid) + '&error=invalid');
   }
 
-  await db.query(
-    `UPDATE hundred_applications SET ign = $1, ign_verified = true WHERE discord_id = $2`,
-    [ign, uid]
-  );
+  if (appSource === 'nation') {
+    await db.query(
+      `UPDATE nation_leader_applications SET ign = $1, ign_verified = true WHERE discord_id = $2`,
+      [ign, uid]
+    );
+  } else {
+    await db.query(
+      `UPDATE hundred_applications SET ign = $1, ign_verified = true WHERE discord_id = $2`,
+      [ign, uid]
+    );
+  }
   res.redirect('/');
 });
 

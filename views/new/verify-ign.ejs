@@ -70,6 +70,7 @@
 
         <form method="POST" action="/150-verify-ign/submit" id="ignForm">
           <input type="hidden" name="uid" value="<%= app.discord_id %>">
+          <input type="hidden" name="app_source" value="<%= appSource %>">
 
           <label class="vlabel" for="ignInput">Minecraft username</label>
           <input
