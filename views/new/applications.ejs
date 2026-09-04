@@ -137,12 +137,13 @@ function sessionDateRange(times) {
         <% } %>
 
         <!-- Nation Leader card -->
-        <% if (userNationApp) { %>
-          <div class="card">
+        <% const nationLocked = !userHundredApp; %>
+        <% if (userNationApp || nationLocked) { %>
+          <div class="card<%= nationLocked ? ' locked' : '' %>">
         <% } else { %>
           <a href="<%= lp %>/apply-nation-leader" class="card">
         <% } %>
-          <div class="cardart" style="background:linear-gradient(135deg,#1a1200,#0c0d10)">
+          <div class="cardart" style="background:linear-gradient(135deg,#1a1200,#0c0d10);opacity:<%= nationLocked ? '0.45' : '1' %>">
             <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
               <svg viewBox="0 0 48 48" style="width:68px;height:68px" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="24" cy="24" r="20" fill="rgba(251,191,36,.1)" stroke="#fbbf24" stroke-width="1.5"/>
@@ -153,15 +154,20 @@ function sessionDateRange(times) {
           <div class="cardbody">
             <h3>Nation Leader</h3>
             <div class="meta" style="margin-bottom:4px">150 Player Event · Separate application</div>
-            <div class="desc" style="font-size:12px;color:var(--muted);margin-bottom:8px">Want to lead your own nation? Verify your Discord server and apply for the nation leader role.</div>
-            <% if (userNationApp) { %>
-              <span class="pill open" style="background:rgba(251,191,36,.12);color:#fbbf24;border-color:rgba(251,191,36,.25)">✓ Server Verified</span>
-              <div style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'Baloo 2';font-weight:700"><%= userNationApp.server_name %> · Use <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px">/leader application</code> in Discord</div>
+            <% if (nationLocked) { %>
+              <div class="desc" style="font-size:12px;color:var(--muted);margin-bottom:8px">You must apply for the 150 Player Event before you can apply as a Nation Leader.</div>
+              <span class="pill soon">Apply for the 150 Player Event first</span>
             <% } else { %>
-              <span class="pill open" style="background:rgba(251,191,36,.12);color:#fbbf24;border-color:rgba(251,191,36,.25)">Apply</span>
+              <div class="desc" style="font-size:12px;color:var(--muted);margin-bottom:8px">Want to lead your own nation? Verify your Discord server and apply for the nation leader role.</div>
+              <% if (userNationApp) { %>
+                <span class="pill open" style="background:rgba(251,191,36,.12);color:#fbbf24;border-color:rgba(251,191,36,.25)">✓ Server Verified</span>
+                <div style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'Baloo 2';font-weight:700"><%= userNationApp.server_name %> · Use <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px">/leader application</code> in Discord</div>
+              <% } else { %>
+                <span class="pill open" style="background:rgba(251,191,36,.12);color:#fbbf24;border-color:rgba(251,191,36,.25)">Apply</span>
+              <% } %>
             <% } %>
           </div>
-        <% if (userNationApp) { %>
+        <% if (userNationApp || nationLocked) { %>
           </div>
         <% } else { %>
           </a>
