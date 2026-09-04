@@ -208,8 +208,8 @@ body { overflow: hidden; }
       </defs>
     </svg>
 
-    <div class="nm-saved" id="nmSaved"<%= saved ? '' : ' style="display:none"' %>>Location saved for <%= nation.server_name %></div>
-    <div class="nm-instruct" id="nmInstruct"<%= saved ? ' style="display:none"' : '' %>>
+    <div class="nm-saved" id="nmSaved" style="display:none">Location saved for <%= nation.server_name %></div>
+    <div class="nm-instruct" id="nmInstruct">
       <%= nation.map_x != null ? 'Click the map to move your marker' : 'Click the map to place your nation location' %>
     </div>
 
@@ -266,15 +266,6 @@ body { overflow: hidden; }
 document.getElementById('nmDeadline').textContent =
   new Date(1788649200000).toLocaleString('en-GB', { weekday:'short', day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
 
-// Auto-dismiss the saved banner then show the instruction
-<% if (saved) { %>
-setTimeout(function() {
-  var s = document.getElementById('nmSaved');
-  var i = document.getElementById('nmInstruct');
-  if (s) s.style.display = 'none';
-  if (i) i.style.display = '';
-}, 3000);
-<% } %>
 
 var MINING_REGIONS = <%- JSON.stringify(miningRegions) %>;
 
@@ -452,6 +443,7 @@ function cancelPlace() {
 
 function submitPlace() {
   if (pendingX === null) return;
+  sessionStorage.setItem('np_saved', '1');
   document.getElementById('formX').value = pendingX;
   document.getElementById('formZ').value = pendingZ;
   document.getElementById('placeForm').submit();
@@ -463,6 +455,19 @@ window.addEventListener('load', function() {
   panX = vr.width  / 2 - WORLD_ORIGIN * scale;
   panY = vr.height / 2 - WORLD_ORIGIN * scale;
   applyTransform();
+
+  // Show saved banner once after a successful submit, then clear immediately
+  if (sessionStorage.getItem('np_saved')) {
+    sessionStorage.removeItem('np_saved');
+    var s = document.getElementById('nmSaved');
+    var i = document.getElementById('nmInstruct');
+    if (s) s.style.display = '';
+    if (i) i.style.display = 'none';
+    setTimeout(function() {
+      if (s) s.style.display = 'none';
+      if (i) i.style.display = '';
+    }, 3000);
+  }
 });
 </script>
 
