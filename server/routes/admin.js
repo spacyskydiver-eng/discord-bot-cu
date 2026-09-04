@@ -51,7 +51,7 @@ router.use(requireAdminOrStaff);
 // Staff can only access application review paths; everything else needs full admin
 router.use((req, res, next) => {
   if (res.locals.isFullAdmin) return next();
-  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader') || req.path.startsWith('/nations') || req.path === '/hundred-players';
+  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader') || req.path.startsWith('/nations') || req.path === '/hundred-players' || req.path === '/nation-map';
   if (!allowed) return res.status(403).render('403');
   next();
 });
@@ -515,6 +515,16 @@ router.get('/hundred-players', async (req, res) => {
   ].sort((a, b) => (a.ign || '').localeCompare(b.ign || ''));
 
   res.render('new/admin-players', { players });
+});
+
+// Nation map (admin view)
+router.get('/nation-map', async (req, res) => {
+  const all = (await db.query(
+    `SELECT server_name, map_x, map_z FROM nation_leader_applications WHERE accepted = true ORDER BY server_name ASC`
+  )).rows;
+  const markers = all.filter(r => r.map_x != null && r.map_z != null);
+  const waiting = all.filter(r => r.map_x == null);
+  res.render('new/admin-nation-map', { markers, waiting });
 });
 
 // Map viewer

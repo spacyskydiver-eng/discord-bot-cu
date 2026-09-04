@@ -1,0 +1,265 @@
+<%- include('partials/head', { pageTitle: 'Nation Map — Admin' }) %>
+<%- include('partials/header') %>
+
+<style>
+* { box-sizing: border-box; }
+body { overflow: hidden; }
+
+.nm-wrap { display: flex; flex-direction: column; height: calc(100vh - 60px); }
+
+/* Toolbar */
+.nm-bar { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); flex-shrink: 0; flex-wrap: wrap; }
+.nm-bar-title { font-family: 'Baloo 2'; font-weight: 800; font-size: 16px; color: var(--text); margin-right: 4px; }
+.nm-bar-sub { font-size: 12px; color: var(--muted); font-family: 'Baloo 2'; font-weight: 700; }
+.nm-spacer { flex: 1; }
+.nm-deadline { font-family: 'Baloo 2'; font-weight: 700; font-size: 12px; color: var(--muted); }
+.nm-deadline strong { color: #ffd56b; }
+.nm-zoom { display: flex; align-items: center; gap: 4px; }
+.nm-zoom-btn { width: 32px; height: 32px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; color: var(--text); font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; transition: background .1s; }
+.nm-zoom-btn:hover { background: rgba(255,255,255,.08); }
+.nm-zoom-label { font-family: 'Baloo 2'; font-weight: 800; font-size: 13px; color: var(--muted); min-width: 40px; text-align: center; }
+.nm-coords { font-family: 'Baloo 2'; font-weight: 700; font-size: 12px; color: var(--muted); min-width: 130px; text-align: right; }
+
+/* Viewport */
+.nm-viewport { flex: 1; position: relative; overflow: hidden; background: #0c0c12; cursor: grab; }
+.nm-viewport.dragging { cursor: grabbing; }
+
+/* Map grid — 5120×5120 coordinate space */
+#nmGrid {
+  position: absolute;
+  width: 5120px;
+  height: 5120px;
+  transform-origin: 0 0;
+}
+
+.nm-tile {
+  position: absolute;
+  width: 1024px;
+  height: 1024px;
+  image-rendering: pixelated;
+  display: block;
+}
+
+/* Nation markers */
+.nm-marker {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  z-index: 10;
+}
+.nm-marker-pin {
+  width: 12px;
+  height: 12px;
+  background: #e83535;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(232,53,53,.6);
+  flex-shrink: 0;
+}
+.nm-marker-line {
+  width: 2px;
+  height: 16px;
+  background: #e83535;
+  flex-shrink: 0;
+  order: -1;
+}
+.nm-marker-label {
+  position: absolute;
+  top: -36px;
+  background: rgba(10,10,18,.92);
+  border: 1px solid rgba(232,53,53,.5);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-family: 'Baloo 2';
+  font-weight: 800;
+  font-size: 11px;
+  color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* No-tile areas */
+.nm-empty { background: #0c0c12; }
+
+/* Legend */
+.nm-legend {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(10,10,18,.85);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-family: 'Baloo 2';
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--muted);
+  pointer-events: none;
+  z-index: 20;
+}
+.nm-legend-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.nm-legend-dot { width: 10px; height: 10px; border-radius: 50%; background: #e83535; }
+.nm-legend-placed { color: var(--text); }
+.nm-legend-waiting { color: var(--muted); }
+</style>
+
+<div class="nm-wrap">
+  <div class="nm-bar">
+    <span class="nm-bar-title">Nation Map</span>
+    <span class="nm-bar-sub"><%= markers.length %> nation<%= markers.length === 1 ? '' : 's' %> placed · <%= waiting.length %> awaiting</span>
+    <div class="nm-spacer"></div>
+    <span class="nm-deadline">Location deadline: <strong><t:1788649200:T></strong></span>
+    <div class="nm-zoom">
+      <button class="nm-zoom-btn" onclick="zoom(-1)">−</button>
+      <span class="nm-zoom-label" id="zoomLabel">100%</span>
+      <button class="nm-zoom-btn" onclick="zoom(1)">+</button>
+    </div>
+    <span class="nm-coords" id="nmCoords">X — · Z —</span>
+  </div>
+
+  <div class="nm-viewport" id="nmViewport">
+    <div id="nmGrid">
+
+      <!-- Tiles (world origin at pixel 2560,2560) -->
+      <%
+      const tiles = [
+        [0,1],[0,2],
+        [1,0],[1,1],[1,2],[1,3],[1,4],
+        [2,0],[2,1],[2,2],[2,3],[2,4],
+        [3,0],[3,1],[3,2],[3,3],[3,4],
+        [4,3]
+      ];
+      const tileFiles = {
+        '0_1':'0_1_x-2560_z-1536','0_2':'0_2_x-2560_z-512',
+        '1_0':'1_0_x-1536_z-2560','1_1':'1_1_x-1536_z-1536','1_2':'1_2_x-1536_z-512',
+        '1_3':'1_3_x-1536_z512','1_4':'1_4_x-1536_z1536',
+        '2_0':'2_0_x-512_z-2560','2_1':'2_1_x-512_z-1536','2_2':'2_2_x-512_z-512',
+        '2_3':'2_3_x-512_z512','2_4':'2_4_x-512_z1536',
+        '3_0':'3_0_x512_z-2560','3_1':'3_1_x512_z-1536','3_2':'3_2_x512_z-512',
+        '3_3':'3_3_x512_z512','3_4':'3_4_x512_z1536',
+        '4_3':'4_3_x1536_z512'
+      };
+      %>
+      <% tiles.forEach(function(t) {
+        const col = t[0], row = t[1];
+        const key = col + '_' + row;
+        const file = tileFiles[key];
+        const px = col * 1024, py = row * 1024;
+      %>
+        <img class="nm-tile" src="/img/map-tiles/<%= file %>.png"
+          style="left:<%= px %>px;top:<%= py %>px;" draggable="false">
+      <% }); %>
+
+      <!-- Nation markers (world coord → pixel: px = worldX + 2560, py = worldZ + 2560) -->
+      <% markers.forEach(function(m) {
+        const px = m.map_x + 2560;
+        const py = m.map_z + 2560;
+      %>
+        <div class="nm-marker" style="left:<%= px %>px;top:<%= py %>px;">
+          <div class="nm-marker-label"><%= m.server_name %></div>
+          <div class="nm-marker-line"></div>
+          <div class="nm-marker-pin"></div>
+        </div>
+      <% }); %>
+
+    </div>
+
+    <div class="nm-legend">
+      <% if (markers.length > 0) { %>
+      <% markers.forEach(function(m) { %>
+      <div class="nm-legend-row">
+        <div class="nm-legend-dot"></div>
+        <span class="nm-legend-placed"><%= m.server_name %></span>
+      </div>
+      <% }); %>
+      <% } %>
+      <% if (waiting.length > 0) { %>
+      <div style="margin-top:<%= markers.length > 0 ? '8px' : '0' %>;font-size:11px;color:var(--muted)">Awaiting:</div>
+      <% waiting.forEach(function(w) { %>
+      <div class="nm-legend-row"><span class="nm-legend-waiting"><%= w.server_name %></span></div>
+      <% }); %>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<script>
+var TILE_SIZE = 1024;
+var GRID_SIZE = 5120;
+var WORLD_ORIGIN = 2560; // pixel offset where world 0,0 is
+
+var scale = 0.18; // default zoom to fit map
+var panX = 0, panY = 0;
+var dragging = false, lastX = 0, lastY = 0;
+
+var viewport = document.getElementById('nmViewport');
+var grid = document.getElementById('nmGrid');
+
+var ZOOM_STEPS = [0.1, 0.15, 0.18, 0.25, 0.35, 0.5, 0.75, 1.0, 1.5, 2.0];
+var zoomIdx = 2;
+
+function applyTransform() {
+  grid.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')';
+  document.getElementById('zoomLabel').textContent = Math.round(scale * 100) + '%';
+}
+
+function zoom(dir) {
+  var vr = viewport.getBoundingClientRect();
+  var cx = vr.width / 2, cy = vr.height / 2;
+  var newIdx = Math.max(0, Math.min(ZOOM_STEPS.length - 1, zoomIdx + dir));
+  if (newIdx === zoomIdx) return;
+  var newScale = ZOOM_STEPS[newIdx];
+  // Keep centre fixed
+  panX = cx - (cx - panX) * (newScale / scale);
+  panY = cy - (cy - panY) * (newScale / scale);
+  scale = newScale;
+  zoomIdx = newIdx;
+  applyTransform();
+}
+
+// Pan drag
+viewport.addEventListener('mousedown', function(e) {
+  if (e.button !== 0) return;
+  dragging = true; lastX = e.clientX; lastY = e.clientY;
+  viewport.classList.add('dragging');
+  e.preventDefault();
+});
+window.addEventListener('mousemove', function(e) {
+  // Show coords
+  var vr = viewport.getBoundingClientRect();
+  var mx = (e.clientX - vr.left - panX) / scale;
+  var mz = (e.clientY - vr.top - panY) / scale;
+  var wx = Math.round(mx - WORLD_ORIGIN);
+  var wz = Math.round(mz - WORLD_ORIGIN);
+  document.getElementById('nmCoords').textContent = 'X ' + wx + ' · Z ' + wz;
+
+  if (!dragging) return;
+  panX += e.clientX - lastX;
+  panY += e.clientY - lastY;
+  lastX = e.clientX; lastY = e.clientY;
+  applyTransform();
+});
+window.addEventListener('mouseup', function() {
+  dragging = false;
+  viewport.classList.remove('dragging');
+});
+
+// Scroll zoom
+viewport.addEventListener('wheel', function(e) {
+  e.preventDefault();
+  zoom(e.deltaY < 0 ? 1 : -1);
+}, { passive: false });
+
+// Centre map on load
+window.addEventListener('load', function() {
+  var vr = viewport.getBoundingClientRect();
+  panX = (vr.width - GRID_SIZE * scale) / 2;
+  panY = (vr.height - GRID_SIZE * scale) / 2;
+  applyTransform();
+});
+</script>
+
+<%- include('partials/foot') %>

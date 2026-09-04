@@ -1,0 +1,330 @@
+<%- include('partials/head', { pageTitle: 'Choose Nation Location' }) %>
+<%- include('partials/header') %>
+
+<style>
+* { box-sizing: border-box; }
+body { overflow: hidden; }
+
+.nm-wrap { display: flex; flex-direction: column; height: calc(100vh - 60px); }
+
+.nm-bar { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); flex-shrink: 0; flex-wrap: wrap; }
+.nm-bar-title { font-family: 'Baloo 2'; font-weight: 800; font-size: 16px; color: var(--text); }
+.nm-spacer { flex: 1; }
+.nm-deadline { font-family: 'Baloo 2'; font-weight: 700; font-size: 12px; }
+.nm-zoom { display: flex; align-items: center; gap: 4px; }
+.nm-zoom-btn { width: 32px; height: 32px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; color: var(--text); font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .1s; }
+.nm-zoom-btn:hover { background: rgba(255,255,255,.08); }
+.nm-zoom-label { font-family: 'Baloo 2'; font-weight: 800; font-size: 13px; color: var(--muted); min-width: 40px; text-align: center; }
+.nm-coords { font-family: 'Baloo 2'; font-weight: 700; font-size: 12px; color: var(--muted); min-width: 130px; text-align: right; }
+
+.nm-viewport { flex: 1; position: relative; overflow: hidden; background: #0c0c12; cursor: crosshair; }
+.nm-viewport.dragging { cursor: grabbing; }
+
+#nmGrid { position: absolute; width: 5120px; height: 5120px; transform-origin: 0 0; }
+.nm-tile { position: absolute; width: 1024px; height: 1024px; image-rendering: pixelated; display: block; }
+
+.nm-marker { position: absolute; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; pointer-events: none; z-index: 10; }
+.nm-marker-pin { width: 12px; height: 12px; background: #e83535; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 2px 8px rgba(232,53,53,.6); flex-shrink: 0; }
+.nm-marker-line { width: 2px; height: 16px; background: #e83535; flex-shrink: 0; order: -1; }
+.nm-marker-label { position: absolute; top: -36px; background: rgba(10,10,18,.92); border: 1px solid rgba(232,53,53,.5); border-radius: 6px; padding: 3px 8px; font-family: 'Baloo 2'; font-weight: 800; font-size: 11px; color: #fff; white-space: nowrap; }
+
+/* Other nations (faded) */
+.nm-marker-other .nm-marker-pin { background: #888; box-shadow: none; border-color: rgba(255,255,255,.4); }
+.nm-marker-other .nm-marker-line { background: #888; }
+.nm-marker-other .nm-marker-label { border-color: rgba(255,255,255,.15); color: rgba(255,255,255,.5); }
+
+/* Confirm panel */
+.nm-confirm {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10,10,18,.95);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 30;
+  backdrop-filter: blur(8px);
+  font-family: 'Baloo 2';
+  min-width: 320px;
+}
+.nm-confirm.hidden { display: none; }
+.nm-confirm-text { font-weight: 700; font-size: 13px; color: var(--muted); }
+.nm-confirm-coords { font-weight: 800; font-size: 14px; color: var(--text); }
+.nm-confirm-btn { background: #e83535; border: none; border-radius: 10px; color: #fff; font-family: 'Baloo 2'; font-weight: 800; font-size: 14px; padding: 10px 20px; cursor: pointer; white-space: nowrap; }
+.nm-confirm-btn:hover { background: #c42b2b; }
+.nm-cancel-btn { background: transparent; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); font-family: 'Baloo 2'; font-weight: 800; font-size: 13px; padding: 9px 14px; cursor: pointer; }
+
+.nm-instruct {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10,10,18,.88);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 9px 16px;
+  font-family: 'Baloo 2';
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--muted);
+  pointer-events: none;
+  z-index: 20;
+  white-space: nowrap;
+}
+
+.nm-saved {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(91,227,143,.12);
+  border: 1px solid rgba(91,227,143,.3);
+  border-radius: 10px;
+  padding: 9px 16px;
+  font-family: 'Baloo 2';
+  font-weight: 700;
+  font-size: 13px;
+  color: #5be38f;
+  z-index: 20;
+  white-space: nowrap;
+}
+
+.nm-deadline-bar {
+  background: rgba(255,213,107,.08);
+  border-bottom: 1px solid rgba(255,213,107,.15);
+  padding: 7px 16px;
+  font-family: 'Baloo 2';
+  font-weight: 700;
+  font-size: 12px;
+  color: #ffd56b;
+  text-align: center;
+  flex-shrink: 0;
+}
+</style>
+
+<div class="nm-wrap">
+  <div class="nm-deadline-bar">
+    Location deadline: <t:1788649200:F> — choose carefully, you can change it before the deadline.
+  </div>
+  <div class="nm-bar">
+    <span class="nm-bar-title">Choose your nation's location — <em style="color:var(--muted);font-style:normal;font-size:14px"><%= nation.server_name %></em></span>
+    <div class="nm-spacer"></div>
+    <div class="nm-zoom">
+      <button class="nm-zoom-btn" onclick="zoom(-1)">−</button>
+      <span class="nm-zoom-label" id="zoomLabel">100%</span>
+      <button class="nm-zoom-btn" onclick="zoom(1)">+</button>
+    </div>
+    <span class="nm-coords" id="nmCoords">X — · Z —</span>
+  </div>
+
+  <div class="nm-viewport" id="nmViewport">
+    <div id="nmGrid">
+
+      <%
+      const tiles = [
+        [0,1],[0,2],
+        [1,0],[1,1],[1,2],[1,3],[1,4],
+        [2,0],[2,1],[2,2],[2,3],[2,4],
+        [3,0],[3,1],[3,2],[3,3],[3,4],
+        [4,3]
+      ];
+      const tileFiles = {
+        '0_1':'0_1_x-2560_z-1536','0_2':'0_2_x-2560_z-512',
+        '1_0':'1_0_x-1536_z-2560','1_1':'1_1_x-1536_z-1536','1_2':'1_2_x-1536_z-512',
+        '1_3':'1_3_x-1536_z512','1_4':'1_4_x-1536_z1536',
+        '2_0':'2_0_x-512_z-2560','2_1':'2_1_x-512_z-1536','2_2':'2_2_x-512_z-512',
+        '2_3':'2_3_x-512_z512','2_4':'2_4_x-512_z1536',
+        '3_0':'3_0_x512_z-2560','3_1':'3_1_x512_z-1536','3_2':'3_2_x512_z-512',
+        '3_3':'3_3_x512_z512','3_4':'3_4_x512_z1536',
+        '4_3':'4_3_x1536_z512'
+      };
+      %>
+      <% tiles.forEach(function(t) {
+        const col = t[0], row = t[1];
+        const px = col * 1024, py = row * 1024;
+      %>
+        <img class="nm-tile" src="/img/map-tiles/<%= tileFiles[col+'_'+row] %>.png"
+          style="left:<%= px %>px;top:<%= py %>px;" draggable="false">
+      <% }); %>
+
+      <!-- Other nations' markers (faded) -->
+      <% otherMarkers.forEach(function(m) {
+        const px = m.map_x + 2560;
+        const py = m.map_z + 2560;
+      %>
+        <div class="nm-marker nm-marker-other" style="left:<%= px %>px;top:<%= py %>px;">
+          <div class="nm-marker-label"><%= m.server_name %></div>
+          <div class="nm-marker-line"></div>
+          <div class="nm-marker-pin"></div>
+        </div>
+      <% }); %>
+
+      <!-- This nation's current marker -->
+      <% if (nation.map_x != null) { %>
+      <div class="nm-marker" id="myMarker"
+        style="left:<%= nation.map_x + 2560 %>px;top:<%= nation.map_z + 2560 %>px;">
+        <div class="nm-marker-label"><%= nation.server_name %></div>
+        <div class="nm-marker-line"></div>
+        <div class="nm-marker-pin"></div>
+      </div>
+      <% } else { %>
+      <div class="nm-marker" id="myMarker" style="display:none">
+        <div class="nm-marker-label"><%= nation.server_name %></div>
+        <div class="nm-marker-line"></div>
+        <div class="nm-marker-pin"></div>
+      </div>
+      <% } %>
+
+    </div>
+
+    <% if (saved) { %>
+    <div class="nm-saved">Location saved for <%= nation.server_name %></div>
+    <% } else { %>
+    <div class="nm-instruct" id="nmInstruct">
+      <%= nation.map_x != null ? 'Click the map to move your marker' : 'Click the map to place your nation location' %>
+    </div>
+    <% } %>
+
+    <div class="nm-confirm hidden" id="nmConfirm">
+      <div>
+        <div class="nm-confirm-text">Place <%= nation.server_name %> at</div>
+        <div class="nm-confirm-coords" id="confirmCoords">X 0 · Z 0</div>
+      </div>
+      <button class="nm-cancel-btn" onclick="cancelPlace()">Cancel</button>
+      <button class="nm-confirm-btn" onclick="submitPlace()">Confirm location</button>
+    </div>
+  </div>
+</div>
+
+<form id="placeForm" method="POST" action="/nation-place/submit" style="display:none">
+  <input type="hidden" name="uid" value="<%= nation.discord_id %>">
+  <input type="hidden" name="map_x" id="formX" value="">
+  <input type="hidden" name="map_z" id="formZ" value="">
+</form>
+
+<script>
+var WORLD_ORIGIN = 2560;
+var scale = 0.18;
+var panX = 0, panY = 0;
+var dragging = false, lastX = 0, lastY = 0;
+var pendingX = null, pendingZ = null;
+var clickMoved = false;
+
+var viewport = document.getElementById('nmViewport');
+var grid = document.getElementById('nmGrid');
+
+var ZOOM_STEPS = [0.1, 0.15, 0.18, 0.25, 0.35, 0.5, 0.75, 1.0, 1.5, 2.0];
+var zoomIdx = 2;
+
+function applyTransform() {
+  grid.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')';
+  document.getElementById('zoomLabel').textContent = Math.round(scale * 100) + '%';
+}
+
+function zoom(dir) {
+  var vr = viewport.getBoundingClientRect();
+  var cx = vr.width / 2, cy = vr.height / 2;
+  var newIdx = Math.max(0, Math.min(ZOOM_STEPS.length - 1, zoomIdx + dir));
+  if (newIdx === zoomIdx) return;
+  var newScale = ZOOM_STEPS[newIdx];
+  panX = cx - (cx - panX) * (newScale / scale);
+  panY = cy - (cy - panY) * (newScale / scale);
+  scale = newScale;
+  zoomIdx = newIdx;
+  applyTransform();
+}
+
+viewport.addEventListener('wheel', function(e) {
+  e.preventDefault();
+  zoom(e.deltaY < 0 ? 1 : -1);
+}, { passive: false });
+
+viewport.addEventListener('mousedown', function(e) {
+  if (e.button !== 0) return;
+  dragging = true; clickMoved = false;
+  lastX = e.clientX; lastY = e.clientY;
+  viewport.classList.add('dragging');
+  e.preventDefault();
+});
+
+window.addEventListener('mousemove', function(e) {
+  var vr = viewport.getBoundingClientRect();
+  var mx = (e.clientX - vr.left - panX) / scale;
+  var mz = (e.clientY - vr.top - panY) / scale;
+  document.getElementById('nmCoords').textContent = 'X ' + Math.round(mx - WORLD_ORIGIN) + ' · Z ' + Math.round(mz - WORLD_ORIGIN);
+
+  if (!dragging) return;
+  var dx = e.clientX - lastX, dy = e.clientY - lastY;
+  if (Math.abs(dx) > 3 || Math.abs(dy) > 3) clickMoved = true;
+  panX += dx; panY += dy;
+  lastX = e.clientX; lastY = e.clientY;
+  applyTransform();
+});
+
+window.addEventListener('mouseup', function(e) {
+  if (!dragging) return;
+  dragging = false;
+  viewport.classList.remove('dragging');
+  if (!clickMoved) handleMapClick(e);
+  clickMoved = false;
+});
+
+function handleMapClick(e) {
+  var vr = viewport.getBoundingClientRect();
+  var mx = (e.clientX - vr.left - panX) / scale;
+  var mz = (e.clientY - vr.top - panY) / scale;
+  var wx = Math.round(mx - WORLD_ORIGIN);
+  var wz = Math.round(mz - WORLD_ORIGIN);
+
+  // Must be within the map bounds
+  if (wx < -2560 || wx > 2560 || wz < -2560 || wz > 2560) return;
+
+  pendingX = wx; pendingZ = wz;
+
+  // Move preview marker
+  var marker = document.getElementById('myMarker');
+  marker.style.display = 'flex';
+  marker.style.left = (mx) + 'px';
+  marker.style.top = (mz) + 'px';
+
+  document.getElementById('confirmCoords').textContent = 'X ' + wx + ' · Z ' + wz;
+  document.getElementById('nmConfirm').classList.remove('hidden');
+  var inst = document.getElementById('nmInstruct');
+  if (inst) inst.style.display = 'none';
+}
+
+function cancelPlace() {
+  document.getElementById('nmConfirm').classList.add('hidden');
+  // Reset marker to saved position
+  <% if (nation.map_x != null) { %>
+  var marker = document.getElementById('myMarker');
+  marker.style.left = '<%= nation.map_x + 2560 %>px';
+  marker.style.top = '<%= nation.map_z + 2560 %>px';
+  <% } else { %>
+  document.getElementById('myMarker').style.display = 'none';
+  <% } %>
+  var inst = document.getElementById('nmInstruct');
+  if (inst) inst.style.display = '';
+  pendingX = null; pendingZ = null;
+}
+
+function submitPlace() {
+  if (pendingX === null) return;
+  document.getElementById('formX').value = pendingX;
+  document.getElementById('formZ').value = pendingZ;
+  document.getElementById('placeForm').submit();
+}
+
+window.addEventListener('load', function() {
+  var vr = viewport.getBoundingClientRect();
+  panX = (vr.width - 5120 * scale) / 2;
+  panY = (vr.height - 5120 * scale) / 2;
+  applyTransform();
+});
+</script>
+
+<%- include('partials/foot') %>
