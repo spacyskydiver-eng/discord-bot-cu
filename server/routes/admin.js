@@ -524,7 +524,27 @@ router.get('/nation-map', async (req, res) => {
   )).rows;
   const markers = all.filter(r => r.map_x != null && r.map_z != null);
   const waiting = all.filter(r => r.map_x == null);
-  res.render('new/admin-nation-map', { markers, waiting });
+  const regions = (await db.query(`SELECT * FROM mining_regions ORDER BY id ASC`)).rows;
+  res.render('new/admin-nation-map', { markers, waiting, regions });
+});
+
+router.post('/mining-region/add', async (req, res) => {
+  const { name, x1, z1, x2, z2 } = req.body;
+  const rx1 = Math.min(parseInt(x1), parseInt(x2));
+  const rx2 = Math.max(parseInt(x1), parseInt(x2));
+  const rz1 = Math.min(parseInt(z1), parseInt(z2));
+  const rz2 = Math.max(parseInt(z1), parseInt(z2));
+  if ([rx1,rx2,rz1,rz2].some(isNaN)) return res.redirect('/admin/nation-map');
+  await db.query(
+    `INSERT INTO mining_regions (name, x1, z1, x2, z2) VALUES ($1,$2,$3,$4,$5)`,
+    [(name || 'Mining Region').trim(), rx1, rz1, rx2, rz2]
+  );
+  res.redirect('/admin/nation-map');
+});
+
+router.post('/mining-region/:id/delete', async (req, res) => {
+  await db.query(`DELETE FROM mining_regions WHERE id = $1`, [req.params.id]);
+  res.redirect('/admin/nation-map');
 });
 
 // Map viewer

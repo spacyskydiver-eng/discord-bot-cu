@@ -142,6 +142,13 @@ body { overflow: hidden; }
           style="left:<%= t.col*1024 %>px;top:<%= t.row*1024 %>px;" draggable="false">
       <% }); %>
 
+      <!-- Mining regions -->
+      <% miningRegions.forEach(function(r) { %>
+        <div style="position:absolute;left:<%= r.x1+2560 %>px;top:<%= r.z1+2560 %>px;width:<%= r.x2-r.x1 %>px;height:<%= r.z2-r.z1 %>px;background:rgba(251,146,60,.1);border:2px solid rgba(251,146,60,.7);pointer-events:none;z-index:5;">
+          <span style="position:absolute;top:4px;left:6px;font-family:'Baloo 2';font-weight:800;font-size:10px;color:#fb923c;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.8);"><%= r.name %></span>
+        </div>
+      <% }); %>
+
       <!-- Other nations' markers (faded) -->
       <% otherMarkers.forEach(function(m) {
         const px = m.map_x + 2560;
@@ -180,6 +187,8 @@ body { overflow: hidden; }
     </div>
     <% } %>
 
+    <div id="nmError" style="display:none;position:absolute;top:14px;left:50%;transform:translateX(-50%);background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.35);border-radius:10px;padding:9px 16px;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#f87171;pointer-events:none;z-index:20;white-space:nowrap;"></div>
+
     <div class="nm-confirm hidden" id="nmConfirm">
       <div>
         <div class="nm-confirm-text">Place <%= nation.server_name %> at</div>
@@ -200,6 +209,14 @@ body { overflow: hidden; }
 <script>
 document.getElementById('nmDeadline').textContent =
   new Date(1788649200000).toLocaleString('en-GB', { weekday:'short', day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+
+var MINING_REGIONS = <%- JSON.stringify(miningRegions) %>;
+
+function isInMiningRegion(wx, wz) {
+  return MINING_REGIONS.some(function(r) {
+    return wx >= r.x1 && wx <= r.x2 && wz >= r.z1 && wz <= r.z2;
+  });
+}
 
 var WORLD_ORIGIN = 2560;
 var scale = 0.25;
@@ -271,6 +288,14 @@ window.addEventListener('mouseup', function(e) {
   mousedownOnMap = false;
 });
 
+function showError(msg) {
+  var el = document.getElementById('nmError');
+  el.textContent = msg;
+  el.style.display = '';
+  clearTimeout(el._t);
+  el._t = setTimeout(function() { el.style.display = 'none'; }, 3000);
+}
+
 function handleMapClick(e) {
   var vr = viewport.getBoundingClientRect();
   var mx = (e.clientX - vr.left - panX) / scale;
@@ -280,6 +305,12 @@ function handleMapClick(e) {
 
   // Must be within the map bounds
   if (wx < -2560 || wx > 2560 || wz < -2560 || wz > 2560) return;
+
+  // Block placement inside mining regions
+  if (isInMiningRegion(wx, wz)) {
+    showError('That area is a mining region — choose a different location.');
+    return;
+  }
 
   pendingX = wx; pendingZ = wz;
 

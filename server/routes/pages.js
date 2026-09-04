@@ -462,7 +462,12 @@ router.get('/nation-place', async (req, res) => {
     `SELECT server_name, map_x, map_z FROM nation_leader_applications
      WHERE accepted = true AND discord_id != $1 AND map_x IS NOT NULL`, [uid]
   );
-  res.render('new/nation-place', { nation, otherMarkers: othersRes.rows, saved: req.query.saved === '1' });
+  const regionsRes = await db.query(`SELECT x1,z1,x2,z2,name FROM mining_regions ORDER BY id ASC`);
+  res.render('new/nation-place', {
+    nation, otherMarkers: othersRes.rows,
+    miningRegions: regionsRes.rows,
+    saved: req.query.saved === '1'
+  });
 });
 
 router.post('/nation-place/submit', async (req, res) => {

@@ -4,117 +4,124 @@
 <style>
 * { box-sizing: border-box; }
 body { overflow: hidden; }
-
 .nm-wrap { display: flex; flex-direction: column; height: calc(100vh - 60px); }
 
-/* Toolbar */
-.nm-bar { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); flex-shrink: 0; flex-wrap: wrap; }
-.nm-bar-title { font-family: 'Baloo 2'; font-weight: 800; font-size: 16px; color: var(--text); margin-right: 4px; }
+.nm-bar { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--panel); border-bottom: 1px solid var(--line); flex-shrink: 0; flex-wrap: wrap; }
+.nm-bar-title { font-family: 'Baloo 2'; font-weight: 800; font-size: 15px; color: var(--text); }
 .nm-bar-sub { font-size: 12px; color: var(--muted); font-family: 'Baloo 2'; font-weight: 700; }
 .nm-spacer { flex: 1; }
 .nm-deadline { font-family: 'Baloo 2'; font-weight: 700; font-size: 12px; color: var(--muted); }
 .nm-deadline strong { color: #ffd56b; }
 .nm-zoom { display: flex; align-items: center; gap: 4px; }
-.nm-zoom-btn { width: 32px; height: 32px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; color: var(--text); font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; transition: background .1s; }
+.nm-zoom-btn { width: 30px; height: 30px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 7px; color: var(--text); font-size: 17px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .nm-zoom-btn:hover { background: rgba(255,255,255,.08); }
-.nm-zoom-label { font-family: 'Baloo 2'; font-weight: 800; font-size: 13px; color: var(--muted); min-width: 40px; text-align: center; }
-.nm-coords { font-family: 'Baloo 2'; font-weight: 700; font-size: 12px; color: var(--muted); min-width: 130px; text-align: right; }
+.nm-zoom-label { font-family: 'Baloo 2'; font-weight: 800; font-size: 12px; color: var(--muted); min-width: 38px; text-align: center; }
+.nm-coords { font-family: 'Baloo 2'; font-weight: 700; font-size: 11px; color: var(--muted); min-width: 120px; text-align: right; }
 
-/* Viewport */
-.nm-viewport { flex: 1; position: relative; overflow: hidden; background: #0c0c12; cursor: grab; }
+.nm-mode-btn { display: flex; align-items: center; gap: 6px; padding: 6px 13px; border-radius: 8px; font-family: 'Baloo 2'; font-weight: 800; font-size: 12px; cursor: pointer; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); transition: all .15s; }
+.nm-mode-btn:hover { background: rgba(255,255,255,.06); color: var(--text); }
+.nm-mode-btn.active { background: rgba(251,146,60,.12); border-color: rgba(251,146,60,.4); color: #fb923c; }
+
+.nm-viewport { flex: 1; position: relative; overflow: hidden; background: #0a0a10; cursor: grab; user-select: none; }
 .nm-viewport.dragging { cursor: grabbing; }
+.nm-viewport.draw-mode { cursor: crosshair; }
 
-/* Map grid — 5120×5120 coordinate space */
-#nmGrid {
-  position: absolute;
-  width: 5120px;
-  height: 5120px;
-  transform-origin: 0 0;
-}
+#nmGrid { position: absolute; width: 5120px; height: 5120px; transform-origin: 0 0; }
 
-.nm-tile {
-  position: absolute;
-  width: 1024px;
-  height: 1024px;
-  image-rendering: pixelated;
-  display: block;
-}
+.nm-tile { position: absolute; width: 1024px; height: 1024px; image-rendering: pixelated; display: block; }
 
 /* Nation markers */
-.nm-marker {
+.nm-marker { position: absolute; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; pointer-events: none; z-index: 10; }
+.nm-marker-pin { width: 12px; height: 12px; background: #e83535; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 2px 8px rgba(232,53,53,.6); flex-shrink: 0; }
+.nm-marker-line { width: 2px; height: 16px; background: #e83535; flex-shrink: 0; order: -1; }
+.nm-marker-label { position: absolute; top: -36px; background: rgba(10,10,18,.92); border: 1px solid rgba(232,53,53,.5); border-radius: 6px; padding: 3px 8px; font-family: 'Baloo 2'; font-weight: 800; font-size: 11px; color: #fff; white-space: nowrap; }
+
+/* Mining regions */
+.nm-region {
   position: absolute;
-  transform: translate(-50%, -100%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  background: rgba(251,146,60,.1);
+  border: 2px solid rgba(251,146,60,.7);
   pointer-events: none;
-  z-index: 10;
+  z-index: 5;
 }
-.nm-marker-pin {
-  width: 12px;
-  height: 12px;
-  background: #e83535;
-  border: 2px solid #fff;
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(232,53,53,.6);
-  flex-shrink: 0;
-}
-.nm-marker-line {
-  width: 2px;
-  height: 16px;
-  background: #e83535;
-  flex-shrink: 0;
-  order: -1;
-}
-.nm-marker-label {
+.nm-region-label {
   position: absolute;
-  top: -36px;
-  background: rgba(10,10,18,.92);
-  border: 1px solid rgba(232,53,53,.5);
-  border-radius: 6px;
-  padding: 3px 8px;
-  font-family: 'Baloo 2';
-  font-weight: 800;
-  font-size: 11px;
-  color: #fff;
+  top: 4px; left: 6px;
+  font-family: 'Baloo 2'; font-weight: 800; font-size: 10px;
+  color: #fb923c;
   white-space: nowrap;
-  pointer-events: none;
+  text-shadow: 0 1px 3px rgba(0,0,0,.8);
 }
 
-/* No-tile areas */
-.nm-empty { background: #0c0c12; }
-
-/* Legend */
-.nm-legend {
+/* Draw preview */
+#drawPreview {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
-  background: rgba(10,10,18,.85);
+  background: rgba(251,146,60,.15);
+  border: 2px dashed rgba(251,146,60,.9);
+  pointer-events: none;
+  display: none;
+  z-index: 15;
+}
+
+/* Draw confirm dialog */
+#drawDialog {
+  position: absolute;
+  z-index: 40;
+  background: rgba(10,10,18,.97);
+  border: 1px solid rgba(251,146,60,.4);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: none;
+  min-width: 240px;
+  backdrop-filter: blur(8px);
+}
+#drawDialog label { font-family: 'Baloo 2'; font-weight: 700; font-size: 11px; color: var(--muted); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
+#drawDialog input { width: 100%; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-family: 'Baloo 2'; font-weight: 700; font-size: 13px; color: var(--text); outline: none; margin-bottom: 10px; }
+.dd-btns { display: flex; gap: 6px; }
+.dd-save { flex: 1; background: rgba(251,146,60,.85); border: none; border-radius: 8px; color: #fff; font-family: 'Baloo 2'; font-weight: 800; font-size: 13px; padding: 8px; cursor: pointer; }
+.dd-save:hover { background: #fb923c; }
+.dd-cancel { background: transparent; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); font-family: 'Baloo 2'; font-weight: 800; font-size: 13px; padding: 8px 12px; cursor: pointer; }
+
+/* Regions panel */
+.nm-panel {
+  position: absolute;
+  top: 10px; right: 10px;
+  background: rgba(10,10,18,.88);
   border: 1px solid var(--line);
   border-radius: 10px;
-  padding: 10px 14px;
+  padding: 10px 12px;
   font-family: 'Baloo 2';
-  font-weight: 700;
   font-size: 12px;
-  color: var(--muted);
-  pointer-events: none;
   z-index: 20;
+  min-width: 170px;
+  max-width: 220px;
+  max-height: calc(100% - 24px);
+  overflow-y: auto;
 }
-.nm-legend-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
-.nm-legend-dot { width: 10px; height: 10px; border-radius: 50%; background: #e83535; }
-.nm-legend-placed { color: var(--text); }
-.nm-legend-waiting { color: var(--muted); }
+.nm-panel-title { font-weight: 800; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+.nm-panel-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+.nm-panel-dot-red { width: 8px; height: 8px; border-radius: 50%; background: #e83535; flex-shrink: 0; }
+.nm-panel-dot-ore { width: 8px; height: 8px; border-radius: 3px; background: #fb923c; border: 1px solid rgba(251,146,60,.6); flex-shrink: 0; }
+.nm-panel-name { font-weight: 700; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nm-panel-name.muted { color: var(--muted); }
+.nm-del { background: none; border: none; color: rgba(248,113,113,.5); cursor: pointer; font-size: 13px; line-height: 1; padding: 1px 3px; border-radius: 4px; flex-shrink: 0; }
+.nm-del:hover { color: #f87171; background: rgba(248,113,113,.1); }
+.nm-divider { border: none; border-top: 1px solid var(--line); margin: 8px 0; }
 </style>
 
 <div class="nm-wrap">
   <div class="nm-bar">
     <span class="nm-bar-title">Nation Map</span>
-    <span class="nm-bar-sub"><%= markers.length %> nation<%= markers.length === 1 ? '' : 's' %> placed · <%= waiting.length %> awaiting</span>
+    <span class="nm-bar-sub"><%= markers.length %> placed · <%= waiting.length %> awaiting</span>
+    <button class="nm-mode-btn" id="drawBtn" onclick="toggleDrawMode()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+      Draw mining region
+    </button>
     <div class="nm-spacer"></div>
-    <span class="nm-deadline">Location deadline: <strong id="nmDeadline">—</strong></span>
+    <span class="nm-deadline">Deadline: <strong id="nmDeadline">—</strong></span>
     <div class="nm-zoom">
       <button class="nm-zoom-btn" onclick="zoom(-1)">−</button>
-      <span class="nm-zoom-label" id="zoomLabel">100%</span>
+      <span class="nm-zoom-label" id="zoomLabel">25%</span>
       <button class="nm-zoom-btn" onclick="zoom(1)">+</button>
     </div>
     <span class="nm-coords" id="nmCoords">X — · Z —</span>
@@ -123,7 +130,6 @@ body { overflow: hidden; }
   <div class="nm-viewport" id="nmViewport">
     <div id="nmGrid">
 
-      <!-- Tiles — 3×3 grid (col 1-3, row 1-3). World origin at pixel 2560,2560 -->
       <%
       const tiles = [
         { col:1,row:1,file:'1_1_x-1536_z-1536' },
@@ -142,114 +148,220 @@ body { overflow: hidden; }
           style="left:<%= t.col*1024 %>px;top:<%= t.row*1024 %>px;" draggable="false">
       <% }); %>
 
-      <!-- Nation markers (world coord → pixel: px = worldX + 2560, py = worldZ + 2560) -->
-      <% markers.forEach(function(m) {
-        const px = m.map_x + 2560;
-        const py = m.map_z + 2560;
+      <!-- Mining regions -->
+      <% regions.forEach(function(r) {
+        const px = r.x1 + 2560, pz = r.z1 + 2560;
+        const pw = r.x2 - r.x1, ph = r.z2 - r.z1;
       %>
-        <div class="nm-marker" style="left:<%= px %>px;top:<%= py %>px;">
+        <div class="nm-region" style="left:<%= px %>px;top:<%= pz %>px;width:<%= pw %>px;height:<%= ph %>px;">
+          <span class="nm-region-label"><%= r.name %></span>
+        </div>
+      <% }); %>
+
+      <!-- Nation markers -->
+      <% markers.forEach(function(m) { %>
+        <div class="nm-marker" style="left:<%= m.map_x+2560 %>px;top:<%= m.map_z+2560 %>px;">
           <div class="nm-marker-label"><%= m.server_name %></div>
           <div class="nm-marker-line"></div>
           <div class="nm-marker-pin"></div>
         </div>
       <% }); %>
 
+      <div id="drawPreview"></div>
     </div>
 
-    <div class="nm-legend">
-      <% if (markers.length > 0) { %>
+    <!-- Draw confirm dialog -->
+    <div id="drawDialog">
+      <label>Region name</label>
+      <input id="drawName" type="text" value="Mining Region" maxlength="40">
+      <div class="dd-btns">
+        <button class="dd-cancel" onclick="cancelDraw()">Cancel</button>
+        <button class="dd-save" onclick="saveRegion()">Save region</button>
+      </div>
+    </div>
+
+    <!-- Legend panel -->
+    <div class="nm-panel">
+      <div class="nm-panel-title">Nations</div>
       <% markers.forEach(function(m) { %>
-      <div class="nm-legend-row">
-        <div class="nm-legend-dot"></div>
-        <span class="nm-legend-placed"><%= m.server_name %></span>
+      <div class="nm-panel-row">
+        <div class="nm-panel-dot-red"></div>
+        <span class="nm-panel-name"><%= m.server_name %></span>
       </div>
       <% }); %>
-      <% } %>
-      <% if (waiting.length > 0) { %>
-      <div style="margin-top:<%= markers.length > 0 ? '8px' : '0' %>;font-size:11px;color:var(--muted)">Awaiting:</div>
       <% waiting.forEach(function(w) { %>
-      <div class="nm-legend-row"><span class="nm-legend-waiting"><%= w.server_name %></span></div>
+      <div class="nm-panel-row">
+        <div class="nm-panel-dot-red" style="opacity:.3"></div>
+        <span class="nm-panel-name muted"><%= w.server_name %></span>
+      </div>
+      <% }); %>
+
+      <% if (regions.length > 0) { %>
+      <hr class="nm-divider">
+      <div class="nm-panel-title">Mining regions</div>
+      <% regions.forEach(function(r) { %>
+      <div class="nm-panel-row">
+        <div class="nm-panel-dot-ore"></div>
+        <span class="nm-panel-name" style="color:#fb923c"><%= r.name %></span>
+        <form method="POST" action="/admin/mining-region/<%= r.id %>/delete" style="margin:0">
+          <button class="nm-del" type="submit" title="Delete">✕</button>
+        </form>
+      </div>
       <% }); %>
       <% } %>
     </div>
   </div>
 </div>
 
+<!-- Save region form (submitted programmatically) -->
+<form id="regionForm" method="POST" action="/admin/mining-region/add" style="display:none">
+  <input type="hidden" name="name" id="fName">
+  <input type="hidden" name="x1" id="fX1">
+  <input type="hidden" name="z1" id="fZ1">
+  <input type="hidden" name="x2" id="fX2">
+  <input type="hidden" name="z2" id="fZ2">
+</form>
+
 <script>
 document.getElementById('nmDeadline').textContent =
   new Date(1788649200000).toLocaleString('en-GB', { weekday:'short', day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
 
-var TILE_SIZE = 1024;
-var GRID_SIZE = 5120;
-var WORLD_ORIGIN = 2560; // pixel offset where world 0,0 is
-
-var scale = 0.25;
-var panX = 0, panY = 0;
+var WORLD_ORIGIN = 2560;
+var scale = 0.25, panX = 0, panY = 0;
 var dragging = false, lastX = 0, lastY = 0;
+var MODE = 'pan'; // 'pan' | 'draw'
+var drawing = false, drawWX1, drawWZ1, drawWX2, drawWZ2;
+var pendingRegion = null;
 
-var viewport = document.getElementById('nmViewport');
-var grid = document.getElementById('nmGrid');
+var viewport  = document.getElementById('nmViewport');
+var grid      = document.getElementById('nmGrid');
+var preview   = document.getElementById('drawPreview');
+var dialog    = document.getElementById('drawDialog');
 
 var ZOOM_STEPS = [0.1, 0.15, 0.18, 0.25, 0.35, 0.5, 0.75, 1.0, 1.5, 2.0];
 var zoomIdx = 3;
 
 function applyTransform() {
-  grid.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')';
-  document.getElementById('zoomLabel').textContent = Math.round(scale * 100) + '%';
+  grid.style.transform = 'translate('+panX+'px,'+panY+'px) scale('+scale+')';
+  document.getElementById('zoomLabel').textContent = Math.round(scale*100)+'%';
 }
-
 function zoom(dir) {
   var vr = viewport.getBoundingClientRect();
-  var cx = vr.width / 2, cy = vr.height / 2;
-  var newIdx = Math.max(0, Math.min(ZOOM_STEPS.length - 1, zoomIdx + dir));
-  if (newIdx === zoomIdx) return;
-  var newScale = ZOOM_STEPS[newIdx];
-  // Keep centre fixed
-  panX = cx - (cx - panX) * (newScale / scale);
-  panY = cy - (cy - panY) * (newScale / scale);
-  scale = newScale;
-  zoomIdx = newIdx;
+  var cx = vr.width/2, cy = vr.height/2;
+  var ni = Math.max(0, Math.min(ZOOM_STEPS.length-1, zoomIdx+dir));
+  if (ni === zoomIdx) return;
+  var ns = ZOOM_STEPS[ni];
+  panX = cx - (cx-panX)*(ns/scale);
+  panY = cy - (cy-panY)*(ns/scale);
+  scale = ns; zoomIdx = ni;
   applyTransform();
 }
 
-// Pan drag
+function toggleDrawMode() {
+  MODE = MODE === 'draw' ? 'pan' : 'draw';
+  var btn = document.getElementById('drawBtn');
+  btn.classList.toggle('active', MODE === 'draw');
+  viewport.classList.toggle('draw-mode', MODE === 'draw');
+  if (MODE === 'pan') { preview.style.display='none'; dialog.style.display='none'; }
+}
+
+function clientToWorld(cx, cy) {
+  var vr = viewport.getBoundingClientRect();
+  var px = (cx - vr.left - panX) / scale;
+  var pz = (cy - vr.top  - panY) / scale;
+  return { wx: Math.round(px - WORLD_ORIGIN), wz: Math.round(pz - WORLD_ORIGIN) };
+}
+
+function updatePreview() {
+  var px1 = Math.min(drawWX1, drawWX2) + WORLD_ORIGIN;
+  var pz1 = Math.min(drawWZ1, drawWZ2) + WORLD_ORIGIN;
+  var pw  = Math.abs(drawWX2 - drawWX1);
+  var ph  = Math.abs(drawWZ2 - drawWZ1);
+  preview.style.cssText = 'display:block;left:'+px1+'px;top:'+pz1+'px;width:'+pw+'px;height:'+ph+'px;';
+}
+
 viewport.addEventListener('mousedown', function(e) {
   if (e.button !== 0) return;
-  dragging = true; lastX = e.clientX; lastY = e.clientY;
-  viewport.classList.add('dragging');
+  if (e.target.closest('#drawDialog, button, .nm-panel')) return;
   e.preventDefault();
+  var w = clientToWorld(e.clientX, e.clientY);
+  if (MODE === 'draw') {
+    drawing = true;
+    drawWX1 = drawWX2 = w.wx;
+    drawWZ1 = drawWZ2 = w.wz;
+    updatePreview();
+  } else {
+    dragging = true; lastX = e.clientX; lastY = e.clientY;
+    viewport.classList.add('dragging');
+  }
 });
+
 window.addEventListener('mousemove', function(e) {
-  // Show coords
-  var vr = viewport.getBoundingClientRect();
-  var mx = (e.clientX - vr.left - panX) / scale;
-  var mz = (e.clientY - vr.top - panY) / scale;
-  var wx = Math.round(mx - WORLD_ORIGIN);
-  var wz = Math.round(mz - WORLD_ORIGIN);
-  document.getElementById('nmCoords').textContent = 'X ' + wx + ' · Z ' + wz;
-
-  if (!dragging) return;
-  panX += e.clientX - lastX;
-  panY += e.clientY - lastY;
-  lastX = e.clientX; lastY = e.clientY;
-  applyTransform();
-});
-window.addEventListener('mouseup', function() {
-  dragging = false;
-  viewport.classList.remove('dragging');
+  var w = clientToWorld(e.clientX, e.clientY);
+  document.getElementById('nmCoords').textContent = 'X '+w.wx+' · Z '+w.wz;
+  if (MODE === 'draw' && drawing) {
+    drawWX2 = w.wx; drawWZ2 = w.wz;
+    updatePreview();
+  } else if (dragging) {
+    panX += e.clientX - lastX; panY += e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    applyTransform();
+  }
 });
 
-// Scroll zoom
-viewport.addEventListener('wheel', function(e) {
-  e.preventDefault();
-  zoom(e.deltaY < 0 ? 1 : -1);
-}, { passive: false });
+window.addEventListener('mouseup', function(e) {
+  if (MODE === 'draw' && drawing) {
+    drawing = false;
+    var w = clientToWorld(e.clientX, e.clientY);
+    drawWX2 = w.wx; drawWZ2 = w.wz;
+    // Only open dialog if the box is big enough (>10 world units)
+    if (Math.abs(drawWX2-drawWX1) > 10 && Math.abs(drawWZ2-drawWZ1) > 10) {
+      pendingRegion = { x1:drawWX1, z1:drawWZ1, x2:drawWX2, z2:drawWZ2 };
+      // Position dialog near the drawn box
+      var vr = viewport.getBoundingClientRect();
+      var dleft = Math.min(e.clientX - vr.left, vr.width - 260);
+      var dtop  = Math.max(e.clientY - vr.top - 120, 10);
+      dialog.style.cssText = 'display:block;left:'+dleft+'px;top:'+dtop+'px;';
+      document.getElementById('drawName').focus();
+      document.getElementById('drawName').select();
+    } else {
+      preview.style.display = 'none';
+    }
+  } else if (dragging) {
+    dragging = false;
+    viewport.classList.remove('dragging');
+  }
+});
 
-// Centre on world 0,0 (pixel 2560,2560 in the grid)
+function cancelDraw() {
+  dialog.style.display = 'none';
+  preview.style.display = 'none';
+  pendingRegion = null;
+}
+
+function saveRegion() {
+  if (!pendingRegion) return;
+  var name = document.getElementById('drawName').value.trim() || 'Mining Region';
+  document.getElementById('fName').value = name;
+  document.getElementById('fX1').value = pendingRegion.x1;
+  document.getElementById('fZ1').value = pendingRegion.z1;
+  document.getElementById('fX2').value = pendingRegion.x2;
+  document.getElementById('fZ2').value = pendingRegion.z2;
+  document.getElementById('regionForm').submit();
+}
+
+// Close dialog on Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') cancelDraw();
+  if (e.key === 'Enter' && dialog.style.display !== 'none') { e.preventDefault(); saveRegion(); }
+});
+
+viewport.addEventListener('wheel', function(e) { e.preventDefault(); zoom(e.deltaY<0?1:-1); }, { passive:false });
+
 window.addEventListener('load', function() {
   var vr = viewport.getBoundingClientRect();
-  panX = vr.width  / 2 - WORLD_ORIGIN * scale;
-  panY = vr.height / 2 - WORLD_ORIGIN * scale;
+  panX = vr.width/2  - WORLD_ORIGIN*scale;
+  panY = vr.height/2 - WORLD_ORIGIN*scale;
   applyTransform();
 });
 </script>
