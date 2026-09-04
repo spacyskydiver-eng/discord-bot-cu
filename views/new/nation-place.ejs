@@ -104,6 +104,32 @@ body { overflow: hidden; }
   text-align: center;
   flex-shrink: 0;
 }
+
+/* Side panel */
+.nm-panel {
+  position: absolute;
+  top: 10px; right: 10px;
+  background: rgba(10,10,18,.88);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-family: 'Baloo 2';
+  font-size: 12px;
+  z-index: 20;
+  min-width: 170px;
+  max-width: 220px;
+  max-height: calc(100% - 24px);
+  overflow-y: auto;
+}
+.nm-panel-title { font-weight: 800; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+.nm-panel-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+.nm-panel-dot { width: 8px; height: 8px; border-radius: 50%; background: #e83535; flex-shrink: 0; }
+.nm-panel-name { font-weight: 700; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nm-panel-name.muted { color: var(--muted); }
+.nm-panel-you { font-weight: 800; color: #e83535; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nm-del { background: none; border: none; color: rgba(248,113,113,.5); cursor: pointer; font-size: 13px; line-height: 1; padding: 1px 3px; border-radius: 4px; flex-shrink: 0; }
+.nm-del:hover { color: #f87171; background: rgba(248,113,113,.1); }
+.nm-divider { border: none; border-top: 1px solid var(--line); margin: 8px 0; }
 </style>
 
 <div class="nm-wrap">
@@ -182,13 +208,10 @@ body { overflow: hidden; }
       </defs>
     </svg>
 
-    <% if (saved) { %>
-    <div class="nm-saved">Location saved for <%= nation.server_name %></div>
-    <% } else { %>
-    <div class="nm-instruct" id="nmInstruct">
+    <div class="nm-saved" id="nmSaved"<%= saved ? '' : ' style="display:none"' %>>Location saved for <%= nation.server_name %></div>
+    <div class="nm-instruct" id="nmInstruct"<%= saved ? ' style="display:none"' : '' %>>
       <%= nation.map_x != null ? 'Click the map to move your marker' : 'Click the map to place your nation location' %>
     </div>
-    <% } %>
 
     <div id="nmError" style="display:none;position:absolute;top:14px;left:50%;transform:translateX(-50%);background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.35);border-radius:10px;padding:9px 16px;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#f87171;pointer-events:none;z-index:20;white-space:nowrap;"></div>
 
@@ -199,6 +222,37 @@ body { overflow: hidden; }
       </div>
       <button class="nm-cancel-btn" onclick="cancelPlace()">Cancel</button>
       <button class="nm-confirm-btn" onclick="submitPlace()">Confirm location</button>
+    </div>
+
+    <!-- Side panel -->
+    <div class="nm-panel">
+      <div class="nm-panel-title">Your nation</div>
+      <div class="nm-panel-row">
+        <div class="nm-panel-dot"<%= nation.map_x == null ? ' style="opacity:.3"' : '' %>></div>
+        <span class="nm-panel-you"><%= nation.server_name %></span>
+        <% if (nation.map_x != null) { %>
+        <form method="POST" action="/nation-place/clear" style="margin:0">
+          <button class="nm-del" type="submit" title="Remove your marker" onclick="return confirm('Remove your marker?')">✕</button>
+        </form>
+        <% } %>
+      </div>
+
+      <% if (otherMarkers.length > 0 || waiting.length > 0) { %>
+      <hr class="nm-divider">
+      <div class="nm-panel-title">All nations</div>
+      <% otherMarkers.forEach(function(m) { %>
+      <div class="nm-panel-row">
+        <div class="nm-panel-dot"></div>
+        <span class="nm-panel-name"><%= m.server_name %></span>
+      </div>
+      <% }); %>
+      <% waiting.forEach(function(w) { %>
+      <div class="nm-panel-row">
+        <div class="nm-panel-dot" style="opacity:.3"></div>
+        <span class="nm-panel-name muted"><%= w.server_name %></span>
+      </div>
+      <% }); %>
+      <% } %>
     </div>
   </div>
 </div>
@@ -211,6 +265,17 @@ body { overflow: hidden; }
 <script>
 document.getElementById('nmDeadline').textContent =
   new Date(1788649200000).toLocaleString('en-GB', { weekday:'short', day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+
+// Auto-dismiss the saved banner then show the instruction
+<% if (saved) { %>
+setTimeout(function() {
+  var s = document.getElementById('nmSaved');
+  var i = document.getElementById('nmInstruct');
+  if (s) s.style.display = 'none';
+  if (i) i.style.display = '';
+  history.replaceState(null, '', '/nation-place');
+}, 3000);
+<% } %>
 
 var MINING_REGIONS = <%- JSON.stringify(miningRegions) %>;
 

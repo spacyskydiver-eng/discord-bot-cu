@@ -458,13 +458,15 @@ router.get('/nation-place', async (req, res) => {
   const nation = r.rows[0] || null;
   if (!nation) return res.redirect('/applications');
 
-  const othersRes = await db.query(
+  const allRes = await db.query(
     `SELECT server_name, map_x, map_z FROM nation_leader_applications
-     WHERE accepted = true AND discord_id != $1 AND map_x IS NOT NULL`, [uid]
+     WHERE accepted = true AND discord_id != $1 ORDER BY server_name ASC`, [uid]
   );
-  const regionsRes = await db.query(`SELECT x1,z1,x2,z2,name FROM mining_regions ORDER BY id ASC`);
+  const otherMarkers = allRes.rows.filter(n => n.map_x != null);
+  const waiting      = allRes.rows.filter(n => n.map_x == null);
+  const regionsRes   = await db.query(`SELECT x1,z1,x2,z2,name FROM mining_regions ORDER BY id ASC`);
   res.render('new/nation-place', {
-    nation, otherMarkers: othersRes.rows,
+    nation, otherMarkers, waiting,
     miningRegions: regionsRes.rows,
     saved: req.query.saved === '1'
   });
@@ -482,6 +484,16 @@ router.post('/nation-place/submit', async (req, res) => {
     [map_x, map_z, uid]
   );
   res.redirect('/nation-place?saved=1');
+});
+
+router.post('/nation-place/clear', async (req, res) => {
+  if (!req.session.user) return res.redirect(`${res.locals.lp}/auth/discord`);
+  const uid = req.session.user.id;
+  await db.query(
+    `UPDATE nation_leader_applications SET map_x = NULL, map_z = NULL WHERE discord_id = $1 AND accepted = true`,
+    [uid]
+  );
+  res.redirect('/nation-place');
 });
 
 module.exports = router;
