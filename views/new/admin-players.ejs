@@ -1,0 +1,201 @@
+<%- include('partials/head', { pageTitle: 'Players — Admin' }) %>
+<%- include('partials/header') %>
+
+<style>
+.pl-wrap { max-width: 900px; margin: 0 auto; padding: 32px 20px 80px; }
+.pl-topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.pl-title { font-family: 'Baloo 2'; font-weight: 800; font-size: 22px; color: var(--text); flex: 1; margin: 0; }
+.pl-search { flex: 1; min-width: 200px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; font-family: 'Baloo 2'; font-weight: 700; font-size: 14px; color: var(--text); outline: none; }
+.pl-search::placeholder { color: var(--muted); }
+.pl-export { background: rgba(91,227,143,.12); border: 1px solid rgba(91,227,143,.25); color: #5be38f; font-family: 'Baloo 2'; font-weight: 800; font-size: 13px; padding: 9px 16px; border-radius: 10px; cursor: pointer; white-space: nowrap; }
+.pl-export:hover { background: rgba(91,227,143,.2); }
+
+.pl-filters { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.pl-filter { font-family: 'Baloo 2'; font-weight: 700; font-size: 12px; padding: 6px 14px; border-radius: 99px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); cursor: pointer; transition: all .15s; }
+.pl-filter.active { background: rgba(116,192,252,.12); border-color: rgba(116,192,252,.35); color: #74c0fc; }
+
+.pl-stats { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.pl-stat { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 18px; text-align: center; }
+.pl-stat-n { font-family: 'Baloo 2'; font-weight: 800; font-size: 22px; color: var(--text); }
+.pl-stat-l { font-size: 11px; color: var(--muted); font-family: 'Baloo 2'; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+
+.pl-table { width: 100%; border-collapse: collapse; }
+.pl-table th { font-family: 'Baloo 2'; font-weight: 700; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; padding: 0 12px 10px; text-align: left; border-bottom: 1px solid var(--line); }
+.pl-table th.center { text-align: center; }
+.pl-row { border-bottom: 1px solid rgba(255,255,255,.04); transition: background .1s; cursor: default; }
+.pl-row:hover { background: rgba(255,255,255,.025); }
+.pl-row[hidden] { display: none; }
+.pl-cell { padding: 10px 12px; vertical-align: middle; }
+.pl-ign { display: flex; align-items: center; gap: 10px; }
+.pl-head { width: 28px; height: 28px; border-radius: 4px; image-rendering: pixelated; background: rgba(255,255,255,.06); flex-shrink: 0; }
+.pl-ign-name { font-family: 'Baloo 2'; font-weight: 800; font-size: 14px; color: var(--text); }
+.pl-crown { font-size: 11px; margin-left: 4px; vertical-align: middle; }
+.pl-dtag { font-size: 12px; color: var(--muted); font-family: 'Baloo 2'; font-weight: 700; }
+
+.pl-status { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.pl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.pl-dot.green  { background: #5be38f; box-shadow: 0 0 6px rgba(91,227,143,.5); }
+.pl-dot.yellow { background: #ffd56b; box-shadow: 0 0 6px rgba(255,213,107,.4); }
+.pl-dot.red    { background: #f87171; box-shadow: 0 0 6px rgba(248,113,113,.3); }
+
+.pl-tick { display: flex; align-items: center; justify-content: center; }
+.pl-tick svg { width: 18px; height: 18px; }
+
+.pl-empty { text-align: center; padding: 60px 20px; color: var(--muted); font-family: 'Baloo 2'; font-weight: 700; font-size: 15px; }
+</style>
+
+<main class="wrap">
+<div class="pl-wrap">
+
+  <div class="pl-topbar">
+    <h1 class="pl-title">Players <span style="font-size:14px;color:var(--muted);font-weight:700">(<span id="visCount"><%= players.length %></span> shown)</span></h1>
+    <input class="pl-search" type="text" placeholder="Search IGN or Discord tag…" oninput="filterPlayers()" id="plSearch">
+    <button class="pl-export" onclick="exportWhitelist()">Export whitelist</button>
+  </div>
+
+  <%
+    const total = players.length;
+    const verified = players.filter(p => p.ign_verified).length;
+    const pending  = players.filter(p => !p.ign_verified).length;
+    const leaders  = players.filter(p => p.is_nation_leader).length;
+  %>
+
+  <div class="pl-stats">
+    <div class="pl-stat"><div class="pl-stat-n"><%= total %></div><div class="pl-stat-l">Total</div></div>
+    <div class="pl-stat"><div class="pl-stat-n" style="color:#5be38f"><%= verified %></div><div class="pl-stat-l">Verified</div></div>
+    <div class="pl-stat"><div class="pl-stat-n" style="color:#ffd56b"><%= pending %></div><div class="pl-stat-l">Pending check</div></div>
+    <div class="pl-stat"><div class="pl-stat-n" style="color:#fbbf24"><%= leaders %></div><div class="pl-stat-l">Nation leaders</div></div>
+  </div>
+
+  <div class="pl-filters">
+    <div class="pl-filter active" onclick="setFilter('all', this)">All</div>
+    <div class="pl-filter" onclick="setFilter('verified', this)">Verified ✓</div>
+    <div class="pl-filter" onclick="setFilter('pending', this)">Pending ready-check</div>
+    <div class="pl-filter" onclick="setFilter('leaders', this)">Nation leaders 👑</div>
+  </div>
+
+  <% if (players.length === 0) { %>
+    <div class="pl-empty">No accepted players yet.</div>
+  <% } else { %>
+  <table class="pl-table">
+    <thead>
+      <tr>
+        <th>Player</th>
+        <th>Discord</th>
+        <th class="center" title="IGN submitted in application">IGN in app</th>
+        <th class="center" title="Ready-check completed">Ready check</th>
+      </tr>
+    </thead>
+    <tbody id="playerBody">
+      <% players.forEach(function(p) { %>
+      <tr class="pl-row"
+          data-ign="<%= (p.ign || '').toLowerCase() %>"
+          data-tag="<%= (p.discord_tag || '').toLowerCase() %>"
+          data-verified="<%= p.ign_verified ? '1' : '0' %>"
+          data-leader="<%= p.is_nation_leader ? '1' : '0' %>">
+        <td class="pl-cell">
+          <div class="pl-ign">
+            <img class="pl-head"
+              src="https://mc-heads.net/avatar/<%= encodeURIComponent(p.ign) %>/28"
+              onerror="this.src='https://mc-heads.net/avatar/Steve/28'"
+              alt="">
+            <span class="pl-ign-name">
+              <%= p.ign %>
+              <% if (p.is_nation_leader) { %><span class="pl-crown" title="Nation Leader">👑</span><% } %>
+            </span>
+          </div>
+        </td>
+        <td class="pl-cell">
+          <span class="pl-dtag"><%= p.discord_tag || '—' %></span>
+        </td>
+        <td class="pl-cell">
+          <div class="pl-tick">
+            <!-- IGN submitted — always true for rows that appear here (ign IS NOT NULL) -->
+            <svg viewBox="0 0 20 20" fill="none">
+              <circle cx="10" cy="10" r="9" fill="rgba(91,227,143,.12)" stroke="#5be38f" stroke-width="1.5"/>
+              <path d="M6 10l3 3 5-5" stroke="#5be38f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </td>
+        <td class="pl-cell">
+          <div class="pl-tick">
+            <% if (p.ign_verified) { %>
+              <svg viewBox="0 0 20 20" fill="none">
+                <circle cx="10" cy="10" r="9" fill="rgba(91,227,143,.12)" stroke="#5be38f" stroke-width="1.5"/>
+                <path d="M6 10l3 3 5-5" stroke="#5be38f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            <% } else { %>
+              <svg viewBox="0 0 20 20" fill="none">
+                <circle cx="10" cy="10" r="9" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.15)" stroke-width="1.5"/>
+                <path d="M6 10l3 3 5-5" stroke="rgba(255,255,255,.15)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            <% } %>
+          </div>
+        </td>
+      </tr>
+      <% }); %>
+    </tbody>
+  </table>
+  <div class="pl-empty" id="noResults" style="display:none">No players match your search.</div>
+  <% } %>
+
+</div>
+</main>
+
+<script>
+var currentFilter = 'all';
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.pl-filter').forEach(function(b) { b.classList.remove('active'); });
+  el.classList.add('active');
+  applyFilters();
+}
+
+function filterPlayers() { applyFilters(); }
+
+function applyFilters() {
+  var q = (document.getElementById('plSearch').value || '').toLowerCase().trim();
+  var rows = document.querySelectorAll('#playerBody .pl-row');
+  var visible = 0;
+  rows.forEach(function(row) {
+    var ign = row.dataset.ign;
+    var tag = row.dataset.tag;
+    var verified = row.dataset.verified === '1';
+    var leader = row.dataset.leader === '1';
+    var matchSearch = !q || ign.includes(q) || tag.includes(q);
+    var matchFilter = currentFilter === 'all'
+      || (currentFilter === 'verified' && verified)
+      || (currentFilter === 'pending' && !verified)
+      || (currentFilter === 'leaders' && leader);
+    row.hidden = !(matchSearch && matchFilter);
+    if (!row.hidden) visible++;
+  });
+  document.getElementById('visCount').textContent = visible;
+  var noRes = document.getElementById('noResults');
+  if (noRes) noRes.style.display = visible === 0 ? '' : 'none';
+}
+
+function exportWhitelist() {
+  var rows = document.querySelectorAll('#playerBody .pl-row:not([hidden])');
+  var igns = [];
+  rows.forEach(function(row) {
+    var nameEl = row.querySelector('.pl-ign-name');
+    if (nameEl) {
+      // Strip the crown emoji text node
+      var text = nameEl.childNodes[0].textContent.trim();
+      if (text) igns.push(text);
+    }
+  });
+  var text = igns.join('\n');
+  navigator.clipboard.writeText(text).then(function() {
+    var btn = document.querySelector('.pl-export');
+    btn.textContent = 'Copied ' + igns.length + ' IGNs!';
+    setTimeout(function() { btn.textContent = 'Export whitelist'; }, 2500);
+  }).catch(function() {
+    prompt('Copy whitelist:', text);
+  });
+}
+</script>
+
+<%- include('partials/foot') %>

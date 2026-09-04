@@ -51,7 +51,7 @@ router.use(requireAdminOrStaff);
 // Staff can only access application review paths; everything else needs full admin
 router.use((req, res, next) => {
   if (res.locals.isFullAdmin) return next();
-  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader') || req.path.startsWith('/nations');
+  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader') || req.path.startsWith('/nations') || req.path === '/hundred-players';
   if (!allowed) return res.status(403).render('403');
   next();
 });
@@ -477,6 +477,44 @@ router.post('/hundred/:id/notes', async (req, res) => {
 router.post('/nation-leader/:id/delete', async (req, res) => {
   await db.query(`DELETE FROM nation_leader_applications WHERE id=$1`, [req.params.id]);
   res.redirect('/admin#tab-hundred');
+});
+
+// ── Players list ──────────────────────────────────────────────────────────────
+
+router.get('/hundred-players', async (req, res) => {
+  // Accepted hundred_applications players
+  const hundredRes = await db.query(`
+    SELECT discord_id, discord_tag, discord_avatar, ign, ign_verified,
+           'hundred' AS source, false AS is_nation_leader
+    FROM hundred_applications
+    WHERE status = 'accepted' AND ign IS NOT NULL AND ign != ''
+  `);
+
+  // Nation leaders without a hundred_applications row (or whose row isn't accepted)
+  const nationRes = await db.query(`
+    SELECT n.discord_id, n.discord_tag, n.discord_avatar, n.ign, n.ign_verified,
+           'nation' AS source, true AS is_nation_leader
+    FROM nation_leader_applications n
+    WHERE n.accepted = true
+      AND n.ign IS NOT NULL AND n.ign != ''
+      AND NOT EXISTS (
+        SELECT 1 FROM hundred_applications h
+        WHERE h.discord_id = n.discord_id AND h.status = 'accepted'
+      )
+  `);
+
+  // Nation leader flags for players who ARE in hundred_applications
+  const nlFlagRes = await db.query(`
+    SELECT discord_id FROM nation_leader_applications WHERE accepted = true
+  `);
+  const nlIds = new Set(nlFlagRes.rows.map(r => r.discord_id));
+
+  const players = [
+    ...hundredRes.rows.map(r => ({ ...r, is_nation_leader: nlIds.has(r.discord_id) })),
+    ...nationRes.rows
+  ].sort((a, b) => (a.ign || '').localeCompare(b.ign || ''));
+
+  res.render('new/admin-players', { players });
 });
 
 // Map viewer
