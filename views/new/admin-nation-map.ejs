@@ -123,34 +123,23 @@ body { overflow: hidden; }
   <div class="nm-viewport" id="nmViewport">
     <div id="nmGrid">
 
-      <!-- Tiles (world origin at pixel 2560,2560) -->
+      <!-- Tiles — 3×3 grid (col 1-3, row 1-3). World origin at pixel 2560,2560 -->
       <%
       const tiles = [
-        [0,1],[0,2],
-        [1,0],[1,1],[1,2],[1,3],[1,4],
-        [2,0],[2,1],[2,2],[2,3],[2,4],
-        [3,0],[3,1],[3,2],[3,3],[3,4],
-        [4,3]
+        { col:1,row:1,file:'1_1_x-1536_z-1536' },
+        { col:1,row:2,file:'1_2_x-1536_z-512' },
+        { col:1,row:3,file:'1_3_x-1536_z512' },
+        { col:2,row:1,file:'2_1_x-512_z-1536' },
+        { col:2,row:2,file:'2_2_x-512_z-512' },
+        { col:2,row:3,file:'2_3_x-512_z512' },
+        { col:3,row:1,file:'3_1_x512_z-1536' },
+        { col:3,row:2,file:'3_2_x512_z-512' },
+        { col:3,row:3,file:'3_3_x512_z512' }
       ];
-      const tileFiles = {
-        '0_1':'0_1_x-2560_z-1536','0_2':'0_2_x-2560_z-512',
-        '1_0':'1_0_x-1536_z-2560','1_1':'1_1_x-1536_z-1536','1_2':'1_2_x-1536_z-512',
-        '1_3':'1_3_x-1536_z512','1_4':'1_4_x-1536_z1536',
-        '2_0':'2_0_x-512_z-2560','2_1':'2_1_x-512_z-1536','2_2':'2_2_x-512_z-512',
-        '2_3':'2_3_x-512_z512','2_4':'2_4_x-512_z1536',
-        '3_0':'3_0_x512_z-2560','3_1':'3_1_x512_z-1536','3_2':'3_2_x512_z-512',
-        '3_3':'3_3_x512_z512','3_4':'3_4_x512_z1536',
-        '4_3':'4_3_x1536_z512'
-      };
       %>
-      <% tiles.forEach(function(t) {
-        const col = t[0], row = t[1];
-        const key = col + '_' + row;
-        const file = tileFiles[key];
-        const px = col * 1024, py = row * 1024;
-      %>
-        <img class="nm-tile" src="/img/map-tiles/<%= file %>.png"
-          style="left:<%= px %>px;top:<%= py %>px;" draggable="false">
+      <% tiles.forEach(function(t) { %>
+        <img class="nm-tile" loading="lazy" src="/img/map-tiles/<%= t.file %>.png"
+          style="left:<%= t.col*1024 %>px;top:<%= t.row*1024 %>px;" draggable="false">
       <% }); %>
 
       <!-- Nation markers (world coord → pixel: px = worldX + 2560, py = worldZ + 2560) -->
@@ -194,7 +183,7 @@ var TILE_SIZE = 1024;
 var GRID_SIZE = 5120;
 var WORLD_ORIGIN = 2560; // pixel offset where world 0,0 is
 
-var scale = 0.18; // default zoom to fit map
+var scale = 0.25;
 var panX = 0, panY = 0;
 var dragging = false, lastX = 0, lastY = 0;
 
@@ -202,7 +191,7 @@ var viewport = document.getElementById('nmViewport');
 var grid = document.getElementById('nmGrid');
 
 var ZOOM_STEPS = [0.1, 0.15, 0.18, 0.25, 0.35, 0.5, 0.75, 1.0, 1.5, 2.0];
-var zoomIdx = 2;
+var zoomIdx = 3;
 
 function applyTransform() {
   grid.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')';
@@ -256,11 +245,11 @@ viewport.addEventListener('wheel', function(e) {
   zoom(e.deltaY < 0 ? 1 : -1);
 }, { passive: false });
 
-// Centre map on load
+// Centre on world 0,0 (pixel 2560,2560 in the grid)
 window.addEventListener('load', function() {
   var vr = viewport.getBoundingClientRect();
-  panX = (vr.width - GRID_SIZE * scale) / 2;
-  panY = (vr.height - GRID_SIZE * scale) / 2;
+  panX = vr.width  / 2 - WORLD_ORIGIN * scale;
+  panY = vr.height / 2 - WORLD_ORIGIN * scale;
   applyTransform();
 });
 </script>
