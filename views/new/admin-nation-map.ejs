@@ -36,31 +36,10 @@ body { overflow: hidden; }
 .nm-marker-line { width: 2px; height: 16px; background: #e83535; flex-shrink: 0; order: -1; }
 .nm-marker-label { position: absolute; top: -36px; background: rgba(10,10,18,.92); border: 1px solid rgba(232,53,53,.5); border-radius: 6px; padding: 3px 8px; font-family: 'Baloo 2'; font-weight: 800; font-size: 11px; color: #fff; white-space: nowrap; }
 
-/* Mining regions */
-.nm-region {
-  position: absolute;
-  background: rgba(251,146,60,.1);
-  border: 2px solid rgba(251,146,60,.7);
-  pointer-events: none;
-  z-index: 5;
-}
-.nm-region-label {
-  position: absolute;
-  top: 4px; left: 6px;
-  font-family: 'Baloo 2'; font-weight: 800; font-size: 10px;
-  color: #fb923c;
-  white-space: nowrap;
-  text-shadow: 0 1px 3px rgba(0,0,0,.8);
-}
-
-/* Draw preview */
-#drawPreview {
-  position: absolute;
-  background: rgba(251,146,60,.15);
-  border: 2px dashed rgba(251,146,60,.9);
-  pointer-events: none;
-  display: none;
-  z-index: 15;
+/* SVG region overlay — drawn in screen space so it stays sharp at any zoom */
+#regionSvg {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 6; overflow: visible;
 }
 
 /* Draw confirm dialog */
@@ -148,17 +127,7 @@ body { overflow: hidden; }
           style="left:<%= t.col*1024 %>px;top:<%= t.row*1024 %>px;" draggable="false">
       <% }); %>
 
-      <!-- Mining regions -->
-      <% regions.forEach(function(r) {
-        const px = r.x1 + 2560, pz = r.z1 + 2560;
-        const pw = r.x2 - r.x1, ph = r.z2 - r.z1;
-      %>
-        <div class="nm-region" style="left:<%= px %>px;top:<%= pz %>px;width:<%= pw %>px;height:<%= ph %>px;">
-          <span class="nm-region-label"><%= r.name %></span>
-        </div>
-      <% }); %>
-
-      <!-- Nation markers -->
+      <!-- Nation markers (still in grid space — these scale fine as pin+label) -->
       <% markers.forEach(function(m) { %>
         <div class="nm-marker" style="left:<%= m.map_x+2560 %>px;top:<%= m.map_z+2560 %>px;">
           <div class="nm-marker-label"><%= m.server_name %></div>
@@ -166,9 +135,16 @@ body { overflow: hidden; }
           <div class="nm-marker-pin"></div>
         </div>
       <% }); %>
-
-      <div id="drawPreview"></div>
     </div>
+
+    <!-- SVG overlay: mining regions + draw preview, drawn in screen space -->
+    <svg id="regionSvg">
+      <defs>
+        <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="10" stroke="rgba(251,146,60,0.35)" stroke-width="3"/>
+        </pattern>
+      </defs>
+    </svg>
 
     <!-- Draw confirm dialog -->
     <div id="drawDialog">
@@ -229,22 +205,75 @@ document.getElementById('nmDeadline').textContent =
 var WORLD_ORIGIN = 2560;
 var scale = 0.25, panX = 0, panY = 0;
 var dragging = false, lastX = 0, lastY = 0;
-var MODE = 'pan'; // 'pan' | 'draw'
+var MODE = 'pan';
 var drawing = false, drawWX1, drawWZ1, drawWX2, drawWZ2;
 var pendingRegion = null;
 
-var viewport  = document.getElementById('nmViewport');
-var grid      = document.getElementById('nmGrid');
-var preview   = document.getElementById('drawPreview');
-var dialog    = document.getElementById('drawDialog');
+var viewport = document.getElementById('nmViewport');
+var grid     = document.getElementById('nmGrid');
+var svg      = document.getElementById('regionSvg');
+var dialog   = document.getElementById('drawDialog');
 
+var REGIONS = <%- JSON.stringify(regions) %>;
 var ZOOM_STEPS = [0.1, 0.15, 0.18, 0.25, 0.35, 0.5, 0.75, 1.0, 1.5, 2.0];
 var zoomIdx = 3;
+
+var NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs) {
+  var el = document.createElementNS(NS, tag);
+  for (var k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+
+function worldToScreen(wx, wz) {
+  return { x: (wx + WORLD_ORIGIN) * scale + panX, y: (wz + WORLD_ORIGIN) * scale + panY };
+}
+
+function drawSvg() {
+  // Clear everything except <defs>
+  var children = Array.from(svg.children);
+  children.forEach(function(c) { if (c.tagName !== 'defs') svg.removeChild(c); });
+
+  REGIONS.forEach(function(r) {
+    var p1 = worldToScreen(r.x1, r.z1);
+    var p2 = worldToScreen(r.x2, r.z2);
+    var w = p2.x - p1.x, h = p2.y - p1.y;
+
+    var g = svgEl('g', {});
+    // Hatch fill
+    g.appendChild(svgEl('rect', { x:p1.x, y:p1.y, width:w, height:h, fill:'url(#hatch)' }));
+    // Solid tint
+    g.appendChild(svgEl('rect', { x:p1.x, y:p1.y, width:w, height:h, fill:'rgba(251,146,60,0.08)' }));
+    // Border
+    g.appendChild(svgEl('rect', { x:p1.x, y:p1.y, width:w, height:h,
+      fill:'none', stroke:'#fb923c', 'stroke-width':'2', 'stroke-dasharray':'8 3' }));
+    // Label (only if wide enough on screen)
+    if (w > 30) {
+      var lx = p1.x + 5, ly = p1.y + 15;
+      var bg = svgEl('rect', { x:lx-3, y:ly-12, width: r.name.length*7+6, height:16, rx:3, fill:'rgba(10,10,18,0.75)' });
+      var txt = svgEl('text', { x:lx, y:ly, fill:'#fb923c', 'font-family':"'Baloo 2',sans-serif",
+        'font-weight':'800', 'font-size':'12' });
+      txt.textContent = r.name;
+      g.appendChild(bg); g.appendChild(txt);
+    }
+    svg.appendChild(g);
+  });
+
+  // Draw preview while user is dragging a new region
+  if (drawing && drawWX1 != null) {
+    var p1 = worldToScreen(Math.min(drawWX1,drawWX2), Math.min(drawWZ1,drawWZ2));
+    var p2 = worldToScreen(Math.max(drawWX1,drawWX2), Math.max(drawWZ1,drawWZ2));
+    svg.appendChild(svgEl('rect', { x:p1.x, y:p1.y, width:p2.x-p1.x, height:p2.y-p1.y,
+      fill:'rgba(251,146,60,0.12)', stroke:'#fb923c', 'stroke-width':'2', 'stroke-dasharray':'6 3' }));
+  }
+}
 
 function applyTransform() {
   grid.style.transform = 'translate('+panX+'px,'+panY+'px) scale('+scale+')';
   document.getElementById('zoomLabel').textContent = Math.round(scale*100)+'%';
+  drawSvg();
 }
+
 function zoom(dir) {
   var vr = viewport.getBoundingClientRect();
   var cx = vr.width/2, cy = vr.height/2;
@@ -259,25 +288,17 @@ function zoom(dir) {
 
 function toggleDrawMode() {
   MODE = MODE === 'draw' ? 'pan' : 'draw';
-  var btn = document.getElementById('drawBtn');
-  btn.classList.toggle('active', MODE === 'draw');
+  document.getElementById('drawBtn').classList.toggle('active', MODE === 'draw');
   viewport.classList.toggle('draw-mode', MODE === 'draw');
-  if (MODE === 'pan') { preview.style.display='none'; dialog.style.display='none'; }
+  if (MODE === 'pan') { drawing = false; dialog.style.display = 'none'; drawSvg(); }
 }
 
 function clientToWorld(cx, cy) {
   var vr = viewport.getBoundingClientRect();
-  var px = (cx - vr.left - panX) / scale;
-  var pz = (cy - vr.top  - panY) / scale;
-  return { wx: Math.round(px - WORLD_ORIGIN), wz: Math.round(pz - WORLD_ORIGIN) };
-}
-
-function updatePreview() {
-  var px1 = Math.min(drawWX1, drawWX2) + WORLD_ORIGIN;
-  var pz1 = Math.min(drawWZ1, drawWZ2) + WORLD_ORIGIN;
-  var pw  = Math.abs(drawWX2 - drawWX1);
-  var ph  = Math.abs(drawWZ2 - drawWZ1);
-  preview.style.cssText = 'display:block;left:'+px1+'px;top:'+pz1+'px;width:'+pw+'px;height:'+ph+'px;';
+  return {
+    wx: Math.round((cx - vr.left - panX) / scale - WORLD_ORIGIN),
+    wz: Math.round((cy - vr.top  - panY) / scale - WORLD_ORIGIN)
+  };
 }
 
 viewport.addEventListener('mousedown', function(e) {
@@ -289,7 +310,7 @@ viewport.addEventListener('mousedown', function(e) {
     drawing = true;
     drawWX1 = drawWX2 = w.wx;
     drawWZ1 = drawWZ2 = w.wz;
-    updatePreview();
+    drawSvg();
   } else {
     dragging = true; lastX = e.clientX; lastY = e.clientY;
     viewport.classList.add('dragging');
@@ -301,7 +322,7 @@ window.addEventListener('mousemove', function(e) {
   document.getElementById('nmCoords').textContent = 'X '+w.wx+' · Z '+w.wz;
   if (MODE === 'draw' && drawing) {
     drawWX2 = w.wx; drawWZ2 = w.wz;
-    updatePreview();
+    drawSvg();
   } else if (dragging) {
     panX += e.clientX - lastX; panY += e.clientY - lastY;
     lastX = e.clientX; lastY = e.clientY;
@@ -325,7 +346,8 @@ window.addEventListener('mouseup', function(e) {
       document.getElementById('drawName').focus();
       document.getElementById('drawName').select();
     } else {
-      preview.style.display = 'none';
+      drawing = false;
+      drawSvg();
     }
   } else if (dragging) {
     dragging = false;
@@ -335,8 +357,9 @@ window.addEventListener('mouseup', function(e) {
 
 function cancelDraw() {
   dialog.style.display = 'none';
-  preview.style.display = 'none';
+  drawing = false;
   pendingRegion = null;
+  drawSvg();
 }
 
 function saveRegion() {

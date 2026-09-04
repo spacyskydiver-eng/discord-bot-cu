@@ -142,12 +142,6 @@ body { overflow: hidden; }
           style="left:<%= t.col*1024 %>px;top:<%= t.row*1024 %>px;" draggable="false">
       <% }); %>
 
-      <!-- Mining regions -->
-      <% miningRegions.forEach(function(r) { %>
-        <div style="position:absolute;left:<%= r.x1+2560 %>px;top:<%= r.z1+2560 %>px;width:<%= r.x2-r.x1 %>px;height:<%= r.z2-r.z1 %>px;background:rgba(251,146,60,.1);border:2px solid rgba(251,146,60,.7);pointer-events:none;z-index:5;">
-          <span style="position:absolute;top:4px;left:6px;font-family:'Baloo 2';font-weight:800;font-size:10px;color:#fb923c;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.8);"><%= r.name %></span>
-        </div>
-      <% }); %>
 
       <!-- Other nations' markers (faded) -->
       <% otherMarkers.forEach(function(m) {
@@ -178,6 +172,15 @@ body { overflow: hidden; }
       <% } %>
 
     </div>
+
+    <!-- SVG overlay: mining regions drawn in screen space, sharp at any zoom -->
+    <svg id="regionSvg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6;overflow:visible;">
+      <defs>
+        <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="10" stroke="rgba(251,146,60,0.35)" stroke-width="3"/>
+        </pattern>
+      </defs>
+    </svg>
 
     <% if (saved) { %>
     <div class="nm-saved">Location saved for <%= nation.server_name %></div>
@@ -227,13 +230,51 @@ var clickMoved = false;
 
 var viewport = document.getElementById('nmViewport');
 var grid = document.getElementById('nmGrid');
+var svg = document.getElementById('regionSvg');
 
 var ZOOM_STEPS = [0.1, 0.15, 0.18, 0.25, 0.35, 0.5, 0.75, 1.0, 1.5, 2.0];
 var zoomIdx = 3;
 
+var NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs) {
+  var el = document.createElementNS(NS, tag);
+  for (var k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+
+function worldToScreen(wx, wz) {
+  return { x: (wx + WORLD_ORIGIN) * scale + panX, y: (wz + WORLD_ORIGIN) * scale + panY };
+}
+
+function drawSvg() {
+  var children = Array.from(svg.children);
+  children.forEach(function(c) { if (c.tagName !== 'defs') svg.removeChild(c); });
+
+  MINING_REGIONS.forEach(function(r) {
+    var p1 = worldToScreen(r.x1, r.z1);
+    var p2 = worldToScreen(r.x2, r.z2);
+    var w = p2.x - p1.x, h = p2.y - p1.y;
+    var g = document.createElementNS(NS, 'g');
+    g.appendChild(svgEl('rect', { x:p1.x, y:p1.y, width:w, height:h, fill:'url(#hatch)' }));
+    g.appendChild(svgEl('rect', { x:p1.x, y:p1.y, width:w, height:h, fill:'rgba(251,146,60,0.08)' }));
+    g.appendChild(svgEl('rect', { x:p1.x, y:p1.y, width:w, height:h,
+      fill:'none', stroke:'#fb923c', 'stroke-width':'2', 'stroke-dasharray':'8 3' }));
+    if (w > 30) {
+      var lx = p1.x + 5, ly = p1.y + 15;
+      var bg = svgEl('rect', { x:lx-3, y:ly-12, width: r.name.length*7+6, height:16, rx:3, fill:'rgba(10,10,18,0.75)' });
+      var txt = svgEl('text', { x:lx, y:ly, fill:'#fb923c', 'font-family':"'Baloo 2',sans-serif",
+        'font-weight':'800', 'font-size':'12' });
+      txt.textContent = r.name;
+      g.appendChild(bg); g.appendChild(txt);
+    }
+    svg.appendChild(g);
+  });
+}
+
 function applyTransform() {
   grid.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + scale + ')';
   document.getElementById('zoomLabel').textContent = Math.round(scale * 100) + '%';
+  drawSvg();
 }
 
 function zoom(dir) {
