@@ -92,10 +92,12 @@ body { overflow: hidden; }
   <div class="nm-bar">
     <span class="nm-bar-title">Nation Map</span>
     <span class="nm-bar-sub"><%= markers.length %> placed · <%= waiting.length %> awaiting</span>
+    <% if (isFullAdmin) { %>
     <button class="nm-mode-btn" id="drawBtn" onclick="toggleDrawMode()">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
       Draw mining region
     </button>
+    <% } %>
     <div class="nm-spacer"></div>
     <span class="nm-deadline">Deadline: <strong id="nmDeadline">—</strong></span>
     <div class="nm-zoom">
@@ -146,7 +148,8 @@ body { overflow: hidden; }
       </defs>
     </svg>
 
-    <!-- Draw confirm dialog -->
+    <!-- Draw confirm dialog (admin only) -->
+    <% if (isFullAdmin) { %>
     <div id="drawDialog">
       <label>Region name</label>
       <input id="drawName" type="text" value="Mining Region" maxlength="40">
@@ -155,6 +158,7 @@ body { overflow: hidden; }
         <button class="dd-save" onclick="saveRegion()">Save region</button>
       </div>
     </div>
+    <% } %>
 
     <!-- Legend panel -->
     <div class="nm-panel">
@@ -179,9 +183,11 @@ body { overflow: hidden; }
       <div class="nm-panel-row">
         <div class="nm-panel-dot-ore"></div>
         <span class="nm-panel-name" style="color:#fb923c"><%= r.name %></span>
+        <% if (isFullAdmin) { %>
         <form method="POST" action="/admin/mining-region/<%= r.id %>/delete" style="margin:0">
           <button class="nm-del" type="submit" title="Delete">✕</button>
         </form>
+        <% } %>
       </div>
       <% }); %>
       <% } %>
