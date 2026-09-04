@@ -111,7 +111,7 @@ body { overflow: hidden; }
     <span class="nm-bar-title">Nation Map</span>
     <span class="nm-bar-sub"><%= markers.length %> nation<%= markers.length === 1 ? '' : 's' %> placed · <%= waiting.length %> awaiting</span>
     <div class="nm-spacer"></div>
-    <span class="nm-deadline">Location deadline: <strong><t:1788649200:T></strong></span>
+    <span class="nm-deadline">Location deadline: <strong id="nmDeadline">—</strong></span>
     <div class="nm-zoom">
       <button class="nm-zoom-btn" onclick="zoom(-1)">−</button>
       <span class="nm-zoom-label" id="zoomLabel">100%</span>
@@ -187,6 +187,9 @@ body { overflow: hidden; }
 </div>
 
 <script>
+document.getElementById('nmDeadline').textContent =
+  new Date(1788649200000).toLocaleString('en-GB', { weekday:'short', day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+
 var TILE_SIZE = 1024;
 var GRID_SIZE = 5120;
 var WORLD_ORIGIN = 2560; // pixel offset where world 0,0 is
