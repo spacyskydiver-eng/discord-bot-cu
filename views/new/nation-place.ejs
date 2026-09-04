@@ -268,7 +268,6 @@ document.getElementById('nmDeadline').textContent =
 
 // Auto-dismiss the saved banner then show the instruction
 <% if (saved) { %>
-history.replaceState(null, '', '/nation-place'); // clean URL immediately so refresh won't re-show
 setTimeout(function() {
   var s = document.getElementById('nmSaved');
   var i = document.getElementById('nmInstruct');

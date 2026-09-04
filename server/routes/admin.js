@@ -525,7 +525,7 @@ router.get('/nation-map', async (req, res) => {
   const markers = all.filter(r => r.map_x != null && r.map_z != null);
   const waiting = all.filter(r => r.map_x == null);
   const regions = (await db.query(`SELECT * FROM mining_regions ORDER BY id ASC`)).rows;
-  res.render('new/admin-nation-map', { markers, waiting, regions });
+  res.render('new/admin-nation-map', { markers, waiting, regions, isFullAdmin: !!res.locals.isFullAdmin });
 });
 
 router.post('/mining-region/add', async (req, res) => {

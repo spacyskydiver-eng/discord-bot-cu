@@ -465,10 +465,12 @@ router.get('/nation-place', async (req, res) => {
   const otherMarkers = allRes.rows.filter(n => n.map_x != null);
   const waiting      = allRes.rows.filter(n => n.map_x == null);
   const regionsRes   = await db.query(`SELECT x1,z1,x2,z2,name FROM mining_regions ORDER BY id ASC`);
+  const saved = !!req.session.np_saved;
+  req.session.np_saved = false;
   res.render('new/nation-place', {
     nation, otherMarkers, waiting,
     miningRegions: regionsRes.rows,
-    saved: req.query.saved === '1'
+    saved
   });
 });
 
@@ -483,7 +485,8 @@ router.post('/nation-place/submit', async (req, res) => {
     `UPDATE nation_leader_applications SET map_x = $1, map_z = $2 WHERE discord_id = $3 AND accepted = true`,
     [map_x, map_z, uid]
   );
-  res.redirect('/nation-place?saved=1');
+  req.session.np_saved = true;
+  res.redirect('/nation-place');
 });
 
 router.post('/nation-place/clear', async (req, res) => {
