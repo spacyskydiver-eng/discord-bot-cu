@@ -1,0 +1,7335 @@
+{
+  "scanned": "2026-09-04 18:34:26",
+  "total_containers": 200,
+  "non_empty": 49,
+  "empty": 151,
+  "containers": [
+    {
+      "idx": 1,
+      "type": "Chest",
+      "x": -1230,
+      "y": 69,
+      "z": 86,
+      "items": {
+        "Apple": 5,
+        "Gold Ingot": 3,
+        "Iron Chestplate": 1,
+        "Written Book": 1
+      }
+    },
+    {
+      "idx": 2,
+      "type": "Chest",
+      "x": -1178,
+      "y": 68,
+      "z": -1098,
+      "items": {
+        "Iron Axe": 1,
+        "Iron Ingot": 5
+      }
+    },
+    {
+      "idx": 3,
+      "type": "Chest",
+      "x": -1174,
+      "y": 68,
+      "z": -1105,
+      "items": {
+        "Apple": 4,
+        "Bone Meal": 16,
+        "Bread": 3,
+        "Iron Shovel": 1,
+        "Name Tag": 1,
+        "Water Bucket": 1
+      }
+    },
+    {
+      "idx": 4,
+      "type": "Barrel",
+      "x": -1174,
+      "y": 68,
+      "z": -1096,
+      "items": {
+        "Apple": 5,
+        "Bread": 6
+      }
+    },
+    {
+      "idx": 5,
+      "type": "Barrel",
+      "x": -1173,
+      "y": 68,
+      "z": -1096,
+      "items": {
+        "Apple": 8,
+        "Bread": 8
+      }
+    },
+    {
+      "idx": 6,
+      "type": "Barrel",
+      "x": -875,
+      "y": 63,
+      "z": 869,
+      "items": {}
+    },
+    {
+      "idx": 7,
+      "type": "Barrel",
+      "x": -875,
+      "y": 62,
+      "z": 870,
+      "items": {}
+    },
+    {
+      "idx": 8,
+      "type": "Barrel",
+      "x": -874,
+      "y": 63,
+      "z": 868,
+      "items": {}
+    },
+    {
+      "idx": 9,
+      "type": "Barrel",
+      "x": -874,
+      "y": 62,
+      "z": 869,
+      "items": {}
+    },
+    {
+      "idx": 10,
+      "type": "Barrel",
+      "x": -859,
+      "y": 60,
+      "z": 878,
+      "items": {}
+    },
+    {
+      "idx": 11,
+      "type": "Barrel",
+      "x": -858,
+      "y": 60,
+      "z": 877,
+      "items": {}
+    },
+    {
+      "idx": 12,
+      "type": "Barrel",
+      "x": -858,
+      "y": 61,
+      "z": 878,
+      "items": {}
+    },
+    {
+      "idx": 13,
+      "type": "Barrel",
+      "x": -857,
+      "y": 72,
+      "z": 871,
+      "items": {}
+    },
+    {
+      "idx": 14,
+      "type": "Barrel",
+      "x": -857,
+      "y": 71,
+      "z": 871,
+      "items": {}
+    },
+    {
+      "idx": 15,
+      "type": "Barrel",
+      "x": -857,
+      "y": 60,
+      "z": 876,
+      "items": {}
+    },
+    {
+      "idx": 16,
+      "type": "Barrel",
+      "x": -857,
+      "y": 61,
+      "z": 877,
+      "items": {}
+    },
+    {
+      "idx": 17,
+      "type": "Barrel",
+      "x": -856,
+      "y": 71,
+      "z": 870,
+      "items": {}
+    },
+    {
+      "idx": 18,
+      "type": "Barrel",
+      "x": -856,
+      "y": 71,
+      "z": 872,
+      "items": {}
+    },
+    {
+      "idx": 19,
+      "type": "Barrel",
+      "x": -855,
+      "y": 71,
+      "z": 870,
+      "items": {}
+    },
+    {
+      "idx": 20,
+      "type": "Barrel",
+      "x": -855,
+      "y": 71,
+      "z": 871,
+      "items": {}
+    },
+    {
+      "idx": 21,
+      "type": "Chest",
+      "x": -650,
+      "y": 86,
+      "z": 973,
+      "items": {
+        "Arrow": 6,
+        "Cobblestone": 1,
+        "Golden Horse Armor": 1,
+        "Iron Helmet": 1,
+        "Iron Ingot": 9,
+        "Iron Pickaxe": 1
+      }
+    },
+    {
+      "idx": 22,
+      "type": "Barrel",
+      "x": -646,
+      "y": 85,
+      "z": 972,
+      "items": {
+        "Arrow": 12,
+        "Cobweb": 3,
+        "Iron Sword": 1,
+        "Sand": 13
+      }
+    },
+    {
+      "idx": 23,
+      "type": "Barrel",
+      "x": -646,
+      "y": 85,
+      "z": 973,
+      "items": {
+        "Cobweb": 2,
+        "Leather": 4,
+        "Sand": 10
+      }
+    },
+    {
+      "idx": 24,
+      "type": "Chest",
+      "x": -589,
+      "y": 82,
+      "z": -416,
+      "items": {
+        "Diamond": 1,
+        "Gold Ingot": 1,
+        "Iron Boots": 1,
+        "Iron Ingot": 3
+      }
+    },
+    {
+      "idx": 25,
+      "type": "Barrel",
+      "x": -588,
+      "y": 83,
+      "z": -422,
+      "items": {
+        "Apple": 3,
+        "Bread": 5
+      }
+    },
+    {
+      "idx": 26,
+      "type": "Barrel",
+      "x": -588,
+      "y": 82,
+      "z": -422,
+      "items": {}
+    },
+    {
+      "idx": 27,
+      "type": "Chest",
+      "x": -587,
+      "y": 82,
+      "z": -422,
+      "items": {
+        "Gold Ingot": 4,
+        "Iron Ingot": 2,
+        "Iron Pickaxe": 1
+      }
+    },
+    {
+      "idx": 28,
+      "type": "Barrel",
+      "x": -584,
+      "y": 82,
+      "z": -421,
+      "items": {
+        "Apple": 3,
+        "Azalea Leaves": 9
+      }
+    },
+    {
+      "idx": 29,
+      "type": "Barrel",
+      "x": -583,
+      "y": 82,
+      "z": -422,
+      "items": {}
+    },
+    {
+      "idx": 30,
+      "type": "Barrel",
+      "x": -583,
+      "y": 83,
+      "z": -422,
+      "items": {
+        "Bread": 8,
+        "Iron Ingot": 2
+      }
+    },
+    {
+      "idx": 31,
+      "type": "Barrel",
+      "x": -450,
+      "y": 130,
+      "z": 79,
+      "items": {
+        "Azalea Leaves": 7,
+        "Bread": 11
+      }
+    },
+    {
+      "idx": 32,
+      "type": "Barrel",
+      "x": -450,
+      "y": 131,
+      "z": 80,
+      "items": {
+        "Azalea Leaves": 7,
+        "Bread": 10
+      }
+    },
+    {
+      "idx": 33,
+      "type": "Barrel",
+      "x": -450,
+      "y": 130,
+      "z": 80,
+      "items": {}
+    },
+    {
+      "idx": 34,
+      "type": "Chest",
+      "x": -449,
+      "y": 130,
+      "z": 80,
+      "items": {
+        "Diamond": 2,
+        "Gold Ingot": 3,
+        "Iron Ingot": 6
+      }
+    },
+    {
+      "idx": 35,
+      "type": "Chest",
+      "x": -446,
+      "y": 130,
+      "z": 76,
+      "items": {
+        "Apple": 6,
+        "Gold Ingot": 5,
+        "Iron Ingot": 8,
+        "Iron Leggings": 1
+      }
+    },
+    {
+      "idx": 36,
+      "type": "Chest",
+      "x": -423,
+      "y": 78,
+      "z": 689,
+      "items": {
+        "Arrow": 4,
+        "Cobweb": 2,
+        "Diamond": 2,
+        "Gold Ingot": 10,
+        "Iron Chestplate": 1,
+        "Leather": 2
+      }
+    },
+    {
+      "idx": 37,
+      "type": "Barrel",
+      "x": -422,
+      "y": 77,
+      "z": 684,
+      "items": {
+        "Bread": 3,
+        "Leather": 1,
+        "Sand": 13
+      }
+    },
+    {
+      "idx": 38,
+      "type": "Barrel",
+      "x": -422,
+      "y": 78,
+      "z": 692,
+      "items": {
+        "Bread": 7,
+        "Copper Horse Armor": 1,
+        "Gold Ingot": 5,
+        "Sand": 20
+      }
+    },
+    {
+      "idx": 39,
+      "type": "Barrel",
+      "x": -421,
+      "y": 77,
+      "z": 683,
+      "items": {
+        "Bread": 5,
+        "Sand": 12
+      }
+    },
+    {
+      "idx": 40,
+      "type": "Barrel",
+      "x": -421,
+      "y": 78,
+      "z": 684,
+      "items": {
+        "Bread": 3,
+        "Sand": 12
+      }
+    },
+    {
+      "idx": 41,
+      "type": "Barrel",
+      "x": -420,
+      "y": 79,
+      "z": 691,
+      "items": {
+        "Arrow": 3,
+        "Bread": 11,
+        "Sand": 24,
+        "String": 2
+      }
+    },
+    {
+      "idx": 42,
+      "type": "Barrel",
+      "x": -419,
+      "y": 80,
+      "z": 689,
+      "items": {
+        "Bread": 8,
+        "Leather": 3,
+        "Sand": 9
+      }
+    },
+    {
+      "idx": 43,
+      "type": "Barrel",
+      "x": -419,
+      "y": 79,
+      "z": 689,
+      "items": {
+        "Arrow": 2,
+        "Bread": 4,
+        "Sand": 11,
+        "String": 5
+      }
+    },
+    {
+      "idx": 44,
+      "type": "Barrel",
+      "x": -419,
+      "y": 79,
+      "z": 690,
+      "items": {
+        "Leather": 4,
+        "Sand": 10,
+        "String": 5
+      }
+    },
+    {
+      "idx": 45,
+      "type": "Chest",
+      "x": -418,
+      "y": 79,
+      "z": 689,
+      "items": {
+        "Arrow": 8,
+        "Bread": 13,
+        "Iron Leggings": 1,
+        "Leather": 3,
+        "Written Book": 1
+      }
+    },
+    {
+      "idx": 46,
+      "type": "Barrel",
+      "x": -326,
+      "y": 75,
+      "z": -1120,
+      "items": {
+        "Azalea Leaves": 9,
+        "Bone Meal": 5
+      }
+    },
+    {
+      "idx": 47,
+      "type": "Barrel",
+      "x": -325,
+      "y": 75,
+      "z": -1120,
+      "items": {
+        "Azalea Leaves": 14
+      }
+    },
+    {
+      "idx": 48,
+      "type": "Chest",
+      "x": -324,
+      "y": 74,
+      "z": -1114,
+      "items": {
+        "Bone Meal": 4,
+        "Bread": 6,
+        "Diamond": 1,
+        "Iron Ingot": 6
+      }
+    },
+    {
+      "idx": 49,
+      "type": "Chest",
+      "x": -318,
+      "y": 74,
+      "z": -1117,
+      "items": {
+        "Cobblestone": 1,
+        "Diamond": 3,
+        "Gold Ingot": 3,
+        "Iron Ingot": 6,
+        "Saddle": 1
+      }
+    },
+    {
+      "idx": 50,
+      "type": "Chest",
+      "x": -120,
+      "y": 78,
+      "z": -146,
+      "items": {}
+    },
+    {
+      "idx": 51,
+      "type": "Chest",
+      "x": -119,
+      "y": 79,
+      "z": -134,
+      "items": {}
+    },
+    {
+      "idx": 52,
+      "type": "Chest",
+      "x": -116,
+      "y": 78,
+      "z": -141,
+      "items": {}
+    },
+    {
+      "idx": 53,
+      "type": "Chest",
+      "x": -115,
+      "y": 78,
+      "z": -150,
+      "items": {}
+    },
+    {
+      "idx": 54,
+      "type": "Chest",
+      "x": -114,
+      "y": 80,
+      "z": -126,
+      "items": {}
+    },
+    {
+      "idx": 55,
+      "type": "Chest",
+      "x": -113,
+      "y": 77,
+      "z": -161,
+      "items": {}
+    },
+    {
+      "idx": 56,
+      "type": "Chest",
+      "x": -106,
+      "y": 77,
+      "z": -175,
+      "items": {}
+    },
+    {
+      "idx": 57,
+      "type": "Barrel",
+      "x": -100,
+      "y": 80,
+      "z": -164,
+      "items": {}
+    },
+    {
+      "idx": 58,
+      "type": "Barrel",
+      "x": -100,
+      "y": 81,
+      "z": -164,
+      "items": {}
+    },
+    {
+      "idx": 59,
+      "type": "Chest",
+      "x": -100,
+      "y": 80,
+      "z": -162,
+      "items": {}
+    },
+    {
+      "idx": 60,
+      "type": "Barrel",
+      "x": -99,
+      "y": 80,
+      "z": -164,
+      "items": {}
+    },
+    {
+      "idx": 61,
+      "type": "Chest",
+      "x": -99,
+      "y": 80,
+      "z": -163,
+      "items": {}
+    },
+    {
+      "idx": 62,
+      "type": "Chest",
+      "x": -99,
+      "y": 78,
+      "z": -130,
+      "items": {}
+    },
+    {
+      "idx": 63,
+      "type": "Chest",
+      "x": -98,
+      "y": 78,
+      "z": -138,
+      "items": {}
+    },
+    {
+      "idx": 64,
+      "type": "Chest",
+      "x": -97,
+      "y": 78,
+      "z": -123,
+      "items": {}
+    },
+    {
+      "idx": 65,
+      "type": "Chest",
+      "x": -96,
+      "y": 78,
+      "z": -156,
+      "items": {}
+    },
+    {
+      "idx": 66,
+      "type": "Trapped Chest",
+      "x": -96,
+      "y": 90,
+      "z": -141,
+      "items": {}
+    },
+    {
+      "idx": 67,
+      "type": "Barrel",
+      "x": -96,
+      "y": 88,
+      "z": -140,
+      "items": {}
+    },
+    {
+      "idx": 68,
+      "type": "Barrel",
+      "x": -96,
+      "y": 90,
+      "z": -140,
+      "items": {}
+    },
+    {
+      "idx": 69,
+      "type": "Barrel",
+      "x": -96,
+      "y": 89,
+      "z": -140,
+      "items": {}
+    },
+    {
+      "idx": 70,
+      "type": "Chest",
+      "x": -96,
+      "y": 85,
+      "z": -131,
+      "items": {}
+    },
+    {
+      "idx": 71,
+      "type": "Barrel",
+      "x": -95,
+      "y": 88,
+      "z": -142,
+      "items": {}
+    },
+    {
+      "idx": 72,
+      "type": "Barrel",
+      "x": -95,
+      "y": 88,
+      "z": -140,
+      "items": {}
+    },
+    {
+      "idx": 73,
+      "type": "Chest",
+      "x": -95,
+      "y": 76,
+      "z": -114,
+      "items": {}
+    },
+    {
+      "idx": 74,
+      "type": "Barrel",
+      "x": -94,
+      "y": 88,
+      "z": -142,
+      "items": {}
+    },
+    {
+      "idx": 75,
+      "type": "Trapped Chest",
+      "x": -94,
+      "y": 89,
+      "z": -142,
+      "items": {}
+    },
+    {
+      "idx": 76,
+      "type": "Barrel",
+      "x": -94,
+      "y": 88,
+      "z": -141,
+      "items": {}
+    },
+    {
+      "idx": 77,
+      "type": "Barrel",
+      "x": -94,
+      "y": 89,
+      "z": -141,
+      "items": {}
+    },
+    {
+      "idx": 78,
+      "type": "Chest",
+      "x": -94,
+      "y": 85,
+      "z": -131,
+      "items": {}
+    },
+    {
+      "idx": 79,
+      "type": "Chest",
+      "x": -92,
+      "y": 79,
+      "z": -151,
+      "items": {}
+    },
+    {
+      "idx": 80,
+      "type": "Chest",
+      "x": -91,
+      "y": 78,
+      "z": -180,
+      "items": {}
+    },
+    {
+      "idx": 81,
+      "type": "Chest",
+      "x": -91,
+      "y": 78,
+      "z": -171,
+      "items": {}
+    },
+    {
+      "idx": 82,
+      "type": "Chest",
+      "x": -91,
+      "y": 80,
+      "z": -167,
+      "items": {
+        "Written Book": 1
+      }
+    },
+    {
+      "idx": 83,
+      "type": "Chest",
+      "x": -91,
+      "y": 78,
+      "z": -165,
+      "items": {}
+    },
+    {
+      "idx": 84,
+      "type": "Chest",
+      "x": -88,
+      "y": 80,
+      "z": -169,
+      "items": {}
+    },
+    {
+      "idx": 85,
+      "type": "Chest",
+      "x": -88,
+      "y": 79,
+      "z": -166,
+      "items": {}
+    },
+    {
+      "idx": 86,
+      "type": "Chest",
+      "x": -88,
+      "y": 79,
+      "z": -158,
+      "items": {}
+    },
+    {
+      "idx": 87,
+      "type": "Chest",
+      "x": -88,
+      "y": 80,
+      "z": -157,
+      "items": {}
+    },
+    {
+      "idx": 88,
+      "type": "Chest",
+      "x": -88,
+      "y": 80,
+      "z": -139,
+      "items": {}
+    },
+    {
+      "idx": 89,
+      "type": "Chest",
+      "x": -88,
+      "y": 79,
+      "z": -138,
+      "items": {}
+    },
+    {
+      "idx": 90,
+      "type": "Chest",
+      "x": -88,
+      "y": 78,
+      "z": -125,
+      "items": {}
+    },
+    {
+      "idx": 91,
+      "type": "Chest",
+      "x": -86,
+      "y": 79,
+      "z": -158,
+      "items": {}
+    },
+    {
+      "idx": 92,
+      "type": "Chest",
+      "x": -84,
+      "y": 79,
+      "z": -142,
+      "items": {}
+    },
+    {
+      "idx": 93,
+      "type": "Chest",
+      "x": -82,
+      "y": 79,
+      "z": -149,
+      "items": {}
+    },
+    {
+      "idx": 94,
+      "type": "Chest",
+      "x": -82,
+      "y": 79,
+      "z": -147,
+      "items": {}
+    },
+    {
+      "idx": 95,
+      "type": "Chest",
+      "x": -81,
+      "y": 81,
+      "z": -148,
+      "items": {}
+    },
+    {
+      "idx": 96,
+      "type": "Chest",
+      "x": -81,
+      "y": 79,
+      "z": -121,
+      "items": {}
+    },
+    {
+      "idx": 97,
+      "type": "Chest",
+      "x": -80,
+      "y": 79,
+      "z": -175,
+      "items": {}
+    },
+    {
+      "idx": 98,
+      "type": "Chest",
+      "x": -80,
+      "y": 79,
+      "z": -166,
+      "items": {}
+    },
+    {
+      "idx": 99,
+      "type": "Chest",
+      "x": -80,
+      "y": 80,
+      "z": -149,
+      "items": {}
+    },
+    {
+      "idx": 100,
+      "type": "Chest",
+      "x": -80,
+      "y": 82,
+      "z": -148,
+      "items": {}
+    },
+    {
+      "idx": 101,
+      "type": "Chest",
+      "x": -80,
+      "y": 80,
+      "z": -147,
+      "items": {}
+    },
+    {
+      "idx": 102,
+      "type": "Chest",
+      "x": -80,
+      "y": 79,
+      "z": -139,
+      "items": {}
+    },
+    {
+      "idx": 103,
+      "type": "Chest",
+      "x": -79,
+      "y": 81,
+      "z": -150,
+      "items": {}
+    },
+    {
+      "idx": 104,
+      "type": "Chest",
+      "x": -79,
+      "y": 82,
+      "z": -149,
+      "items": {}
+    },
+    {
+      "idx": 105,
+      "type": "Chest",
+      "x": -79,
+      "y": 82,
+      "z": -147,
+      "items": {}
+    },
+    {
+      "idx": 106,
+      "type": "Chest",
+      "x": -79,
+      "y": 81,
+      "z": -146,
+      "items": {}
+    },
+    {
+      "idx": 107,
+      "type": "Chest",
+      "x": -79,
+      "y": 82,
+      "z": -124,
+      "items": {}
+    },
+    {
+      "idx": 108,
+      "type": "Chest",
+      "x": -78,
+      "y": 79,
+      "z": -160,
+      "items": {}
+    },
+    {
+      "idx": 109,
+      "type": "Chest",
+      "x": -78,
+      "y": 80,
+      "z": -149,
+      "items": {}
+    },
+    {
+      "idx": 110,
+      "type": "Chest",
+      "x": -78,
+      "y": 82,
+      "z": -148,
+      "items": {}
+    },
+    {
+      "idx": 111,
+      "type": "Chest",
+      "x": -78,
+      "y": 80,
+      "z": -147,
+      "items": {}
+    },
+    {
+      "idx": 112,
+      "type": "Chest",
+      "x": -77,
+      "y": 81,
+      "z": -148,
+      "items": {}
+    },
+    {
+      "idx": 113,
+      "type": "Chest",
+      "x": -77,
+      "y": 82,
+      "z": -123,
+      "items": {}
+    },
+    {
+      "idx": 114,
+      "type": "Chest",
+      "x": -76,
+      "y": 79,
+      "z": -149,
+      "items": {}
+    },
+    {
+      "idx": 115,
+      "type": "Chest",
+      "x": -76,
+      "y": 79,
+      "z": -147,
+      "items": {}
+    },
+    {
+      "idx": 116,
+      "type": "Chest",
+      "x": -74,
+      "y": 78,
+      "z": -185,
+      "items": {}
+    },
+    {
+      "idx": 117,
+      "type": "Chest",
+      "x": -73,
+      "y": 79,
+      "z": -155,
+      "items": {}
+    },
+    {
+      "idx": 118,
+      "type": "Chest",
+      "x": -72,
+      "y": 79,
+      "z": -139,
+      "items": {}
+    },
+    {
+      "idx": 119,
+      "type": "Chest",
+      "x": -70,
+      "y": 79,
+      "z": -158,
+      "items": {}
+    },
+    {
+      "idx": 120,
+      "type": "Chest",
+      "x": -70,
+      "y": 81,
+      "z": -157,
+      "items": {}
+    },
+    {
+      "idx": 121,
+      "type": "Chest",
+      "x": -70,
+      "y": 81,
+      "z": -139,
+      "items": {}
+    },
+    {
+      "idx": 122,
+      "type": "Chest",
+      "x": -70,
+      "y": 80,
+      "z": -138,
+      "items": {}
+    },
+    {
+      "idx": 123,
+      "type": "Chest",
+      "x": -68,
+      "y": 79,
+      "z": -146,
+      "items": {}
+    },
+    {
+      "idx": 124,
+      "type": "Chest",
+      "x": -67,
+      "y": 77,
+      "z": -112,
+      "items": {}
+    },
+    {
+      "idx": 125,
+      "type": "Chest",
+      "x": -66,
+      "y": 78,
+      "z": -179,
+      "items": {}
+    },
+    {
+      "idx": 126,
+      "type": "Chest",
+      "x": -63,
+      "y": 80,
+      "z": -169,
+      "items": {}
+    },
+    {
+      "idx": 127,
+      "type": "Barrel",
+      "x": -63,
+      "y": 80,
+      "z": -130,
+      "items": {}
+    },
+    {
+      "idx": 128,
+      "type": "Barrel",
+      "x": -63,
+      "y": 80,
+      "z": -129,
+      "items": {}
+    },
+    {
+      "idx": 129,
+      "type": "Chest",
+      "x": -62,
+      "y": 79,
+      "z": -139,
+      "items": {}
+    },
+    {
+      "idx": 130,
+      "type": "Barrel",
+      "x": -62,
+      "y": 80,
+      "z": -130,
+      "items": {}
+    },
+    {
+      "idx": 131,
+      "type": "Barrel",
+      "x": -61,
+      "y": 81,
+      "z": -130,
+      "items": {}
+    },
+    {
+      "idx": 132,
+      "type": "Chest",
+      "x": -61,
+      "y": 80,
+      "z": -129,
+      "items": {}
+    },
+    {
+      "idx": 133,
+      "type": "Chest",
+      "x": -58,
+      "y": 78,
+      "z": -159,
+      "items": {}
+    },
+    {
+      "idx": 134,
+      "type": "Chest",
+      "x": -58,
+      "y": 80,
+      "z": -139,
+      "items": {}
+    },
+    {
+      "idx": 135,
+      "type": "Chest",
+      "x": -58,
+      "y": 78,
+      "z": -126,
+      "items": {}
+    },
+    {
+      "idx": 136,
+      "type": "Chest",
+      "x": -55,
+      "y": 78,
+      "z": -138,
+      "items": {}
+    },
+    {
+      "idx": 137,
+      "type": "Barrel",
+      "x": -54,
+      "y": 78,
+      "z": -176,
+      "items": {}
+    },
+    {
+      "idx": 138,
+      "type": "Barrel",
+      "x": -54,
+      "y": 78,
+      "z": -172,
+      "items": {}
+    },
+    {
+      "idx": 139,
+      "type": "Barrel",
+      "x": -53,
+      "y": 78,
+      "z": -173,
+      "items": {}
+    },
+    {
+      "idx": 140,
+      "type": "Chest",
+      "x": -52,
+      "y": 78,
+      "z": -175,
+      "items": {}
+    },
+    {
+      "idx": 141,
+      "type": "Barrel",
+      "x": -51,
+      "y": 78,
+      "z": -176,
+      "items": {}
+    },
+    {
+      "idx": 142,
+      "type": "Chest",
+      "x": -51,
+      "y": 79,
+      "z": -173,
+      "items": {}
+    },
+    {
+      "idx": 143,
+      "type": "Barrel",
+      "x": -51,
+      "y": 78,
+      "z": -172,
+      "items": {}
+    },
+    {
+      "idx": 144,
+      "type": "Chest",
+      "x": -50,
+      "y": 78,
+      "z": -119,
+      "items": {}
+    },
+    {
+      "idx": 145,
+      "type": "Chest",
+      "x": -44,
+      "y": 77,
+      "z": -156,
+      "items": {}
+    },
+    {
+      "idx": 146,
+      "type": "Chest",
+      "x": -43,
+      "y": 77,
+      "z": -167,
+      "items": {}
+    },
+    {
+      "idx": 147,
+      "type": "Chest",
+      "x": -43,
+      "y": 78,
+      "z": -150,
+      "items": {}
+    },
+    {
+      "idx": 148,
+      "type": "Chest",
+      "x": -38,
+      "y": 78,
+      "z": -146,
+      "items": {}
+    },
+    {
+      "idx": 149,
+      "type": "Chest",
+      "x": -38,
+      "y": 77,
+      "z": -132,
+      "items": {}
+    },
+    {
+      "idx": 150,
+      "type": "Chest",
+      "x": -37,
+      "y": 76,
+      "z": -162,
+      "items": {}
+    },
+    {
+      "idx": 151,
+      "type": "Barrel",
+      "x": 33,
+      "y": 102,
+      "z": 647,
+      "items": {}
+    },
+    {
+      "idx": 152,
+      "type": "Barrel",
+      "x": 34,
+      "y": 101,
+      "z": 648,
+      "items": {}
+    },
+    {
+      "idx": 153,
+      "type": "Barrel",
+      "x": 35,
+      "y": 103,
+      "z": 642,
+      "items": {}
+    },
+    {
+      "idx": 154,
+      "type": "Barrel",
+      "x": 35,
+      "y": 102,
+      "z": 643,
+      "items": {}
+    },
+    {
+      "idx": 155,
+      "type": "Barrel",
+      "x": 35,
+      "y": 101,
+      "z": 644,
+      "items": {}
+    },
+    {
+      "idx": 156,
+      "type": "Barrel",
+      "x": 36,
+      "y": 101,
+      "z": 643,
+      "items": {}
+    },
+    {
+      "idx": 157,
+      "type": "Barrel",
+      "x": 52,
+      "y": 97,
+      "z": 664,
+      "items": {}
+    },
+    {
+      "idx": 158,
+      "type": "Barrel",
+      "x": 53,
+      "y": 98,
+      "z": 665,
+      "items": {}
+    },
+    {
+      "idx": 159,
+      "type": "Barrel",
+      "x": 73,
+      "y": 49,
+      "z": 1065,
+      "items": {}
+    },
+    {
+      "idx": 160,
+      "type": "Barrel",
+      "x": 73,
+      "y": 49,
+      "z": 1067,
+      "items": {}
+    },
+    {
+      "idx": 161,
+      "type": "Chest",
+      "x": 73,
+      "y": 50,
+      "z": 1067,
+      "items": {
+        "Enchanted Book: Luck Of The Sea II": 1,
+        "Kelp": 24,
+        "Sea Pickle": 5
+      }
+    },
+    {
+      "idx": 162,
+      "type": "Barrel",
+      "x": 76,
+      "y": 50,
+      "z": 1086,
+      "items": {}
+    },
+    {
+      "idx": 163,
+      "type": "Barrel",
+      "x": 77,
+      "y": 50,
+      "z": 1085,
+      "items": {}
+    },
+    {
+      "idx": 164,
+      "type": "Barrel",
+      "x": 77,
+      "y": 51,
+      "z": 1085,
+      "items": {}
+    },
+    {
+      "idx": 165,
+      "type": "Barrel",
+      "x": 78,
+      "y": 50,
+      "z": 1084,
+      "items": {}
+    },
+    {
+      "idx": 166,
+      "type": "Chest",
+      "x": 79,
+      "y": 49,
+      "z": 1061,
+      "items": {
+        "Enchanted Book: Luck Of The Sea III": 1,
+        "Iron Helmet": 1,
+        "Iron Ingot": 3,
+        "Seagrass": 13
+      }
+    },
+    {
+      "idx": 167,
+      "type": "Barrel",
+      "x": 79,
+      "y": 51,
+      "z": 1085,
+      "items": {}
+    },
+    {
+      "idx": 168,
+      "type": "Chest",
+      "x": 97,
+      "y": 49,
+      "z": 1065,
+      "items": {
+        "Bow": 1,
+        "Enchanted Book: Luck Of The Sea I": 1,
+        "Iron Ingot": 9,
+        "Kelp": 5,
+        "Seagrass": 6
+      }
+    },
+    {
+      "idx": 169,
+      "type": "Chest",
+      "x": 97,
+      "y": 50,
+      "z": 1079,
+      "items": {
+        "Diamond": 3,
+        "Iron Ingot": 5,
+        "Seagrass": 9
+      }
+    },
+    {
+      "idx": 170,
+      "type": "Chest",
+      "x": 337,
+      "y": 69,
+      "z": 173,
+      "items": {
+        "Copper Ingot": 5,
+        "Diamond": 1,
+        "Diamond Helmet": 1,
+        "Iron Ingot": 4
+      }
+    },
+    {
+      "idx": 171,
+      "type": "Barrel",
+      "x": 346,
+      "y": 69,
+      "z": 104,
+      "items": {
+        "Bone Meal": 13
+      }
+    },
+    {
+      "idx": 172,
+      "type": "Chest",
+      "x": 346,
+      "y": 69,
+      "z": 110,
+      "items": {
+        "Apple": 2,
+        "Bread": 9,
+        "Copper Ingot": 9
+      }
+    },
+    {
+      "idx": 173,
+      "type": "Barrel",
+      "x": 347,
+      "y": 69,
+      "z": 101,
+      "items": {
+        "Arrow": 9
+      }
+    },
+    {
+      "idx": 174,
+      "type": "Barrel",
+      "x": 347,
+      "y": 68,
+      "z": 101,
+      "items": {
+        "Diamond": 1,
+        "Gold Ingot": 2,
+        "Iron Ingot": 3
+      }
+    },
+    {
+      "idx": 175,
+      "type": "Barrel",
+      "x": 347,
+      "y": 69,
+      "z": 105,
+      "items": {
+        "Azalea Leaves": 10,
+        "Bread": 6
+      }
+    },
+    {
+      "idx": 176,
+      "type": "Barrel",
+      "x": 348,
+      "y": 68,
+      "z": 101,
+      "items": {
+        "Arrow": 4,
+        "Flint": 7
+      }
+    },
+    {
+      "idx": 177,
+      "type": "Chest",
+      "x": 353,
+      "y": 70,
+      "z": 175,
+      "items": {
+        "Apple": 3,
+        "Flint": 5,
+        "Iron Ingot": 7
+      }
+    },
+    {
+      "idx": 178,
+      "type": "Barrel",
+      "x": 685,
+      "y": 142,
+      "z": -1066,
+      "items": {}
+    },
+    {
+      "idx": 179,
+      "type": "Barrel",
+      "x": 686,
+      "y": 143,
+      "z": -1067,
+      "items": {}
+    },
+    {
+      "idx": 180,
+      "type": "Barrel",
+      "x": 686,
+      "y": 142,
+      "z": -1067,
+      "items": {}
+    },
+    {
+      "idx": 181,
+      "type": "Chest",
+      "x": 763,
+      "y": 61,
+      "z": 1234,
+      "items": {
+        "Cobblestone": 1,
+        "Copper Ingot": 9,
+        "Diamond": 5,
+        "Iron Ingot": 5,
+        "Mangrove Leaves": 10
+      }
+    },
+    {
+      "idx": 182,
+      "type": "Chest",
+      "x": 889,
+      "y": 71,
+      "z": -581,
+      "items": {
+        "Apple": 3,
+        "Bone Meal": 6,
+        "Diamond": 1,
+        "Flint": 9,
+        "Gold Ingot": 3,
+        "Written Book": 1
+      }
+    },
+    {
+      "idx": 183,
+      "type": "Chest",
+      "x": 897,
+      "y": 71,
+      "z": -593,
+      "items": {
+        "Apple": 5,
+        "Arrow": 9,
+        "Bread": 5,
+        "Crossbow": 1,
+        "Diamond": 3
+      }
+    },
+    {
+      "idx": 184,
+      "type": "Barrel",
+      "x": 944,
+      "y": 59,
+      "z": -22,
+      "items": {}
+    },
+    {
+      "idx": 185,
+      "type": "Barrel",
+      "x": 945,
+      "y": 58,
+      "z": -23,
+      "items": {}
+    },
+    {
+      "idx": 186,
+      "type": "Barrel",
+      "x": 954,
+      "y": 59,
+      "z": -29,
+      "items": {}
+    },
+    {
+      "idx": 187,
+      "type": "Barrel",
+      "x": 955,
+      "y": 60,
+      "z": -30,
+      "items": {}
+    },
+    {
+      "idx": 188,
+      "type": "Barrel",
+      "x": 955,
+      "y": 59,
+      "z": -29,
+      "items": {}
+    },
+    {
+      "idx": 189,
+      "type": "Barrel",
+      "x": 956,
+      "y": 59,
+      "z": -30,
+      "items": {}
+    },
+    {
+      "idx": 190,
+      "type": "Barrel",
+      "x": 956,
+      "y": 59,
+      "z": -12,
+      "items": {}
+    },
+    {
+      "idx": 191,
+      "type": "Barrel",
+      "x": 957,
+      "y": 59,
+      "z": -13,
+      "items": {}
+    },
+    {
+      "idx": 192,
+      "type": "Barrel",
+      "x": 962,
+      "y": 73,
+      "z": -26,
+      "items": {}
+    },
+    {
+      "idx": 193,
+      "type": "Barrel",
+      "x": 963,
+      "y": 74,
+      "z": -26,
+      "items": {}
+    },
+    {
+      "idx": 194,
+      "type": "Barrel",
+      "x": 963,
+      "y": 73,
+      "z": -26,
+      "items": {}
+    },
+    {
+      "idx": 195,
+      "type": "Barrel",
+      "x": 963,
+      "y": 73,
+      "z": -25,
+      "items": {}
+    },
+    {
+      "idx": 196,
+      "type": "Barrel",
+      "x": 964,
+      "y": 73,
+      "z": -27,
+      "items": {}
+    },
+    {
+      "idx": 197,
+      "type": "Barrel",
+      "x": 965,
+      "y": 73,
+      "z": -26,
+      "items": {}
+    },
+    {
+      "idx": 198,
+      "type": "Barrel",
+      "x": 965,
+      "y": 73,
+      "z": -25,
+      "items": {}
+    },
+    {
+      "idx": 199,
+      "type": "Chest",
+      "x": 1018,
+      "y": 127,
+      "z": -1004,
+      "items": {
+        "Bread": 7,
+        "Cobblestone": 1,
+        "Diamond": 4,
+        "Flint": 5,
+        "Iron Ingot": 9
+      }
+    },
+    {
+      "idx": 200,
+      "type": "Chest",
+      "x": 1020,
+      "y": 126,
+      "z": -1016,
+      "items": {
+        "Apple": 5,
+        "Arrow": 10,
+        "Bow": 1,
+        "Diamond": 2
+      }
+    }
+  ],
+  "items": {
+    "Apple": {
+      "total": 52,
+      "chests": [
+        {
+          "chest_idx": 1,
+          "x": -1230,
+          "y": 69,
+          "z": 86,
+          "qty": 1
+        },
+        {
+          "chest_idx": 1,
+          "x": -1230,
+          "y": 69,
+          "z": 86,
+          "qty": 1
+        },
+        {
+          "chest_idx": 1,
+          "x": -1230,
+          "y": 69,
+          "z": 86,
+          "qty": 1
+        },
+        {
+          "chest_idx": 1,
+          "x": -1230,
+          "y": 69,
+          "z": 86,
+          "qty": 1
+        },
+        {
+          "chest_idx": 1,
+          "x": -1230,
+          "y": 69,
+          "z": 86,
+          "qty": 1
+        },
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 4,
+          "x": -1174,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 4,
+          "x": -1174,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 4,
+          "x": -1174,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 4,
+          "x": -1174,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 4,
+          "x": -1174,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 5,
+          "x": -1173,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 5,
+          "x": -1173,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 5,
+          "x": -1173,
+          "y": 68,
+          "z": -1096,
+          "qty": 2
+        },
+        {
+          "chest_idx": 5,
+          "x": -1173,
+          "y": 68,
+          "z": -1096,
+          "qty": 2
+        },
+        {
+          "chest_idx": 5,
+          "x": -1173,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 5,
+          "x": -1173,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 25,
+          "x": -588,
+          "y": 83,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 25,
+          "x": -588,
+          "y": 83,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 25,
+          "x": -588,
+          "y": 83,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 28,
+          "x": -584,
+          "y": 82,
+          "z": -421,
+          "qty": 1
+        },
+        {
+          "chest_idx": 28,
+          "x": -584,
+          "y": 82,
+          "z": -421,
+          "qty": 1
+        },
+        {
+          "chest_idx": 28,
+          "x": -584,
+          "y": 82,
+          "z": -421,
+          "qty": 1
+        },
+        {
+          "chest_idx": 35,
+          "x": -446,
+          "y": 130,
+          "z": 76,
+          "qty": 2
+        },
+        {
+          "chest_idx": 35,
+          "x": -446,
+          "y": 130,
+          "z": 76,
+          "qty": 1
+        },
+        {
+          "chest_idx": 35,
+          "x": -446,
+          "y": 130,
+          "z": 76,
+          "qty": 2
+        },
+        {
+          "chest_idx": 35,
+          "x": -446,
+          "y": 130,
+          "z": 76,
+          "qty": 1
+        },
+        {
+          "chest_idx": 172,
+          "x": 346,
+          "y": 69,
+          "z": 110,
+          "qty": 1
+        },
+        {
+          "chest_idx": 172,
+          "x": 346,
+          "y": 69,
+          "z": 110,
+          "qty": 1
+        },
+        {
+          "chest_idx": 177,
+          "x": 353,
+          "y": 70,
+          "z": 175,
+          "qty": 1
+        },
+        {
+          "chest_idx": 177,
+          "x": 353,
+          "y": 70,
+          "z": 175,
+          "qty": 1
+        },
+        {
+          "chest_idx": 177,
+          "x": 353,
+          "y": 70,
+          "z": 175,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        },
+        {
+          "chest_idx": 200,
+          "x": 1020,
+          "y": 126,
+          "z": -1016,
+          "qty": 1
+        },
+        {
+          "chest_idx": 200,
+          "x": 1020,
+          "y": 126,
+          "z": -1016,
+          "qty": 1
+        },
+        {
+          "chest_idx": 200,
+          "x": 1020,
+          "y": 126,
+          "z": -1016,
+          "qty": 1
+        },
+        {
+          "chest_idx": 200,
+          "x": 1020,
+          "y": 126,
+          "z": -1016,
+          "qty": 1
+        },
+        {
+          "chest_idx": 200,
+          "x": 1020,
+          "y": 126,
+          "z": -1016,
+          "qty": 1
+        }
+      ]
+    },
+    "Gold Ingot": {
+      "total": 39,
+      "chests": [
+        {
+          "chest_idx": 1,
+          "x": -1230,
+          "y": 69,
+          "z": 86,
+          "qty": 1
+        },
+        {
+          "chest_idx": 1,
+          "x": -1230,
+          "y": 69,
+          "z": 86,
+          "qty": 1
+        },
+        {
+          "chest_idx": 1,
+          "x": -1230,
+          "y": 69,
+          "z": 86,
+          "qty": 1
+        },
+        {
+          "chest_idx": 24,
+          "x": -589,
+          "y": 82,
+          "z": -416,
+          "qty": 1
+        },
+        {
+          "chest_idx": 27,
+          "x": -587,
+          "y": 82,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 27,
+          "x": -587,
+          "y": 82,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 27,
+          "x": -587,
+          "y": 82,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 27,
+          "x": -587,
+          "y": 82,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 34,
+          "x": -449,
+          "y": 130,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 34,
+          "x": -449,
+          "y": 130,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 34,
+          "x": -449,
+          "y": 130,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 35,
+          "x": -446,
+          "y": 130,
+          "z": 76,
+          "qty": 1
+        },
+        {
+          "chest_idx": 35,
+          "x": -446,
+          "y": 130,
+          "z": 76,
+          "qty": 1
+        },
+        {
+          "chest_idx": 35,
+          "x": -446,
+          "y": 130,
+          "z": 76,
+          "qty": 1
+        },
+        {
+          "chest_idx": 35,
+          "x": -446,
+          "y": 130,
+          "z": 76,
+          "qty": 1
+        },
+        {
+          "chest_idx": 35,
+          "x": -446,
+          "y": 130,
+          "z": 76,
+          "qty": 1
+        },
+        {
+          "chest_idx": 36,
+          "x": -423,
+          "y": 78,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 36,
+          "x": -423,
+          "y": 78,
+          "z": 689,
+          "qty": 3
+        },
+        {
+          "chest_idx": 36,
+          "x": -423,
+          "y": 78,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 36,
+          "x": -423,
+          "y": 78,
+          "z": 689,
+          "qty": 2
+        },
+        {
+          "chest_idx": 36,
+          "x": -423,
+          "y": 78,
+          "z": 689,
+          "qty": 2
+        },
+        {
+          "chest_idx": 36,
+          "x": -423,
+          "y": 78,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 1
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 2
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 1
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 1
+        },
+        {
+          "chest_idx": 49,
+          "x": -318,
+          "y": 74,
+          "z": -1117,
+          "qty": 1
+        },
+        {
+          "chest_idx": 49,
+          "x": -318,
+          "y": 74,
+          "z": -1117,
+          "qty": 1
+        },
+        {
+          "chest_idx": 49,
+          "x": -318,
+          "y": 74,
+          "z": -1117,
+          "qty": 1
+        },
+        {
+          "chest_idx": 174,
+          "x": 347,
+          "y": 68,
+          "z": 101,
+          "qty": 1
+        },
+        {
+          "chest_idx": 174,
+          "x": 347,
+          "y": 68,
+          "z": 101,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        }
+      ]
+    },
+    "Iron Chestplate": {
+      "total": 2,
+      "chests": [
+        {
+          "chest_idx": 1,
+          "x": -1230,
+          "y": 69,
+          "z": 86,
+          "qty": 1
+        },
+        {
+          "chest_idx": 36,
+          "x": -423,
+          "y": 78,
+          "z": 689,
+          "qty": 1
+        }
+      ]
+    },
+    "Written Book": {
+      "total": 4,
+      "chests": [
+        {
+          "chest_idx": 1,
+          "x": -1230,
+          "y": 69,
+          "z": 86,
+          "qty": 1
+        },
+        {
+          "chest_idx": 45,
+          "x": -418,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 82,
+          "x": -91,
+          "y": 80,
+          "z": -167,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        }
+      ]
+    },
+    "Iron Axe": {
+      "total": 1,
+      "chests": [
+        {
+          "chest_idx": 2,
+          "x": -1178,
+          "y": 68,
+          "z": -1098,
+          "qty": 1
+        }
+      ]
+    },
+    "Iron Ingot": {
+      "total": 92,
+      "chests": [
+        {
+          "chest_idx": 2,
+          "x": -1178,
+          "y": 68,
+          "z": -1098,
+          "qty": 1
+        },
+        {
+          "chest_idx": 2,
+          "x": -1178,
+          "y": 68,
+          "z": -1098,
+          "qty": 1
+        },
+        {
+          "chest_idx": 2,
+          "x": -1178,
+          "y": 68,
+          "z": -1098,
+          "qty": 1
+        },
+        {
+          "chest_idx": 2,
+          "x": -1178,
+          "y": 68,
+          "z": -1098,
+          "qty": 2
+        },
+        {
+          "chest_idx": 21,
+          "x": -650,
+          "y": 86,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 21,
+          "x": -650,
+          "y": 86,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 21,
+          "x": -650,
+          "y": 86,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 21,
+          "x": -650,
+          "y": 86,
+          "z": 973,
+          "qty": 3
+        },
+        {
+          "chest_idx": 21,
+          "x": -650,
+          "y": 86,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 21,
+          "x": -650,
+          "y": 86,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 21,
+          "x": -650,
+          "y": 86,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 24,
+          "x": -589,
+          "y": 82,
+          "z": -416,
+          "qty": 1
+        },
+        {
+          "chest_idx": 24,
+          "x": -589,
+          "y": 82,
+          "z": -416,
+          "qty": 1
+        },
+        {
+          "chest_idx": 24,
+          "x": -589,
+          "y": 82,
+          "z": -416,
+          "qty": 1
+        },
+        {
+          "chest_idx": 27,
+          "x": -587,
+          "y": 82,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 27,
+          "x": -587,
+          "y": 82,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 30,
+          "x": -583,
+          "y": 83,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 30,
+          "x": -583,
+          "y": 83,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 34,
+          "x": -449,
+          "y": 130,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 34,
+          "x": -449,
+          "y": 130,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 34,
+          "x": -449,
+          "y": 130,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 34,
+          "x": -449,
+          "y": 130,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 34,
+          "x": -449,
+          "y": 130,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 34,
+          "x": -449,
+          "y": 130,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 35,
+          "x": -446,
+          "y": 130,
+          "z": 76,
+          "qty": 1
+        },
+        {
+          "chest_idx": 35,
+          "x": -446,
+          "y": 130,
+          "z": 76,
+          "qty": 1
+        },
+        {
+          "chest_idx": 35,
+          "x": -446,
+          "y": 130,
+          "z": 76,
+          "qty": 1
+        },
+        {
+          "chest_idx": 35,
+          "x": -446,
+          "y": 130,
+          "z": 76,
+          "qty": 1
+        },
+        {
+          "chest_idx": 35,
+          "x": -446,
+          "y": 130,
+          "z": 76,
+          "qty": 1
+        },
+        {
+          "chest_idx": 35,
+          "x": -446,
+          "y": 130,
+          "z": 76,
+          "qty": 1
+        },
+        {
+          "chest_idx": 35,
+          "x": -446,
+          "y": 130,
+          "z": 76,
+          "qty": 1
+        },
+        {
+          "chest_idx": 35,
+          "x": -446,
+          "y": 130,
+          "z": 76,
+          "qty": 1
+        },
+        {
+          "chest_idx": 48,
+          "x": -324,
+          "y": 74,
+          "z": -1114,
+          "qty": 1
+        },
+        {
+          "chest_idx": 48,
+          "x": -324,
+          "y": 74,
+          "z": -1114,
+          "qty": 1
+        },
+        {
+          "chest_idx": 48,
+          "x": -324,
+          "y": 74,
+          "z": -1114,
+          "qty": 1
+        },
+        {
+          "chest_idx": 48,
+          "x": -324,
+          "y": 74,
+          "z": -1114,
+          "qty": 1
+        },
+        {
+          "chest_idx": 48,
+          "x": -324,
+          "y": 74,
+          "z": -1114,
+          "qty": 1
+        },
+        {
+          "chest_idx": 48,
+          "x": -324,
+          "y": 74,
+          "z": -1114,
+          "qty": 1
+        },
+        {
+          "chest_idx": 49,
+          "x": -318,
+          "y": 74,
+          "z": -1117,
+          "qty": 1
+        },
+        {
+          "chest_idx": 49,
+          "x": -318,
+          "y": 74,
+          "z": -1117,
+          "qty": 1
+        },
+        {
+          "chest_idx": 49,
+          "x": -318,
+          "y": 74,
+          "z": -1117,
+          "qty": 1
+        },
+        {
+          "chest_idx": 49,
+          "x": -318,
+          "y": 74,
+          "z": -1117,
+          "qty": 1
+        },
+        {
+          "chest_idx": 49,
+          "x": -318,
+          "y": 74,
+          "z": -1117,
+          "qty": 1
+        },
+        {
+          "chest_idx": 49,
+          "x": -318,
+          "y": 74,
+          "z": -1117,
+          "qty": 1
+        },
+        {
+          "chest_idx": 166,
+          "x": 79,
+          "y": 49,
+          "z": 1061,
+          "qty": 1
+        },
+        {
+          "chest_idx": 166,
+          "x": 79,
+          "y": 49,
+          "z": 1061,
+          "qty": 1
+        },
+        {
+          "chest_idx": 166,
+          "x": 79,
+          "y": 49,
+          "z": 1061,
+          "qty": 1
+        },
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        },
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        },
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        },
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        },
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        },
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        },
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        },
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        },
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        },
+        {
+          "chest_idx": 169,
+          "x": 97,
+          "y": 50,
+          "z": 1079,
+          "qty": 1
+        },
+        {
+          "chest_idx": 169,
+          "x": 97,
+          "y": 50,
+          "z": 1079,
+          "qty": 1
+        },
+        {
+          "chest_idx": 169,
+          "x": 97,
+          "y": 50,
+          "z": 1079,
+          "qty": 1
+        },
+        {
+          "chest_idx": 169,
+          "x": 97,
+          "y": 50,
+          "z": 1079,
+          "qty": 1
+        },
+        {
+          "chest_idx": 169,
+          "x": 97,
+          "y": 50,
+          "z": 1079,
+          "qty": 1
+        },
+        {
+          "chest_idx": 170,
+          "x": 337,
+          "y": 69,
+          "z": 173,
+          "qty": 1
+        },
+        {
+          "chest_idx": 170,
+          "x": 337,
+          "y": 69,
+          "z": 173,
+          "qty": 1
+        },
+        {
+          "chest_idx": 170,
+          "x": 337,
+          "y": 69,
+          "z": 173,
+          "qty": 1
+        },
+        {
+          "chest_idx": 170,
+          "x": 337,
+          "y": 69,
+          "z": 173,
+          "qty": 1
+        },
+        {
+          "chest_idx": 174,
+          "x": 347,
+          "y": 68,
+          "z": 101,
+          "qty": 1
+        },
+        {
+          "chest_idx": 174,
+          "x": 347,
+          "y": 68,
+          "z": 101,
+          "qty": 1
+        },
+        {
+          "chest_idx": 174,
+          "x": 347,
+          "y": 68,
+          "z": 101,
+          "qty": 1
+        },
+        {
+          "chest_idx": 177,
+          "x": 353,
+          "y": 70,
+          "z": 175,
+          "qty": 1
+        },
+        {
+          "chest_idx": 177,
+          "x": 353,
+          "y": 70,
+          "z": 175,
+          "qty": 1
+        },
+        {
+          "chest_idx": 177,
+          "x": 353,
+          "y": 70,
+          "z": 175,
+          "qty": 1
+        },
+        {
+          "chest_idx": 177,
+          "x": 353,
+          "y": 70,
+          "z": 175,
+          "qty": 1
+        },
+        {
+          "chest_idx": 177,
+          "x": 353,
+          "y": 70,
+          "z": 175,
+          "qty": 1
+        },
+        {
+          "chest_idx": 177,
+          "x": 353,
+          "y": 70,
+          "z": 175,
+          "qty": 1
+        },
+        {
+          "chest_idx": 177,
+          "x": 353,
+          "y": 70,
+          "z": 175,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        }
+      ]
+    },
+    "Bone Meal": {
+      "total": 44,
+      "chests": [
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 3
+        },
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 2
+        },
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 2
+        },
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 2
+        },
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 46,
+          "x": -326,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 46,
+          "x": -326,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 46,
+          "x": -326,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 46,
+          "x": -326,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 46,
+          "x": -326,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 48,
+          "x": -324,
+          "y": 74,
+          "z": -1114,
+          "qty": 1
+        },
+        {
+          "chest_idx": 48,
+          "x": -324,
+          "y": 74,
+          "z": -1114,
+          "qty": 1
+        },
+        {
+          "chest_idx": 48,
+          "x": -324,
+          "y": 74,
+          "z": -1114,
+          "qty": 1
+        },
+        {
+          "chest_idx": 48,
+          "x": -324,
+          "y": 74,
+          "z": -1114,
+          "qty": 1
+        },
+        {
+          "chest_idx": 171,
+          "x": 346,
+          "y": 69,
+          "z": 104,
+          "qty": 1
+        },
+        {
+          "chest_idx": 171,
+          "x": 346,
+          "y": 69,
+          "z": 104,
+          "qty": 1
+        },
+        {
+          "chest_idx": 171,
+          "x": 346,
+          "y": 69,
+          "z": 104,
+          "qty": 1
+        },
+        {
+          "chest_idx": 171,
+          "x": 346,
+          "y": 69,
+          "z": 104,
+          "qty": 1
+        },
+        {
+          "chest_idx": 171,
+          "x": 346,
+          "y": 69,
+          "z": 104,
+          "qty": 2
+        },
+        {
+          "chest_idx": 171,
+          "x": 346,
+          "y": 69,
+          "z": 104,
+          "qty": 1
+        },
+        {
+          "chest_idx": 171,
+          "x": 346,
+          "y": 69,
+          "z": 104,
+          "qty": 2
+        },
+        {
+          "chest_idx": 171,
+          "x": 346,
+          "y": 69,
+          "z": 104,
+          "qty": 1
+        },
+        {
+          "chest_idx": 171,
+          "x": 346,
+          "y": 69,
+          "z": 104,
+          "qty": 1
+        },
+        {
+          "chest_idx": 171,
+          "x": 346,
+          "y": 69,
+          "z": 104,
+          "qty": 1
+        },
+        {
+          "chest_idx": 171,
+          "x": 346,
+          "y": 69,
+          "z": 104,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        }
+      ]
+    },
+    "Bread": {
+      "total": 138,
+      "chests": [
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 4,
+          "x": -1174,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 4,
+          "x": -1174,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 4,
+          "x": -1174,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 4,
+          "x": -1174,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 4,
+          "x": -1174,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 4,
+          "x": -1174,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 5,
+          "x": -1173,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 5,
+          "x": -1173,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 5,
+          "x": -1173,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 5,
+          "x": -1173,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 5,
+          "x": -1173,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 5,
+          "x": -1173,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 5,
+          "x": -1173,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 5,
+          "x": -1173,
+          "y": 68,
+          "z": -1096,
+          "qty": 1
+        },
+        {
+          "chest_idx": 25,
+          "x": -588,
+          "y": 83,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 25,
+          "x": -588,
+          "y": 83,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 25,
+          "x": -588,
+          "y": 83,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 25,
+          "x": -588,
+          "y": 83,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 25,
+          "x": -588,
+          "y": 83,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 30,
+          "x": -583,
+          "y": 83,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 30,
+          "x": -583,
+          "y": 83,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 30,
+          "x": -583,
+          "y": 83,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 30,
+          "x": -583,
+          "y": 83,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 30,
+          "x": -583,
+          "y": 83,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 30,
+          "x": -583,
+          "y": 83,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 30,
+          "x": -583,
+          "y": 83,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 30,
+          "x": -583,
+          "y": 83,
+          "z": -422,
+          "qty": 1
+        },
+        {
+          "chest_idx": 31,
+          "x": -450,
+          "y": 130,
+          "z": 79,
+          "qty": 1
+        },
+        {
+          "chest_idx": 31,
+          "x": -450,
+          "y": 130,
+          "z": 79,
+          "qty": 1
+        },
+        {
+          "chest_idx": 31,
+          "x": -450,
+          "y": 130,
+          "z": 79,
+          "qty": 1
+        },
+        {
+          "chest_idx": 31,
+          "x": -450,
+          "y": 130,
+          "z": 79,
+          "qty": 1
+        },
+        {
+          "chest_idx": 31,
+          "x": -450,
+          "y": 130,
+          "z": 79,
+          "qty": 1
+        },
+        {
+          "chest_idx": 31,
+          "x": -450,
+          "y": 130,
+          "z": 79,
+          "qty": 1
+        },
+        {
+          "chest_idx": 31,
+          "x": -450,
+          "y": 130,
+          "z": 79,
+          "qty": 2
+        },
+        {
+          "chest_idx": 31,
+          "x": -450,
+          "y": 130,
+          "z": 79,
+          "qty": 1
+        },
+        {
+          "chest_idx": 31,
+          "x": -450,
+          "y": 130,
+          "z": 79,
+          "qty": 1
+        },
+        {
+          "chest_idx": 31,
+          "x": -450,
+          "y": 130,
+          "z": 79,
+          "qty": 1
+        },
+        {
+          "chest_idx": 32,
+          "x": -450,
+          "y": 131,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 32,
+          "x": -450,
+          "y": 131,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 32,
+          "x": -450,
+          "y": 131,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 32,
+          "x": -450,
+          "y": 131,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 32,
+          "x": -450,
+          "y": 131,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 32,
+          "x": -450,
+          "y": 131,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 32,
+          "x": -450,
+          "y": 131,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 32,
+          "x": -450,
+          "y": 131,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 32,
+          "x": -450,
+          "y": 131,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 32,
+          "x": -450,
+          "y": 131,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 37,
+          "x": -422,
+          "y": 77,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 37,
+          "x": -422,
+          "y": 77,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 37,
+          "x": -422,
+          "y": 77,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 2
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 1
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 2
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 2
+        },
+        {
+          "chest_idx": 39,
+          "x": -421,
+          "y": 77,
+          "z": 683,
+          "qty": 1
+        },
+        {
+          "chest_idx": 39,
+          "x": -421,
+          "y": 77,
+          "z": 683,
+          "qty": 1
+        },
+        {
+          "chest_idx": 39,
+          "x": -421,
+          "y": 77,
+          "z": 683,
+          "qty": 1
+        },
+        {
+          "chest_idx": 39,
+          "x": -421,
+          "y": 77,
+          "z": 683,
+          "qty": 1
+        },
+        {
+          "chest_idx": 39,
+          "x": -421,
+          "y": 77,
+          "z": 683,
+          "qty": 1
+        },
+        {
+          "chest_idx": 40,
+          "x": -421,
+          "y": 78,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 40,
+          "x": -421,
+          "y": 78,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 40,
+          "x": -421,
+          "y": 78,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 3
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 2
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 1
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 1
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 1
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 3
+        },
+        {
+          "chest_idx": 42,
+          "x": -419,
+          "y": 80,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 42,
+          "x": -419,
+          "y": 80,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 42,
+          "x": -419,
+          "y": 80,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 42,
+          "x": -419,
+          "y": 80,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 42,
+          "x": -419,
+          "y": 80,
+          "z": 689,
+          "qty": 2
+        },
+        {
+          "chest_idx": 42,
+          "x": -419,
+          "y": 80,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 42,
+          "x": -419,
+          "y": 80,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 43,
+          "x": -419,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 43,
+          "x": -419,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 43,
+          "x": -419,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 43,
+          "x": -419,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 45,
+          "x": -418,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 45,
+          "x": -418,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 45,
+          "x": -418,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 45,
+          "x": -418,
+          "y": 79,
+          "z": 689,
+          "qty": 2
+        },
+        {
+          "chest_idx": 45,
+          "x": -418,
+          "y": 79,
+          "z": 689,
+          "qty": 2
+        },
+        {
+          "chest_idx": 45,
+          "x": -418,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 45,
+          "x": -418,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 45,
+          "x": -418,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 45,
+          "x": -418,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 45,
+          "x": -418,
+          "y": 79,
+          "z": 689,
+          "qty": 2
+        },
+        {
+          "chest_idx": 48,
+          "x": -324,
+          "y": 74,
+          "z": -1114,
+          "qty": 1
+        },
+        {
+          "chest_idx": 48,
+          "x": -324,
+          "y": 74,
+          "z": -1114,
+          "qty": 1
+        },
+        {
+          "chest_idx": 48,
+          "x": -324,
+          "y": 74,
+          "z": -1114,
+          "qty": 1
+        },
+        {
+          "chest_idx": 48,
+          "x": -324,
+          "y": 74,
+          "z": -1114,
+          "qty": 1
+        },
+        {
+          "chest_idx": 48,
+          "x": -324,
+          "y": 74,
+          "z": -1114,
+          "qty": 1
+        },
+        {
+          "chest_idx": 48,
+          "x": -324,
+          "y": 74,
+          "z": -1114,
+          "qty": 1
+        },
+        {
+          "chest_idx": 172,
+          "x": 346,
+          "y": 69,
+          "z": 110,
+          "qty": 1
+        },
+        {
+          "chest_idx": 172,
+          "x": 346,
+          "y": 69,
+          "z": 110,
+          "qty": 1
+        },
+        {
+          "chest_idx": 172,
+          "x": 346,
+          "y": 69,
+          "z": 110,
+          "qty": 1
+        },
+        {
+          "chest_idx": 172,
+          "x": 346,
+          "y": 69,
+          "z": 110,
+          "qty": 1
+        },
+        {
+          "chest_idx": 172,
+          "x": 346,
+          "y": 69,
+          "z": 110,
+          "qty": 1
+        },
+        {
+          "chest_idx": 172,
+          "x": 346,
+          "y": 69,
+          "z": 110,
+          "qty": 1
+        },
+        {
+          "chest_idx": 172,
+          "x": 346,
+          "y": 69,
+          "z": 110,
+          "qty": 1
+        },
+        {
+          "chest_idx": 172,
+          "x": 346,
+          "y": 69,
+          "z": 110,
+          "qty": 1
+        },
+        {
+          "chest_idx": 172,
+          "x": 346,
+          "y": 69,
+          "z": 110,
+          "qty": 1
+        },
+        {
+          "chest_idx": 175,
+          "x": 347,
+          "y": 69,
+          "z": 105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 175,
+          "x": 347,
+          "y": 69,
+          "z": 105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 175,
+          "x": 347,
+          "y": 69,
+          "z": 105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 175,
+          "x": 347,
+          "y": 69,
+          "z": 105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 175,
+          "x": 347,
+          "y": 69,
+          "z": 105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 175,
+          "x": 347,
+          "y": 69,
+          "z": 105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        }
+      ]
+    },
+    "Iron Shovel": {
+      "total": 1,
+      "chests": [
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 1
+        }
+      ]
+    },
+    "Name Tag": {
+      "total": 1,
+      "chests": [
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 1
+        }
+      ]
+    },
+    "Water Bucket": {
+      "total": 1,
+      "chests": [
+        {
+          "chest_idx": 3,
+          "x": -1174,
+          "y": 68,
+          "z": -1105,
+          "qty": 1
+        }
+      ]
+    },
+    "Arrow": {
+      "total": 67,
+      "chests": [
+        {
+          "chest_idx": 21,
+          "x": -650,
+          "y": 86,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 21,
+          "x": -650,
+          "y": 86,
+          "z": 973,
+          "qty": 2
+        },
+        {
+          "chest_idx": 21,
+          "x": -650,
+          "y": 86,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 21,
+          "x": -650,
+          "y": 86,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 21,
+          "x": -650,
+          "y": 86,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 2
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 2
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 2
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 2
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        },
+        {
+          "chest_idx": 36,
+          "x": -423,
+          "y": 78,
+          "z": 689,
+          "qty": 2
+        },
+        {
+          "chest_idx": 36,
+          "x": -423,
+          "y": 78,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 36,
+          "x": -423,
+          "y": 78,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 2
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 1
+        },
+        {
+          "chest_idx": 43,
+          "x": -419,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 43,
+          "x": -419,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 45,
+          "x": -418,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 45,
+          "x": -418,
+          "y": 79,
+          "z": 689,
+          "qty": 2
+        },
+        {
+          "chest_idx": 45,
+          "x": -418,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 45,
+          "x": -418,
+          "y": 79,
+          "z": 689,
+          "qty": 2
+        },
+        {
+          "chest_idx": 45,
+          "x": -418,
+          "y": 79,
+          "z": 689,
+          "qty": 2
+        },
+        {
+          "chest_idx": 173,
+          "x": 347,
+          "y": 69,
+          "z": 101,
+          "qty": 1
+        },
+        {
+          "chest_idx": 173,
+          "x": 347,
+          "y": 69,
+          "z": 101,
+          "qty": 1
+        },
+        {
+          "chest_idx": 173,
+          "x": 347,
+          "y": 69,
+          "z": 101,
+          "qty": 2
+        },
+        {
+          "chest_idx": 173,
+          "x": 347,
+          "y": 69,
+          "z": 101,
+          "qty": 1
+        },
+        {
+          "chest_idx": 173,
+          "x": 347,
+          "y": 69,
+          "z": 101,
+          "qty": 1
+        },
+        {
+          "chest_idx": 173,
+          "x": 347,
+          "y": 69,
+          "z": 101,
+          "qty": 2
+        },
+        {
+          "chest_idx": 173,
+          "x": 347,
+          "y": 69,
+          "z": 101,
+          "qty": 1
+        },
+        {
+          "chest_idx": 176,
+          "x": 348,
+          "y": 68,
+          "z": 101,
+          "qty": 1
+        },
+        {
+          "chest_idx": 176,
+          "x": 348,
+          "y": 68,
+          "z": 101,
+          "qty": 1
+        },
+        {
+          "chest_idx": 176,
+          "x": 348,
+          "y": 68,
+          "z": 101,
+          "qty": 1
+        },
+        {
+          "chest_idx": 176,
+          "x": 348,
+          "y": 68,
+          "z": 101,
+          "qty": 1
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 2
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        },
+        {
+          "chest_idx": 200,
+          "x": 1020,
+          "y": 126,
+          "z": -1016,
+          "qty": 1
+        },
+        {
+          "chest_idx": 200,
+          "x": 1020,
+          "y": 126,
+          "z": -1016,
+          "qty": 1
+        },
+        {
+          "chest_idx": 200,
+          "x": 1020,
+          "y": 126,
+          "z": -1016,
+          "qty": 1
+        },
+        {
+          "chest_idx": 200,
+          "x": 1020,
+          "y": 126,
+          "z": -1016,
+          "qty": 1
+        },
+        {
+          "chest_idx": 200,
+          "x": 1020,
+          "y": 126,
+          "z": -1016,
+          "qty": 2
+        },
+        {
+          "chest_idx": 200,
+          "x": 1020,
+          "y": 126,
+          "z": -1016,
+          "qty": 1
+        },
+        {
+          "chest_idx": 200,
+          "x": 1020,
+          "y": 126,
+          "z": -1016,
+          "qty": 1
+        },
+        {
+          "chest_idx": 200,
+          "x": 1020,
+          "y": 126,
+          "z": -1016,
+          "qty": 1
+        },
+        {
+          "chest_idx": 200,
+          "x": 1020,
+          "y": 126,
+          "z": -1016,
+          "qty": 1
+        }
+      ]
+    },
+    "Cobblestone": {
+      "total": 4,
+      "chests": [
+        {
+          "chest_idx": 21,
+          "x": -650,
+          "y": 86,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 49,
+          "x": -318,
+          "y": 74,
+          "z": -1117,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        }
+      ]
+    },
+    "Golden Horse Armor": {
+      "total": 1,
+      "chests": [
+        {
+          "chest_idx": 21,
+          "x": -650,
+          "y": 86,
+          "z": 973,
+          "qty": 1
+        }
+      ]
+    },
+    "Iron Helmet": {
+      "total": 2,
+      "chests": [
+        {
+          "chest_idx": 21,
+          "x": -650,
+          "y": 86,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 166,
+          "x": 79,
+          "y": 49,
+          "z": 1061,
+          "qty": 1
+        }
+      ]
+    },
+    "Iron Pickaxe": {
+      "total": 2,
+      "chests": [
+        {
+          "chest_idx": 21,
+          "x": -650,
+          "y": 86,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 27,
+          "x": -587,
+          "y": 82,
+          "z": -422,
+          "qty": 1
+        }
+      ]
+    },
+    "Cobweb": {
+      "total": 7,
+      "chests": [
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        },
+        {
+          "chest_idx": 23,
+          "x": -646,
+          "y": 85,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 23,
+          "x": -646,
+          "y": 85,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 36,
+          "x": -423,
+          "y": 78,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 36,
+          "x": -423,
+          "y": 78,
+          "z": 689,
+          "qty": 1
+        }
+      ]
+    },
+    "Iron Sword": {
+      "total": 1,
+      "chests": [
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        }
+      ]
+    },
+    "Sand": {
+      "total": 134,
+      "chests": [
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        },
+        {
+          "chest_idx": 22,
+          "x": -646,
+          "y": 85,
+          "z": 972,
+          "qty": 1
+        },
+        {
+          "chest_idx": 23,
+          "x": -646,
+          "y": 85,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 23,
+          "x": -646,
+          "y": 85,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 23,
+          "x": -646,
+          "y": 85,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 23,
+          "x": -646,
+          "y": 85,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 23,
+          "x": -646,
+          "y": 85,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 23,
+          "x": -646,
+          "y": 85,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 23,
+          "x": -646,
+          "y": 85,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 23,
+          "x": -646,
+          "y": 85,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 23,
+          "x": -646,
+          "y": 85,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 23,
+          "x": -646,
+          "y": 85,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 37,
+          "x": -422,
+          "y": 77,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 37,
+          "x": -422,
+          "y": 77,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 37,
+          "x": -422,
+          "y": 77,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 37,
+          "x": -422,
+          "y": 77,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 37,
+          "x": -422,
+          "y": 77,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 37,
+          "x": -422,
+          "y": 77,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 37,
+          "x": -422,
+          "y": 77,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 37,
+          "x": -422,
+          "y": 77,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 37,
+          "x": -422,
+          "y": 77,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 37,
+          "x": -422,
+          "y": 77,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 37,
+          "x": -422,
+          "y": 77,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 37,
+          "x": -422,
+          "y": 77,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 37,
+          "x": -422,
+          "y": 77,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 1
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 1
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 3
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 1
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 1
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 1
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 2
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 2
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 1
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 2
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 1
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 2
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 1
+        },
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 1
+        },
+        {
+          "chest_idx": 39,
+          "x": -421,
+          "y": 77,
+          "z": 683,
+          "qty": 1
+        },
+        {
+          "chest_idx": 39,
+          "x": -421,
+          "y": 77,
+          "z": 683,
+          "qty": 1
+        },
+        {
+          "chest_idx": 39,
+          "x": -421,
+          "y": 77,
+          "z": 683,
+          "qty": 1
+        },
+        {
+          "chest_idx": 39,
+          "x": -421,
+          "y": 77,
+          "z": 683,
+          "qty": 1
+        },
+        {
+          "chest_idx": 39,
+          "x": -421,
+          "y": 77,
+          "z": 683,
+          "qty": 1
+        },
+        {
+          "chest_idx": 39,
+          "x": -421,
+          "y": 77,
+          "z": 683,
+          "qty": 1
+        },
+        {
+          "chest_idx": 39,
+          "x": -421,
+          "y": 77,
+          "z": 683,
+          "qty": 1
+        },
+        {
+          "chest_idx": 39,
+          "x": -421,
+          "y": 77,
+          "z": 683,
+          "qty": 1
+        },
+        {
+          "chest_idx": 39,
+          "x": -421,
+          "y": 77,
+          "z": 683,
+          "qty": 1
+        },
+        {
+          "chest_idx": 39,
+          "x": -421,
+          "y": 77,
+          "z": 683,
+          "qty": 1
+        },
+        {
+          "chest_idx": 39,
+          "x": -421,
+          "y": 77,
+          "z": 683,
+          "qty": 1
+        },
+        {
+          "chest_idx": 39,
+          "x": -421,
+          "y": 77,
+          "z": 683,
+          "qty": 1
+        },
+        {
+          "chest_idx": 40,
+          "x": -421,
+          "y": 78,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 40,
+          "x": -421,
+          "y": 78,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 40,
+          "x": -421,
+          "y": 78,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 40,
+          "x": -421,
+          "y": 78,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 40,
+          "x": -421,
+          "y": 78,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 40,
+          "x": -421,
+          "y": 78,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 40,
+          "x": -421,
+          "y": 78,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 40,
+          "x": -421,
+          "y": 78,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 40,
+          "x": -421,
+          "y": 78,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 40,
+          "x": -421,
+          "y": 78,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 40,
+          "x": -421,
+          "y": 78,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 40,
+          "x": -421,
+          "y": 78,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 9
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 1
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 1
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 2
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 1
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 1
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 1
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 2
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 2
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 1
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 1
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 1
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 1
+        },
+        {
+          "chest_idx": 42,
+          "x": -419,
+          "y": 80,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 42,
+          "x": -419,
+          "y": 80,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 42,
+          "x": -419,
+          "y": 80,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 42,
+          "x": -419,
+          "y": 80,
+          "z": 689,
+          "qty": 2
+        },
+        {
+          "chest_idx": 42,
+          "x": -419,
+          "y": 80,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 42,
+          "x": -419,
+          "y": 80,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 42,
+          "x": -419,
+          "y": 80,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 42,
+          "x": -419,
+          "y": 80,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 43,
+          "x": -419,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 43,
+          "x": -419,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 43,
+          "x": -419,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 43,
+          "x": -419,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 43,
+          "x": -419,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 43,
+          "x": -419,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 43,
+          "x": -419,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 43,
+          "x": -419,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 43,
+          "x": -419,
+          "y": 79,
+          "z": 689,
+          "qty": 2
+        },
+        {
+          "chest_idx": 43,
+          "x": -419,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 44,
+          "x": -419,
+          "y": 79,
+          "z": 690,
+          "qty": 1
+        },
+        {
+          "chest_idx": 44,
+          "x": -419,
+          "y": 79,
+          "z": 690,
+          "qty": 1
+        },
+        {
+          "chest_idx": 44,
+          "x": -419,
+          "y": 79,
+          "z": 690,
+          "qty": 1
+        },
+        {
+          "chest_idx": 44,
+          "x": -419,
+          "y": 79,
+          "z": 690,
+          "qty": 1
+        },
+        {
+          "chest_idx": 44,
+          "x": -419,
+          "y": 79,
+          "z": 690,
+          "qty": 2
+        },
+        {
+          "chest_idx": 44,
+          "x": -419,
+          "y": 79,
+          "z": 690,
+          "qty": 1
+        },
+        {
+          "chest_idx": 44,
+          "x": -419,
+          "y": 79,
+          "z": 690,
+          "qty": 1
+        },
+        {
+          "chest_idx": 44,
+          "x": -419,
+          "y": 79,
+          "z": 690,
+          "qty": 2
+        }
+      ]
+    },
+    "Leather": {
+      "total": 17,
+      "chests": [
+        {
+          "chest_idx": 23,
+          "x": -646,
+          "y": 85,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 23,
+          "x": -646,
+          "y": 85,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 23,
+          "x": -646,
+          "y": 85,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 23,
+          "x": -646,
+          "y": 85,
+          "z": 973,
+          "qty": 1
+        },
+        {
+          "chest_idx": 36,
+          "x": -423,
+          "y": 78,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 36,
+          "x": -423,
+          "y": 78,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 37,
+          "x": -422,
+          "y": 77,
+          "z": 684,
+          "qty": 1
+        },
+        {
+          "chest_idx": 42,
+          "x": -419,
+          "y": 80,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 42,
+          "x": -419,
+          "y": 80,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 42,
+          "x": -419,
+          "y": 80,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 44,
+          "x": -419,
+          "y": 79,
+          "z": 690,
+          "qty": 1
+        },
+        {
+          "chest_idx": 44,
+          "x": -419,
+          "y": 79,
+          "z": 690,
+          "qty": 1
+        },
+        {
+          "chest_idx": 44,
+          "x": -419,
+          "y": 79,
+          "z": 690,
+          "qty": 1
+        },
+        {
+          "chest_idx": 44,
+          "x": -419,
+          "y": 79,
+          "z": 690,
+          "qty": 1
+        },
+        {
+          "chest_idx": 45,
+          "x": -418,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 45,
+          "x": -418,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 45,
+          "x": -418,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        }
+      ]
+    },
+    "Diamond": {
+      "total": 29,
+      "chests": [
+        {
+          "chest_idx": 24,
+          "x": -589,
+          "y": 82,
+          "z": -416,
+          "qty": 1
+        },
+        {
+          "chest_idx": 34,
+          "x": -449,
+          "y": 130,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 34,
+          "x": -449,
+          "y": 130,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 36,
+          "x": -423,
+          "y": 78,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 36,
+          "x": -423,
+          "y": 78,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 48,
+          "x": -324,
+          "y": 74,
+          "z": -1114,
+          "qty": 1
+        },
+        {
+          "chest_idx": 49,
+          "x": -318,
+          "y": 74,
+          "z": -1117,
+          "qty": 1
+        },
+        {
+          "chest_idx": 49,
+          "x": -318,
+          "y": 74,
+          "z": -1117,
+          "qty": 1
+        },
+        {
+          "chest_idx": 49,
+          "x": -318,
+          "y": 74,
+          "z": -1117,
+          "qty": 1
+        },
+        {
+          "chest_idx": 169,
+          "x": 97,
+          "y": 50,
+          "z": 1079,
+          "qty": 1
+        },
+        {
+          "chest_idx": 169,
+          "x": 97,
+          "y": 50,
+          "z": 1079,
+          "qty": 1
+        },
+        {
+          "chest_idx": 169,
+          "x": 97,
+          "y": 50,
+          "z": 1079,
+          "qty": 1
+        },
+        {
+          "chest_idx": 170,
+          "x": 337,
+          "y": 69,
+          "z": 173,
+          "qty": 1
+        },
+        {
+          "chest_idx": 174,
+          "x": 347,
+          "y": 68,
+          "z": 101,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 2
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        },
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        },
+        {
+          "chest_idx": 200,
+          "x": 1020,
+          "y": 126,
+          "z": -1016,
+          "qty": 1
+        },
+        {
+          "chest_idx": 200,
+          "x": 1020,
+          "y": 126,
+          "z": -1016,
+          "qty": 1
+        }
+      ]
+    },
+    "Iron Boots": {
+      "total": 1,
+      "chests": [
+        {
+          "chest_idx": 24,
+          "x": -589,
+          "y": 82,
+          "z": -416,
+          "qty": 1
+        }
+      ]
+    },
+    "Azalea Leaves": {
+      "total": 56,
+      "chests": [
+        {
+          "chest_idx": 28,
+          "x": -584,
+          "y": 82,
+          "z": -421,
+          "qty": 1
+        },
+        {
+          "chest_idx": 28,
+          "x": -584,
+          "y": 82,
+          "z": -421,
+          "qty": 1
+        },
+        {
+          "chest_idx": 28,
+          "x": -584,
+          "y": 82,
+          "z": -421,
+          "qty": 1
+        },
+        {
+          "chest_idx": 28,
+          "x": -584,
+          "y": 82,
+          "z": -421,
+          "qty": 1
+        },
+        {
+          "chest_idx": 28,
+          "x": -584,
+          "y": 82,
+          "z": -421,
+          "qty": 1
+        },
+        {
+          "chest_idx": 28,
+          "x": -584,
+          "y": 82,
+          "z": -421,
+          "qty": 1
+        },
+        {
+          "chest_idx": 28,
+          "x": -584,
+          "y": 82,
+          "z": -421,
+          "qty": 1
+        },
+        {
+          "chest_idx": 28,
+          "x": -584,
+          "y": 82,
+          "z": -421,
+          "qty": 1
+        },
+        {
+          "chest_idx": 28,
+          "x": -584,
+          "y": 82,
+          "z": -421,
+          "qty": 1
+        },
+        {
+          "chest_idx": 31,
+          "x": -450,
+          "y": 130,
+          "z": 79,
+          "qty": 1
+        },
+        {
+          "chest_idx": 31,
+          "x": -450,
+          "y": 130,
+          "z": 79,
+          "qty": 1
+        },
+        {
+          "chest_idx": 31,
+          "x": -450,
+          "y": 130,
+          "z": 79,
+          "qty": 1
+        },
+        {
+          "chest_idx": 31,
+          "x": -450,
+          "y": 130,
+          "z": 79,
+          "qty": 1
+        },
+        {
+          "chest_idx": 31,
+          "x": -450,
+          "y": 130,
+          "z": 79,
+          "qty": 1
+        },
+        {
+          "chest_idx": 31,
+          "x": -450,
+          "y": 130,
+          "z": 79,
+          "qty": 1
+        },
+        {
+          "chest_idx": 31,
+          "x": -450,
+          "y": 130,
+          "z": 79,
+          "qty": 1
+        },
+        {
+          "chest_idx": 32,
+          "x": -450,
+          "y": 131,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 32,
+          "x": -450,
+          "y": 131,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 32,
+          "x": -450,
+          "y": 131,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 32,
+          "x": -450,
+          "y": 131,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 32,
+          "x": -450,
+          "y": 131,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 32,
+          "x": -450,
+          "y": 131,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 32,
+          "x": -450,
+          "y": 131,
+          "z": 80,
+          "qty": 1
+        },
+        {
+          "chest_idx": 46,
+          "x": -326,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 46,
+          "x": -326,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 46,
+          "x": -326,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 46,
+          "x": -326,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 46,
+          "x": -326,
+          "y": 75,
+          "z": -1120,
+          "qty": 2
+        },
+        {
+          "chest_idx": 46,
+          "x": -326,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 46,
+          "x": -326,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 46,
+          "x": -326,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 47,
+          "x": -325,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 47,
+          "x": -325,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 47,
+          "x": -325,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 47,
+          "x": -325,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 47,
+          "x": -325,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 47,
+          "x": -325,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 47,
+          "x": -325,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 47,
+          "x": -325,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 47,
+          "x": -325,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 47,
+          "x": -325,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 47,
+          "x": -325,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 47,
+          "x": -325,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 47,
+          "x": -325,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 47,
+          "x": -325,
+          "y": 75,
+          "z": -1120,
+          "qty": 1
+        },
+        {
+          "chest_idx": 175,
+          "x": 347,
+          "y": 69,
+          "z": 105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 175,
+          "x": 347,
+          "y": 69,
+          "z": 105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 175,
+          "x": 347,
+          "y": 69,
+          "z": 105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 175,
+          "x": 347,
+          "y": 69,
+          "z": 105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 175,
+          "x": 347,
+          "y": 69,
+          "z": 105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 175,
+          "x": 347,
+          "y": 69,
+          "z": 105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 175,
+          "x": 347,
+          "y": 69,
+          "z": 105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 175,
+          "x": 347,
+          "y": 69,
+          "z": 105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 175,
+          "x": 347,
+          "y": 69,
+          "z": 105,
+          "qty": 1
+        },
+        {
+          "chest_idx": 175,
+          "x": 347,
+          "y": 69,
+          "z": 105,
+          "qty": 1
+        }
+      ]
+    },
+    "Iron Leggings": {
+      "total": 2,
+      "chests": [
+        {
+          "chest_idx": 35,
+          "x": -446,
+          "y": 130,
+          "z": 76,
+          "qty": 1
+        },
+        {
+          "chest_idx": 45,
+          "x": -418,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        }
+      ]
+    },
+    "Copper Horse Armor": {
+      "total": 1,
+      "chests": [
+        {
+          "chest_idx": 38,
+          "x": -422,
+          "y": 78,
+          "z": 692,
+          "qty": 1
+        }
+      ]
+    },
+    "String": {
+      "total": 12,
+      "chests": [
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 1
+        },
+        {
+          "chest_idx": 41,
+          "x": -420,
+          "y": 79,
+          "z": 691,
+          "qty": 1
+        },
+        {
+          "chest_idx": 43,
+          "x": -419,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 43,
+          "x": -419,
+          "y": 79,
+          "z": 689,
+          "qty": 2
+        },
+        {
+          "chest_idx": 43,
+          "x": -419,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 43,
+          "x": -419,
+          "y": 79,
+          "z": 689,
+          "qty": 1
+        },
+        {
+          "chest_idx": 44,
+          "x": -419,
+          "y": 79,
+          "z": 690,
+          "qty": 1
+        },
+        {
+          "chest_idx": 44,
+          "x": -419,
+          "y": 79,
+          "z": 690,
+          "qty": 1
+        },
+        {
+          "chest_idx": 44,
+          "x": -419,
+          "y": 79,
+          "z": 690,
+          "qty": 1
+        },
+        {
+          "chest_idx": 44,
+          "x": -419,
+          "y": 79,
+          "z": 690,
+          "qty": 1
+        },
+        {
+          "chest_idx": 44,
+          "x": -419,
+          "y": 79,
+          "z": 690,
+          "qty": 1
+        }
+      ]
+    },
+    "Saddle": {
+      "total": 1,
+      "chests": [
+        {
+          "chest_idx": 49,
+          "x": -318,
+          "y": 74,
+          "z": -1117,
+          "qty": 1
+        }
+      ]
+    },
+    "Enchanted Book: Luck Of The Sea II": {
+      "total": 1,
+      "chests": [
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 1
+        }
+      ]
+    },
+    "Kelp": {
+      "total": 29,
+      "chests": [
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 2
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 2
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 1
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 1
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 1
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 1
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 1
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 2
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 2
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 1
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 1
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 1
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 1
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 1
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 1
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 2
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 1
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 1
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 1
+        },
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        },
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        },
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        },
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        },
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        }
+      ]
+    },
+    "Sea Pickle": {
+      "total": 5,
+      "chests": [
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 1
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 1
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 2
+        },
+        {
+          "chest_idx": 161,
+          "x": 73,
+          "y": 50,
+          "z": 1067,
+          "qty": 1
+        }
+      ]
+    },
+    "Enchanted Book: Luck Of The Sea III": {
+      "total": 1,
+      "chests": [
+        {
+          "chest_idx": 166,
+          "x": 79,
+          "y": 49,
+          "z": 1061,
+          "qty": 1
+        }
+      ]
+    },
+    "Seagrass": {
+      "total": 28,
+      "chests": [
+        {
+          "chest_idx": 166,
+          "x": 79,
+          "y": 49,
+          "z": 1061,
+          "qty": 1
+        },
+        {
+          "chest_idx": 166,
+          "x": 79,
+          "y": 49,
+          "z": 1061,
+          "qty": 1
+        },
+        {
+          "chest_idx": 166,
+          "x": 79,
+          "y": 49,
+          "z": 1061,
+          "qty": 1
+        },
+        {
+          "chest_idx": 166,
+          "x": 79,
+          "y": 49,
+          "z": 1061,
+          "qty": 1
+        },
+        {
+          "chest_idx": 166,
+          "x": 79,
+          "y": 49,
+          "z": 1061,
+          "qty": 1
+        },
+        {
+          "chest_idx": 166,
+          "x": 79,
+          "y": 49,
+          "z": 1061,
+          "qty": 1
+        },
+        {
+          "chest_idx": 166,
+          "x": 79,
+          "y": 49,
+          "z": 1061,
+          "qty": 1
+        },
+        {
+          "chest_idx": 166,
+          "x": 79,
+          "y": 49,
+          "z": 1061,
+          "qty": 1
+        },
+        {
+          "chest_idx": 166,
+          "x": 79,
+          "y": 49,
+          "z": 1061,
+          "qty": 1
+        },
+        {
+          "chest_idx": 166,
+          "x": 79,
+          "y": 49,
+          "z": 1061,
+          "qty": 1
+        },
+        {
+          "chest_idx": 166,
+          "x": 79,
+          "y": 49,
+          "z": 1061,
+          "qty": 1
+        },
+        {
+          "chest_idx": 166,
+          "x": 79,
+          "y": 49,
+          "z": 1061,
+          "qty": 1
+        },
+        {
+          "chest_idx": 166,
+          "x": 79,
+          "y": 49,
+          "z": 1061,
+          "qty": 1
+        },
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        },
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        },
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        },
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        },
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        },
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        },
+        {
+          "chest_idx": 169,
+          "x": 97,
+          "y": 50,
+          "z": 1079,
+          "qty": 1
+        },
+        {
+          "chest_idx": 169,
+          "x": 97,
+          "y": 50,
+          "z": 1079,
+          "qty": 1
+        },
+        {
+          "chest_idx": 169,
+          "x": 97,
+          "y": 50,
+          "z": 1079,
+          "qty": 1
+        },
+        {
+          "chest_idx": 169,
+          "x": 97,
+          "y": 50,
+          "z": 1079,
+          "qty": 1
+        },
+        {
+          "chest_idx": 169,
+          "x": 97,
+          "y": 50,
+          "z": 1079,
+          "qty": 1
+        },
+        {
+          "chest_idx": 169,
+          "x": 97,
+          "y": 50,
+          "z": 1079,
+          "qty": 1
+        },
+        {
+          "chest_idx": 169,
+          "x": 97,
+          "y": 50,
+          "z": 1079,
+          "qty": 1
+        },
+        {
+          "chest_idx": 169,
+          "x": 97,
+          "y": 50,
+          "z": 1079,
+          "qty": 1
+        },
+        {
+          "chest_idx": 169,
+          "x": 97,
+          "y": 50,
+          "z": 1079,
+          "qty": 1
+        }
+      ]
+    },
+    "Bow": {
+      "total": 2,
+      "chests": [
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        },
+        {
+          "chest_idx": 200,
+          "x": 1020,
+          "y": 126,
+          "z": -1016,
+          "qty": 1
+        }
+      ]
+    },
+    "Enchanted Book: Luck Of The Sea I": {
+      "total": 1,
+      "chests": [
+        {
+          "chest_idx": 168,
+          "x": 97,
+          "y": 49,
+          "z": 1065,
+          "qty": 1
+        }
+      ]
+    },
+    "Copper Ingot": {
+      "total": 23,
+      "chests": [
+        {
+          "chest_idx": 170,
+          "x": 337,
+          "y": 69,
+          "z": 173,
+          "qty": 1
+        },
+        {
+          "chest_idx": 170,
+          "x": 337,
+          "y": 69,
+          "z": 173,
+          "qty": 1
+        },
+        {
+          "chest_idx": 170,
+          "x": 337,
+          "y": 69,
+          "z": 173,
+          "qty": 1
+        },
+        {
+          "chest_idx": 170,
+          "x": 337,
+          "y": 69,
+          "z": 173,
+          "qty": 1
+        },
+        {
+          "chest_idx": 170,
+          "x": 337,
+          "y": 69,
+          "z": 173,
+          "qty": 1
+        },
+        {
+          "chest_idx": 172,
+          "x": 346,
+          "y": 69,
+          "z": 110,
+          "qty": 1
+        },
+        {
+          "chest_idx": 172,
+          "x": 346,
+          "y": 69,
+          "z": 110,
+          "qty": 1
+        },
+        {
+          "chest_idx": 172,
+          "x": 346,
+          "y": 69,
+          "z": 110,
+          "qty": 1
+        },
+        {
+          "chest_idx": 172,
+          "x": 346,
+          "y": 69,
+          "z": 110,
+          "qty": 1
+        },
+        {
+          "chest_idx": 172,
+          "x": 346,
+          "y": 69,
+          "z": 110,
+          "qty": 1
+        },
+        {
+          "chest_idx": 172,
+          "x": 346,
+          "y": 69,
+          "z": 110,
+          "qty": 1
+        },
+        {
+          "chest_idx": 172,
+          "x": 346,
+          "y": 69,
+          "z": 110,
+          "qty": 1
+        },
+        {
+          "chest_idx": 172,
+          "x": 346,
+          "y": 69,
+          "z": 110,
+          "qty": 1
+        },
+        {
+          "chest_idx": 172,
+          "x": 346,
+          "y": 69,
+          "z": 110,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        }
+      ]
+    },
+    "Diamond Helmet": {
+      "total": 1,
+      "chests": [
+        {
+          "chest_idx": 170,
+          "x": 337,
+          "y": 69,
+          "z": 173,
+          "qty": 1
+        }
+      ]
+    },
+    "Flint": {
+      "total": 26,
+      "chests": [
+        {
+          "chest_idx": 176,
+          "x": 348,
+          "y": 68,
+          "z": 101,
+          "qty": 1
+        },
+        {
+          "chest_idx": 176,
+          "x": 348,
+          "y": 68,
+          "z": 101,
+          "qty": 1
+        },
+        {
+          "chest_idx": 176,
+          "x": 348,
+          "y": 68,
+          "z": 101,
+          "qty": 2
+        },
+        {
+          "chest_idx": 176,
+          "x": 348,
+          "y": 68,
+          "z": 101,
+          "qty": 1
+        },
+        {
+          "chest_idx": 176,
+          "x": 348,
+          "y": 68,
+          "z": 101,
+          "qty": 1
+        },
+        {
+          "chest_idx": 176,
+          "x": 348,
+          "y": 68,
+          "z": 101,
+          "qty": 1
+        },
+        {
+          "chest_idx": 177,
+          "x": 353,
+          "y": 70,
+          "z": 175,
+          "qty": 1
+        },
+        {
+          "chest_idx": 177,
+          "x": 353,
+          "y": 70,
+          "z": 175,
+          "qty": 1
+        },
+        {
+          "chest_idx": 177,
+          "x": 353,
+          "y": 70,
+          "z": 175,
+          "qty": 1
+        },
+        {
+          "chest_idx": 177,
+          "x": 353,
+          "y": 70,
+          "z": 175,
+          "qty": 1
+        },
+        {
+          "chest_idx": 177,
+          "x": 353,
+          "y": 70,
+          "z": 175,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        },
+        {
+          "chest_idx": 182,
+          "x": 889,
+          "y": 71,
+          "z": -581,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 2
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        },
+        {
+          "chest_idx": 199,
+          "x": 1018,
+          "y": 127,
+          "z": -1004,
+          "qty": 1
+        }
+      ]
+    },
+    "Mangrove Leaves": {
+      "total": 10,
+      "chests": [
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 2
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 1
+        },
+        {
+          "chest_idx": 181,
+          "x": 763,
+          "y": 61,
+          "z": 1234,
+          "qty": 2
+        }
+      ]
+    },
+    "Crossbow": {
+      "total": 1,
+      "chests": [
+        {
+          "chest_idx": 183,
+          "x": 897,
+          "y": 71,
+          "z": -593,
+          "qty": 1
+        }
+      ]
+    }
+  }
+}

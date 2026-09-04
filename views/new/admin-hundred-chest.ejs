@@ -1,0 +1,347 @@
+<%- include('partials/head', { pageTitle: '150 Event — Chest Analysis' }) %>
+<%- include('partials/header') %>
+
+<style>
+.ca-tab {
+  font-family: 'Baloo 2'; font-weight: 800; font-size: 13px;
+  padding: 9px 18px; border-radius: 10px 10px 0 0; border: 1px solid transparent;
+  border-bottom: none; cursor: pointer; transition: background .15s, color .15s;
+  color: var(--muted); background: none; position: relative; bottom: -2px;
+}
+.ca-tab:hover { background: var(--panel-2); color: var(--text); }
+.ca-tab.active { background: var(--panel); border-color: var(--line); color: var(--text); }
+.ca-panel { display: none; }
+.ca-panel.active { display: block; }
+
+.ca-search {
+  background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 10px; padding: 10px 14px; font-family: 'Baloo 2'; font-weight: 600;
+  font-size: 14px; color: var(--text); outline: none; transition: border-color .15s;
+  box-sizing: border-box;
+}
+.ca-search:focus { border-color: rgba(255,255,255,.25); }
+.ca-search::placeholder { color: var(--muted); }
+
+.ca-stat {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.ca-stat-label { font-family: 'Baloo 2'; font-weight: 700; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.ca-stat-val { font-family: 'Baloo 2'; font-weight: 800; font-size: 22px; line-height: 1; }
+.ca-stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; font-family: 'Baloo 2'; }
+
+.ca-chart-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+.ca-chart-title { font-family: 'Baloo 2'; font-weight: 800; font-size: 14px; color: var(--text); margin: 0 0 14px; }
+
+.ca-item-row {
+  display: flex; align-items: center; gap: 10px; padding: 9px 14px;
+  border-bottom: 1px solid var(--line); cursor: pointer; transition: background .12s;
+}
+.ca-item-row:last-child { border-bottom: none; }
+.ca-item-row:hover { background: var(--panel-2); }
+.ca-item-row.selected { background: var(--panel-2); border-left: 3px solid #3b82f6; }
+.ca-item-rank { font-family: 'Baloo 2'; font-weight: 700; font-size: 11px; color: var(--muted); min-width: 26px; text-align: right; }
+.ca-item-name { font-family: 'Baloo 2'; font-weight: 700; font-size: 13px; flex: 1; }
+.ca-item-qty { font-family: 'Baloo 2'; font-weight: 800; font-size: 13px; color: var(--muted); }
+
+.ca-chest-row {
+  display: flex; align-items: center; gap: 10px; padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.ca-chest-row:last-child { border-bottom: none; }
+.ca-chest-coords { font-family: 'Baloo 2'; font-weight: 700; font-size: 13px; flex: 1; color: var(--text); }
+.ca-chest-qty { font-family: 'Baloo 2'; font-weight: 800; font-size: 12px; color: var(--muted); }
+.ca-copy-btn {
+  font-family: 'Baloo 2'; font-weight: 700; font-size: 11px; padding: 4px 10px;
+  border-radius: 6px; background: var(--panel-2); border: 1px solid var(--line);
+  color: var(--muted); cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.ca-copy-btn:hover { background: rgba(255,255,255,.08); color: var(--text); }
+
+.ca-no-select { text-align: center; padding: 32px 16px; color: var(--muted); font-family: 'Baloo 2'; font-weight: 600; font-size: 13px; }
+
+.ca-sr-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 4px; font-family: 'Baloo 2'; font-weight: 700; font-size: 13px; }
+</style>
+
+<main class="wrap" style="max-width:1400px">
+
+  <div class="page-head" style="margin-bottom:0">
+    <a href="/admin" class="back">← Admin</a>
+    <div>
+      <h1 class="page-title">150 Event — Chest Analysis</h1>
+      <p class="page-sub" style="margin:4px 0 0;color:var(--muted);font-size:13px">
+        1 island · Scanned <%= chestData.scanned %> · <%= chestData.total_containers %> containers
+      </p>
+    </div>
+  </div>
+
+  <div style="border-bottom: 2px solid var(--line); margin: 20px 0 0; display:flex; gap:4px; padding-top:4px">
+    <button class="ca-tab active" data-panel="overview">Overview</button>
+    <button class="ca-tab" data-panel="browse">Browse Items</button>
+    <button class="ca-tab" data-panel="containers">All Containers</button>
+  </div>
+
+  <!-- ====== OVERVIEW PANEL ====== -->
+  <div id="panel-overview" class="ca-panel active" style="padding-top:20px">
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">
+      <div class="ca-stat" style="border-top:3px solid #3b82f6">
+        <div class="ca-stat-label">Total Containers</div>
+        <div class="ca-stat-val" style="color:#3b82f6"><%= chestData.total_containers %></div>
+        <div class="ca-stat-sub"><%= chestData.non_empty %> non-empty · <%= chestData.empty %> empty</div>
+      </div>
+      <div class="ca-stat" style="border-top:3px solid #3b82f6">
+        <div class="ca-stat-label">Fill Rate</div>
+        <div class="ca-stat-val" style="color:#3b82f6" id="fillRate">—</div>
+        <div class="ca-stat-sub"><%= chestData.non_empty %> containers had loot</div>
+      </div>
+      <div class="ca-stat" style="border-top:3px solid #3b82f6">
+        <div class="ca-stat-label">Unique Items</div>
+        <div class="ca-stat-val" style="color:#3b82f6" id="uniqueItems">—</div>
+        <div class="ca-stat-sub">distinct item types</div>
+      </div>
+      <div class="ca-stat" style="border-top:3px solid #3b82f6">
+        <div class="ca-stat-label">Total Loot</div>
+        <div class="ca-stat-val" style="color:#3b82f6" id="totalLoot">—</div>
+        <div class="ca-stat-sub">items across all containers</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="ca-chart-card">
+        <div class="ca-chart-title">Top 20 Items by Quantity</div>
+        <div style="position:relative;height:500px">
+          <canvas id="chart-top20"></canvas>
+        </div>
+      </div>
+      <div class="ca-chart-card">
+        <div class="ca-chart-title">All Items</div>
+        <input type="text" id="overview-search" class="ca-search" placeholder="Search items..." style="width:100%;margin-bottom:12px;display:block">
+        <div id="overview-list" style="background:var(--panel-2);border:1px solid var(--line);border-radius:var(--radius);overflow-y:auto;max-height:440px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== BROWSE PANEL ====== -->
+  <div id="panel-browse" class="ca-panel" style="padding-top:20px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+      <div>
+        <input type="text" id="browse-search" class="ca-search" placeholder="Search items..." style="width:100%;margin-bottom:10px">
+        <div id="browse-list" style="background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;max-height:640px;overflow-y:auto"></div>
+      </div>
+      <div id="browse-chests" style="background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;position:sticky;top:80px;max-height:640px;overflow-y:auto">
+        <div class="ca-no-select">Select an item to see chest locations</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== CONTAINERS PANEL ====== -->
+  <div id="panel-containers" class="ca-panel" style="padding-top:20px">
+    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+      <input type="text" id="cont-search" class="ca-search" placeholder="Search by item or coordinates..." style="flex:1;min-width:200px">
+      <select id="cont-filter" class="ca-search" style="width:auto;flex-shrink:0">
+        <option value="all">All containers</option>
+        <option value="non-empty">Non-empty only</option>
+        <option value="Chest">Chests only</option>
+        <option value="Barrel">Barrels only</option>
+        <option value="Trapped Chest">Trapped Chests only</option>
+      </select>
+    </div>
+    <div id="cont-list" style="background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden"></div>
+    <div id="cont-count" style="font-family:'Baloo 2';font-size:12px;color:var(--muted);margin-top:8px;text-align:right"></div>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  const DATA = <%- JSON.stringify(chestData) %>;
+  const ACCENT = '#3b82f6';
+
+  // Sorted items
+  const sortedItems = Object.entries(DATA.items).sort((a, b) => b[1].total - a[1].total);
+  const totalLoot = sortedItems.reduce((s, [, v]) => s + v.total, 0);
+
+  // Fill stat tiles
+  document.getElementById('fillRate').textContent = Math.round(DATA.non_empty / DATA.total_containers * 100) + '%';
+  document.getElementById('uniqueItems').textContent = sortedItems.length.toLocaleString();
+  document.getElementById('totalLoot').textContent = totalLoot.toLocaleString();
+
+  // Tab switching
+  document.querySelectorAll('.ca-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.ca-tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.ca-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
+    });
+  });
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  async function copyCoords(x, y, z, btn) {
+    const text = `/tp @s ${x} ${y} ${z}`;
+    try { await navigator.clipboard.writeText(text); } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+    }
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    btn.style.cssText += ';background:rgba(47,217,107,.12);border-color:rgba(47,217,107,.3);color:#5be38f';
+    setTimeout(() => { btn.textContent = orig; btn.style.background = ''; btn.style.borderColor = ''; btn.style.color = ''; }, 1800);
+  }
+
+  function groupChests(chestArr) {
+    const byIdx = {};
+    for (const c of chestArr) {
+      if (!byIdx[c.chest_idx]) byIdx[c.chest_idx] = { x: c.x, y: c.y, z: c.z, qty: 0, idx: c.chest_idx };
+      byIdx[c.chest_idx].qty += c.qty;
+    }
+    return Object.values(byIdx).sort((a, b) => b.qty - a.qty);
+  }
+
+  function renderChestPanel(container, itemName, itemData) {
+    const locs = groupChests(itemData.chests);
+    let html = `
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:14px;margin-bottom:4px">${esc(itemName)}</div>
+      <div style="font-size:12px;color:var(--muted);font-family:'Baloo 2';margin-bottom:14px">${locs.length} container${locs.length !== 1 ? 's' : ''} &nbsp;·&nbsp; ${itemData.total.toLocaleString()} total</div>
+    `;
+    locs.forEach(loc => {
+      html += `<div class="ca-chest-row">
+        <div>
+          <div class="ca-chest-coords">X: ${loc.x} &nbsp; Y: ${loc.y} &nbsp; Z: ${loc.z}</div>
+          <div class="ca-chest-qty">${loc.qty} in this container</div>
+        </div>
+        <button class="ca-copy-btn" data-x="${loc.x}" data-y="${loc.y}" data-z="${loc.z}">Copy TP</button>
+      </div>`;
+    });
+    container.innerHTML = html;
+    container.querySelectorAll('.ca-copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => copyCoords(+btn.dataset.x, +btn.dataset.y, +btn.dataset.z, btn));
+    });
+  }
+
+  // ---- Overview chart ----
+  Chart.defaults.font.family = 'Baloo 2';
+  Chart.defaults.color = '#8b8f99';
+  const top20 = sortedItems.slice(0, 20);
+  new Chart(document.getElementById('chart-top20').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: top20.map(([k]) => k),
+      datasets: [{ data: top20.map(([, v]) => v.total), backgroundColor: ACCENT, borderRadius: 4, borderSkipped: false }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `  ${ctx.parsed.x.toLocaleString()} total` } } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.05)' }, border: { display: false }, ticks: { color: '#8b8f99', font: { size: 11 } } },
+        y: { grid: { display: false }, border: { display: false }, ticks: { color: '#e9eaee', font: { size: 12 } } }
+      }
+    }
+  });
+
+  // ---- Overview item list (right side) ----
+  function renderOverviewList(filter) {
+    const q = filter.toLowerCase();
+    const filtered = q ? sortedItems.filter(([n]) => n.toLowerCase().includes(q)) : sortedItems;
+    const container = document.getElementById('overview-list');
+    if (!filtered.length) {
+      container.innerHTML = `<div style="padding:24px;color:var(--muted);text-align:center;font-family:'Baloo 2';font-size:13px">No items match "${esc(filter)}"</div>`;
+      return;
+    }
+    container.innerHTML = filtered.map(([name, d], i) => `
+      <div class="ca-item-row" style="padding:8px 12px">
+        <span class="ca-item-rank">${q ? '' : i + 1}</span>
+        <span class="ca-item-name">${esc(name)}</span>
+        <span class="ca-item-qty">${d.total.toLocaleString()}</span>
+      </div>
+    `).join('');
+  }
+  renderOverviewList('');
+  document.getElementById('overview-search').addEventListener('input', e => renderOverviewList(e.target.value.trim()));
+
+  // ---- Browse panel ----
+  function renderBrowseList(filter) {
+    const q = filter.toLowerCase();
+    const filtered = q ? sortedItems.filter(([n]) => n.toLowerCase().includes(q)) : sortedItems;
+    const container = document.getElementById('browse-list');
+    if (!filtered.length) {
+      container.innerHTML = `<div style="padding:24px;color:var(--muted);text-align:center;font-family:'Baloo 2';font-size:13px">No items match "${esc(filter)}"</div>`;
+      return;
+    }
+    container.innerHTML = filtered.map(([name, d], i) => `
+      <div class="ca-item-row" data-item="${esc(name)}">
+        <span class="ca-item-rank">${q ? '' : i + 1}</span>
+        <span class="ca-item-name">${esc(name)}</span>
+        <span class="ca-item-qty">${d.total.toLocaleString()}</span>
+      </div>
+    `).join('');
+    const chestsPanel = document.getElementById('browse-chests');
+    container.querySelectorAll('.ca-item-row').forEach(row => {
+      row.addEventListener('click', () => {
+        container.querySelectorAll('.ca-item-row').forEach(r => r.classList.remove('selected'));
+        row.classList.add('selected');
+        const itemKey = row.dataset.item;
+        renderChestPanel(chestsPanel, itemKey, DATA.items[itemKey]);
+      });
+    });
+  }
+  renderBrowseList('');
+  document.getElementById('browse-search').addEventListener('input', e => renderBrowseList(e.target.value.trim()));
+
+  // ---- Containers panel ----
+  function renderContainers() {
+    const q = document.getElementById('cont-search').value.trim().toLowerCase();
+    const filter = document.getElementById('cont-filter').value;
+
+    let containers = DATA.containers;
+    if (filter === 'non-empty') containers = containers.filter(c => Object.keys(c.items).length > 0);
+    else if (filter !== 'all') containers = containers.filter(c => c.type === filter);
+
+    if (q) {
+      containers = containers.filter(c => {
+        const coordStr = `${c.x} ${c.y} ${c.z}`;
+        if (coordStr.includes(q)) return true;
+        return Object.keys(c.items).some(k => k.toLowerCase().includes(q));
+      });
+    }
+
+    const list = document.getElementById('cont-list');
+    document.getElementById('cont-count').textContent = `${containers.length} container${containers.length !== 1 ? 's' : ''}`;
+
+    if (!containers.length) {
+      list.innerHTML = `<div style="padding:24px;color:var(--muted);text-align:center;font-family:'Baloo 2';font-size:13px">No containers match filter</div>`;
+      return;
+    }
+
+    list.innerHTML = containers.map(c => {
+      const isEmpty = Object.keys(c.items).length === 0;
+      const itemCount = Object.values(c.items).reduce((s, n) => s + n, 0);
+      const itemList = Object.entries(c.items).sort((a,b)=>b[1]-a[1]).map(([k,v]) => `${k} ×${v}`).join(' &nbsp;·&nbsp; ');
+      return `<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line)">
+        <div style="min-width:32px;text-align:right;font-family:'Baloo 2';font-weight:700;font-size:11px;color:var(--muted)">#${c.idx}</div>
+        <div style="min-width:90px;font-family:'Baloo 2';font-weight:700;font-size:12px;color:${isEmpty ? 'var(--muted)' : '#e9eaee'}">${esc(c.type)}</div>
+        <div style="font-family:'Baloo 2';font-weight:700;font-size:13px;min-width:180px;color:var(--text)">X: ${c.x} &nbsp; Y: ${c.y} &nbsp; Z: ${c.z}</div>
+        <div style="flex:1;font-family:'Baloo 2';font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+          ${isEmpty ? '<span style="color:var(--muted);font-style:italic">Empty</span>' : itemList}
+        </div>
+        <button class="ca-copy-btn" data-x="${c.x}" data-y="${c.y}" data-z="${c.z}" ${isEmpty ? 'style="opacity:.4"' : ''}>Copy TP</button>
+      </div>`;
+    }).join('');
+
+    list.querySelectorAll('.ca-copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => copyCoords(+btn.dataset.x, +btn.dataset.y, +btn.dataset.z, btn));
+    });
+  }
+  renderContainers();
+  document.getElementById('cont-search').addEventListener('input', renderContainers);
+  document.getElementById('cont-filter').addEventListener('change', renderContainers);
+})();
+</script>
+
+<%- include('partials/foot') %>

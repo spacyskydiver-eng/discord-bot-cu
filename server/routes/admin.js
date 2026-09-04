@@ -134,6 +134,12 @@ router.get('/chest-analysis', (req, res) => {
   res.render('new/chest-analysis', { chestData });
 });
 
+// 150-player event chest analysis
+router.get('/hundred-chest', (req, res) => {
+  const chestData = require('../data/hundred-chest-data.json');
+  res.render('new/admin-hundred-chest', { chestData });
+});
+
 // Admin preview of the application wizard
 router.get('/preview-apply', async (req, res) => {
   const eventRes = await db.query(`SELECT * FROM events ORDER BY created_at DESC LIMIT 1`);
