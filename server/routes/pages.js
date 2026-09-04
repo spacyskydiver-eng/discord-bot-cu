@@ -450,8 +450,8 @@ router.post('/150-verify-ign/submit', async (req, res) => {
 // ── Nation location picker (linked via DM to nation leaders) ──────────────────
 
 router.get('/nation-place', async (req, res) => {
-  const uid = req.query.uid || null;
-  if (!uid) return res.redirect('/applications');
+  if (!req.session.user) return res.redirect(`${res.locals.lp}/auth/discord`);
+  const uid = req.session.user.id;
   const r = await db.query(
     `SELECT * FROM nation_leader_applications WHERE discord_id = $1 AND accepted = true`, [uid]
   );
@@ -471,16 +471,17 @@ router.get('/nation-place', async (req, res) => {
 });
 
 router.post('/nation-place/submit', async (req, res) => {
-  const uid = req.body.uid;
+  if (!req.session.user) return res.redirect(`${res.locals.lp}/auth/discord`);
+  const uid = req.session.user.id;
   const map_x = parseInt(req.body.map_x);
   const map_z = parseInt(req.body.map_z);
-  if (!uid || isNaN(map_x) || isNaN(map_z)) return res.redirect('/applications');
-  if (map_x < -2560 || map_x > 2560 || map_z < -2560 || map_z > 2560) return res.redirect('/nation-place?uid=' + encodeURIComponent(uid));
+  if (isNaN(map_x) || isNaN(map_z)) return res.redirect('/nation-place');
+  if (map_x < -2560 || map_x > 2560 || map_z < -2560 || map_z > 2560) return res.redirect('/nation-place');
   await db.query(
     `UPDATE nation_leader_applications SET map_x = $1, map_z = $2 WHERE discord_id = $3 AND accepted = true`,
     [map_x, map_z, uid]
   );
-  res.redirect('/nation-place?uid=' + encodeURIComponent(uid) + '&saved=1');
+  res.redirect('/nation-place?saved=1');
 });
 
 module.exports = router;
