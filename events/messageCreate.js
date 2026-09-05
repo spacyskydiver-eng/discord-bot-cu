@@ -205,6 +205,22 @@ async function handleAdvertViolation(message) {
 }
 
 async function alertStaff(message, flag) {
+  // Save to DB for staff portal
+  await db.query(
+    `INSERT INTO flagged_messages (discord_id, discord_tag, guild_id, guild_name, channel_name, message_content, matched_term, flag_type)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+    [
+      message.author.id,
+      message.author.username,
+      message.guild.id,
+      message.guild.name,
+      message.channel.name,
+      message.content.slice(0, 2000),
+      flag.matched,
+      flag.type
+    ]
+  ).catch(() => {});
+
   // Collect staff Discord IDs: DB staff_access + ADMIN_DISCORD_IDS env
   const staffRows = (await db.query(`SELECT discord_id FROM staff_access`)).rows;
   const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -222,7 +238,7 @@ async function alertStaff(message, flag) {
     `**Message:**`,
     `> ${message.content.slice(0, 800).replace(/\n/g, '\n> ')}`,
     ``,
-    `View in staff portal: https://cuevents.xyz/admin/nations/${message.guild.id}`,
+    `View in staff portal: https://cuevents.xyz/admin/moderation`,
   ].join('\n');
 
   for (const id of allIds) {

@@ -66,8 +66,9 @@ router.get('/applications', async (req, res) => {
   const VIP_ROLE_IDS = ['1449004906433351881', '1449030965576990720'];
   const userRoleIds = req.session.user?.guildRoleIds || [];
   const hasVipAccess = userRoleIds.some(id => VIP_ROLE_IDS.includes(id));
+  let userNewsApp = null;
   if (req.session.user) {
-    const [appRes, hundredRes, nationRes] = await Promise.all([
+    const [appRes, hundredRes, nationRes, newsRes] = await Promise.all([
       db.query(
         `SELECT status, review_stage, edit_requested, edit_approved FROM structured_applications WHERE discord_id = $1`,
         [req.session.user.id]
@@ -77,15 +78,20 @@ router.get('/applications', async (req, res) => {
         [req.session.user.id]
       ),
       db.query(
-        `SELECT server_name FROM nation_leader_applications WHERE discord_id = $1`,
+        `SELECT server_name, accepted FROM nation_leader_applications WHERE discord_id = $1`,
+        [req.session.user.id]
+      ),
+      db.query(
+        `SELECT status FROM news_reporter_applications WHERE discord_id = $1`,
         [req.session.user.id]
       )
     ]);
     userApp = appRes.rows[0] || null;
     userHundredApp = hundredRes.rows[0] || null;
     userNationApp = nationRes.rows[0] || null;
+    userNewsApp = newsRes.rows[0] || null;
   }
-  res.render('new/applications', { events, userApp, userHundredApp, userNationApp, hasVipAccess });
+  res.render('new/applications', { events, userApp, userHundredApp, userNationApp, userNewsApp, hasVipAccess });
 });
 
 router.get('/my-application', async (req, res) => {

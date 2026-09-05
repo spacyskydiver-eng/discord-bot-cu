@@ -5,12 +5,12 @@ const db = require('../../db');
 router.get('/', async (req, res) => {
   if (!req.session.user) return res.redirect(`${res.locals.lp}/auth/discord`);
 
-  // Must be accepted for the 150 player event
-  const eventCheck = await db.query(
-    `SELECT id FROM hundred_applications WHERE discord_id = $1 AND status = 'accepted'`,
-    [req.session.user.id]
-  );
-  if (!eventCheck.rows.length) {
+  // Must be accepted for the 150 player event and not a nation leader
+  const [eventCheck, nationCheck] = await Promise.all([
+    db.query(`SELECT id FROM hundred_applications WHERE discord_id = $1 AND status = 'accepted'`, [req.session.user.id]),
+    db.query(`SELECT id FROM nation_leader_applications WHERE discord_id = $1 AND accepted = true`, [req.session.user.id])
+  ]);
+  if (!eventCheck.rows.length || nationCheck.rows.length) {
     return res.render('new/apply-news-reporter', { state: 'not_eligible', existing: null });
   }
 
@@ -25,11 +25,11 @@ router.get('/', async (req, res) => {
 router.post('/submit', async (req, res) => {
   if (!req.session.user) return res.redirect(`${res.locals.lp}/auth/discord`);
 
-  const eventCheck = await db.query(
-    `SELECT id FROM hundred_applications WHERE discord_id = $1 AND status = 'accepted'`,
-    [req.session.user.id]
-  );
-  if (!eventCheck.rows.length) return res.redirect('/apply-news-reporter');
+  const [eventCheck, nationCheck] = await Promise.all([
+    db.query(`SELECT id FROM hundred_applications WHERE discord_id = $1 AND status = 'accepted'`, [req.session.user.id]),
+    db.query(`SELECT id FROM nation_leader_applications WHERE discord_id = $1 AND accepted = true`, [req.session.user.id])
+  ]);
+  if (!eventCheck.rows.length || nationCheck.rows.length) return res.redirect('/apply-news-reporter');
 
   const { q1, q2, q3, q4 } = req.body;
   if (!q1 || !q3 || !q4) return res.redirect('/apply-news-reporter');

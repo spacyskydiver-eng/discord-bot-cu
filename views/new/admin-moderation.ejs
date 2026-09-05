@@ -1,0 +1,394 @@
+<%- include('partials/head', { pageTitle: 'Moderation' }) %>
+<%- include('partials/header') %>
+
+<style>
+.mod-wrap { max-width: 1100px; margin: 0 auto; padding-bottom: 60px; }
+
+/* Tabs */
+.mod-tabs { display: flex; gap: 4px; border-bottom: 2px solid var(--line); margin: 20px 0 0; padding-top: 4px; }
+.mod-tab { font-family: 'Baloo 2'; font-weight: 800; font-size: 13px; padding: 9px 18px;
+  border-radius: 10px 10px 0 0; border: 1px solid transparent; border-bottom: none;
+  cursor: pointer; transition: background .15s, color .15s; color: var(--muted);
+  background: none; position: relative; bottom: -2px; }
+.mod-tab:hover { background: var(--panel-2); color: var(--text); }
+.mod-tab.active { background: var(--panel); border-color: var(--line); color: var(--text); }
+.mod-panel { display: none; padding-top: 20px; }
+.mod-panel.active { display: block; }
+
+/* Flagged message card */
+.flag-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 10px; }
+.flag-card.today { border-left: 3px solid #f87171; }
+.flag-card.disregarded { opacity: .45; }
+.flag-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+.flag-type { font-family: 'Baloo 2'; font-weight: 800; font-size: 10px; text-transform: uppercase; letter-spacing: .06em;
+  padding: 2px 8px; border-radius: 5px; flex-shrink: 0; margin-top: 2px; }
+.flag-type.slur { background: rgba(248,113,113,.15); color: #f87171; border: 1px solid rgba(248,113,113,.3); }
+.flag-type.extremist { background: rgba(251,146,60,.15); color: #fb923c; border: 1px solid rgba(251,146,60,.3); }
+.flag-meta { flex: 1; }
+.flag-author { font-family: 'Baloo 2'; font-weight: 800; font-size: 14px; color: #e0e2ed; }
+.flag-location { font-size: 12px; color: var(--muted); font-family: 'Baloo 2'; margin-top: 1px; }
+.flag-matched { font-family: monospace; font-size: 12px; background: rgba(248,113,113,.1); color: #f87171; padding: 1px 6px; border-radius: 4px; }
+.flag-content { font-size: 13px; color: #c9ccdb; background: rgba(255,255,255,.03); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; margin-bottom: 10px; }
+.flag-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.flag-time { font-size: 11px; color: var(--muted); font-family: 'Baloo 2'; margin-left: auto; }
+
+/* Ban card */
+.ban-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
+.ban-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; cursor: pointer; }
+.ban-header:hover { background: rgba(255,255,255,.02); }
+.ban-body { padding: 0 20px 20px; border-top: 1px solid var(--line); display: none; }
+.ban-body.open { display: block; }
+.ban-notes-area { width: 100%; background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; font-family: 'Baloo 2'; font-weight: 600; font-size: 13px; color: #fff; outline: none; resize: vertical; min-height: 80px; box-sizing: border-box; line-height: 1.6; margin-bottom: 8px; }
+.ban-notes-area:focus { border-color: rgba(255,255,255,.2); }
+.ev-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.ev-item:last-child { border-bottom: none; }
+.ev-thumb { width: 48px; height: 36px; border-radius: 5px; object-fit: cover; background: rgba(255,255,255,.08); flex-shrink: 0; }
+.ev-label { flex: 1; font-family: 'Baloo 2'; font-weight: 700; font-size: 13px; color: #e0e2ed; }
+.ev-label small { display: block; font-size: 11px; color: var(--muted); font-weight: 600; }
+
+/* Shared button styles */
+.mod-btn { font-family: 'Baloo 2'; font-weight: 700; font-size: 12px; padding: 5px 12px; border-radius: 7px; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: opacity .15s; }
+.mod-btn:hover { opacity: .8; }
+.mod-btn-ghost { background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); }
+.mod-btn-danger { background: rgba(248,113,113,.1); color: #f87171; border: 1px solid rgba(248,113,113,.25); }
+.mod-btn-primary { background: rgba(116,192,252,.12); color: #74c0fc; border: 1px solid rgba(116,192,252,.25); }
+.mod-btn-sm { padding: 4px 10px; font-size: 11px; }
+.mod-input { background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; font-family: 'Baloo 2'; font-weight: 600; font-size: 13px; color: #fff; outline: none; box-sizing: border-box; }
+.mod-input:focus { border-color: rgba(255,255,255,.2); }
+.mod-select { background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-family: 'Baloo 2'; font-weight: 600; font-size: 13px; color: #fff; outline: none; }
+</style>
+
+<main class="wrap">
+<div class="mod-wrap">
+
+  <div class="page-head" style="margin-bottom:0">
+    <a href="/admin" class="back">← Admin</a>
+    <div>
+      <h1 class="page-title">Moderation</h1>
+      <p class="page-sub" style="margin:4px 0 0;color:var(--muted);font-size:13px">Flagged messages · Bans · Evidence</p>
+    </div>
+  </div>
+
+  <div class="mod-tabs">
+    <button class="mod-tab active" data-panel="flagged">
+      Flagged Messages
+      <% const activeFlagged = flagged.filter(f => !f.disregarded); %>
+      <% if (activeFlagged.length) { %><span style="display:inline-flex;align-items:center;justify-content:center;background:#f87171;color:#fff;font-size:10px;font-weight:800;border-radius:99px;padding:1px 6px;margin-left:5px"><%= activeFlagged.length %></span><% } %>
+    </button>
+    <button class="mod-tab" data-panel="bans">Bans (<%= bans.length %>)</button>
+  </div>
+
+  <!-- ====== FLAGGED MESSAGES ====== -->
+  <div id="panel-flagged" class="mod-panel active" id="flagged">
+
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+      <label style="display:flex;align-items:center;gap:6px;font-family:'Baloo 2';font-weight:700;font-size:13px;color:var(--muted);cursor:pointer">
+        <input type="checkbox" id="showDisregarded" onchange="toggleDisregarded()" style="accent-color:#74c0fc"> Show disregarded
+      </label>
+      <span style="font-family:'Baloo 2';font-size:12px;color:var(--muted);margin-left:auto"><%= flagged.length %> total · <%= flagged.filter(f=>!f.disregarded).length %> active</span>
+    </div>
+
+    <% if (!flagged.length) { %>
+    <div style="background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:40px;text-align:center;color:var(--muted);font-family:'Baloo 2';font-size:14px">
+      No flagged messages yet. They'll appear here automatically when the bot detects one.
+    </div>
+    <% } %>
+
+    <% flagged.forEach(function(f) {
+      const isToday = new Date(f.flagged_at) >= new Date(todayStr);
+      const typeClass = f.flag_type === 'slur' ? 'slur' : 'extremist';
+      const typeLabel = f.flag_type === 'slur' ? 'Racist Slur' : 'Extremist';
+    %>
+    <div class="flag-card<%= isToday ? ' today' : '' %><%= f.disregarded ? ' disregarded' : '' %>"
+         data-disregarded="<%= f.disregarded ? '1' : '0' %>"
+         id="flag-<%= f.id %>">
+      <div class="flag-header">
+        <span class="flag-type <%= typeClass %>"><%= typeLabel %></span>
+        <div class="flag-meta">
+          <div class="flag-author">
+            @<%= f.discord_tag %> <span style="font-size:11px;color:var(--muted);font-weight:600">(<%= f.discord_id %>)</span>
+            <% if (isToday) { %><span style="font-family:'Baloo 2';font-weight:800;font-size:10px;padding:1px 7px;border-radius:99px;background:rgba(248,113,113,.15);color:#f87171;border:1px solid rgba(248,113,113,.3);margin-left:6px">TODAY</span><% } %>
+          </div>
+          <div class="flag-location">
+            <%= f.guild_name %> · #<%= f.channel_name %>
+            &nbsp;·&nbsp; Matched: <span class="flag-matched"><%= f.matched_term %></span>
+          </div>
+        </div>
+        <span class="flag-time"><%= new Date(f.flagged_at).toLocaleString('en-GB') %></span>
+      </div>
+
+      <div class="flag-content"><%= f.message_content %></div>
+
+      <div class="flag-actions">
+        <% if (!f.disregarded) { %>
+        <form method="POST" action="/admin/moderation/flagged/<%= f.id %>/disregard" style="margin:0">
+          <button class="mod-btn mod-btn-ghost">✓ Disregard</button>
+        </form>
+        <% } else { %>
+        <form method="POST" action="/admin/moderation/flagged/<%= f.id %>/restore" style="margin:0">
+          <button class="mod-btn mod-btn-ghost">↩ Restore</button>
+        </form>
+        <span style="font-family:'Baloo 2';font-size:11px;color:var(--muted)">Disregarded <%= f.disregarded_at ? new Date(f.disregarded_at).toLocaleDateString('en-GB') : '' %></span>
+        <% } %>
+
+        <!-- Tag as evidence on a ban -->
+        <button class="mod-btn mod-btn-primary" onclick="toggleFlagEvForm(<%= f.id %>)">📎 Tag as ban evidence</button>
+        <div id="fev-form-<%= f.id %>" style="display:none;width:100%;margin-top:8px">
+          <form method="POST" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+            <div style="flex:1;min-width:160px">
+              <div style="font-size:11px;color:var(--muted);font-family:'Baloo 2';margin-bottom:4px">Select ban to attach to</div>
+              <select name="flagged_message_id" style="display:none" required><option value="<%= f.id %>"><%= f.id %></option></select>
+              <select name="ban_id_sel" class="mod-select" style="width:100%" onchange="this.form.action='/admin/moderation/bans/'+this.value+'/evidence/flag'">
+                <option value="">— select ban —</option>
+                <% bans.forEach(function(b) { %>
+                <option value="<%= b.id %>"><%= b.discord_tag %> — <%= (b.reason||'').slice(0,40) %></option>
+                <% }); %>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--muted);font-family:'Baloo 2';margin-bottom:4px">Label (optional)</div>
+              <input type="text" name="label" class="mod-input" placeholder="e.g. slur in #general" style="width:180px">
+            </div>
+            <input type="hidden" name="flagged_message_id" value="<%= f.id %>">
+            <button type="submit" class="mod-btn mod-btn-primary" onclick="if(!this.form.action.includes('/bans/')){event.preventDefault();alert('Select a ban first')}">Attach</button>
+            <button type="button" class="mod-btn mod-btn-ghost" onclick="toggleFlagEvForm(<%= f.id %>)">Cancel</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <% }); %>
+  </div>
+
+  <!-- ====== BANS ====== -->
+  <div id="panel-bans" class="mod-panel" id="bans">
+
+    <!-- Add ban form -->
+    <div style="background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:20px">
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px">Document a ban</div>
+      <form method="POST" action="/admin/moderation/bans/add">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div>
+            <div style="font-size:11px;color:var(--muted);font-family:'Baloo 2';font-weight:700;margin-bottom:4px">Discord ID</div>
+            <input type="text" name="discord_id" class="mod-input" style="width:100%" placeholder="e.g. 123456789012345678" required>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);font-family:'Baloo 2';font-weight:700;margin-bottom:4px">Discord Tag / Username</div>
+            <input type="text" name="discord_tag" class="mod-input" style="width:100%" placeholder="e.g. username123" required>
+          </div>
+        </div>
+        <div style="margin-bottom:10px">
+          <div style="font-size:11px;color:var(--muted);font-family:'Baloo 2';font-weight:700;margin-bottom:4px">Reason</div>
+          <input type="text" name="reason" class="mod-input" style="width:100%" placeholder="Brief reason for the ban">
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:11px;color:var(--muted);font-family:'Baloo 2';font-weight:700;margin-bottom:4px">Initial notes (optional)</div>
+          <textarea name="notes" class="ban-notes-area" style="min-height:60px" placeholder="Any context, background, or details..."></textarea>
+        </div>
+        <button type="submit" class="mod-btn mod-btn-primary" style="font-size:13px;padding:8px 18px">+ Add Ban Record</button>
+      </form>
+    </div>
+
+    <% if (!bans.length) { %>
+    <div style="background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:32px;text-align:center;color:var(--muted);font-family:'Baloo 2';font-size:14px">
+      No bans documented yet.
+    </div>
+    <% } %>
+
+    <% bans.forEach(function(b) {
+      const evidence = Array.isArray(b.evidence) ? b.evidence : [];
+    %>
+    <div class="ban-card" id="ban-<%= b.id %>">
+      <div class="ban-header" onclick="toggleBan(<%= b.id %>)">
+        <% if (b.discord_avatar) { %>
+        <img src="<%= b.discord_avatar %>" style="width:36px;height:36px;border-radius:50%;flex-shrink:0" onerror="this.style.display='none'">
+        <% } else { %>
+        <div style="width:36px;height:36px;border-radius:50%;background:rgba(248,113,113,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">🚫</div>
+        <% } %>
+        <div style="flex:1">
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#f87171">@<%= b.discord_tag %></div>
+          <div style="font-size:12px;color:var(--muted);font-family:'Baloo 2'"><%= b.reason || 'No reason documented' %> · <span style="color:var(--muted)"><%= new Date(b.banned_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) %></span></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <% if (evidence.length) { %><span style="font-family:'Baloo 2';font-size:11px;color:var(--muted)"><%= evidence.length %> evidence</span><% } %>
+          <% if (b.notes) { %><span style="font-family:'Baloo 2';font-size:11px;padding:2px 8px;border-radius:99px;background:rgba(255,255,255,.06);color:var(--muted)">has notes</span><% } %>
+          <span style="font-size:14px;color:var(--muted)" id="ban-arrow-<%= b.id %>">▼</span>
+        </div>
+      </div>
+
+      <div class="ban-body" id="ban-body-<%= b.id %>">
+        <div style="padding-top:16px">
+
+          <!-- Notes -->
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Notes</div>
+          <form method="POST" action="/admin/moderation/bans/<%= b.id %>/notes">
+            <textarea name="notes" class="ban-notes-area"><%= b.notes || '' %></textarea>
+            <button type="submit" class="mod-btn mod-btn-ghost mod-btn-sm" style="margin-bottom:16px">Save notes</button>
+          </form>
+
+          <!-- Evidence -->
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Evidence (<%= evidence.length %>)</div>
+
+          <% if (evidence.length) { %>
+          <div style="background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:12px">
+            <% evidence.forEach(function(ev) { %>
+            <div class="ev-item">
+              <% if (ev.evidence_type === 'file') {
+                const isVideo = ['.mp4','.webm','.mov','.avi'].some(ext => (ev.filename||'').endsWith(ext));
+              %>
+                <% if (isVideo) { %>
+                <video src="/img/uploads/evidence/<%= ev.filename %>" style="width:48px;height:36px;border-radius:5px;object-fit:cover;background:#111" muted></video>
+                <% } else { %>
+                <img src="/img/uploads/evidence/<%= ev.filename %>" class="ev-thumb" onerror="this.style.opacity='.3'">
+                <% } %>
+                <div class="ev-label">
+                  <%= ev.label || ev.filename %>
+                  <small><% if (isVideo) { %>Video clip<% } else { %>Image<% } %> · <a href="/img/uploads/evidence/<%= ev.filename %>" target="_blank" style="color:#74c0fc;text-decoration:none">View</a></small>
+                </div>
+              <% } else if (ev.evidence_type === 'url') { %>
+                <div style="width:48px;height:36px;border-radius:5px;background:rgba(116,192,252,.08);border:1px solid rgba(116,192,252,.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🔗</div>
+                <div class="ev-label">
+                  <%= ev.label || 'Link' %>
+                  <small><a href="<%= ev.url %>" target="_blank" style="color:#74c0fc;text-decoration:none;max-width:300px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= ev.url %></a></small>
+                </div>
+              <% } else if (ev.evidence_type === 'flag') { %>
+                <div style="width:48px;height:36px;border-radius:5px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">⚠️</div>
+                <div class="ev-label">
+                  <%= ev.label || 'Flagged message' %>
+                  <small>Flag #<%= ev.flagged_message_id %> · <a href="#flag-<%= ev.flagged_message_id %>" onclick="showFlagPanel()" style="color:#74c0fc;text-decoration:none">View flag</a></small>
+                </div>
+              <% } %>
+              <form method="POST" action="/admin/moderation/bans/<%= b.id %>/evidence/<%= ev.id %>/delete" onsubmit="return confirm('Remove this evidence?')" style="margin:0">
+                <button class="mod-btn mod-btn-danger mod-btn-sm">✕</button>
+              </form>
+            </div>
+            <% }); %>
+          </div>
+          <% } %>
+
+          <!-- Add evidence: upload file -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
+            <div style="background:rgba(255,255,255,.02);border:1px dashed rgba(255,255,255,.12);border-radius:8px;padding:14px">
+              <div style="font-size:11px;color:var(--muted);font-family:'Baloo 2';font-weight:700;margin-bottom:8px">Upload image / clip</div>
+              <form method="POST" action="/admin/moderation/bans/<%= b.id %>/evidence/upload" enctype="multipart/form-data">
+                <input type="file" name="file" accept="image/*,video/*" style="font-size:12px;color:var(--muted);margin-bottom:6px;display:block">
+                <input type="text" name="label" class="mod-input" style="width:100%;margin-bottom:6px" placeholder="Label (optional)">
+                <button type="submit" class="mod-btn mod-btn-ghost mod-btn-sm">Upload</button>
+              </form>
+            </div>
+            <div style="background:rgba(255,255,255,.02);border:1px dashed rgba(255,255,255,.12);border-radius:8px;padding:14px">
+              <div style="font-size:11px;color:var(--muted);font-family:'Baloo 2';font-weight:700;margin-bottom:8px">Add URL (Discord CDN, screenshots, etc.)</div>
+              <form method="POST" action="/admin/moderation/bans/<%= b.id %>/evidence/upload">
+                <input type="url" name="url" class="mod-input" style="width:100%;margin-bottom:6px" placeholder="https://...">
+                <input type="text" name="label" class="mod-input" style="width:100%;margin-bottom:6px" placeholder="Label (optional)">
+                <button type="submit" class="mod-btn mod-btn-ghost mod-btn-sm">Add link</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Add evidence: tag flagged message -->
+          <div style="background:rgba(255,255,255,.02);border:1px dashed rgba(248,113,113,.2);border-radius:8px;padding:14px;margin-bottom:14px">
+            <div style="font-size:11px;color:var(--muted);font-family:'Baloo 2';font-weight:700;margin-bottom:8px">Tag a flagged message as evidence</div>
+            <form method="POST" action="/admin/moderation/bans/<%= b.id %>/evidence/flag" style="display:flex;gap:8px;flex-wrap:wrap">
+              <select name="flagged_message_id" class="mod-select" style="flex:1;min-width:200px">
+                <option value="">— select flagged message —</option>
+                <% flagged.forEach(function(f) { %>
+                <option value="<%= f.id %>">
+                  #<%= f.id %> · @<%= f.discord_tag %> · "<%= (f.message_content||'').slice(0,50) %>"
+                </option>
+                <% }); %>
+              </select>
+              <input type="text" name="label" class="mod-input" placeholder="Label (optional)" style="width:160px">
+              <button type="submit" class="mod-btn mod-btn-danger mod-btn-sm">Tag</button>
+            </form>
+          </div>
+
+          <!-- Delete ban -->
+          <form method="POST" action="/admin/moderation/bans/<%= b.id %>/delete" onsubmit="return confirm('Delete this ban record? Evidence will also be removed.')">
+            <button class="mod-btn mod-btn-danger mod-btn-sm">Delete ban record</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <% }); %>
+  </div>
+
+</div>
+</main>
+
+<script>
+// Tab switching
+document.querySelectorAll('.mod-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mod-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.mod-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
+  });
+});
+
+function showFlagPanel() {
+  document.querySelectorAll('.mod-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.mod-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector('[data-panel="flagged"]').classList.add('active');
+  document.getElementById('panel-flagged').classList.add('active');
+}
+
+// Open correct tab from hash
+function applyHash() {
+  const h = location.hash.replace('#', '');
+  if (h === 'bans' || h.startsWith('ban-')) {
+    document.querySelectorAll('.mod-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.mod-panel').forEach(p => p.classList.remove('active'));
+    document.querySelector('[data-panel="bans"]').classList.add('active');
+    document.getElementById('panel-bans').classList.add('active');
+    if (h.startsWith('ban-')) {
+      const id = h.replace('ban-', '');
+      setTimeout(() => {
+        const el = document.getElementById('ban-' + id);
+        if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); openBan(id); }
+      }, 80);
+    }
+  } else if (h === 'flagged' || h.startsWith('flag-')) {
+    if (h.startsWith('flag-')) {
+      setTimeout(() => {
+        const el = document.getElementById(h);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 80);
+    }
+  }
+}
+applyHash();
+
+// Ban accordion
+function openBan(id) {
+  const body = document.getElementById('ban-body-' + id);
+  const arrow = document.getElementById('ban-arrow-' + id);
+  if (body) { body.classList.add('open'); if (arrow) arrow.textContent = '▲'; }
+}
+function toggleBan(id) {
+  const body = document.getElementById('ban-body-' + id);
+  const arrow = document.getElementById('ban-arrow-' + id);
+  if (!body) return;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open');
+  if (arrow) arrow.textContent = isOpen ? '▼' : '▲';
+}
+
+// Show/hide disregarded flags
+function toggleDisregarded() {
+  const show = document.getElementById('showDisregarded').checked;
+  document.querySelectorAll('.flag-card[data-disregarded="1"]').forEach(el => {
+    el.style.display = show ? '' : 'none';
+  });
+}
+// Hide disregarded by default
+document.querySelectorAll('.flag-card[data-disregarded="1"]').forEach(el => { el.style.display = 'none'; });
+
+// Tag-as-evidence inline form toggle
+function toggleFlagEvForm(id) {
+  const el = document.getElementById('fev-form-' + id);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+</script>
+
+<%- include('partials/foot') %>

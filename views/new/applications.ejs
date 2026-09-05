@@ -173,6 +173,41 @@ function sessionDateRange(times) {
           </a>
         <% } %>
 
+        <!-- News Reporter card — only for accepted 150 players who are not nation leaders -->
+        <% const isAccepted150 = userHundredApp && userHundredApp.status === 'accepted'; %>
+        <% const isNationLeader = userNationApp && userNationApp.accepted; %>
+        <% if (isAccepted150 && !isNationLeader) { %>
+        <% if (userNewsApp) { %>
+          <div class="card">
+        <% } else { %>
+          <a href="<%= lp %>/apply-news-reporter" class="card">
+        <% } %>
+          <div class="cardart" style="background:linear-gradient(135deg,#0a1a2e,#0c0d10)">
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+              <svg viewBox="0 0 48 48" style="width:68px;height:68px" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="24" cy="24" r="20" fill="rgba(116,192,252,.1)" stroke="#74c0fc" stroke-width="1.5"/>
+                <text x="24" y="29" text-anchor="middle" font-size="20" fill="#74c0fc">📰</text>
+              </svg>
+            </div>
+          </div>
+          <div class="cardbody">
+            <h3>News Reporter</h3>
+            <div class="meta" style="margin-bottom:4px">150 Player Event · Post in the news channel</div>
+            <% if (userNewsApp) { %>
+              <div class="desc">Your application: <strong style="color:<%= userNewsApp.status==='accepted'?'#5be38f':userNewsApp.status==='declined'?'#f87171':'#ffd56b' %>"><%= userNewsApp.status %></strong></div>
+              <span class="pill open" style="background:rgba(116,192,252,.12);color:#74c0fc;border-color:rgba(116,192,252,.25)">Submitted</span>
+            <% } else { %>
+              <div class="desc" style="font-size:12px;color:var(--muted);margin-bottom:8px">Cover wars, alliances, betrayals — bias and propaganda encouraged.</div>
+              <span class="pill open" style="background:rgba(116,192,252,.12);color:#74c0fc;border-color:rgba(116,192,252,.25)">Apply</span>
+            <% } %>
+          </div>
+        <% if (userNewsApp) { %>
+          </div>
+        <% } else { %>
+          </a>
+        <% } %>
+        <% } %>
+
       </div>
     </div>
   </div>

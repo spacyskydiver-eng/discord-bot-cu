@@ -52,7 +52,7 @@ router.use(requireAdminOrStaff);
 // Staff can only access application review paths; everything else needs full admin
 router.use((req, res, next) => {
   if (res.locals.isFullAdmin) return next();
-  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader') || req.path.startsWith('/nations') || req.path === '/hundred-players' || req.path === '/nation-map' || req.path.startsWith('/news-reporter');
+  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader') || req.path.startsWith('/nations') || req.path === '/hundred-players' || req.path === '/nation-map' || req.path.startsWith('/news-reporter') || req.path.startsWith('/moderation');
   if (!allowed) return res.status(403).render('403');
   next();
 });
@@ -195,6 +195,117 @@ router.post('/news-reporter/:id/reset', async (req, res) => {
 router.post('/news-reporter/:id/delete', async (req, res) => {
   await db.query(`DELETE FROM news_reporter_applications WHERE id=$1`, [req.params.id]);
   res.redirect('/admin/news-reporter');
+});
+
+// ── Moderation ────────────────────────────────────────────────────────────────
+
+const evidenceUpload = multer({
+  storage: multer.diskStorage({
+    destination: path.join(__dirname, '../../public/img/uploads/evidence'),
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname) || '.bin';
+      cb(null, `ev-${Date.now()}${ext}`);
+    }
+  }),
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) cb(null, true);
+    else cb(new Error('Images and videos only'));
+  }
+});
+
+router.get('/moderation', async (req, res) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const [flaggedRes, bansRes] = await Promise.all([
+    db.query(`SELECT * FROM flagged_messages ORDER BY flagged_at DESC`),
+    db.query(`SELECT b.*, COALESCE(json_agg(e ORDER BY e.created_at) FILTER (WHERE e.id IS NOT NULL), '[]') AS evidence
+              FROM moderation_bans b LEFT JOIN ban_evidence e ON e.ban_id = b.id
+              GROUP BY b.id ORDER BY b.banned_at DESC`)
+  ]);
+  res.render('new/admin-moderation', {
+    flagged: flaggedRes.rows,
+    bans: bansRes.rows,
+    todayStr: today.toISOString()
+  });
+});
+
+router.post('/moderation/flagged/:id/disregard', async (req, res) => {
+  await db.query(`UPDATE flagged_messages SET disregarded=true, disregarded_at=NOW() WHERE id=$1`, [req.params.id]);
+  res.redirect('/admin/moderation#flagged');
+});
+
+router.post('/moderation/flagged/:id/restore', async (req, res) => {
+  await db.query(`UPDATE flagged_messages SET disregarded=false, disregarded_at=NULL WHERE id=$1`, [req.params.id]);
+  res.redirect('/admin/moderation#flagged');
+});
+
+router.post('/moderation/bans/add', async (req, res) => {
+  const { discord_id, discord_tag, reason, notes } = req.body;
+  if (!discord_id || !discord_tag) return res.redirect('/admin/moderation#bans');
+  // Try to fetch avatar from Discord API
+  let avatar = null;
+  try {
+    const r = await fetch(`https://discord.com/api/v10/users/${discord_id}`, {
+      headers: { Authorization: `Bot ${process.env.DISCORD_TOKEN}` }
+    });
+    if (r.ok) {
+      const u = await r.json();
+      if (u.avatar) avatar = `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=64`;
+    }
+  } catch (_) {}
+  const result = await db.query(
+    `INSERT INTO moderation_bans (discord_id, discord_tag, discord_avatar, reason, notes, banned_by)
+     VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`,
+    [discord_id.trim(), discord_tag.trim(), avatar, (reason||'').trim(), (notes||'').trim(), req.session.user?.username || 'admin']
+  );
+  res.redirect(`/admin/moderation#ban-${result.rows[0].id}`);
+});
+
+router.post('/moderation/bans/:id/notes', async (req, res) => {
+  await db.query(`UPDATE moderation_bans SET notes=$1 WHERE id=$2`, [(req.body.notes||'').trim(), req.params.id]);
+  res.redirect(`/admin/moderation#ban-${req.params.id}`);
+});
+
+router.post('/moderation/bans/:id/evidence/upload', evidenceUpload.single('file'), async (req, res) => {
+  const { label } = req.body;
+  if (req.file) {
+    await db.query(
+      `INSERT INTO ban_evidence (ban_id, evidence_type, filename, label) VALUES ($1,'file',$2,$3)`,
+      [req.params.id, req.file.filename, (label||'').trim()]
+    );
+  } else if (req.body.url) {
+    await db.query(
+      `INSERT INTO ban_evidence (ban_id, evidence_type, url, label) VALUES ($1,'url',$2,$3)`,
+      [req.params.id, req.body.url.trim(), (label||'').trim()]
+    );
+  }
+  res.redirect(`/admin/moderation#ban-${req.params.id}`);
+});
+
+router.post('/moderation/bans/:id/evidence/flag', async (req, res) => {
+  const flagId = parseInt(req.body.flagged_message_id);
+  if (!flagId) return res.redirect(`/admin/moderation#ban-${req.params.id}`);
+  await db.query(
+    `INSERT INTO ban_evidence (ban_id, evidence_type, flagged_message_id, label) VALUES ($1,'flag',$2,$3)`,
+    [req.params.id, flagId, (req.body.label||'').trim()]
+  );
+  res.redirect(`/admin/moderation#ban-${req.params.id}`);
+});
+
+router.post('/moderation/bans/:id/evidence/:evId/delete', async (req, res) => {
+  const ev = (await db.query(`SELECT * FROM ban_evidence WHERE id=$1 AND ban_id=$2`, [req.params.evId, req.params.id])).rows[0];
+  if (ev?.filename) {
+    const fp = path.join(__dirname, '../../public/img/uploads/evidence', ev.filename);
+    require('fs').unlink(fp, () => {});
+  }
+  await db.query(`DELETE FROM ban_evidence WHERE id=$1`, [req.params.evId]);
+  res.redirect(`/admin/moderation#ban-${req.params.id}`);
+});
+
+router.post('/moderation/bans/:id/delete', async (req, res) => {
+  await db.query(`DELETE FROM moderation_bans WHERE id=$1`, [req.params.id]);
+  res.redirect('/admin/moderation#bans');
 });
 
 // Admin preview of the application wizard
