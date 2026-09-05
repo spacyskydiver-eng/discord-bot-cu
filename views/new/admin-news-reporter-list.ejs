@@ -1,0 +1,61 @@
+<%- include('partials/head', { pageTitle: 'News Reporter Applications' }) %>
+<%- include('partials/header') %>
+
+<main class="wrap" style="max-width:900px">
+
+  <div class="page-head" style="margin-bottom:24px">
+    <a href="/admin" class="back">← Admin</a>
+    <div>
+      <h1 class="page-title">News Reporter Applications</h1>
+      <p class="page-sub" style="margin:4px 0 0;color:var(--muted);font-size:13px">
+        <%= apps.length %> total ·
+        <%= apps.filter(a=>a.status==='pending').length %> pending ·
+        <%= apps.filter(a=>a.status==='accepted').length %> accepted ·
+        <%= apps.filter(a=>a.status==='declined').length %> declined
+      </p>
+    </div>
+  </div>
+
+  <% if (!apps.length) { %>
+  <div style="background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:40px;text-align:center;color:var(--muted);font-family:'Baloo 2';font-size:14px">
+    No applications yet.
+  </div>
+  <% } else { %>
+
+  <div style="background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden">
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:12px;padding:10px 20px;font-family:'Baloo 2';font-weight:700;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--line)">
+      <div>Applicant</div>
+      <div>Submitted</div>
+      <div>Status</div>
+      <div></div>
+    </div>
+
+    <% apps.forEach(function(a) { %>
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:12px;padding:12px 20px;align-items:center;border-bottom:1px solid rgba(255,255,255,.04)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <% if (a.discord_avatar) { %>
+        <img src="<%= a.discord_avatar %>" style="width:32px;height:32px;border-radius:50%;flex-shrink:0" onerror="this.style.display='none'">
+        <% } %>
+        <span style="font-family:'Baloo 2';font-weight:700;font-size:14px;color:#e0e2ed">@<%= a.discord_tag %></span>
+      </div>
+      <div style="font-family:'Baloo 2';font-size:13px;color:var(--muted)"><%= a.submitted_at ? new Date(a.submitted_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '—' %></div>
+      <div>
+        <span style="font-family:'Baloo 2';font-weight:700;font-size:11px;padding:3px 10px;border-radius:99px;
+          background:<%= a.status==='accepted'?'rgba(91,227,143,.12)':a.status==='declined'?'rgba(248,113,113,.1)':'rgba(251,191,36,.1)' %>;
+          color:<%= a.status==='accepted'?'#5be38f':a.status==='declined'?'#f87171':'#fbbf24' %>;
+          border:1px solid <%= a.status==='accepted'?'rgba(91,227,143,.25)':a.status==='declined'?'rgba(248,113,113,.25)':'rgba(251,191,36,.25)' %>">
+          <%= a.status %>
+        </span>
+      </div>
+      <div>
+        <a href="/admin/news-reporter/<%= a.id %>" style="font-family:'Baloo 2';font-weight:700;font-size:12px;padding:5px 13px;border-radius:7px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted);text-decoration:none">Review →</a>
+      </div>
+    </div>
+    <% }); %>
+  </div>
+
+  <% } %>
+
+</main>
+
+<%- include('partials/foot') %>

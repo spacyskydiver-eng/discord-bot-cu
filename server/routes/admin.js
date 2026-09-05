@@ -4,6 +4,7 @@ const db = require('../../db');
 const { sendDiscordDM, giveDiscordRole } = require('../discord-dm');
 const CU_GUILD_ID = '1449004906068312189';
 const ROLE_150_PLAYER = '1544302037158731878';
+const ROLE_NEWS_REPORTER = '1545849393352155338';
 const multer = require('multer');
 const path = require('path');
 const { createProxyMiddleware } = require('http-proxy-middleware');
@@ -51,7 +52,7 @@ router.use(requireAdminOrStaff);
 // Staff can only access application review paths; everything else needs full admin
 router.use((req, res, next) => {
   if (res.locals.isFullAdmin) return next();
-  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader') || req.path.startsWith('/nations') || req.path === '/hundred-players' || req.path === '/nation-map';
+  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader') || req.path.startsWith('/nations') || req.path === '/hundred-players' || req.path === '/nation-map' || req.path.startsWith('/news-reporter');
   if (!allowed) return res.status(403).render('403');
   next();
 });
@@ -138,6 +139,62 @@ router.get('/chest-analysis', (req, res) => {
 router.get('/hundred-chest', (req, res) => {
   const chestData = require('../data/hundred-chest-data.json');
   res.render('new/admin-hundred-chest', { chestData });
+});
+
+// ── News Reporter Applications ────────────────────────────────────────────────
+
+router.get('/news-reporter', async (req, res) => {
+  const apps = (await db.query(
+    `SELECT id, discord_tag, discord_avatar, status, submitted_at
+     FROM news_reporter_applications ORDER BY submitted_at DESC`
+  )).rows;
+  res.render('new/admin-news-reporter-list', { apps });
+});
+
+router.get('/news-reporter/:id', async (req, res) => {
+  const appRes = await db.query(`SELECT * FROM news_reporter_applications WHERE id=$1`, [req.params.id]);
+  if (!appRes.rows.length) return res.redirect('/admin/news-reporter');
+  const app = appRes.rows[0];
+  const prevRes = await db.query(`SELECT id FROM news_reporter_applications WHERE status='pending' AND id < $1 ORDER BY id DESC LIMIT 1`, [app.id]);
+  const nextRes = await db.query(`SELECT id FROM news_reporter_applications WHERE status='pending' AND id > $1 ORDER BY id ASC LIMIT 1`, [app.id]);
+  res.render('new/admin-news-reporter-application', {
+    app,
+    prev: prevRes.rows[0]?.id || null,
+    next: nextRes.rows[0]?.id || null
+  });
+});
+
+router.post('/news-reporter/:id/accept', async (req, res) => {
+  const r = await db.query(`SELECT discord_id, discord_tag FROM news_reporter_applications WHERE id=$1`, [req.params.id]);
+  const app = r.rows[0];
+  await db.query(`UPDATE news_reporter_applications SET status='accepted', accepted_at=NOW() WHERE id=$1`, [req.params.id]);
+  if (app) {
+    giveDiscordRole(app.discord_id, CU_GUILD_ID, ROLE_NEWS_REPORTER);
+    sendDiscordDM(app.discord_id,
+      `**News Reporter Application — Accepted!**\n\nCongratulations! You've been accepted as a News Reporter for the 150 Player Event.\n\nYou now have the **News Reporter** role and can post in the news channel. Cover the stories, wars, alliances, and drama as they unfold.\n\n**Remember:** you must post at least once every 2 sessions to keep the role. See you in the news channel!`
+    );
+  }
+  res.redirect('/admin/news-reporter');
+});
+
+router.post('/news-reporter/:id/decline', async (req, res) => {
+  const r = await db.query(`SELECT discord_id FROM news_reporter_applications WHERE id=$1`, [req.params.id]);
+  const app = r.rows[0];
+  await db.query(`UPDATE news_reporter_applications SET status='declined', declined_at=NOW() WHERE id=$1`, [req.params.id]);
+  if (app) sendDiscordDM(app.discord_id,
+    `**News Reporter Application — Update**\n\nThank you for applying to be a News Reporter for the 150 Player Event. Unfortunately your application wasn't successful this time. You're welcome to update your answers and reapply.`
+  );
+  res.redirect('/admin/news-reporter');
+});
+
+router.post('/news-reporter/:id/reset', async (req, res) => {
+  await db.query(`UPDATE news_reporter_applications SET status='pending', accepted_at=NULL, declined_at=NULL WHERE id=$1`, [req.params.id]);
+  res.redirect(`/admin/news-reporter/${req.params.id}`);
+});
+
+router.post('/news-reporter/:id/delete', async (req, res) => {
+  await db.query(`DELETE FROM news_reporter_applications WHERE id=$1`, [req.params.id]);
+  res.redirect('/admin/news-reporter');
 });
 
 // Admin preview of the application wizard

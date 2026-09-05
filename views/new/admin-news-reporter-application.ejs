@@ -1,0 +1,101 @@
+<%- include('partials/head', { pageTitle: 'Review — News Reporter Application' }) %>
+<%- include('partials/header') %>
+
+<style>
+.rev-wrap{max-width:800px;margin:0 auto;padding-bottom:60px}
+.rev-section{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-bottom:16px}
+.rev-section-title{font-family:'Baloo 2';font-weight:800;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 16px}
+.rev-q{font-family:'Baloo 2';font-weight:800;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px}
+.rev-a{font-size:14px;color:#c9ccdb;line-height:1.65;white-space:pre-wrap;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.rev-btn{font-family:'Baloo 2';font-weight:800;font-size:13px;padding:9px 20px;border-radius:8px;border:none;cursor:pointer;text-decoration:none;display:inline-block}
+</style>
+
+<main class="wrap">
+  <div class="rev-wrap">
+
+    <div class="page-head" style="margin-bottom:20px">
+      <a href="/admin/news-reporter" class="back">← News Reporter Apps</a>
+      <div style="flex:1">
+        <h1 class="page-title"><%= app.discord_tag %></h1>
+        <p class="page-sub" style="margin:4px 0 0;color:var(--muted);font-size:13px">News Reporter Application</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <% if (app.discord_avatar) { %>
+        <img src="<%= app.discord_avatar %>" style="width:42px;height:42px;border-radius:50%" onerror="this.style.display='none'">
+        <% } %>
+        <span style="font-family:'Baloo 2';font-weight:800;font-size:13px;padding:5px 14px;border-radius:99px;
+          background:<%= app.status==='accepted'?'rgba(91,227,143,.12)':app.status==='declined'?'rgba(248,113,113,.1)':'rgba(251,191,36,.1)' %>;
+          color:<%= app.status==='accepted'?'#5be38f':app.status==='declined'?'#f87171':'#fbbf24' %>;
+          border:1px solid <%= app.status==='accepted'?'rgba(91,227,143,.25)':app.status==='declined'?'rgba(248,113,113,.25)':'rgba(251,191,36,.25)' %>">
+          <%= app.status %>
+        </span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="rev-section">
+      <div class="rev-section-title">Review Actions</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <% if (app.status !== 'accepted') { %>
+        <form method="POST" action="/admin/news-reporter/<%= app.id %>/accept" style="display:inline">
+          <button class="rev-btn" style="background:rgba(91,227,143,.12);color:#5be38f;border:1px solid rgba(91,227,143,.3)">✓ Accept</button>
+        </form>
+        <% } %>
+        <% if (app.status !== 'declined') { %>
+        <form method="POST" action="/admin/news-reporter/<%= app.id %>/decline" style="display:inline">
+          <button class="rev-btn" style="background:rgba(248,113,113,.1);color:#f87171;border:1px solid rgba(248,113,113,.25)">✕ Decline</button>
+        </form>
+        <% } %>
+        <% if (app.status !== 'pending') { %>
+        <form method="POST" action="/admin/news-reporter/<%= app.id %>/reset" style="display:inline">
+          <button class="rev-btn" style="background:var(--panel-2);color:var(--muted);border:1px solid var(--line)">Reset to Pending</button>
+        </form>
+        <% } %>
+        <form method="POST" action="/admin/news-reporter/<%= app.id %>/delete" style="display:inline" onsubmit="return confirm('Delete this application?')">
+          <button class="rev-btn" style="background:var(--panel-2);color:var(--muted);border:1px solid var(--line)">Delete</button>
+        </form>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:10px">
+        Submitted <%= app.submitted_at ? new Date(app.submitted_at).toLocaleString('en-GB') : '—' %>
+        <% if (app.accepted_at) { %> · Accepted <%= new Date(app.accepted_at).toLocaleDateString('en-GB') %><% } %>
+        <% if (app.declined_at) { %> · Declined <%= new Date(app.declined_at).toLocaleDateString('en-GB') %><% } %>
+      </div>
+    </div>
+
+    <!-- Answers -->
+    <div class="rev-section">
+      <div class="rev-section-title">Application Answers</div>
+
+      <div style="margin-bottom:18px">
+        <div class="rev-q">Why do you want to be a news reporter?</div>
+        <div class="rev-a"><%= app.q1 || '—' %></div>
+      </div>
+
+      <div style="margin-bottom:18px">
+        <div class="rev-q">Experience writing / reporting / content creation?</div>
+        <div class="rev-a"><%= app.q2 || 'None provided.' %></div>
+      </div>
+
+      <div style="margin-bottom:18px">
+        <div class="rev-q">How active during the event?</div>
+        <div class="rev-a"><%= app.q3 || '—' %></div>
+      </div>
+
+      <div>
+        <div class="rev-q">Playing in event or only reporting?</div>
+        <div class="rev-a"><%= app.q4 || '—' %></div>
+      </div>
+    </div>
+
+    <!-- Nav between pending -->
+    <% if (prev || next) { %>
+    <div style="display:flex;justify-content:space-between;margin-top:8px">
+      <% if (prev) { %><a href="/admin/news-reporter/<%= prev %>" class="rev-btn" style="background:var(--panel);color:var(--muted);border:1px solid var(--line);text-decoration:none">← Previous</a><% } else { %><span></span><% } %>
+      <% if (next) { %><a href="/admin/news-reporter/<%= next %>" class="rev-btn" style="background:var(--panel);color:var(--muted);border:1px solid var(--line);text-decoration:none">Next →</a><% } %>
+    </div>
+    <% } %>
+
+  </div>
+</main>
+
+<%- include('partials/foot') %>

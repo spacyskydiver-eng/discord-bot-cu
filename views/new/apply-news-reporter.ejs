@@ -1,0 +1,130 @@
+<%- include('partials/head', { pageTitle: 'News Reporter Application' }) %>
+<%- include('partials/header') %>
+
+<style>
+.nr-wrap { max-width: 680px; margin: 0 auto; padding-bottom: 60px; }
+.nr-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; margin-bottom: 16px; }
+.nr-label { display: block; font-family: 'Baloo 2'; font-weight: 700; font-size: 12px; letter-spacing: .5px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+.nr-input, .nr-textarea { width: 100%; background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 10px; padding: 12px 15px; font-family: 'Baloo 2'; font-weight: 600; font-size: 14px; color: #fff; outline: none; transition: border-color .15s; box-sizing: border-box; }
+.nr-input:focus, .nr-textarea:focus { border-color: rgba(116,192,252,.5); }
+.nr-textarea { resize: vertical; min-height: 110px; line-height: 1.6; }
+.nr-field { margin-bottom: 20px; }
+.nr-field:last-child { margin-bottom: 0; }
+.nr-q { font-family: 'Baloo 2'; font-weight: 800; font-size: 15px; color: #e0e2ed; margin: 0 0 6px; }
+.nr-q-sub { font-size: 13px; color: var(--muted); margin: 0 0 10px; line-height: 1.5; }
+.nr-btn { width: 100%; font-family: 'Baloo 2'; font-weight: 800; font-size: 15px; padding: 14px; border-radius: 10px; border: none; cursor: pointer; background: linear-gradient(135deg,#1d4ed8,#3b82f6); color: #fff; transition: opacity .15s; }
+.nr-btn:hover { opacity: .88; }
+.nr-rule { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--muted); line-height: 1.55; }
+.nr-rule:last-child { border-bottom: none; padding-bottom: 0; }
+.nr-rule-dot { width: 5px; height: 5px; border-radius: 50%; background: #3b82f6; flex-shrink: 0; margin-top: 7px; }
+.nr-role-chip { display: inline-block; font-family: 'Baloo 2'; font-weight: 800; font-size: 12px; padding: 3px 10px; border-radius: 99px; background: rgba(116,192,252,.12); color: #74c0fc; border: 1px solid rgba(116,192,252,.25); }
+.nr-accepted { background: rgba(116,192,252,.06); border: 2px solid rgba(116,192,252,.3); border-radius: var(--radius); padding: 28px; text-align: center; }
+</style>
+
+<main class="wrap">
+  <div class="nr-wrap">
+
+    <div class="page-head" style="margin-bottom:20px">
+      <a href="<%= lp %>/applications" class="back">← Applications</a>
+      <div>
+        <h1 class="page-title">News Reporter Application</h1>
+        <p class="page-sub" style="margin:4px 0 0;color:var(--muted);font-size:13px">150 Player Event · Open to accepted players only</p>
+      </div>
+    </div>
+
+    <% if (state === 'not_eligible') { %>
+    <!-- Not accepted for the event -->
+    <div style="background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.25);border-radius:var(--radius);padding:28px;text-align:center">
+      <div style="font-size:28px;margin-bottom:10px">🚫</div>
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#f87171;margin-bottom:8px">Not Eligible</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.6">News reporter applications are only open to players who have been accepted into the 150 Player Event.<br>If you believe this is an error, contact a staff member.</div>
+    </div>
+
+    <% } else if (existing && existing.status === 'accepted') { %>
+    <!-- Accepted -->
+    <div class="nr-accepted">
+      <% if (existing.discord_avatar) { %><img src="<%= existing.discord_avatar %>" style="width:56px;height:56px;border-radius:50%;margin-bottom:12px" onerror="this.style.display='none'"><% } %>
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:20px;color:#74c0fc;margin-bottom:8px">Accepted as News Reporter</div>
+      <div style="font-size:14px;color:var(--muted);margin-bottom:16px">You've been given the <span class="nr-role-chip">News Reporter</span> role. You can now post in the news channel.</div>
+      <div style="font-size:13px;color:var(--muted);background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;padding:14px;text-align:left;line-height:1.6">
+        Remember: you must post <strong style="color:#e0e2ed">at least once every 2 sessions</strong> to keep your role. Inactivity will result in the role being removed.
+      </div>
+    </div>
+
+    <% } else if (existing && existing.status === 'pending') { %>
+    <!-- Pending -->
+    <div style="background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.25);border-radius:var(--radius);padding:24px;text-align:center;margin-bottom:16px">
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#fbbf24;margin-bottom:6px">Application Under Review</div>
+      <div style="font-size:13px;color:var(--muted)">Submitted <%= existing.submitted_at ? new Date(existing.submitted_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '' %>. We'll DM you when a decision is made.</div>
+    </div>
+
+    <% } else if (existing && existing.status === 'declined') { %>
+    <!-- Declined — can reapply -->
+    <div style="background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.25);border-radius:var(--radius);padding:20px;margin-bottom:16px">
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#f87171;margin-bottom:4px">Application Not Successful</div>
+      <div style="font-size:13px;color:var(--muted)">You can update your answers and resubmit below.</div>
+    </div>
+    <% } %>
+
+    <% if (state === 'open' && (!existing || existing.status === 'declined' || existing.status === 'pending')) { %>
+
+    <!-- Intro card -->
+    <div class="nr-card">
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:17px;color:#e0e2ed;margin-bottom:10px">Want to report on the event?</div>
+      <p style="font-size:14px;color:var(--muted);line-height:1.65;margin:0 0 16px">News reporters get access to post in the news channel, covering the stories, wars, alliances, and drama as they unfold. Your reporting can absolutely take a side, back your nation, run propaganda, stir the pot. Just like real media.</p>
+
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">What a news reporter does</div>
+      <div class="nr-rule"><div class="nr-rule-dot"></div><span>Posts updates, stories, and coverage of the event in the news channel</span></div>
+      <div class="nr-rule"><div class="nr-rule-dot"></div><span>Reports on nations, battles, alliances, betrayals, and major moments</span></div>
+      <div class="nr-rule"><div class="nr-rule-dot"></div><span>Can be biased, take sides, or push their nation's angle</span></div>
+      <div class="nr-rule"><div class="nr-rule-dot"></div><span>Helps bring the event to life for everyone following along</span></div>
+    </div>
+
+    <!-- Application form -->
+    <div class="nr-card">
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:20px">Your Application</div>
+
+      <form method="POST" action="/apply-news-reporter/submit">
+        <div class="nr-field">
+          <div class="nr-q">Why do you want to be a news reporter for the event?</div>
+          <textarea name="q1" class="nr-textarea" placeholder="Tell us what draws you to the role..." required><%= existing ? existing.q1 : '' %></textarea>
+        </div>
+
+        <div class="nr-field">
+          <div class="nr-q">Do you have any experience writing, reporting, or creating content?</div>
+          <div class="nr-q-sub">Not required, but helpful. Link examples if you have them.</div>
+          <textarea name="q2" class="nr-textarea" placeholder="Examples, links, or just a description — or leave blank if none."><%= existing ? existing.q2 : '' %></textarea>
+        </div>
+
+        <div class="nr-field">
+          <div class="nr-q">How active can you be during the event?</div>
+          <div class="nr-q-sub">Sessions run daily at 17:00 BST.</div>
+          <textarea name="q3" class="nr-textarea" style="min-height:80px" placeholder="e.g. I can make most sessions, I'll be there every day, I might miss weekends..." required><%= existing ? existing.q3 : '' %></textarea>
+        </div>
+
+        <div class="nr-field">
+          <div class="nr-q">Will you be playing in the event as well, or only reporting?</div>
+          <textarea name="q4" class="nr-textarea" style="min-height:80px" placeholder="Playing as a participant, reporting only, or both?" required><%= existing ? existing.q4 : '' %></textarea>
+        </div>
+
+        <button type="submit" class="nr-btn"><%= existing ? 'Update Application' : 'Submit Application' %></button>
+      </form>
+    </div>
+
+    <!-- Rules card -->
+    <div class="nr-card" style="border-color:rgba(116,192,252,.2)">
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px">Please note</div>
+      <div class="nr-rule"><div class="nr-rule-dot"></div><span>News reporters are given the <span class="nr-role-chip">News Reporter</span> role, which grants access to post in the news channel.</span></div>
+      <div class="nr-rule"><div class="nr-rule-dot"></div><span>Bias, propaganda, and taking sides are all allowed and encouraged.</span></div>
+      <div class="nr-rule"><div class="nr-rule-dot"></div><span>You must post <strong style="color:#e0e2ed">at least once every 2 sessions</strong>. Inactivity will result in the role being removed.</span></div>
+      <div class="nr-rule"><div class="nr-rule-dot"></div><span>Server rules still apply. No hate speech, harassment, doxxing, or real-life attacks. Keep it in-game and in-character.</span></div>
+      <div class="nr-rule"><div class="nr-rule-dot"></div><span>The role can be removed for breaking server rules or misusing the channel.</span></div>
+      <div class="nr-rule"><div class="nr-rule-dot"></div><span>Approval is at staff discretion.</span></div>
+    </div>
+
+    <% } %>
+
+  </div>
+</main>
+
+<%- include('partials/foot') %>
