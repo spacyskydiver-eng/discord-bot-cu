@@ -11,3 +11,5 @@ services:
         sync: false
       - key: DATABASE_URL
         sync: false
+      - key: NATION_APPS_OPEN
+        value: 'false'

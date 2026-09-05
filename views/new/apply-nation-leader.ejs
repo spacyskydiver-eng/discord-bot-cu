@@ -49,7 +49,14 @@
       </div>
     </div>
 
-    <% if (existing && existing.accepted) { %>
+    <% if (closed) { %>
+    <div style="background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.25);border-radius:var(--radius);padding:28px;text-align:center">
+      <div style="font-size:28px;margin-bottom:10px">🔒</div>
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:20px;color:#f87171;margin-bottom:8px">Applications Closed</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.6">Nation leader applications for the 150 Player Event are now closed.<br>We have reached our nation cap. Thanks for your interest!</div>
+    </div>
+
+    <% } else if (existing && existing.accepted) { %>
     <!-- Accepted as nation leader -->
     <div class="nl-approved">
       <div style="font-family:'Baloo 2';font-weight:800;font-size:20px;color:#5be38f;margin-bottom:6px">Accepted as Nation Leader</div>
