@@ -162,30 +162,8 @@
   <!-- ====== BANS ====== -->
   <div id="panel-bans" class="mod-panel" id="bans">
 
-    <!-- Add ban form -->
-    <div style="background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:20px">
-      <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px">Document a ban</div>
-      <form method="POST" action="/admin/moderation/bans/add">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-          <div>
-            <div style="font-size:11px;color:var(--muted);font-family:'Baloo 2';font-weight:700;margin-bottom:4px">Discord ID</div>
-            <input type="text" name="discord_id" class="mod-input" style="width:100%" placeholder="e.g. 123456789012345678" required>
-          </div>
-          <div>
-            <div style="font-size:11px;color:var(--muted);font-family:'Baloo 2';font-weight:700;margin-bottom:4px">Discord Tag / Username</div>
-            <input type="text" name="discord_tag" class="mod-input" style="width:100%" placeholder="e.g. username123" required>
-          </div>
-        </div>
-        <div style="margin-bottom:10px">
-          <div style="font-size:11px;color:var(--muted);font-family:'Baloo 2';font-weight:700;margin-bottom:4px">Reason</div>
-          <input type="text" name="reason" class="mod-input" style="width:100%" placeholder="Brief reason for the ban">
-        </div>
-        <div style="margin-bottom:12px">
-          <div style="font-size:11px;color:var(--muted);font-family:'Baloo 2';font-weight:700;margin-bottom:4px">Initial notes (optional)</div>
-          <textarea name="notes" class="ban-notes-area" style="min-height:60px" placeholder="Any context, background, or details..."></textarea>
-        </div>
-        <button type="submit" class="mod-btn mod-btn-primary" style="font-size:13px;padding:8px 18px">+ Add Ban Record</button>
-      </form>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+      <span style="font-family:'Baloo 2';font-size:12px;color:var(--muted)">Bans are synced automatically from the Discord server. New bans appear here when issued in Discord.</span>
     </div>
 
     <% if (!bans.length) { %>

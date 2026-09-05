@@ -15,7 +15,8 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMembers
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildModeration
   ]
 });
 
@@ -27,17 +28,68 @@ for (const file of commandFiles) {
   client.commands.set(command.data.name, command);
 }
 
-client.once('ready', () => {
+client.once('ready', async () => {
   console.log(`Bot online: ${client.user.tag}`);
   runVeteranCheck(client);
   setInterval(() => runVeteranCheck(client), 6 * 60 * 60 * 1000);
   setupNationTracking(client);
+
+  // Sync existing bans from the CU guild into the moderation DB
+  const cuGuild = await client.guilds.fetch(CU_GUILD_ID).catch(() => null);
+  if (cuGuild) syncBansFromGuild(cuGuild);
+});
+
+client.on('guildBanAdd', async (ban) => {
+  if (ban.guild.id !== CU_GUILD_ID) return;
+  try {
+    const avatarUrl = ban.user.avatar
+      ? `https://cdn.discordapp.com/avatars/${ban.user.id}/${ban.user.avatar}.png`
+      : null;
+    await db.query(
+      `INSERT INTO moderation_bans (discord_id, discord_tag, discord_avatar, reason, banned_by)
+       SELECT $1,$2,$3,$4,'Discord'
+       WHERE NOT EXISTS (SELECT 1 FROM moderation_bans WHERE discord_id=$1)`,
+      [ban.user.id, ban.user.username, avatarUrl, ban.reason || '']
+    );
+  } catch (err) {
+    console.error('guildBanAdd DB error:', err);
+  }
+});
+
+client.on('guildBanRemove', async (ban) => {
+  if (ban.guild.id !== CU_GUILD_ID) return;
+  try {
+    await db.query(`DELETE FROM moderation_bans WHERE discord_id=$1`, [ban.user.id]);
+  } catch (err) {
+    console.error('guildBanRemove DB error:', err);
+  }
 });
 
 client.on('messageCreate', require('./events/messageCreate'));
 
+const CU_GUILD_ID = '1449004906068312189';
 const NATION_FORUM_ID = '1531798329397215242';
 const NATION_LEADER_ROLE_ID = '1531798604849872976';
+
+async function syncBansFromGuild(guild) {
+  try {
+    const bans = await guild.bans.fetch();
+    for (const [, ban] of bans) {
+      const avatarUrl = ban.user.avatar
+        ? `https://cdn.discordapp.com/avatars/${ban.user.id}/${ban.user.avatar}.png`
+        : null;
+      await db.query(
+        `INSERT INTO moderation_bans (discord_id, discord_tag, discord_avatar, reason, banned_by)
+         SELECT $1,$2,$3,$4,'Discord (sync)'
+         WHERE NOT EXISTS (SELECT 1 FROM moderation_bans WHERE discord_id=$1)`,
+        [ban.user.id, ban.user.username, avatarUrl, ban.reason || '']
+      );
+    }
+    console.log(`Ban sync: ${bans.size} bans processed`);
+  } catch (err) {
+    console.error('Ban sync error:', err);
+  }
+}
 
 client.on('threadCreate', async (thread) => {
   if (thread.parentId !== NATION_FORUM_ID) return;
