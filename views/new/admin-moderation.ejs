@@ -671,11 +671,13 @@
           <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
             <div style="flex:1;min-width:180px">
               <label class="form-label">Snippet label</label>
-              <input type="text" id="snippetLabel" class="form-input" placeholder="e.g. 'Username — harassment incident'">
+              <input type="text" id="snippetLabel" class="form-input" placeholder="e.g. 'Username — harassment #tickets'">
             </div>
-            <button class="btn btn-success" onclick="saveSnippet()">💾 Save Snippet</button>
+            <button class="btn btn-success" onclick="saveSnippet(false)">💾 Save & Add to Report</button>
+            <button class="btn btn-primary btn-sm" onclick="saveSnippet(true)">💾 Save + Browse Another</button>
             <button class="btn btn-ghost btn-sm" onclick="clearSelection()">Clear</button>
           </div>
+          <div id="saveToast" style="display:none;margin-top:10px;background:rgba(91,227,143,.1);border:1px solid rgba(91,227,143,.25);border-radius:8px;padding:10px 14px;font-family:'Baloo 2';font-size:12px;color:#5be38f"></div>
         </div>
       </div>
     </div>
@@ -823,8 +825,8 @@
           oninput="filterSnips()" style="margin-bottom:8px">
         <div class="snip-pick-list" id="snipPickList">
           <% if(!snippets.length){ %>
-          <div style="padding:16px;text-align:center;font-family:'Baloo 2';font-size:12px;color:var(--mod-muted)">
-            No snippets yet — use the Evidence & Logs tab to save some
+          <div data-placeholder="1" style="padding:16px;text-align:center;font-family:'Baloo 2';font-size:12px;color:var(--mod-muted)">
+            No snippets yet — use the Evidence &amp; Logs tab to save some
           </div>
           <% } %>
           <% snippets.forEach(function(s){ %>
@@ -1222,12 +1224,14 @@ function updateSelUI() {
 
 function clearSelection() { selSet.clear(); selStart = null; updateSelUI(); }
 
-async function saveSnippet() {
+async function saveSnippet(browseAnother) {
   if (!selSet.size) return;
   const label = document.getElementById('snippetLabel').value.trim();
   const selected = [...selSet].sort((a,b)=>a-b).map(i => browserMsgs[i]);
-  const guildName = document.getElementById('guildSel').selectedOptions[0]?.text || '';
-  const channelName = document.getElementById('channelSel').selectedOptions[0]?.text?.replace('#','') || '';
+  const guildSel = document.getElementById('guildSel');
+  const chanSel = document.getElementById('channelSel');
+  const guildName = guildSel.selectedOptions[0]?.text || '';
+  const channelName = (chanSel.selectedOptions[0]?.text || '').replace('#','');
   try {
     const r = await fetch('/admin/moderation/snippets/save', {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -1239,9 +1243,78 @@ async function saveSnippet() {
     });
     const d = await r.json();
     if (d.error) throw new Error(d.error);
-    alert('Snippet #' + d.id + ' saved! Reload the page to see it in the library.');
+
+    const displayLabel = label || ('Snippet #' + d.id);
+    const msgCount = selected.length;
+
+    // Inject into snippet picker in New Report panel (no reload needed)
+    injectSnippetIntoPicker(d.id, displayLabel, msgCount, channelName);
+
+    // Inject into Evidence Library grid
+    injectSnippetIntoLibrary(d.id, displayLabel, msgCount, channelName, guildName);
+
+    // Show toast
+    const toast = document.getElementById('saveToast');
+    toast.textContent = '✓ Snippet #' + d.id + ' saved and added to the New Report panel. ' +
+      (browseAnother ? 'Pick another channel to add more evidence.' : 'Open "New Report" to select it.');
+    toast.style.display = '';
+
     clearSelection();
+    document.getElementById('snippetLabel').value = '';
+
+    // Auto-open panel and select the new snippet
+    if (!browseAnother) {
+      openPanel();
+      setTimeout(() => {
+        const row = document.querySelector('.snip-pick-row[data-sid="' + d.id + '"]');
+        if (row && !selSnips[d.id]) row.click();
+        row && row.scrollIntoView({ behavior:'smooth', block:'center' });
+      }, 200);
+    }
   } catch(e) { alert('Error saving: ' + e.message); }
+}
+
+function injectSnippetIntoPicker(id, label, msgCount, channelName) {
+  const list = document.getElementById('snipPickList');
+  // Remove "no snippets" placeholder if present
+  const placeholder = list.querySelector('[data-placeholder]');
+  if (placeholder) placeholder.remove();
+  const div = document.createElement('div');
+  div.className = 'snip-pick-row';
+  div.dataset.sid = id;
+  div.dataset.label = label.toLowerCase();
+  div.dataset.slabel = label;
+  div.dataset.meta = (channelName||'').toLowerCase();
+  div.onclick = function() { toggleSnip(parseInt(this.dataset.sid), this.dataset.slabel); };
+  div.innerHTML = '<span style="font-size:15px">💬</span>' +
+    '<div style="flex:1;min-width:0">' +
+      '<div class="snip-pick-name">#' + id + ' — ' + h(label) + '</div>' +
+      '<div class="snip-pick-meta">' + msgCount + ' msgs' + (channelName ? ' · #' + h(channelName) : '') + ' · just saved</div>' +
+    '</div><span class="snip-pick-check">✓</span>';
+  list.insertBefore(div, list.firstChild);
+}
+
+function injectSnippetIntoLibrary(id, label, msgCount, channelName, guildName) {
+  const grid = document.querySelector('.snip-grid');
+  if (!grid) return;
+  // Remove empty state if present
+  const empty = document.querySelector('#tab-evidence .empty');
+  if (empty) empty.remove();
+  const card = document.createElement('div');
+  card.className = 'snip-card';
+  card.innerHTML = '<div class="snip-card-id">Snippet #' + id + '</div>' +
+    '<div class="snip-card-title">' + h(label) + '</div>' +
+    '<div class="snip-card-meta">' + msgCount + ' messages' +
+      (channelName ? ' · #' + h(channelName) : '') +
+      (guildName ? ' · ' + h(guildName) : '') +
+      '<br>Just saved</div>' +
+    '<div class="snip-card-actions">' +
+      '<button class="btn btn-primary btn-sm" onclick="viewSnippet(' + id + ')">👁 View</button>' +
+    '</div>';
+  grid.insertBefore(card, grid.firstChild);
+  // Update counter label
+  const lbl = document.querySelector('#tab-evidence .section-label');
+  if (lbl) lbl.textContent = 'Saved Snippets (' + document.querySelectorAll('.snip-card').length + ')';
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
