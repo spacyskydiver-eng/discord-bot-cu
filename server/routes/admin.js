@@ -214,18 +214,29 @@ const evidenceUpload = multer({
   }
 });
 
+async function discordApi(apiPath) {
+  const r = await fetch(`https://discord.com/api/v10${apiPath}`, {
+    headers: { Authorization: `Bot ${process.env.DISCORD_TOKEN}` }
+  });
+  if (!r.ok) throw new Error(`Discord API ${r.status} ${apiPath}`);
+  return r.json();
+}
+
 router.get('/moderation', async (req, res) => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const [flaggedRes, bansRes] = await Promise.all([
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const [flaggedRes, bansRes, ticketsRes, snippetsRes] = await Promise.all([
     db.query(`SELECT * FROM flagged_messages ORDER BY flagged_at DESC`),
     db.query(`SELECT b.*, COALESCE(json_agg(e ORDER BY e.created_at) FILTER (WHERE e.id IS NOT NULL), '[]') AS evidence
               FROM moderation_bans b LEFT JOIN ban_evidence e ON e.ban_id = b.id
-              GROUP BY b.id ORDER BY b.banned_at DESC`)
+              GROUP BY b.id ORDER BY b.banned_at DESC`),
+    db.query(`SELECT * FROM ticket_reports ORDER BY created_at DESC`),
+    db.query(`SELECT id, label, guild_name, channel_name, created_at, jsonb_array_length(messages) AS msg_count FROM chat_snippets ORDER BY created_at DESC`)
   ]);
   res.render('new/admin-moderation', {
     flagged: flaggedRes.rows,
     bans: bansRes.rows,
+    tickets: ticketsRes.rows,
+    snippets: snippetsRes.rows,
     todayStr: today.toISOString()
   });
 });
@@ -306,6 +317,132 @@ router.post('/moderation/bans/:id/evidence/:evId/delete', async (req, res) => {
 router.post('/moderation/bans/:id/delete', async (req, res) => {
   await db.query(`DELETE FROM moderation_bans WHERE id=$1`, [req.params.id]);
   res.redirect('/admin/moderation#bans');
+});
+
+// ── Player history (AJAX) ─────────────────────────────────────────────────────
+router.get('/moderation/player/:discordId', async (req, res) => {
+  const id = req.params.discordId;
+  const [flagsRes, bansRes, ticketsRes] = await Promise.all([
+    db.query(`SELECT * FROM flagged_messages WHERE discord_id=$1 ORDER BY flagged_at DESC`, [id]),
+    db.query(`SELECT * FROM moderation_bans WHERE discord_id=$1 ORDER BY banned_at DESC`, [id]),
+    db.query(`SELECT * FROM ticket_reports WHERE player_discord_id=$1 ORDER BY created_at DESC`, [id])
+  ]);
+  // Try to fetch Discord profile
+  let profile = null;
+  try {
+    const u = await discordApi(`/users/${id}`);
+    profile = {
+      tag: u.username,
+      avatar: u.avatar ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=64` : null
+    };
+  } catch (_) {}
+  res.json({ flags: flagsRes.rows, bans: bansRes.rows, tickets: ticketsRes.rows, profile });
+});
+
+// ── Discord API proxies (for chat log browser) ────────────────────────────────
+router.get('/moderation/discord/guilds', async (req, res) => {
+  try {
+    const guilds = await discordApi('/users/@me/guilds');
+    res.json(guilds.map(g => ({ id: g.id, name: g.name, icon: g.icon })));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/moderation/discord/channels/:guildId', async (req, res) => {
+  try {
+    const channels = await discordApi(`/guilds/${req.params.guildId}/channels`);
+    const text = channels
+      .filter(c => c.type === 0 || c.type === 11 || c.type === 12) // text, public thread, private thread
+      .sort((a, b) => (a.position || 0) - (b.position || 0))
+      .map(c => ({ id: c.id, name: c.name, type: c.type, parent_id: c.parent_id }));
+    res.json(text);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/moderation/discord/messages/:channelId', async (req, res) => {
+  try {
+    const { before, after, limit = 50 } = req.query;
+    let qs = `?limit=${Math.min(parseInt(limit)||50, 100)}`;
+    if (before) qs += `&before=${before}`;
+    if (after) qs += `&after=${after}`;
+    const msgs = await discordApi(`/channels/${req.params.channelId}/messages${qs}`);
+    res.json(msgs.map(m => ({
+      id: m.id,
+      author: m.author.username,
+      author_id: m.author.id,
+      avatar: m.author.avatar ? `https://cdn.discordapp.com/avatars/${m.author.id}/${m.author.avatar}.png?size=32` : null,
+      content: m.content,
+      timestamp: m.timestamp,
+      attachments: m.attachments.map(a => ({ url: a.url, name: a.filename, type: a.content_type })),
+      embeds: m.embeds.length
+    })));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Chat snippets ─────────────────────────────────────────────────────────────
+router.post('/moderation/snippets/save', express.json(), async (req, res) => {
+  const { label, guild_id, guild_name, channel_id, channel_name, messages } = req.body;
+  if (!messages || !messages.length) return res.status(400).json({ error: 'No messages' });
+  const result = await db.query(
+    `INSERT INTO chat_snippets (label, guild_id, guild_name, channel_id, channel_name, messages)
+     VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`,
+    [(label||'').trim(), guild_id||null, guild_name||null, channel_id||null, channel_name||null, JSON.stringify(messages)]
+  );
+  res.json({ id: result.rows[0].id });
+});
+
+router.get('/moderation/snippets/:id', async (req, res) => {
+  const row = (await db.query(`SELECT * FROM chat_snippets WHERE id=$1`, [req.params.id])).rows[0];
+  if (!row) return res.status(404).json({ error: 'Not found' });
+  res.json(row);
+});
+
+router.post('/moderation/snippets/:id/delete', async (req, res) => {
+  await db.query(`DELETE FROM chat_snippets WHERE id=$1`, [req.params.id]);
+  res.redirect('/admin/moderation#chatlogs');
+});
+
+// Attach snippet as evidence on a ban
+router.post('/moderation/bans/:id/evidence/snippet', async (req, res) => {
+  const snippetId = parseInt(req.body.snippet_id);
+  if (!snippetId) return res.redirect(`/admin/moderation#ban-${req.params.id}`);
+  await db.query(
+    `INSERT INTO ban_evidence (ban_id, evidence_type, snippet_id, label) VALUES ($1,'snippet',$2,$3)`,
+    [req.params.id, snippetId, (req.body.label||'').trim()]
+  );
+  res.redirect(`/admin/moderation#ban-${req.params.id}`);
+});
+
+// ── Ticket Reports ────────────────────────────────────────────────────────────
+router.post('/moderation/ticket-reports/add', async (req, res) => {
+  const { player_discord_id, player_discord_tag, ticket_ref, ticket_channel_id, guild_name, summary, action_taken, severity, notes } = req.body;
+  if (!player_discord_id || !player_discord_tag || !summary) return res.redirect('/admin/moderation#tickets');
+  // Try to fetch avatar
+  let avatar = null;
+  try {
+    const u = await discordApi(`/users/${player_discord_id.trim()}`);
+    if (u.avatar) avatar = `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=64`;
+  } catch (_) {}
+  const result = await db.query(
+    `INSERT INTO ticket_reports (player_discord_id, player_discord_tag, player_discord_avatar, ticket_ref, ticket_channel_id, guild_name, summary, action_taken, severity, notes, created_by)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
+    [
+      player_discord_id.trim(), player_discord_tag.trim(), avatar,
+      (ticket_ref||'').trim() || null, (ticket_channel_id||'').trim() || null, (guild_name||'').trim() || null,
+      summary.trim(), action_taken || 'warning', severity || 'low', (notes||'').trim(),
+      req.session.user?.username || 'admin'
+    ]
+  );
+  res.redirect(`/admin/moderation#ticket-${result.rows[0].id}`);
+});
+
+router.post('/moderation/ticket-reports/:id/notes', async (req, res) => {
+  await db.query(`UPDATE ticket_reports SET notes=$1 WHERE id=$2`, [(req.body.notes||'').trim(), req.params.id]);
+  res.redirect(`/admin/moderation#ticket-${req.params.id}`);
+});
+
+router.post('/moderation/ticket-reports/:id/delete', async (req, res) => {
+  await db.query(`DELETE FROM ticket_reports WHERE id=$1`, [req.params.id]);
+  res.redirect('/admin/moderation#tickets');
 });
 
 // Admin preview of the application wizard

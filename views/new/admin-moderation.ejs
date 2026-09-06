@@ -2,240 +2,354 @@
 <%- include('partials/header') %>
 
 <style>
-.mod-wrap { max-width: 1100px; margin: 0 auto; padding-bottom: 60px; }
+:root { --sev-low:#fbbf24; --sev-med:#fb923c; --sev-high:#f87171; }
+.mod-wrap { max-width: 1140px; margin: 0 auto; padding-bottom: 80px; }
 
-/* Tabs */
-.mod-tabs { display: flex; gap: 4px; border-bottom: 2px solid var(--line); margin: 20px 0 0; padding-top: 4px; }
-.mod-tab { font-family: 'Baloo 2'; font-weight: 800; font-size: 13px; padding: 9px 18px;
-  border-radius: 10px 10px 0 0; border: 1px solid transparent; border-bottom: none;
-  cursor: pointer; transition: background .15s, color .15s; color: var(--muted);
-  background: none; position: relative; bottom: -2px; }
-.mod-tab:hover { background: var(--panel-2); color: var(--text); }
-.mod-tab.active { background: var(--panel); border-color: var(--line); color: var(--text); }
-.mod-panel { display: none; padding-top: 20px; }
-.mod-panel.active { display: block; }
+/* ── Top bar ── */
+.mod-topbar { display:flex; align-items:center; gap:14px; margin:20px 0 18px; flex-wrap:wrap; }
+.mod-title { font-family:'Baloo 2'; font-weight:800; font-size:22px; color:#e0e2ed; }
+.mod-search { flex:1; min-width:200px; max-width:340px; position:relative; }
+.mod-search input { width:100%; background:var(--panel); border:1px solid var(--line); border-radius:10px;
+  padding:8px 12px 8px 34px; font-family:'Baloo 2'; font-weight:700; font-size:13px; color:#fff; outline:none; box-sizing:border-box; }
+.mod-search input:focus { border-color:rgba(255,255,255,.2); }
+.mod-search-ico { position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:14px; pointer-events:none; }
+.mod-search-btn { font-family:'Baloo 2'; font-weight:800; font-size:12px; padding:8px 16px; border-radius:10px;
+  background:rgba(116,192,252,.12); color:#74c0fc; border:1px solid rgba(116,192,252,.25); cursor:pointer; }
+.mod-search-btn:hover { background:rgba(116,192,252,.2); }
 
-/* Flagged message card */
-.flag-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 10px; }
-.flag-card.today { border-left: 3px solid #f87171; }
-.flag-card.disregarded { opacity: .45; }
-.flag-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
-.flag-type { font-family: 'Baloo 2'; font-weight: 800; font-size: 10px; text-transform: uppercase; letter-spacing: .06em;
-  padding: 2px 8px; border-radius: 5px; flex-shrink: 0; margin-top: 2px; }
-.flag-type.slur { background: rgba(248,113,113,.15); color: #f87171; border: 1px solid rgba(248,113,113,.3); }
-.flag-type.extremist { background: rgba(251,146,60,.15); color: #fb923c; border: 1px solid rgba(251,146,60,.3); }
-.flag-meta { flex: 1; }
-.flag-author { font-family: 'Baloo 2'; font-weight: 800; font-size: 14px; color: #e0e2ed; }
-.flag-location { font-size: 12px; color: var(--muted); font-family: 'Baloo 2'; margin-top: 1px; }
-.flag-matched { font-family: monospace; font-size: 12px; background: rgba(248,113,113,.1); color: #f87171; padding: 1px 6px; border-radius: 4px; }
-.flag-content { font-size: 13px; color: #c9ccdb; background: rgba(255,255,255,.03); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; margin-bottom: 10px; }
-.flag-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.flag-time { font-size: 11px; color: var(--muted); font-family: 'Baloo 2'; margin-left: auto; }
+/* ── Tabs ── */
+.mod-tabs { display:flex; gap:2px; border-bottom:2px solid var(--line); margin-bottom:20px; overflow-x:auto; }
+.mod-tab { font-family:'Baloo 2'; font-weight:800; font-size:12px; padding:9px 16px; border-radius:10px 10px 0 0;
+  border:1px solid transparent; border-bottom:none; cursor:pointer; color:var(--muted); background:none;
+  position:relative; bottom:-2px; white-space:nowrap; transition:background .12s, color .12s; }
+.mod-tab:hover { background:var(--panel-2); color:var(--text); }
+.mod-tab.active { background:var(--panel); border-color:var(--line); color:#e0e2ed; }
+.mod-badge { display:inline-flex; align-items:center; justify-content:center; background:#f87171; color:#fff;
+  font-size:10px; font-weight:800; border-radius:99px; padding:0 5px; min-width:16px; height:16px; margin-left:5px; }
+.mod-badge.blue { background:#74c0fc; }
+.mod-badge.green { background:#5be38f; color:#0a2018; }
+.mod-panel { display:none; }
+.mod-panel.active { display:block; }
 
-/* Ban card */
-.ban-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
-.ban-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; cursor: pointer; }
-.ban-header:hover { background: rgba(255,255,255,.02); }
-.ban-body { padding: 0 20px 20px; border-top: 1px solid var(--line); display: none; }
-.ban-body.open { display: block; }
-.ban-notes-area { width: 100%; background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; font-family: 'Baloo 2'; font-weight: 600; font-size: 13px; color: #fff; outline: none; resize: vertical; min-height: 80px; box-sizing: border-box; line-height: 1.6; margin-bottom: 8px; }
-.ban-notes-area:focus { border-color: rgba(255,255,255,.2); }
-.ev-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
-.ev-item:last-child { border-bottom: none; }
-.ev-thumb { width: 48px; height: 36px; border-radius: 5px; object-fit: cover; background: rgba(255,255,255,.08); flex-shrink: 0; }
-.ev-label { flex: 1; font-family: 'Baloo 2'; font-weight: 700; font-size: 13px; color: #e0e2ed; }
-.ev-label small { display: block; font-size: 11px; color: var(--muted); font-weight: 600; }
+/* ── Filter bar ── */
+.filter-bar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:16px;
+  background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 14px; }
+.filter-bar select, .filter-bar input[type=text] { background:rgba(255,255,255,.04); border:1px solid var(--line);
+  border-radius:7px; padding:6px 10px; font-family:'Baloo 2'; font-weight:700; font-size:12px; color:#ccc; outline:none; }
+.filter-bar select:focus, .filter-bar input[type=text]:focus { border-color:rgba(255,255,255,.2); }
+.filter-label { font-family:'Baloo 2'; font-weight:700; font-size:11px; color:var(--muted); }
+.filter-count { font-family:'Baloo 2'; font-size:11px; color:var(--muted); margin-left:auto; }
 
-/* Shared button styles */
-.mod-btn { font-family: 'Baloo 2'; font-weight: 700; font-size: 12px; padding: 5px 12px; border-radius: 7px; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: opacity .15s; }
-.mod-btn:hover { opacity: .8; }
-.mod-btn-ghost { background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); }
-.mod-btn-danger { background: rgba(248,113,113,.1); color: #f87171; border: 1px solid rgba(248,113,113,.25); }
-.mod-btn-primary { background: rgba(116,192,252,.12); color: #74c0fc; border: 1px solid rgba(116,192,252,.25); }
-.mod-btn-sm { padding: 4px 10px; font-size: 11px; }
-.mod-input { background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; font-family: 'Baloo 2'; font-weight: 600; font-size: 13px; color: #fff; outline: none; box-sizing: border-box; }
-.mod-input:focus { border-color: rgba(255,255,255,.2); }
-.mod-select { background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-family: 'Baloo 2'; font-weight: 600; font-size: 13px; color: #fff; outline: none; }
+/* ── Shared card / button styles ── */
+.mod-btn { font-family:'Baloo 2'; font-weight:700; font-size:12px; padding:5px 12px; border-radius:7px;
+  border:none; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:5px; transition:opacity .15s; }
+.mod-btn:hover { opacity:.8; }
+.mod-btn-ghost { background:var(--panel-2); border:1px solid var(--line); color:var(--muted); }
+.mod-btn-danger { background:rgba(248,113,113,.1); color:#f87171; border:1px solid rgba(248,113,113,.25); }
+.mod-btn-primary { background:rgba(116,192,252,.1); color:#74c0fc; border:1px solid rgba(116,192,252,.2); }
+.mod-btn-success { background:rgba(91,227,143,.1); color:#5be38f; border:1px solid rgba(91,227,143,.2); }
+.mod-btn-sm { padding:3px 9px; font-size:11px; }
+.mod-input { background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:8px;
+  padding:9px 12px; font-family:'Baloo 2'; font-weight:600; font-size:13px; color:#fff; outline:none; box-sizing:border-box; }
+.mod-input:focus { border-color:rgba(255,255,255,.2); }
+.mod-textarea { width:100%; background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:8px;
+  padding:10px 14px; font-family:'Baloo 2'; font-weight:600; font-size:13px; color:#fff; outline:none;
+  resize:vertical; min-height:70px; box-sizing:border-box; line-height:1.6; }
+.mod-textarea:focus { border-color:rgba(255,255,255,.2); }
+.mod-select { background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:8px;
+  padding:8px 12px; font-family:'Baloo 2'; font-weight:600; font-size:13px; color:#fff; outline:none; }
+.field-label { font-size:11px; color:var(--muted); font-family:'Baloo 2'; font-weight:700; margin-bottom:4px; }
+
+/* ── Severity pill ── */
+.sev { font-family:'Baloo 2'; font-weight:800; font-size:10px; text-transform:uppercase;
+  letter-spacing:.06em; padding:2px 8px; border-radius:99px; }
+.sev-low { background:rgba(251,191,36,.1); color:#fbbf24; border:1px solid rgba(251,191,36,.2); }
+.sev-medium { background:rgba(251,146,60,.12); color:#fb923c; border:1px solid rgba(251,146,60,.25); }
+.sev-high { background:rgba(248,113,113,.12); color:#f87171; border:1px solid rgba(248,113,113,.25); }
+
+/* ── Action pill ── */
+.action-pill { font-family:'Baloo 2'; font-weight:800; font-size:10px; text-transform:uppercase;
+  letter-spacing:.05em; padding:2px 8px; border-radius:99px; border:1px solid var(--line); background:rgba(255,255,255,.06); color:var(--muted); }
+
+/* ── Flag card ── */
+.flag-card { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px 18px; margin-bottom:8px; transition:opacity .2s; }
+.flag-card.today { border-left:3px solid #f87171; }
+.flag-card.disregarded { opacity:.35; }
+.flag-type { font-family:'Baloo 2'; font-weight:800; font-size:10px; text-transform:uppercase; letter-spacing:.06em; padding:2px 8px; border-radius:5px; flex-shrink:0; }
+.flag-type.slur { background:rgba(248,113,113,.15); color:#f87171; border:1px solid rgba(248,113,113,.3); }
+.flag-type.extremist { background:rgba(251,146,60,.15); color:#fb923c; border:1px solid rgba(251,146,60,.3); }
+.flag-content { font-size:13px; color:#c9ccdb; background:rgba(255,255,255,.03); border:1px solid var(--line); border-radius:8px; padding:9px 12px; line-height:1.6; white-space:pre-wrap; word-break:break-word; margin:8px 0; }
+.flag-matched { font-family:monospace; font-size:12px; background:rgba(248,113,113,.1); color:#f87171; padding:1px 6px; border-radius:4px; }
+
+/* ── Ban card ── */
+.ban-card { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); margin-bottom:10px; overflow:hidden; }
+.ban-header { display:flex; align-items:center; gap:12px; padding:14px 18px; cursor:pointer; }
+.ban-header:hover { background:rgba(255,255,255,.02); }
+.ban-body { padding:0 18px 18px; border-top:1px solid var(--line); display:none; }
+.ban-body.open { display:block; }
+.ev-row { display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--line); }
+.ev-row:last-child { border-bottom:none; }
+
+/* ── Ticket card ── */
+.ticket-card { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); margin-bottom:10px; overflow:hidden; }
+.ticket-header { display:flex; align-items:center; gap:12px; padding:14px 18px; cursor:pointer; }
+.ticket-header:hover { background:rgba(255,255,255,.02); }
+.ticket-body { padding:0 18px 18px; border-top:1px solid var(--line); display:none; }
+.ticket-body.open { display:block; }
+
+/* ── Player avatar clickable ── */
+.player-chip { display:inline-flex; align-items:center; gap:6px; cursor:pointer; }
+.player-chip:hover .player-name { text-decoration:underline; }
+.player-avatar { width:28px; height:28px; border-radius:50%; object-fit:cover; background:rgba(255,255,255,.08); }
+.player-name { font-family:'Baloo 2'; font-weight:800; font-size:13px; color:#e0e2ed; }
+
+/* ── Chat log browser ── */
+.chat-browser { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:18px; margin-bottom:16px; }
+.msg-row { display:flex; align-items:flex-start; gap:10px; padding:7px 10px; border-radius:7px; cursor:pointer; transition:background .1s; }
+.msg-row:hover { background:rgba(255,255,255,.04); }
+.msg-row.selected { background:rgba(116,192,252,.08); border:1px solid rgba(116,192,252,.2); }
+.msg-row.in-range { background:rgba(116,192,252,.05); }
+.msg-avatar { width:28px; height:28px; border-radius:50%; flex-shrink:0; background:rgba(255,255,255,.08); }
+.msg-author { font-family:'Baloo 2'; font-weight:800; font-size:12px; color:#e0e2ed; }
+.msg-ts { font-family:'Baloo 2'; font-weight:600; font-size:11px; color:var(--muted); margin-left:6px; }
+.msg-content { font-size:13px; color:#c0c3d5; line-height:1.5; word-break:break-word; }
+.msg-att { font-size:11px; color:#74c0fc; }
+#msg-list { max-height:420px; overflow-y:auto; background:rgba(255,255,255,.02); border:1px solid var(--line); border-radius:8px; padding:6px; margin:12px 0; }
+.snippet-card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px 16px; margin-bottom:8px; display:flex; align-items:center; gap:12px; }
+
+/* ── Player history modal ── */
+#player-modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:1000; align-items:center; justify-content:center; }
+#player-modal-bg.open { display:flex; }
+#player-modal { background:#12131a; border:1px solid var(--line); border-radius:14px; width:min(560px,95vw); max-height:85vh; overflow-y:auto; padding:24px; }
+.timeline-item { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--line); }
+.timeline-item:last-child { border-bottom:none; }
+.timeline-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; margin-top:4px; }
+.timeline-dot.flag { background:#f87171; }
+.timeline-dot.ban { background:#e879f9; }
+.timeline-dot.ticket { background:#74c0fc; }
+
+/* ── Empty state ── */
+.empty-state { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:36px; text-align:center; color:var(--muted); font-family:'Baloo 2'; font-size:14px; }
+
+/* ── Collapsible add-form ── */
+.add-form-wrap { background:var(--panel); border:1px solid rgba(116,192,252,.2); border-radius:var(--radius); padding:0; margin-bottom:16px; overflow:hidden; }
+.add-form-header { display:flex; align-items:center; gap:10px; padding:12px 18px; cursor:pointer; }
+.add-form-header:hover { background:rgba(255,255,255,.02); }
+.add-form-body { padding:0 18px 18px; border-top:1px solid var(--line); display:none; }
+.add-form-body.open { display:block; }
 </style>
 
 <main class="wrap">
 <div class="mod-wrap">
 
-  <div class="page-head" style="margin-bottom:0">
-    <a href="/admin" class="back">← Admin</a>
-    <div>
-      <h1 class="page-title">Moderation</h1>
-      <p class="page-sub" style="margin:4px 0 0;color:var(--muted);font-size:13px">Flagged messages · Bans · Evidence</p>
+  <!-- Top bar -->
+  <div class="mod-topbar">
+    <span class="mod-title">Moderation</span>
+    <div class="mod-search">
+      <span class="mod-search-ico">🔍</span>
+      <input type="text" id="globalSearch" placeholder="Search player ID or username…" onkeydown="if(event.key==='Enter')openPlayerModal(this.value)">
     </div>
+    <button class="mod-search-btn" onclick="openPlayerModal(document.getElementById('globalSearch').value)">Player History</button>
+    <a href="/admin" class="mod-btn mod-btn-ghost" style="margin-left:auto">← Admin</a>
   </div>
 
+  <!-- Tabs -->
   <div class="mod-tabs">
     <button class="mod-tab active" data-panel="flagged">
-      Flagged Messages
-      <% const activeFlagged = flagged.filter(f => !f.disregarded); %>
-      <% if (activeFlagged.length) { %><span style="display:inline-flex;align-items:center;justify-content:center;background:#f87171;color:#fff;font-size:10px;font-weight:800;border-radius:99px;padding:1px 6px;margin-left:5px"><%= activeFlagged.length %></span><% } %>
+      Flagged
+      <% const activeFlags = flagged.filter(f=>!f.disregarded); %>
+      <% if (activeFlags.length) { %><span class="mod-badge"><%= activeFlags.length %></span><% } %>
     </button>
-    <button class="mod-tab" data-panel="bans">Bans (<%= bans.length %>)</button>
+    <button class="mod-tab" data-panel="bans">
+      Bans
+      <% if (bans.length) { %><span class="mod-badge" style="background:#e879f9;color:#fff"><%= bans.length %></span><% } %>
+    </button>
+    <button class="mod-tab" data-panel="tickets">
+      Ticket Reports
+      <% if (tickets.length) { %><span class="mod-badge blue"><%= tickets.length %></span><% } %>
+    </button>
+    <button class="mod-tab" data-panel="chatlogs">Chat Logs</button>
   </div>
 
-  <!-- ====== FLAGGED MESSAGES ====== -->
-  <div id="panel-flagged" class="mod-panel active" id="flagged">
-
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
-      <label style="display:flex;align-items:center;gap:6px;font-family:'Baloo 2';font-weight:700;font-size:13px;color:var(--muted);cursor:pointer">
-        <input type="checkbox" id="showDisregarded" onchange="toggleDisregarded()" style="accent-color:#74c0fc"> Show disregarded
+  <!-- ═══════════════════════════════════ FLAGGED ═══════════════════════════════ -->
+  <div id="panel-flagged" class="mod-panel active">
+    <div class="filter-bar">
+      <span class="filter-label">Type</span>
+      <select id="f-type" onchange="filterFlags()">
+        <option value="">All types</option>
+        <option value="slur">Racist slur</option>
+        <option value="extremist">Extremist</option>
+      </select>
+      <span class="filter-label">Time</span>
+      <select id="f-time" onchange="filterFlags()">
+        <option value="">All time</option>
+        <option value="today">Today</option>
+        <option value="week">This week</option>
+      </select>
+      <span class="filter-label">Player</span>
+      <input type="text" id="f-player" placeholder="tag or ID…" oninput="filterFlags()" style="width:140px">
+      <label style="display:flex;align-items:center;gap:5px;font-family:'Baloo 2';font-weight:700;font-size:12px;color:var(--muted);cursor:pointer">
+        <input type="checkbox" id="f-dis" onchange="filterFlags()"> Show disregarded
       </label>
-      <span style="font-family:'Baloo 2';font-size:12px;color:var(--muted);margin-left:auto"><%= flagged.length %> total · <%= flagged.filter(f=>!f.disregarded).length %> active</span>
+      <span class="filter-count" id="f-count"><%= flagged.length %> total</span>
     </div>
 
     <% if (!flagged.length) { %>
-    <div style="background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:40px;text-align:center;color:var(--muted);font-family:'Baloo 2';font-size:14px">
-      No flagged messages yet. They'll appear here automatically when the bot detects one.
-    </div>
+    <div class="empty-state">No flagged messages yet — the bot will log them here automatically.</div>
     <% } %>
 
+    <div id="flags-list">
     <% flagged.forEach(function(f) {
       const isToday = new Date(f.flagged_at) >= new Date(todayStr);
-      const typeClass = f.flag_type === 'slur' ? 'slur' : 'extremist';
-      const typeLabel = f.flag_type === 'slur' ? 'Racist Slur' : 'Extremist';
+      const isWeek = new Date(f.flagged_at) >= new Date(Date.now() - 7*86400000);
     %>
-    <div class="flag-card<%= isToday ? ' today' : '' %><%= f.disregarded ? ' disregarded' : '' %>"
-         data-disregarded="<%= f.disregarded ? '1' : '0' %>"
+    <div class="flag-card<%= isToday?' today':'' %><%= f.disregarded?' disregarded':'' %>"
+         data-dis="<%= f.disregarded?'1':'0' %>" data-type="<%= f.flag_type %>"
+         data-player="<%= (f.discord_tag||'').toLowerCase() %> <%= f.discord_id %>"
+         data-today="<%= isToday?'1':'0' %>" data-week="<%= isWeek?'1':'0' %>"
          id="flag-<%= f.id %>">
-      <div class="flag-header">
-        <span class="flag-type <%= typeClass %>"><%= typeLabel %></span>
-        <div class="flag-meta">
-          <div class="flag-author">
-            @<%= f.discord_tag %> <span style="font-size:11px;color:var(--muted);font-weight:600">(<%= f.discord_id %>)</span>
-            <% if (isToday) { %><span style="font-family:'Baloo 2';font-weight:800;font-size:10px;padding:1px 7px;border-radius:99px;background:rgba(248,113,113,.15);color:#f87171;border:1px solid rgba(248,113,113,.3);margin-left:6px">TODAY</span><% } %>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">
+        <span class="flag-type <%= f.flag_type === 'slur' ? 'slur' : 'extremist' %>">
+          <%= f.flag_type === 'slur' ? 'Racist Slur' : 'Extremist' %>
+        </span>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span class="player-chip" onclick="openPlayerModal('<%= f.discord_id %>')">
+              <span class="player-name">@<%= f.discord_tag %></span>
+            </span>
+            <span style="font-size:11px;color:var(--muted);font-family:'Baloo 2'"><%= f.discord_id %></span>
+            <% if (isToday) { %><span class="sev sev-high" style="font-size:9px">TODAY</span><% } %>
+            <span class="flag-matched"><%= f.matched_term %></span>
           </div>
-          <div class="flag-location">
-            <%= f.guild_name %> · #<%= f.channel_name %>
-            &nbsp;·&nbsp; Matched: <span class="flag-matched"><%= f.matched_term %></span>
+          <div style="font-size:11px;color:var(--muted);font-family:'Baloo 2';margin-top:2px">
+            <%= f.guild_name %> · #<%= f.channel_name %> · <%= new Date(f.flagged_at).toLocaleString('en-GB') %>
           </div>
         </div>
-        <span class="flag-time"><%= new Date(f.flagged_at).toLocaleString('en-GB') %></span>
       </div>
 
       <div class="flag-content"><%= f.message_content %></div>
 
-      <div class="flag-actions">
+      <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">
         <% if (!f.disregarded) { %>
         <form method="POST" action="/admin/moderation/flagged/<%= f.id %>/disregard" style="margin:0">
-          <button class="mod-btn mod-btn-ghost">✓ Disregard</button>
+          <button class="mod-btn mod-btn-ghost mod-btn-sm">✓ Disregard</button>
         </form>
         <% } else { %>
         <form method="POST" action="/admin/moderation/flagged/<%= f.id %>/restore" style="margin:0">
-          <button class="mod-btn mod-btn-ghost">↩ Restore</button>
+          <button class="mod-btn mod-btn-ghost mod-btn-sm">↩ Restore</button>
         </form>
-        <span style="font-family:'Baloo 2';font-size:11px;color:var(--muted)">Disregarded <%= f.disregarded_at ? new Date(f.disregarded_at).toLocaleDateString('en-GB') : '' %></span>
         <% } %>
+        <button class="mod-btn mod-btn-primary mod-btn-sm" onclick="toggleFlagTag(<%= f.id %>)">📎 Tag as evidence</button>
 
-        <!-- Tag as evidence on a ban -->
-        <button class="mod-btn mod-btn-primary" onclick="toggleFlagEvForm(<%= f.id %>)">📎 Tag as ban evidence</button>
-        <div id="fev-form-<%= f.id %>" style="display:none;width:100%;margin-top:8px">
-          <form method="POST" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+        <div id="ftag-<%= f.id %>" style="display:none;width:100%;margin-top:8px">
+          <form method="POST" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end" id="ftag-form-<%= f.id %>">
             <div style="flex:1;min-width:160px">
-              <div style="font-size:11px;color:var(--muted);font-family:'Baloo 2';margin-bottom:4px">Select ban to attach to</div>
-              <select name="flagged_message_id" style="display:none" required><option value="<%= f.id %>"><%= f.id %></option></select>
-              <select name="ban_id_sel" class="mod-select" style="width:100%" onchange="this.form.action='/admin/moderation/bans/'+this.value+'/evidence/flag'">
+              <div class="field-label">Attach to ban</div>
+              <select name="ban_id_sel" class="mod-select" style="width:100%"
+                onchange="document.getElementById('ftag-form-<%= f.id %>').action='/admin/moderation/bans/'+this.value+'/evidence/flag'">
                 <option value="">— select ban —</option>
-                <% bans.forEach(function(b) { %>
-                <option value="<%= b.id %>"><%= b.discord_tag %> — <%= (b.reason||'').slice(0,40) %></option>
-                <% }); %>
+                <% bans.forEach(function(b) { %><option value="<%= b.id %>"><%= b.discord_tag %> — <%= (b.reason||'No reason').slice(0,35) %></option><% }); %>
               </select>
             </div>
-            <div>
-              <div style="font-size:11px;color:var(--muted);font-family:'Baloo 2';margin-bottom:4px">Label (optional)</div>
-              <input type="text" name="label" class="mod-input" placeholder="e.g. slur in #general" style="width:180px">
-            </div>
+            <div><div class="field-label">Label</div><input type="text" name="label" class="mod-input" placeholder="e.g. slur in #general" style="width:160px"></div>
             <input type="hidden" name="flagged_message_id" value="<%= f.id %>">
-            <button type="submit" class="mod-btn mod-btn-primary" onclick="if(!this.form.action.includes('/bans/')){event.preventDefault();alert('Select a ban first')}">Attach</button>
-            <button type="button" class="mod-btn mod-btn-ghost" onclick="toggleFlagEvForm(<%= f.id %>)">Cancel</button>
+            <button type="submit" class="mod-btn mod-btn-primary mod-btn-sm"
+              onclick="const s=this.form.querySelector('[name=ban_id_sel]');if(!s.value){event.preventDefault();alert('Select a ban first')}">Attach</button>
+            <button type="button" class="mod-btn mod-btn-ghost mod-btn-sm" onclick="toggleFlagTag(<%= f.id %>)">Cancel</button>
           </form>
         </div>
       </div>
     </div>
     <% }); %>
+    </div>
   </div>
 
-  <!-- ====== BANS ====== -->
-  <div id="panel-bans" class="mod-panel" id="bans">
-
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
-      <span style="font-family:'Baloo 2';font-size:12px;color:var(--muted)">Bans are synced automatically from the Discord server. New bans appear here when issued in Discord.</span>
+  <!-- ═══════════════════════════════════ BANS ══════════════════════════════════ -->
+  <div id="panel-bans" class="mod-panel">
+    <div class="filter-bar">
+      <span class="filter-label">Search</span>
+      <input type="text" id="ban-search" placeholder="player tag or ID…" oninput="filterBans()" style="width:200px">
+      <span class="filter-count" id="ban-count"><%= bans.length %> bans</span>
     </div>
 
     <% if (!bans.length) { %>
-    <div style="background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:32px;text-align:center;color:var(--muted);font-family:'Baloo 2';font-size:14px">
-      No bans documented yet.
-    </div>
+    <div class="empty-state">No bans yet — the bot syncs them automatically from Discord.</div>
     <% } %>
 
     <% bans.forEach(function(b) {
       const evidence = Array.isArray(b.evidence) ? b.evidence : [];
     %>
-    <div class="ban-card" id="ban-<%= b.id %>">
-      <div class="ban-header" onclick="toggleBan(<%= b.id %>)">
+    <div class="ban-card" id="ban-<%= b.id %>" data-player="<%= (b.discord_tag||'').toLowerCase() %> <%= b.discord_id %>">
+      <div class="ban-header" onclick="toggleAccordion('ban-body-<%= b.id %>','ban-arr-<%= b.id %>')">
         <% if (b.discord_avatar) { %>
-        <img src="<%= b.discord_avatar %>" style="width:36px;height:36px;border-radius:50%;flex-shrink:0" onerror="this.style.display='none'">
+        <img src="<%= b.discord_avatar %>" class="player-avatar" onerror="this.style.display='none'">
         <% } else { %>
-        <div style="width:36px;height:36px;border-radius:50%;background:rgba(248,113,113,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">🚫</div>
+        <div class="player-avatar" style="display:flex;align-items:center;justify-content:center;font-size:14px;background:rgba(248,113,113,.1)">🚫</div>
         <% } %>
         <div style="flex:1">
-          <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#f87171">@<%= b.discord_tag %></div>
-          <div style="font-size:12px;color:var(--muted);font-family:'Baloo 2'"><%= b.reason || 'No reason documented' %> · <span style="color:var(--muted)"><%= new Date(b.banned_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) %></span></div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span class="player-chip" onclick="event.stopPropagation();openPlayerModal('<%= b.discord_id %>')">
+              <span class="player-name" style="color:#f87171">@<%= b.discord_tag %></span>
+            </span>
+            <span style="font-size:11px;color:var(--muted);font-family:'Baloo 2'"><%= b.discord_id %></span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);font-family:'Baloo 2';margin-top:2px">
+            <%= b.reason || 'No reason' %> · <%= new Date(b.banned_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) %>
+            <% if (b.banned_by) { %> · by <%= b.banned_by %><% } %>
+          </div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center">
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
           <% if (evidence.length) { %><span style="font-family:'Baloo 2';font-size:11px;color:var(--muted)"><%= evidence.length %> evidence</span><% } %>
-          <% if (b.notes) { %><span style="font-family:'Baloo 2';font-size:11px;padding:2px 8px;border-radius:99px;background:rgba(255,255,255,.06);color:var(--muted)">has notes</span><% } %>
-          <span style="font-size:14px;color:var(--muted)" id="ban-arrow-<%= b.id %>">▼</span>
+          <% if (b.notes) { %><span class="action-pill">notes</span><% } %>
+          <span id="ban-arr-<%= b.id %>" style="font-size:12px;color:var(--muted)">▼</span>
         </div>
       </div>
 
       <div class="ban-body" id="ban-body-<%= b.id %>">
-        <div style="padding-top:16px">
+        <div style="padding-top:14px">
 
           <!-- Notes -->
-          <div style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Notes</div>
+          <div class="field-label" style="margin-bottom:6px">Notes</div>
           <form method="POST" action="/admin/moderation/bans/<%= b.id %>/notes">
-            <textarea name="notes" class="ban-notes-area"><%= b.notes || '' %></textarea>
-            <button type="submit" class="mod-btn mod-btn-ghost mod-btn-sm" style="margin-bottom:16px">Save notes</button>
+            <textarea name="notes" class="mod-textarea"><%= b.notes||'' %></textarea>
+            <button type="submit" class="mod-btn mod-btn-ghost mod-btn-sm" style="margin:6px 0 16px">Save notes</button>
           </form>
 
-          <!-- Evidence -->
-          <div style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Evidence (<%= evidence.length %>)</div>
-
+          <!-- Evidence list -->
           <% if (evidence.length) { %>
-          <div style="background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:12px">
+          <div class="field-label" style="margin-bottom:8px">Evidence (<%= evidence.length %>)</div>
+          <div style="background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin-bottom:12px">
             <% evidence.forEach(function(ev) { %>
-            <div class="ev-item">
-              <% if (ev.evidence_type === 'file') {
-                const isVideo = ['.mp4','.webm','.mov','.avi'].some(ext => (ev.filename||'').endsWith(ext));
-              %>
-                <% if (isVideo) { %>
-                <video src="/img/uploads/evidence/<%= ev.filename %>" style="width:48px;height:36px;border-radius:5px;object-fit:cover;background:#111" muted></video>
-                <% } else { %>
-                <img src="/img/uploads/evidence/<%= ev.filename %>" class="ev-thumb" onerror="this.style.opacity='.3'">
-                <% } %>
-                <div class="ev-label">
-                  <%= ev.label || ev.filename %>
-                  <small><% if (isVideo) { %>Video clip<% } else { %>Image<% } %> · <a href="/img/uploads/evidence/<%= ev.filename %>" target="_blank" style="color:#74c0fc;text-decoration:none">View</a></small>
+            <div class="ev-row">
+              <% if (ev.evidence_type==='file') {
+                const isVid=['.mp4','.webm','.mov','.avi'].some(x=>(ev.filename||'').endsWith(x)); %>
+                <% if(isVid){ %><video src="/img/uploads/evidence/<%= ev.filename %>" style="width:44px;height:32px;border-radius:4px;object-fit:cover" muted></video>
+                <% }else{ %><img src="/img/uploads/evidence/<%= ev.filename %>" style="width:44px;height:32px;border-radius:4px;object-fit:cover"><% } %>
+                <div style="flex:1;font-family:'Baloo 2';font-size:12px;color:#e0e2ed;font-weight:700">
+                  <%= ev.label||ev.filename %>
+                  <a href="/img/uploads/evidence/<%= ev.filename %>" target="_blank" style="display:block;color:#74c0fc;font-size:11px;text-decoration:none">View</a>
                 </div>
-              <% } else if (ev.evidence_type === 'url') { %>
-                <div style="width:48px;height:36px;border-radius:5px;background:rgba(116,192,252,.08);border:1px solid rgba(116,192,252,.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🔗</div>
-                <div class="ev-label">
-                  <%= ev.label || 'Link' %>
-                  <small><a href="<%= ev.url %>" target="_blank" style="color:#74c0fc;text-decoration:none;max-width:300px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= ev.url %></a></small>
+              <% } else if (ev.evidence_type==='url') { %>
+                <div style="width:44px;height:32px;border-radius:4px;background:rgba(116,192,252,.08);display:flex;align-items:center;justify-content:center;font-size:16px">🔗</div>
+                <div style="flex:1;font-family:'Baloo 2';font-size:12px;color:#e0e2ed;font-weight:700">
+                  <%= ev.label||'Link' %>
+                  <a href="<%= ev.url %>" target="_blank" style="display:block;color:#74c0fc;font-size:11px;text-decoration:none;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= ev.url %></a>
                 </div>
-              <% } else if (ev.evidence_type === 'flag') { %>
-                <div style="width:48px;height:36px;border-radius:5px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">⚠️</div>
-                <div class="ev-label">
-                  <%= ev.label || 'Flagged message' %>
-                  <small>Flag #<%= ev.flagged_message_id %> · <a href="#flag-<%= ev.flagged_message_id %>" onclick="showFlagPanel()" style="color:#74c0fc;text-decoration:none">View flag</a></small>
+              <% } else if (ev.evidence_type==='flag') { %>
+                <div style="width:44px;height:32px;border-radius:4px;background:rgba(248,113,113,.08);display:flex;align-items:center;justify-content:center;font-size:16px">⚠️</div>
+                <div style="flex:1;font-family:'Baloo 2';font-size:12px;color:#e0e2ed;font-weight:700">
+                  <%= ev.label||'Flagged message' %>
+                  <a href="#flag-<%= ev.flagged_message_id %>" onclick="showTab('flagged')" style="display:block;color:#f87171;font-size:11px;text-decoration:none">View flag #<%= ev.flagged_message_id %></a>
+                </div>
+              <% } else if (ev.evidence_type==='snippet') { %>
+                <div style="width:44px;height:32px;border-radius:4px;background:rgba(91,227,143,.08);display:flex;align-items:center;justify-content:center;font-size:16px">💬</div>
+                <div style="flex:1;font-family:'Baloo 2';font-size:12px;color:#e0e2ed;font-weight:700">
+                  <%= ev.label||'Chat snippet' %>
+                  <a href="#snippet-<%= ev.snippet_id %>" onclick="showTab('chatlogs')" style="display:block;color:#5be38f;font-size:11px;text-decoration:none">View snippet #<%= ev.snippet_id %></a>
                 </div>
               <% } %>
-              <form method="POST" action="/admin/moderation/bans/<%= b.id %>/evidence/<%= ev.id %>/delete" onsubmit="return confirm('Remove this evidence?')" style="margin:0">
+              <form method="POST" action="/admin/moderation/bans/<%= b.id %>/evidence/<%= ev.id %>/delete" onsubmit="return confirm('Remove?')" style="margin:0">
                 <button class="mod-btn mod-btn-danger mod-btn-sm">✕</button>
               </form>
             </div>
@@ -243,45 +357,51 @@
           </div>
           <% } %>
 
-          <!-- Add evidence: upload file -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
-            <div style="background:rgba(255,255,255,.02);border:1px dashed rgba(255,255,255,.12);border-radius:8px;padding:14px">
-              <div style="font-size:11px;color:var(--muted);font-family:'Baloo 2';font-weight:700;margin-bottom:8px">Upload image / clip</div>
+          <!-- Add evidence -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div style="border:1px dashed rgba(255,255,255,.1);border-radius:8px;padding:12px">
+              <div class="field-label" style="margin-bottom:7px">Upload image / clip</div>
               <form method="POST" action="/admin/moderation/bans/<%= b.id %>/evidence/upload" enctype="multipart/form-data">
-                <input type="file" name="file" accept="image/*,video/*" style="font-size:12px;color:var(--muted);margin-bottom:6px;display:block">
-                <input type="text" name="label" class="mod-input" style="width:100%;margin-bottom:6px" placeholder="Label (optional)">
+                <input type="file" name="file" accept="image/*,video/*" style="font-size:11px;color:var(--muted);display:block;margin-bottom:6px">
+                <input type="text" name="label" class="mod-input" placeholder="Label" style="width:100%;margin-bottom:6px">
                 <button type="submit" class="mod-btn mod-btn-ghost mod-btn-sm">Upload</button>
               </form>
             </div>
-            <div style="background:rgba(255,255,255,.02);border:1px dashed rgba(255,255,255,.12);border-radius:8px;padding:14px">
-              <div style="font-size:11px;color:var(--muted);font-family:'Baloo 2';font-weight:700;margin-bottom:8px">Add URL (Discord CDN, screenshots, etc.)</div>
+            <div style="border:1px dashed rgba(255,255,255,.1);border-radius:8px;padding:12px">
+              <div class="field-label" style="margin-bottom:7px">Add URL</div>
               <form method="POST" action="/admin/moderation/bans/<%= b.id %>/evidence/upload">
-                <input type="url" name="url" class="mod-input" style="width:100%;margin-bottom:6px" placeholder="https://...">
-                <input type="text" name="label" class="mod-input" style="width:100%;margin-bottom:6px" placeholder="Label (optional)">
-                <button type="submit" class="mod-btn mod-btn-ghost mod-btn-sm">Add link</button>
+                <input type="url" name="url" class="mod-input" placeholder="https://…" style="width:100%;margin-bottom:6px">
+                <input type="text" name="label" class="mod-input" placeholder="Label" style="width:100%;margin-bottom:6px">
+                <button type="submit" class="mod-btn mod-btn-ghost mod-btn-sm">Add</button>
+              </form>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+            <div style="border:1px dashed rgba(248,113,113,.15);border-radius:8px;padding:12px">
+              <div class="field-label" style="margin-bottom:7px">Tag flagged message</div>
+              <form method="POST" action="/admin/moderation/bans/<%= b.id %>/evidence/flag" style="display:flex;flex-direction:column;gap:6px">
+                <select name="flagged_message_id" class="mod-select">
+                  <option value="">— select flag —</option>
+                  <% flagged.forEach(function(f){ %><option value="<%= f.id %>">#<%= f.id %> @<%= f.discord_tag %> — "<%= (f.message_content||'').slice(0,40) %>"</option><% }); %>
+                </select>
+                <input type="text" name="label" class="mod-input" placeholder="Label">
+                <button type="submit" class="mod-btn mod-btn-danger mod-btn-sm">Tag flag</button>
+              </form>
+            </div>
+            <div style="border:1px dashed rgba(91,227,143,.15);border-radius:8px;padding:12px">
+              <div class="field-label" style="margin-bottom:7px">Attach chat snippet</div>
+              <form method="POST" action="/admin/moderation/bans/<%= b.id %>/evidence/snippet" style="display:flex;flex-direction:column;gap:6px">
+                <select name="snippet_id" class="mod-select">
+                  <option value="">— select snippet —</option>
+                  <% snippets.forEach(function(s){ %><option value="<%= s.id %>">#<%= s.id %> <%= s.label||'(untitled)' %> — <%= s.msg_count %> msgs</option><% }); %>
+                </select>
+                <input type="text" name="label" class="mod-input" placeholder="Label">
+                <button type="submit" class="mod-btn mod-btn-success mod-btn-sm">Attach</button>
               </form>
             </div>
           </div>
 
-          <!-- Add evidence: tag flagged message -->
-          <div style="background:rgba(255,255,255,.02);border:1px dashed rgba(248,113,113,.2);border-radius:8px;padding:14px;margin-bottom:14px">
-            <div style="font-size:11px;color:var(--muted);font-family:'Baloo 2';font-weight:700;margin-bottom:8px">Tag a flagged message as evidence</div>
-            <form method="POST" action="/admin/moderation/bans/<%= b.id %>/evidence/flag" style="display:flex;gap:8px;flex-wrap:wrap">
-              <select name="flagged_message_id" class="mod-select" style="flex:1;min-width:200px">
-                <option value="">— select flagged message —</option>
-                <% flagged.forEach(function(f) { %>
-                <option value="<%= f.id %>">
-                  #<%= f.id %> · @<%= f.discord_tag %> · "<%= (f.message_content||'').slice(0,50) %>"
-                </option>
-                <% }); %>
-              </select>
-              <input type="text" name="label" class="mod-input" placeholder="Label (optional)" style="width:160px">
-              <button type="submit" class="mod-btn mod-btn-danger mod-btn-sm">Tag</button>
-            </form>
-          </div>
-
-          <!-- Delete ban -->
-          <form method="POST" action="/admin/moderation/bans/<%= b.id %>/delete" onsubmit="return confirm('Delete this ban record? Evidence will also be removed.')">
+          <form method="POST" action="/admin/moderation/bans/<%= b.id %>/delete" onsubmit="return confirm('Delete this ban record?')">
             <button class="mod-btn mod-btn-danger mod-btn-sm">Delete ban record</button>
           </form>
         </div>
@@ -290,82 +410,577 @@
     <% }); %>
   </div>
 
+  <!-- ══════════════════════════════ TICKET REPORTS ════════════════════════════ -->
+  <div id="panel-tickets" class="mod-panel">
+
+    <!-- Add report form -->
+    <div class="add-form-wrap">
+      <div class="add-form-header" onclick="toggleAccordion('add-ticket-body','add-ticket-arr')">
+        <span style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#74c0fc">+ Log ticket / player report</span>
+        <span id="add-ticket-arr" style="font-size:12px;color:var(--muted);margin-left:auto">▼</span>
+      </div>
+      <div class="add-form-body" id="add-ticket-body">
+        <form method="POST" action="/admin/moderation/ticket-reports/add" style="padding-top:14px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div>
+              <div class="field-label">Player Discord ID *</div>
+              <input type="text" name="player_discord_id" class="mod-input" style="width:100%" placeholder="e.g. 1399661992712863758" required>
+            </div>
+            <div>
+              <div class="field-label">Player Username *</div>
+              <input type="text" name="player_discord_tag" class="mod-input" style="width:100%" placeholder="e.g. milkchocolatebetterthandark" required>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+            <div>
+              <div class="field-label">Ticket ref</div>
+              <input type="text" name="ticket_ref" class="mod-input" style="width:100%" placeholder="ticket-0081">
+            </div>
+            <div>
+              <div class="field-label">Ticket channel ID</div>
+              <input type="text" name="ticket_channel_id" class="mod-input" style="width:100%" placeholder="1545934700638503023">
+            </div>
+            <div>
+              <div class="field-label">Guild / Server</div>
+              <input type="text" name="guild_name" class="mod-input" style="width:100%" placeholder="CUE Discord">
+            </div>
+          </div>
+          <div style="margin-bottom:10px">
+            <div class="field-label">Summary * <span style="font-weight:600;color:var(--muted)">(what happened & what was said)</span></div>
+            <textarea name="summary" class="mod-textarea" placeholder="e.g. Player was warned for aggressive conduct towards other players. Tagged staff twice without waiting, showed screenshot of racial slur directed at them in DMs. Told in-game threats are allowed but behaviour in the server needs to be less aggressive." required></textarea>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div>
+              <div class="field-label">Action taken</div>
+              <select name="action_taken" class="mod-select" style="width:100%">
+                <option value="no_action">No action</option>
+                <option value="warning" selected>Verbal warning</option>
+                <option value="written_warning">Written warning</option>
+                <option value="kick">Kick</option>
+                <option value="ban">Ban</option>
+              </select>
+            </div>
+            <div>
+              <div class="field-label">Severity</div>
+              <select name="severity" class="mod-select" style="width:100%">
+                <option value="low" selected>Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-bottom:14px">
+            <div class="field-label">Additional notes</div>
+            <textarea name="notes" class="mod-textarea" style="min-height:50px" placeholder="Optional extra context…"></textarea>
+          </div>
+          <button type="submit" class="mod-btn mod-btn-primary" style="font-size:13px;padding:8px 18px">Save report</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+      <span class="filter-label">Severity</span>
+      <select id="t-sev" onchange="filterTickets()">
+        <option value="">All</option>
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </select>
+      <span class="filter-label">Action</span>
+      <select id="t-act" onchange="filterTickets()">
+        <option value="">All</option>
+        <option value="ban">Ban</option>
+        <option value="kick">Kick</option>
+        <option value="written_warning">Written warning</option>
+        <option value="warning">Warning</option>
+        <option value="no_action">No action</option>
+      </select>
+      <span class="filter-label">Player</span>
+      <input type="text" id="t-player" placeholder="tag or ID…" oninput="filterTickets()" style="width:140px">
+      <span class="filter-count" id="t-count"><%= tickets.length %> reports</span>
+    </div>
+
+    <% if (!tickets.length) { %>
+    <div class="empty-state">No ticket reports yet. Use the form above to log an incident.</div>
+    <% } %>
+
+    <% tickets.forEach(function(t) {
+      const sevClass = t.severity === 'high' ? 'sev-high' : t.severity === 'medium' ? 'sev-medium' : 'sev-low';
+      const actionLabels = { no_action:'No action', warning:'Verbal warning', written_warning:'Written warning', kick:'Kick', ban:'Ban' };
+    %>
+    <div class="ticket-card" id="ticket-<%= t.id %>"
+         data-player="<%= (t.player_discord_tag||'').toLowerCase() %> <%= t.player_discord_id %>"
+         data-sev="<%= t.severity %>" data-act="<%= t.action_taken %>">
+      <div class="ticket-header" onclick="toggleAccordion('ticket-body-<%= t.id %>','ticket-arr-<%= t.id %>')">
+        <% if (t.player_discord_avatar) { %>
+        <img src="<%= t.player_discord_avatar %>" class="player-avatar" onerror="this.style.display='none'">
+        <% } else { %>
+        <div class="player-avatar" style="display:flex;align-items:center;justify-content:center;font-size:14px;background:rgba(116,192,252,.1)">🎟</div>
+        <% } %>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span class="player-chip" onclick="event.stopPropagation();openPlayerModal('<%= t.player_discord_id %>')">
+              <span class="player-name">@<%= t.player_discord_tag %></span>
+            </span>
+            <span class="sev <%= sevClass %>"><%= t.severity %></span>
+            <span class="action-pill"><%= actionLabels[t.action_taken] || t.action_taken %></span>
+            <% if (t.ticket_ref) { %><span class="action-pill">#<%= t.ticket_ref %></span><% } %>
+          </div>
+          <div style="font-size:12px;color:var(--muted);font-family:'Baloo 2';margin-top:2px">
+            <%= new Date(t.created_at).toLocaleString('en-GB') %>
+            <% if (t.guild_name) { %> · <%= t.guild_name %><% } %>
+            · logged by <%= t.created_by %>
+          </div>
+        </div>
+        <span id="ticket-arr-<%= t.id %>" style="font-size:12px;color:var(--muted);flex-shrink:0">▼</span>
+      </div>
+
+      <div class="ticket-body" id="ticket-body-<%= t.id %>">
+        <div style="padding-top:14px">
+          <div class="field-label">Summary</div>
+          <div style="background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:13px;color:#c9ccdb;line-height:1.7;white-space:pre-wrap;margin-bottom:14px"><%= t.summary %></div>
+
+          <% if (t.ticket_channel_id) { %>
+          <div style="margin-bottom:14px">
+            <button class="mod-btn mod-btn-primary mod-btn-sm" onclick="loadTicketChannel('<%= t.ticket_channel_id %>')">
+              📋 Browse ticket channel
+            </button>
+            <span style="font-family:'Baloo 2';font-size:11px;color:var(--muted);margin-left:8px">Opens in Chat Logs tab</span>
+          </div>
+          <% } %>
+
+          <div class="field-label">Notes</div>
+          <form method="POST" action="/admin/moderation/ticket-reports/<%= t.id %>/notes">
+            <textarea name="notes" class="mod-textarea"><%= t.notes||'' %></textarea>
+            <button type="submit" class="mod-btn mod-btn-ghost mod-btn-sm" style="margin:6px 0 14px">Save notes</button>
+          </form>
+
+          <form method="POST" action="/admin/moderation/ticket-reports/<%= t.id %>/delete" onsubmit="return confirm('Delete this report?')">
+            <button class="mod-btn mod-btn-danger mod-btn-sm">Delete report</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <% }); %>
+  </div>
+
+  <!-- ═══════════════════════════════ CHAT LOGS ════════════════════════════════ -->
+  <div id="panel-chatlogs" class="mod-panel">
+
+    <div class="chat-browser">
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px">Browse & snapshot channel messages</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div>
+          <div class="field-label">Server</div>
+          <select id="cl-guild" class="mod-select" style="width:100%" onchange="loadChannels()">
+            <option value="">— loading servers… —</option>
+          </select>
+        </div>
+        <div>
+          <div class="field-label">Channel</div>
+          <select id="cl-channel" class="mod-select" style="width:100%" onchange="loadMessages()">
+            <option value="">— select server first —</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+        <button class="mod-btn mod-btn-ghost mod-btn-sm" onclick="loadMessages('older')">← Load older</button>
+        <button class="mod-btn mod-btn-ghost mod-btn-sm" onclick="loadMessages('newer')">Load newer →</button>
+        <span style="font-family:'Baloo 2';font-size:11px;color:var(--muted)" id="cl-status">Select a channel to start</span>
+        <button class="mod-btn mod-btn-ghost mod-btn-sm" style="margin-left:auto" onclick="clearSelection()">Clear selection</button>
+      </div>
+
+      <div id="msg-list"><div style="padding:20px;text-align:center;color:var(--muted);font-family:'Baloo 2';font-size:13px">No messages loaded.</div></div>
+
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-top:12px">
+        <div style="flex:1;min-width:180px">
+          <div class="field-label">Snippet label</div>
+          <input type="text" id="cl-label" class="mod-input" style="width:100%" placeholder="e.g. ticket-0081 — continuity threats">
+        </div>
+        <button class="mod-btn mod-btn-success" onclick="saveSnippet()" id="save-snip-btn" disabled>Save snippet (<span id="sel-count">0</span> msgs)</button>
+      </div>
+      <div id="save-feedback" style="font-family:'Baloo 2';font-size:12px;color:#5be38f;margin-top:6px;display:none">✓ Snippet saved!</div>
+    </div>
+
+    <!-- Saved snippets -->
+    <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Saved snippets (<%= snippets.length %>)</div>
+    <% if (!snippets.length) { %>
+    <div class="empty-state">No snippets saved yet. Browse a channel above and select messages to save.</div>
+    <% } %>
+    <% snippets.forEach(function(s) { %>
+    <div class="snippet-card" id="snippet-<%= s.id %>">
+      <div style="width:36px;height:36px;border-radius:8px;background:rgba(91,227,143,.08);border:1px solid rgba(91,227,143,.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">💬</div>
+      <div style="flex:1">
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#e0e2ed"><%= s.label||'(untitled snippet)' %></div>
+        <div style="font-family:'Baloo 2';font-size:11px;color:var(--muted)">
+          #<%= s.id %> · <%= s.msg_count %> messages
+          <% if (s.channel_name) { %> · #<%= s.channel_name %><% } %>
+          <% if (s.guild_name) { %> in <%= s.guild_name %><% } %>
+          · <%= new Date(s.created_at).toLocaleDateString('en-GB') %>
+        </div>
+      </div>
+      <button class="mod-btn mod-btn-primary mod-btn-sm" onclick="viewSnippet(<%= s.id %>)">View</button>
+      <form method="POST" action="/admin/moderation/snippets/<%= s.id %>/delete" onsubmit="return confirm('Delete snippet?')" style="margin:0">
+        <button class="mod-btn mod-btn-danger mod-btn-sm">✕</button>
+      </form>
+    </div>
+    <% }); %>
+  </div>
+
 </div>
 </main>
 
+<!-- ═══════════════════════ PLAYER HISTORY MODAL ════════════════════════════ -->
+<div id="player-modal-bg" onclick="if(event.target===this)closePlayerModal()">
+  <div id="player-modal">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <img id="pm-avatar" src="" style="width:48px;height:48px;border-radius:50%;display:none">
+      <div>
+        <div id="pm-name" style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#e0e2ed"></div>
+        <div id="pm-id" style="font-family:'Baloo 2';font-size:12px;color:var(--muted)"></div>
+      </div>
+      <button onclick="closePlayerModal()" class="mod-btn mod-btn-ghost mod-btn-sm" style="margin-left:auto">✕ Close</button>
+    </div>
+    <div id="pm-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px"></div>
+    <div id="pm-timeline"></div>
+    <div id="pm-loading" style="text-align:center;color:var(--muted);font-family:'Baloo 2';padding:30px">Loading…</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ SNIPPET VIEWER MODAL ════════════════════════════ -->
+<div id="snippet-modal-bg" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1001;align-items:center;justify-content:center">
+  <div style="background:#12131a;border:1px solid var(--line);border-radius:14px;width:min(640px,95vw);max-height:85vh;overflow-y:auto;padding:24px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <span id="sv-label" style="font-family:'Baloo 2';font-weight:800;font-size:16px;color:#e0e2ed"></span>
+      <button onclick="document.getElementById('snippet-modal-bg').style.display='none'" class="mod-btn mod-btn-ghost mod-btn-sm" style="margin-left:auto">✕</button>
+    </div>
+    <div id="sv-messages"></div>
+  </div>
+</div>
+
 <script>
-// Tab switching
+// ── Tab switching ──────────────────────────────────────────────────────────────
 document.querySelectorAll('.mod-tab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.mod-tab').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.mod-panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
-  });
+  btn.addEventListener('click', () => showTab(btn.dataset.panel));
 });
-
-function showFlagPanel() {
-  document.querySelectorAll('.mod-tab').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.mod-panel').forEach(p => p.classList.remove('active'));
-  document.querySelector('[data-panel="flagged"]').classList.add('active');
-  document.getElementById('panel-flagged').classList.add('active');
+function showTab(name) {
+  document.querySelectorAll('.mod-tab').forEach(b => b.classList.toggle('active', b.dataset.panel === name));
+  document.querySelectorAll('.mod-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
 }
 
-// Open correct tab from hash
-function applyHash() {
-  const h = location.hash.replace('#', '');
+// Auto-open tab from hash
+(function() {
+  const h = location.hash.slice(1);
   if (h === 'bans' || h.startsWith('ban-')) {
-    document.querySelectorAll('.mod-tab').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.mod-panel').forEach(p => p.classList.remove('active'));
-    document.querySelector('[data-panel="bans"]').classList.add('active');
-    document.getElementById('panel-bans').classList.add('active');
-    if (h.startsWith('ban-')) {
-      const id = h.replace('ban-', '');
-      setTimeout(() => {
-        const el = document.getElementById('ban-' + id);
-        if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); openBan(id); }
-      }, 80);
-    }
+    showTab('bans');
+    if (h.startsWith('ban-')) setTimeout(() => {
+      const el = document.getElementById(h);
+      if (el) { el.scrollIntoView({ behavior:'smooth', block:'center' }); toggleAccordion(h.replace('ban-','ban-body-'), h.replace('ban-','ban-arr-')); }
+    }, 80);
+  } else if (h === 'tickets' || h.startsWith('ticket-')) {
+    showTab('tickets');
+    if (h.startsWith('ticket-')) setTimeout(() => {
+      const el = document.getElementById(h);
+      if (el) { el.scrollIntoView({ behavior:'smooth', block:'center' }); toggleAccordion(h.replace('ticket-','ticket-body-'), h.replace('ticket-','ticket-arr-')); }
+    }, 80);
+  } else if (h === 'chatlogs' || h.startsWith('snippet-')) {
+    showTab('chatlogs');
+    if (h.startsWith('snippet-')) setTimeout(() => document.getElementById(h)?.scrollIntoView({ behavior:'smooth', block:'center' }), 80);
   } else if (h === 'flagged' || h.startsWith('flag-')) {
-    if (h.startsWith('flag-')) {
-      setTimeout(() => {
-        const el = document.getElementById(h);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 80);
-    }
+    showTab('flagged');
+    if (h.startsWith('flag-')) setTimeout(() => document.getElementById(h)?.scrollIntoView({ behavior:'smooth', block:'center' }), 80);
   }
-}
-applyHash();
+})();
 
-// Ban accordion
-function openBan(id) {
-  const body = document.getElementById('ban-body-' + id);
-  const arrow = document.getElementById('ban-arrow-' + id);
-  if (body) { body.classList.add('open'); if (arrow) arrow.textContent = '▲'; }
-}
-function toggleBan(id) {
-  const body = document.getElementById('ban-body-' + id);
-  const arrow = document.getElementById('ban-arrow-' + id);
+// ── Accordion ──────────────────────────────────────────────────────────────────
+function toggleAccordion(bodyId, arrId) {
+  const body = document.getElementById(bodyId);
+  const arr  = document.getElementById(arrId);
   if (!body) return;
-  const isOpen = body.classList.contains('open');
   body.classList.toggle('open');
-  if (arrow) arrow.textContent = isOpen ? '▼' : '▲';
+  if (arr) arr.textContent = body.classList.contains('open') ? '▲' : '▼';
 }
 
-// Show/hide disregarded flags
-function toggleDisregarded() {
-  const show = document.getElementById('showDisregarded').checked;
-  document.querySelectorAll('.flag-card[data-disregarded="1"]').forEach(el => {
-    el.style.display = show ? '' : 'none';
+// ── Flags filter ──────────────────────────────────────────────────────────────
+function filterFlags() {
+  const type   = document.getElementById('f-type').value;
+  const time   = document.getElementById('f-time').value;
+  const player = document.getElementById('f-player').value.toLowerCase().trim();
+  const showDis= document.getElementById('f-dis').checked;
+  let visible = 0;
+  document.querySelectorAll('#flags-list .flag-card').forEach(card => {
+    const dis   = card.dataset.dis === '1';
+    if (dis && !showDis) { card.style.display = 'none'; return; }
+    if (type && card.dataset.type !== type) { card.style.display = 'none'; return; }
+    if (time === 'today' && card.dataset.today !== '1') { card.style.display = 'none'; return; }
+    if (time === 'week'  && card.dataset.week  !== '1') { card.style.display = 'none'; return; }
+    if (player && !card.dataset.player.includes(player)) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    visible++;
   });
+  document.getElementById('f-count').textContent = visible + ' shown';
 }
 // Hide disregarded by default
-document.querySelectorAll('.flag-card[data-disregarded="1"]').forEach(el => { el.style.display = 'none'; });
+document.querySelectorAll('#flags-list .flag-card[data-dis="1"]').forEach(c => c.style.display = 'none');
 
-// Tag-as-evidence inline form toggle
-function toggleFlagEvForm(id) {
-  const el = document.getElementById('fev-form-' + id);
+// ── Bans filter ───────────────────────────────────────────────────────────────
+function filterBans() {
+  const q = document.getElementById('ban-search').value.toLowerCase().trim();
+  let v = 0;
+  document.querySelectorAll('#panel-bans .ban-card').forEach(card => {
+    const show = !q || card.dataset.player.includes(q);
+    card.style.display = show ? '' : 'none';
+    if (show) v++;
+  });
+  document.getElementById('ban-count').textContent = v + ' bans';
+}
+
+// ── Tickets filter ────────────────────────────────────────────────────────────
+function filterTickets() {
+  const sev    = document.getElementById('t-sev').value;
+  const act    = document.getElementById('t-act').value;
+  const player = document.getElementById('t-player').value.toLowerCase().trim();
+  let v = 0;
+  document.querySelectorAll('.ticket-card').forEach(card => {
+    const show = (!sev || card.dataset.sev === sev)
+              && (!act || card.dataset.act === act)
+              && (!player || card.dataset.player.includes(player));
+    card.style.display = show ? '' : 'none';
+    if (show) v++;
+  });
+  document.getElementById('t-count').textContent = v + ' reports';
+}
+
+// ── Flag tag inline form ───────────────────────────────────────────────────────
+function toggleFlagTag(id) {
+  const el = document.getElementById('ftag-' + id);
   if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// ── Player modal ──────────────────────────────────────────────────────────────
+function openPlayerModal(discordId) {
+  if (!discordId || !discordId.trim()) return;
+  const bg = document.getElementById('player-modal-bg');
+  bg.classList.add('open');
+  document.getElementById('pm-loading').style.display = 'block';
+  document.getElementById('pm-timeline').innerHTML = '';
+  document.getElementById('pm-stats').innerHTML = '';
+  document.getElementById('pm-name').textContent = discordId;
+  document.getElementById('pm-id').textContent = '';
+  document.getElementById('pm-avatar').style.display = 'none';
+
+  fetch('/admin/moderation/player/' + encodeURIComponent(discordId.trim()))
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('pm-loading').style.display = 'none';
+      if (data.profile) {
+        document.getElementById('pm-name').textContent = '@' + data.profile.tag;
+        if (data.profile.avatar) {
+          const av = document.getElementById('pm-avatar');
+          av.src = data.profile.avatar; av.style.display = '';
+        }
+      }
+      document.getElementById('pm-id').textContent = discordId;
+
+      // Stats
+      const sev = data.tickets.filter(t=>t.severity==='high').length;
+      document.getElementById('pm-stats').innerHTML = `
+        <div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:20px;color:#f87171">${data.flags.length}</div>
+          <div style="font-family:'Baloo 2';font-size:11px;color:var(--muted)">Flagged msgs</div>
+        </div>
+        <div style="background:rgba(232,121,249,.08);border:1px solid rgba(232,121,249,.2);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:20px;color:#e879f9">${data.bans.length}</div>
+          <div style="font-family:'Baloo 2';font-size:11px;color:var(--muted)">Bans</div>
+        </div>
+        <div style="background:rgba(116,192,252,.08);border:1px solid rgba(116,192,252,.2);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:20px;color:#74c0fc">${data.tickets.length}</div>
+          <div style="font-family:'Baloo 2';font-size:11px;color:var(--muted)">Ticket reports${sev?' ('+sev+' high)':''}</div>
+        </div>
+      `;
+
+      // Timeline (merged, sorted desc)
+      const items = [
+        ...data.flags.map(f => ({ ts: new Date(f.flagged_at), type:'flag', label:`Flagged: "${(f.message_content||'').slice(0,60)}…"`, sub:`#${f.channel_name} · matched: ${f.matched_term}` })),
+        ...data.bans.map(b => ({ ts: new Date(b.banned_at), type:'ban', label:`Banned: ${b.reason||'No reason'}`, sub:`By ${b.banned_by||'Discord'}` })),
+        ...data.tickets.map(t => ({ ts: new Date(t.created_at), type:'ticket', label:`${t.action_taken}: ${t.summary.slice(0,80)}…`, sub:t.ticket_ref||'Ticket report', sev:t.severity }))
+      ].sort((a,b) => b.ts - a.ts);
+
+      if (!items.length) {
+        document.getElementById('pm-timeline').innerHTML = '<div style="text-align:center;color:var(--muted);font-family:\'Baloo 2\';font-size:13px;padding:20px">No history found for this player.</div>';
+        return;
+      }
+
+      const typeColors = { flag:'#f87171', ban:'#e879f9', ticket:'#74c0fc' };
+      document.getElementById('pm-timeline').innerHTML = items.map(item => `
+        <div class="timeline-item">
+          <div class="timeline-dot ${item.type}" style="background:${typeColors[item.type]}"></div>
+          <div style="flex:1">
+            <div style="font-family:'Baloo 2';font-weight:700;font-size:13px;color:#e0e2ed">${item.label}</div>
+            <div style="font-family:'Baloo 2';font-size:11px;color:var(--muted)">${item.sub} · ${item.ts.toLocaleDateString('en-GB')}</div>
+          </div>
+          ${item.sev ? `<span class="sev sev-${item.sev}">${item.sev}</span>` : ''}
+        </div>
+      `).join('');
+    })
+    .catch(e => {
+      document.getElementById('pm-loading').textContent = 'Error loading player data.';
+    });
+}
+function closePlayerModal() { document.getElementById('player-modal-bg').classList.remove('open'); }
+
+// ── Chat log browser ──────────────────────────────────────────────────────────
+let clGuilds = [], clChannels = [], clMessages = [];
+let selFrom = null, selTo = null;
+
+fetch('/admin/moderation/discord/guilds').then(r=>r.json()).then(guilds => {
+  clGuilds = guilds;
+  const sel = document.getElementById('cl-guild');
+  sel.innerHTML = '<option value="">— select server —</option>' +
+    guilds.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
+}).catch(()=>{});
+
+function loadChannels() {
+  const guildId = document.getElementById('cl-guild').value;
+  if (!guildId) return;
+  const guild = clGuilds.find(g=>g.id===guildId);
+  document.getElementById('cl-channel').innerHTML = '<option value="">Loading…</option>';
+  clMessages = []; selFrom = null; selTo = null;
+  document.getElementById('msg-list').innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-family:\'Baloo 2\';font-size:13px">Select a channel.</div>';
+  fetch('/admin/moderation/discord/channels/' + guildId).then(r=>r.json()).then(channels => {
+    clChannels = channels;
+    document.getElementById('cl-channel').innerHTML = '<option value="">— select channel —</option>' +
+      channels.map(c=>`<option value="${c.id}">#${c.name}</option>`).join('');
+  });
+}
+
+function loadMessages(dir) {
+  const channelId = document.getElementById('cl-channel').value;
+  if (!channelId) return;
+  let qs = '?limit=50';
+  if (dir === 'older' && clMessages.length) qs += '&before=' + clMessages[clMessages.length-1].id;
+  if (dir === 'newer' && clMessages.length) qs += '&after=' + clMessages[0].id;
+  document.getElementById('cl-status').textContent = 'Loading…';
+  fetch('/admin/moderation/discord/messages/' + channelId + qs).then(r=>r.json()).then(msgs => {
+    if (!dir) { clMessages = msgs; }
+    else if (dir === 'older') { clMessages = [...clMessages, ...msgs]; }
+    else { clMessages = [...msgs, ...clMessages]; }
+    renderMessages();
+    document.getElementById('cl-status').textContent = clMessages.length + ' messages loaded';
+  }).catch(e => {
+    document.getElementById('cl-status').textContent = 'Error: ' + e.message;
+  });
+}
+
+function renderMessages() {
+  const fromIdx = selFrom ? clMessages.findIndex(m=>m.id===selFrom) : -1;
+  const toIdx   = selTo   ? clMessages.findIndex(m=>m.id===selTo)   : -1;
+  const rangeMin = fromIdx >= 0 && toIdx >= 0 ? Math.min(fromIdx,toIdx) : -1;
+  const rangeMax = fromIdx >= 0 && toIdx >= 0 ? Math.max(fromIdx,toIdx) : -1;
+
+  document.getElementById('msg-list').innerHTML = clMessages.map((m, i) => {
+    const inRange  = rangeMin >= 0 && i >= rangeMin && i <= rangeMax;
+    const isEndpt  = m.id === selFrom || m.id === selTo;
+    const ts = new Date(m.timestamp).toLocaleString('en-GB',{hour12:false,hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'});
+    const att = m.attachments.length ? `<span class="msg-att"> 📎 ${m.attachments.map(a=>a.name).join(', ')}</span>` : '';
+    return `<div class="msg-row${isEndpt?' selected':inRange?' in-range':''}" onclick="selectMsg('${m.id}')" data-id="${m.id}">
+      ${m.avatar ? `<img src="${m.avatar}" class="msg-avatar">` : `<div class="msg-avatar"></div>`}
+      <div style="flex:1;min-width:0">
+        <div><span class="msg-author">${m.author}</span><span class="msg-ts">${ts}</span></div>
+        <div class="msg-content">${m.content||'<em style="color:var(--muted)">[no text content]</em>'}${att}</div>
+      </div>
+      <div style="flex-shrink:0;font-family:'Baloo 2';font-size:10px;color:var(--muted);text-align:right">
+        ${m.id === selFrom ? '<span style="color:#74c0fc">▶ FROM</span>' : m.id === selTo ? '<span style="color:#74c0fc">◀ TO</span>' : ''}
+      </div>
+    </div>`;
+  }).join('');
+  updateSelCount();
+}
+
+function selectMsg(id) {
+  if (!selFrom) { selFrom = id; }
+  else if (!selTo && id !== selFrom) { selTo = id; }
+  else { selFrom = id; selTo = null; }
+  renderMessages();
+}
+
+function clearSelection() { selFrom = null; selTo = null; renderMessages(); }
+
+function updateSelCount() {
+  let count = 0;
+  if (selFrom && selTo) {
+    const fromIdx = clMessages.findIndex(m=>m.id===selFrom);
+    const toIdx   = clMessages.findIndex(m=>m.id===selTo);
+    if (fromIdx >= 0 && toIdx >= 0) count = Math.abs(toIdx - fromIdx) + 1;
+  } else if (selFrom) { count = 1; }
+  document.getElementById('sel-count').textContent = count;
+  document.getElementById('save-snip-btn').disabled = count === 0;
+}
+
+async function saveSnippet() {
+  if (!selFrom) return;
+  const fromIdx = clMessages.findIndex(m=>m.id===selFrom);
+  const toIdx   = selTo ? clMessages.findIndex(m=>m.id===selTo) : fromIdx;
+  const rangeMin = Math.min(fromIdx, toIdx);
+  const rangeMax = Math.max(fromIdx, toIdx);
+  const selected = clMessages.slice(rangeMin, rangeMax + 1);
+  const guildSel = document.getElementById('cl-guild');
+  const chanSel  = document.getElementById('cl-channel');
+  const guildOpt = guildSel.options[guildSel.selectedIndex];
+  const chanOpt  = chanSel.options[chanSel.selectedIndex];
+  const label = document.getElementById('cl-label').value.trim();
+
+  const r = await fetch('/admin/moderation/snippets/save', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      label, guild_id: guildSel.value, guild_name: guildOpt?.text,
+      channel_id: chanSel.value, channel_name: (chanOpt?.text||'').replace('#',''),
+      messages: selected
+    })
+  });
+  const data = await r.json();
+  if (data.id) {
+    const fb = document.getElementById('save-feedback');
+    fb.style.display = 'block';
+    fb.textContent = `✓ Snippet #${data.id} saved! Reload the page to see it.`;
+    clearSelection();
+    document.getElementById('cl-label').value = '';
+  }
+}
+
+// ── Load ticket channel into chat browser ─────────────────────────────────────
+function loadTicketChannel(channelId) {
+  showTab('chatlogs');
+  document.getElementById('cl-channel').innerHTML = `<option value="${channelId}" selected>ticket channel</option>`;
+  setTimeout(() => loadMessages(), 100);
+}
+
+// ── Snippet viewer ────────────────────────────────────────────────────────────
+function viewSnippet(id) {
+  const bg = document.getElementById('snippet-modal-bg');
+  bg.style.display = 'flex';
+  document.getElementById('sv-label').textContent = 'Loading snippet #' + id + '…';
+  document.getElementById('sv-messages').innerHTML = '<div style="text-align:center;color:var(--muted);font-family:\'Baloo 2\';padding:30px">Loading…</div>';
+  fetch('/admin/moderation/snippets/' + id).then(r=>r.json()).then(s => {
+    document.getElementById('sv-label').textContent = (s.label||'Snippet #'+s.id) + ' · #' + (s.channel_name||'') + ' · ' + (s.guild_name||'');
+    const msgs = Array.isArray(s.messages) ? s.messages : [];
+    if (!msgs.length) { document.getElementById('sv-messages').innerHTML = '<div style="text-align:center;color:var(--muted);font-family:\'Baloo 2\';padding:20px">No messages.</div>'; return; }
+    document.getElementById('sv-messages').innerHTML = msgs.map(m => {
+      const ts = new Date(m.timestamp).toLocaleString('en-GB',{hour12:false,hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'});
+      const att = (m.attachments||[]).length ? `<div style="font-size:11px;color:#74c0fc;margin-top:3px">📎 ${m.attachments.map(a=>a.name||a.url).join(', ')}</div>` : '';
+      return `<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)">
+        ${m.avatar ? `<img src="${m.avatar}" style="width:28px;height:28px;border-radius:50%;flex-shrink:0">` : `<div style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.08);flex-shrink:0"></div>`}
+        <div style="flex:1;min-width:0">
+          <span style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:#e0e2ed">${m.author}</span>
+          <span style="font-family:'Baloo 2';font-size:11px;color:var(--muted);margin-left:8px">${ts}</span>
+          <div style="font-size:13px;color:#c0c3d5;margin-top:2px;word-break:break-word">${m.content||'<em style="color:var(--muted)">[no text]</em>'}${att}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }).catch(()=>{ document.getElementById('sv-messages').innerHTML = '<div style="text-align:center;color:#f87171;font-family:\'Baloo 2\';padding:20px">Failed to load.</div>'; });
 }
 </script>
 
