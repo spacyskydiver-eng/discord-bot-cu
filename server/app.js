@@ -77,6 +77,14 @@ module.exports = function startServer() {
   app.use('/apply-news-reporter', require('./routes/apply-news-reporter'));
   app.use('/admin', require('./routes/admin'));
 
+  // Show actual errors instead of blank 500 page
+  app.use((err, req, res, next) => {
+    console.error('[ERROR]', req.method, req.path, err);
+    res.status(500).send('<pre style="padding:20px;font-family:monospace">' +
+      '<b>Server Error</b>\n' + req.method + ' ' + req.path + '\n\n' +
+      (err && err.stack ? err.stack : String(err)) + '</pre>');
+  });
+
   const port = process.env.PORT || 3000;
   app.listen(port, () => console.log(`Server running on port ${port}`));
 };
