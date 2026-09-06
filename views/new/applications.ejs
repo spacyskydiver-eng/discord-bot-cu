@@ -76,11 +76,14 @@ function sessionDateRange(times) {
   </div>
 
   <% if (!locals.user) { %>
-    <div style="text-align:center;padding:60px 20px;">
-      <p style="font-family:'Baloo 2';font-size:18px;color:var(--muted);margin:0 0 20px"><%= t('apps_login_prompt') %></p>
-      <a href="<%= lp %>/auth/discord" style="display:inline-flex;align-items:center;gap:10px;background:#5865F2;color:#fff;font-family:'Baloo 2';font-weight:800;font-size:16px;padding:13px 24px;border-radius:12px;text-decoration:none;"><%= t('apps_login_btn') %></a>
+    <div style="background:rgba(88,101,242,.07);border:1px solid rgba(88,101,242,.2);border-radius:12px;padding:14px 20px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div>
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:14px;color:#e0e2ed;margin-bottom:2px"><%= t('apps_login_prompt') %></div>
+        <div style="font-family:'Baloo 2';font-size:13px;color:var(--muted)">Log in with Discord to submit your application.</div>
+      </div>
+      <a href="<%= lp %>/auth/discord" style="display:inline-flex;align-items:center;gap:8px;background:#5865F2;color:#fff;font-family:'Baloo 2';font-weight:800;font-size:14px;padding:10px 20px;border-radius:10px;text-decoration:none;white-space:nowrap"><%= t('apps_login_btn') %></a>
     </div>
-  <% } else { %>
+  <% } %>
 
   <!-- ══ 150 PLAYER EVENTS SECTION ══════════════════════════════════════════ -->
   <div class="apps-section">
@@ -98,7 +101,9 @@ function sessionDateRange(times) {
       <div class="cards">
 
         <!-- 150 Player Event card -->
-        <% if (userHundredApp) { %>
+        <% if (!locals.user) { %>
+          <a href="<%= lp %>/auth/discord" class="card">
+        <% } else if (userHundredApp) { %>
           <div class="card">
         <% } else { %>
           <a href="<%= lp %>/apply-hundred" class="card">
@@ -118,7 +123,10 @@ function sessionDateRange(times) {
               <span class="sess-dates-val"><%= SESSION_TIMES_100.length %> sessions · <%= sessionDateRange(SESSION_TIMES_100) %></span>
             </div>
             <div class="meta" style="margin-bottom:4px">Permanent death · No forced teams · PvP off S1</div>
-            <% if (userHundredApp) { %>
+            <% if (!locals.user) { %>
+              <div class="desc">Applications open — log in with Discord to apply.</div>
+              <span class="pill open">Log in to Apply</span>
+            <% } else if (userHundredApp) { %>
               <div class="desc">Your application: <strong style="color:<%= userHundredApp.status==='accepted'?'#5be38f':userHundredApp.status==='declined'?'#f87171':'#ffd56b' %>"><%= userHundredApp.status %></strong></div>
               <span class="pill open">Submitted</span>
               <a href="<%= lp %>/my-application-hundred" style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-family:'Baloo 2';font-weight:700;font-size:12px;color:var(--muted);text-decoration:none;padding:5px 10px;border:1px solid var(--border);border-radius:7px;background:rgba(255,255,255,.03)">
@@ -130,15 +138,17 @@ function sessionDateRange(times) {
               <span class="pill open">Apply Now</span>
             <% } %>
           </div>
-        <% if (userHundredApp) { %>
-          </div>
-        <% } else { %>
+        <% if (!locals.user || !userHundredApp) { %>
           </a>
+        <% } else { %>
+          </div>
         <% } %>
 
         <!-- Nation Leader card -->
-        <% const nationLocked = !userHundredApp; %>
-        <% if (userNationApp || nationLocked) { %>
+        <% const nationLocked = locals.user && !userHundredApp; %>
+        <% if (!locals.user) { %>
+          <a href="<%= lp %>/auth/discord" class="card">
+        <% } else if (userNationApp || nationLocked) { %>
           <div class="card<%= nationLocked ? ' locked' : '' %>">
         <% } else { %>
           <a href="<%= lp %>/apply-nation-leader" class="card">
@@ -154,7 +164,10 @@ function sessionDateRange(times) {
           <div class="cardbody">
             <h3>Nation Leader</h3>
             <div class="meta" style="margin-bottom:4px">150 Player Event · Separate application</div>
-            <% if (nationLocked) { %>
+            <% if (!locals.user) { %>
+              <div class="desc" style="font-size:12px;color:var(--muted);margin-bottom:8px">Log in to apply as a Nation Leader.</div>
+              <span class="pill open">Log in to Apply</span>
+            <% } else if (nationLocked) { %>
               <div class="desc" style="font-size:12px;color:var(--muted);margin-bottom:8px">You must apply for the 150 Player Event before you can apply as a Nation Leader.</div>
               <span class="pill soon">Apply for the 150 Player Event first</span>
             <% } else { %>
@@ -167,10 +180,10 @@ function sessionDateRange(times) {
               <% } %>
             <% } %>
           </div>
-        <% if (userNationApp || nationLocked) { %>
-          </div>
-        <% } else { %>
+        <% if (!locals.user || (!userNationApp && !nationLocked)) { %>
           </a>
+        <% } else { %>
+          </div>
         <% } %>
 
         <!-- News Reporter card — only for accepted 150 players who are not nation leaders -->
@@ -234,9 +247,11 @@ function sessionDateRange(times) {
           <% const isl = ISLAND[theme]; %>
           <% const open = ev.is_open; %>
           <% const canApply = open || hasVipAccess; %>
-          <% const hasApplied = userApp && canApply; %>
+          <% const hasApplied = locals.user && userApp && canApply; %>
 
-          <% if (canApply && !hasApplied) { %>
+          <% if (!locals.user && canApply) { %>
+            <a href="<%= lp %>/auth/discord" class="card">
+          <% } else if (canApply && !hasApplied) { %>
             <a href="<%= lp %>/apply" class="card">
           <% } else { %>
             <div class="card<%= !canApply ? ' locked' : '' %>">
@@ -248,7 +263,10 @@ function sessionDateRange(times) {
                 <span class="sess-dates-label">Sessions</span>
                 <span class="sess-dates-val"><%= SESSION_TIMES_500.length %> sessions · <%= sessionDateRange(SESSION_TIMES_500) %></span>
               </div>
-              <% if (open || hasVipAccess) { %>
+              <% if (!locals.user && canApply) { %>
+                <div class="desc">Applications open — log in with Discord to apply.</div>
+                <span class="pill open">Log in to Apply</span>
+              <% } else if (open || hasVipAccess) { %>
                 <% if (hasApplied) { %>
                   <div class="desc"><%= t('apps_you_applied') %> <strong style="color:<%= userApp.status==='accepted'?'#5be38f':userApp.status==='declined'||userApp.status==='disqualified'?'#f87171':'#ffd56b' %>"><%= userApp.status %></strong></div>
                   <span class="pill open"><%= t('apps_submitted') %></span>
@@ -275,7 +293,7 @@ function sessionDateRange(times) {
                 <% } %>
               <% } %>
             </div>
-          <% if (canApply && !hasApplied) { %>
+          <% if ((!locals.user && canApply) || (canApply && !hasApplied)) { %>
             </a>
           <% } else { %>
             </div>
@@ -285,8 +303,6 @@ function sessionDateRange(times) {
       <% } %>
     </div>
   </div>
-
-  <% } %>
 
 </main>
 
