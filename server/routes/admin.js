@@ -223,6 +223,7 @@ async function discordApi(apiPath) {
 }
 
 router.get('/moderation', async (req, res) => {
+  try {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const [flaggedRes, bansRes, ticketsRes, snippetsRes, generalRes, playerRepsRes] = await Promise.all([
     db.query(`SELECT * FROM flagged_messages ORDER BY flagged_at DESC`),
@@ -261,6 +262,10 @@ router.get('/moderation', async (req, res) => {
     allReports,
     todayStr: today.toISOString()
   });
+  } catch (err) {
+    console.error('[GET /moderation] ERROR:', err);
+    res.status(500).send('<pre>Moderation page error:\n' + err.stack + '</pre>');
+  }
 });
 
 router.post('/moderation/flagged/:id/disregard', async (req, res) => {
