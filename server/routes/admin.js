@@ -579,7 +579,7 @@ ${formatted}`;
         headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 1024, temperature: 0.3 }
+          generationConfig: { maxOutputTokens: 2048, temperature: 0.3 }
         })
       }
     );
@@ -587,12 +587,17 @@ ${formatted}`;
     // Surface API-level errors (bad key, quota, etc.)
     if (data.error) return res.status(500).json({ error: `Gemini API error: ${data.error.message}` });
     const candidate = data.candidates?.[0];
-    // Safety filter or other non-STOP finish
-    if (candidate && candidate.finishReason && candidate.finishReason !== 'STOP') {
-      return res.status(500).json({ error: `Gemini blocked response (reason: ${candidate.finishReason}). Try rephrasing or shortening the snippet.` });
-    }
     const summary = candidate?.content?.parts?.[0]?.text || '';
-    if (!summary) return res.status(500).json({ error: 'Gemini returned no text. Raw response: ' + JSON.stringify(data).slice(0, 300) });
+    // Only treat as a hard error if there's no text at all AND it's not a truncation
+    if (!summary) {
+      const reason = candidate?.finishReason || 'unknown';
+      return res.status(500).json({ error: 'Gemini returned no text. Raw response: ' + JSON.stringify(data).slice(0, 300) });
+    }
+    // Safety block (SAFETY, RECITATION etc) — no usable text
+    const finishReason = candidate?.finishReason;
+    if (!summary && finishReason && finishReason !== 'STOP' && finishReason !== 'MAX_TOKENS') {
+      return res.status(500).json({ error: `Gemini blocked response (reason: ${finishReason}).` });
+    }
     res.json({
       summary,
       player: player ? { id: player.id, username: player.username } : null,
