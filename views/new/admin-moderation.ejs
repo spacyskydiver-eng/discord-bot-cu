@@ -675,20 +675,27 @@
         </div>
 
         <div class="browser-save" id="browserSave" style="display:none">
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;flex-wrap:wrap">
-            <div class="sel-count" id="selCount">0 messages selected</div>
-            <div id="pendingBadge" style="display:none;font-family:'Baloo 2';font-weight:800;font-size:11px;background:rgba(116,192,252,.15);border:1px solid rgba(116,192,252,.3);color:#74c0fc;padding:3px 10px;border-radius:99px">
-              📎 <span id="pendingCount">0</span> snippet(s) queued for report
-            </div>
+          <div class="sel-count" id="selCount">0 messages selected</div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-primary" onclick="addToBasket()">+ Add to Evidence</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearSelection()">Clear</button>
           </div>
+        </div>
+
+        <!-- Evidence basket — shown once anything is added -->
+        <div id="evidenceBasketWrap" style="display:none;margin-top:12px;background:rgba(116,192,252,.06);border:1px solid rgba(116,192,252,.2);border-radius:10px;padding:12px 14px">
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:#74c0fc;margin-bottom:8px">
+            📎 Evidence Basket — <span id="basketTotal">0</span> messages from <span id="basketChannelCount">0</span> channel(s)
+          </div>
+          <div id="basketBreakdown" style="font-family:'Baloo 2';font-size:11px;color:var(--mod-muted);margin-bottom:10px;line-height:1.8"></div>
           <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
             <div style="flex:1;min-width:180px">
               <label class="form-label">Snippet label</label>
-              <input type="text" id="snippetLabel" class="form-input" placeholder="e.g. 'Username — harassment #tickets'">
+              <input type="text" id="snippetLabel" class="form-input" placeholder="e.g. 'Username — harassment evidence'">
             </div>
-            <button class="btn btn-primary btn-sm" onclick="saveSnippet(true)">💾 Save + Browse Another</button>
-            <button class="btn btn-success" onclick="saveSnippet(false)">✅ Done — Open Report</button>
-            <button class="btn btn-ghost btn-sm" onclick="clearSelection()">Clear</button>
+            <button class="btn btn-success" onclick="saveBasket(false)">✅ Save Combined &amp; Open Report</button>
+            <button class="btn btn-primary btn-sm" onclick="saveBasket(true)">💾 Save Combined &amp; Browse More</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearBasket()">Clear All</button>
           </div>
           <div id="saveToast" style="display:none;margin-top:10px;background:rgba(91,227,143,.1);border:1px solid rgba(91,227,143,.25);border-radius:8px;padding:10px 14px;font-family:'Baloo 2';font-size:12px;color:#5be38f"></div>
         </div>
@@ -1242,54 +1249,84 @@ function updateSelUI() {
 
 function clearSelection() { selSet.clear(); selStart = null; updateSelUI(); }
 
-async function saveSnippet(browseAnother) {
+// ── Evidence basket (accumulates messages across multiple channels before saving) ──
+let evidenceBasket = []; // [{...msgFields, channelName, guildName}]
+
+function addToBasket() {
   if (!selSet.size) return;
-  const label = document.getElementById('snippetLabel').value.trim();
-  const selected = [...selSet].sort((a,b)=>a-b).map(i => browserMsgs[i]);
   const guildSel = document.getElementById('guildSel');
   const chanSel = document.getElementById('channelSel');
   const guildName = guildSel.selectedOptions[0]?.text || '';
-  const channelName = (chanSel.selectedOptions[0]?.text || '').replace('#','');
+  const channelName = (chanSel.selectedOptions[0]?.text || '').replace(/^#/,'');
+  const selected = [...selSet].sort((a,b)=>a-b).map(i => ({
+    ...browserMsgs[i], channelName, guildName
+  }));
+  evidenceBasket.push(...selected);
+  clearSelection();
+  updateBasketUI();
+}
+
+function updateBasketUI() {
+  const wrap = document.getElementById('evidenceBasketWrap');
+  if (!evidenceBasket.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  document.getElementById('basketTotal').textContent = evidenceBasket.length;
+  // Count by channel
+  const byChan = {};
+  for (const m of evidenceBasket) {
+    const k = m.channelName || 'unknown';
+    byChan[k] = (byChan[k] || 0) + 1;
+  }
+  document.getElementById('basketChannelCount').textContent = Object.keys(byChan).length;
+  document.getElementById('basketBreakdown').innerHTML = Object.entries(byChan)
+    .map(([ch, n]) => `<span style="margin-right:12px">#${h(ch)}: <b>${n}</b> msg${n>1?'s':''}</span>`).join('');
+}
+
+function clearBasket() {
+  evidenceBasket = [];
+  updateBasketUI();
+  document.getElementById('snippetLabel').value = '';
+  document.getElementById('saveToast').style.display = 'none';
+}
+
+async function saveBasket(browseMore) {
+  if (!evidenceBasket.length) return;
+  const label = document.getElementById('snippetLabel').value.trim();
+  // Use the first entry's guild info for the snippet record
+  const guildName = evidenceBasket[0].guildName || '';
+  const channelName = evidenceBasket.length === 1
+    ? (evidenceBasket[0].channelName || '')
+    : 'multiple channels';
   try {
     const r = await fetch('/admin/moderation/snippets/save', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ label, guild_id: currentGuildId, guild_name: guildName,
-        channel_id: currentChannelId, channel_name: channelName,
-        messages: selected.map(m => ({ id:m.id, username:m.author, author_id:m.author_id,
-          avatar_url:m.avatar, content:m.content, timestamp:m.timestamp,
-          attachments:m.attachments||[] })) })
+      body: JSON.stringify({
+        label, guild_name: guildName, channel_name: channelName,
+        guild_id: currentGuildId, channel_id: currentChannelId,
+        messages: evidenceBasket.map(m => ({
+          id: m.id, username: m.author, author_id: m.author_id,
+          avatar_url: m.avatar, content: m.content, timestamp: m.timestamp,
+          attachments: m.attachments || [], channelName: m.channelName
+        }))
+      })
     });
     const d = await r.json();
     if (d.error) throw new Error(d.error);
 
     const displayLabel = label || ('Snippet #' + d.id);
-    const msgCount = selected.length;
+    const msgCount = evidenceBasket.length;
 
-    // Inject into picker AND auto-select it (accumulates across multiple channels)
     injectSnippetIntoPicker(d.id, displayLabel, msgCount, channelName);
-
-    // Inject into Evidence Library grid
     injectSnippetIntoLibrary(d.id, displayLabel, msgCount, channelName, guildName);
 
-    // Update pending badge
-    const count = Object.keys(selSnips).length;
-    const badge = document.getElementById('pendingBadge');
-    document.getElementById('pendingCount').textContent = count;
-    badge.style.display = count ? '' : 'none';
-
-    // Show toast
     const toast = document.getElementById('saveToast');
     toast.style.display = '';
-    if (browseAnother) {
-      toast.textContent = '✓ Snippet #' + d.id + ' saved and queued (' + count + ' total). Change the channel above and select more messages, then click "Done — Open Report".';
-    } else {
-      toast.textContent = '✓ Snippet #' + d.id + ' saved. Opening report with ' + count + ' snippet(s) pre-selected.';
-    }
+    toast.textContent = '✓ Combined snippet #' + d.id + ' saved (' + msgCount + ' messages from ' +
+      document.getElementById('basketChannelCount').textContent + ' channel(s)).';
 
-    clearSelection();
-    document.getElementById('snippetLabel').value = '';
+    clearBasket();
 
-    if (!browseAnother) {
+    if (!browseMore) {
       openPanel();
       setTimeout(() => {
         const row = document.querySelector('.snip-pick-row[data-sid="' + d.id + '"]');
