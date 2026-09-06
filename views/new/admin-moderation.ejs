@@ -662,10 +662,23 @@
           </div>
         </div>
 
-        <div style="display:flex;gap:10px;margin-bottom:10px;align-items:center">
+        <div style="display:flex;gap:10px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
           <button class="btn btn-ghost btn-sm" onclick="loadMoreMessages('before')">⬆ Load older</button>
           <span id="browserStatus" style="font-family:'Baloo 2';font-size:12px;color:var(--mod-muted)">No messages loaded</span>
           <button class="btn btn-ghost btn-sm" onclick="loadMoreMessages('after')">⬇ Load newer</button>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:0;border:1px solid var(--mod-border);border-radius:8px;overflow:hidden;font-family:'Baloo 2';font-size:11px;font-weight:800">
+            <button id="modeSection" onclick="setSelMode('section')"
+              style="padding:5px 12px;border:none;cursor:pointer;background:var(--mod-accent);color:#0a0a0f;transition:.15s">
+              ▦ Section
+            </button>
+            <button id="modePick" onclick="setSelMode('pick')"
+              style="padding:5px 12px;border:none;cursor:pointer;background:transparent;color:var(--mod-muted);transition:.15s">
+              ✦ Pick
+            </button>
+          </div>
+        </div>
+        <div id="modeHint" style="font-family:'Baloo 2';font-size:11px;color:var(--mod-muted);margin-bottom:6px">
+          <b>Section mode:</b> click a start message, then click an end message to select the whole block
         </div>
 
         <div class="msg-browser" id="msgBrowser">
@@ -1140,6 +1153,19 @@ document.getElementById('globalSearch').addEventListener('keydown', e => {
 // ── Chat log browser ──────────────────────────────────────────────────────────
 let browserMsgs = [], selStart = null, selSet = new Set();
 let currentGuildId = null, currentChannelId = null;
+let selMode = 'section'; // 'section' | 'pick'
+
+function setSelMode(mode) {
+  selMode = mode;
+  selSet.clear(); selStart = null; updateSelUI();
+  document.getElementById('modeSection').style.background = mode === 'section' ? 'var(--mod-accent)' : 'transparent';
+  document.getElementById('modeSection').style.color = mode === 'section' ? '#0a0a0f' : 'var(--mod-muted)';
+  document.getElementById('modePick').style.background = mode === 'pick' ? 'var(--mod-accent)' : 'transparent';
+  document.getElementById('modePick').style.color = mode === 'pick' ? '#0a0a0f' : 'var(--mod-muted)';
+  document.getElementById('modeHint').innerHTML = mode === 'section'
+    ? '<b>Section mode:</b> click a start message, then click an end message to select the whole block'
+    : '<b>Pick mode:</b> click individual messages to toggle them — build a custom selection from anywhere';
+}
 let oldestMsgId = null, newestMsgId = null;
 
 function toggleBrowser(head) {
@@ -1226,13 +1252,28 @@ function renderMessages() {
 }
 
 function clickMsg(e, idx) {
-  if (e.shiftKey && selStart !== null) {
-    const a = Math.min(selStart, idx), b = Math.max(selStart, idx);
-    selSet.clear();
-    for (let i = a; i <= b; i++) selSet.add(i);
+  if (selMode === 'section') {
+    if (selStart === null) {
+      // First click — set the anchor, highlight it
+      selStart = idx;
+      selSet.clear();
+      selSet.add(idx);
+    } else {
+      // Second click — select the full range
+      const a = Math.min(selStart, idx), b = Math.max(selStart, idx);
+      selSet.clear();
+      for (let i = a; i <= b; i++) selSet.add(i);
+      selStart = null; // reset so next click starts a fresh range
+    }
   } else {
-    selStart = idx;
-    if (selSet.has(idx)) selSet.delete(idx); else selSet.add(idx);
+    // Pick mode — toggle individual messages, shift extends
+    if (e.shiftKey && selStart !== null) {
+      const a = Math.min(selStart, idx), b = Math.max(selStart, idx);
+      for (let i = a; i <= b; i++) selSet.add(i);
+    } else {
+      selStart = idx;
+      if (selSet.has(idx)) selSet.delete(idx); else selSet.add(idx);
+    }
   }
   updateSelUI();
 }
@@ -1243,9 +1284,21 @@ function updateSelUI() {
     row.classList.toggle('selected', selSet.has(idx));
   });
   const count = selSet.size;
-  document.getElementById('selCount').textContent = count
-    ? count + ' message' + (count===1?'':'s') + ' selected — click "Add to Evidence" to queue them'
-    : 'Click messages to select them, then add to evidence';
+  let statusText;
+  if (selMode === 'section') {
+    if (selStart !== null && count === 1) {
+      statusText = '1 message marked as start — now click the end of the section';
+    } else if (count > 0) {
+      statusText = count + ' messages selected — click "+ Add to Evidence" to queue them';
+    } else {
+      statusText = 'Click the first message of the section you want to grab';
+    }
+  } else {
+    statusText = count
+      ? count + ' message' + (count===1?'':'s') + ' selected — click "+ Add to Evidence" to queue them'
+      : 'Click individual messages to select them';
+  }
+  document.getElementById('selCount').textContent = statusText;
   const addBtn = document.getElementById('addToEvidenceBtn');
   if (addBtn) { addBtn.disabled = count === 0; addBtn.style.opacity = count ? '1' : '.4'; }
   document.getElementById('browserSave').style.display = browserMsgs.length ? '' : 'none';
