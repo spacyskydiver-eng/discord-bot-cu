@@ -465,6 +465,25 @@ router.get('/moderation/discord/messages/:channelId', async (req, res) => {
 });
 
 // ── Chat snippets ─────────────────────────────────────────────────────────────
+// ── Player history lookup ──────────────────────────────────────────────────────
+router.get('/moderation/player/:discordId/history', async (req, res) => {
+  const id = req.params.discordId;
+  const [flags, tickets, general, player, bans] = await Promise.all([
+    db.query(`SELECT * FROM flagged_messages WHERE author_id=$1 ORDER BY flagged_at DESC`, [id]),
+    db.query(`SELECT * FROM ticket_reports WHERE player_discord_id=$1 ORDER BY created_at DESC`, [id]),
+    db.query(`SELECT * FROM general_reports WHERE player_discord_id=$1 ORDER BY created_at DESC`, [id]),
+    db.query(`SELECT * FROM player_reports WHERE player_discord_id=$1 ORDER BY created_at DESC`, [id]),
+    db.query(`SELECT * FROM moderation_bans WHERE discord_id=$1 OR player_discord_id=$1 ORDER BY banned_at DESC NULLS LAST`, [id]),
+  ]);
+  res.json({
+    flags: flags.rows,
+    tickets: tickets.rows,
+    general: general.rows,
+    playerReports: player.rows,
+    bans: bans.rows,
+  });
+});
+
 router.post('/moderation/snippets/save', express.json(), async (req, res) => {
   const { label, guild_id, guild_name, channel_id, channel_name, messages } = req.body;
   if (!messages || !messages.length) return res.status(400).json({ error: 'No messages' });

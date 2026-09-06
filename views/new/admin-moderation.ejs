@@ -2,268 +2,418 @@
 <%- include('partials/header') %>
 
 <style>
-/* ── Layout ── */
-.mod-wrap { max-width: 1100px; margin: 0 auto; padding: 24px 20px 100px; }
-.mod-topbar { display:flex; align-items:center; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
-.mod-title { font-family:'Baloo 2'; font-weight:900; font-size:24px; color:#e0e2ed; margin:0; }
-.mod-title span { color:#74c0fc; }
+/* ─── Base ─── */
+:root {
+  --mod-bg: #0e0f18;
+  --mod-panel: rgba(255,255,255,.04);
+  --mod-panel2: rgba(255,255,255,.07);
+  --mod-border: rgba(255,255,255,.09);
+  --mod-text: #e2e4f0;
+  --mod-muted: rgba(255,255,255,.35);
+  --mod-accent: #74c0fc;
+  --mod-green: #5be38f;
+  --mod-red: #f87171;
+  --mod-orange: #fb923c;
+  --mod-purple: #c084fc;
+  --mod-yellow: #fbbf24;
+  --mod-radius: 12px;
+}
+.mod-wrap { max-width: 1080px; margin: 0 auto; padding: 24px 20px 120px; }
 
-/* ── Tabs ── */
-.tab-nav { display:flex; gap:4px; border-bottom:2px solid rgba(255,255,255,.07); margin-bottom:24px; }
+/* ─── Top bar ─── */
+.mod-head { display:flex; align-items:center; gap:14px; margin-bottom:20px; flex-wrap:wrap; }
+.mod-title { font-family:'Baloo 2'; font-weight:900; font-size:26px; color:var(--mod-text);
+  background:linear-gradient(135deg,#e2e4f0,#74c0fc); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.mod-head-right { display:flex; align-items:center; gap:10px; margin-left:auto; flex-wrap:wrap; }
+
+/* ─── Stats strip ─── */
+.stats-strip { display:flex; gap:10px; margin-bottom:22px; flex-wrap:wrap; }
+.stat-chip { display:flex; align-items:center; gap:8px; background:var(--mod-panel);
+  border:1px solid var(--mod-border); border-radius:99px; padding:7px 16px; }
+.stat-chip-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.stat-chip-num { font-family:'Baloo 2'; font-weight:900; font-size:15px; color:var(--mod-text); }
+.stat-chip-label { font-family:'Baloo 2'; font-size:12px; color:var(--mod-muted); }
+
+/* ─── Player search ─── */
+.player-search-wrap { position:relative; margin-bottom:24px; }
+.player-search-input { width:100%; background:var(--mod-panel); border:1px solid var(--mod-border);
+  border-radius:var(--mod-radius); padding:12px 16px 12px 42px; font-family:'Baloo 2'; font-weight:600;
+  font-size:14px; color:var(--mod-text); outline:none; box-sizing:border-box; transition:border-color .15s; }
+.player-search-input:focus { border-color:rgba(116,192,252,.4); }
+.player-search-ico { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:18px; pointer-events:none; }
+.player-search-hint { font-family:'Baloo 2'; font-size:11px; color:var(--mod-muted); margin-top:4px; }
+
+/* ─── Tabs ─── */
+.tab-nav { display:flex; gap:2px; border-bottom:2px solid var(--mod-border); margin-bottom:24px; overflow-x:auto; }
 .tab-btn { font-family:'Baloo 2'; font-weight:800; font-size:13px; padding:10px 18px; border-radius:10px 10px 0 0;
-  border:1px solid transparent; border-bottom:none; cursor:pointer; color:rgba(255,255,255,.4);
+  border:1px solid transparent; border-bottom:none; cursor:pointer; color:var(--mod-muted);
   background:none; position:relative; bottom:-2px; white-space:nowrap; transition:all .15s; }
-.tab-btn:hover { color:rgba(255,255,255,.7); background:rgba(255,255,255,.04); }
-.tab-btn.active { color:#e0e2ed; background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.1); border-bottom-color:rgba(18,19,28,1); }
-.tab-badge { background:#f87171; color:#fff; font-size:10px; font-weight:800; border-radius:99px;
-  padding:1px 6px; margin-left:6px; vertical-align:middle; }
+.tab-btn:hover { color:rgba(255,255,255,.7); background:rgba(255,255,255,.03); }
+.tab-btn.active { color:var(--mod-text); background:rgba(255,255,255,.05);
+  border-color:var(--mod-border); border-bottom-color:#0e0f18; }
+.tab-badge { background:var(--mod-red); color:#fff; font-size:10px; font-weight:800;
+  border-radius:99px; padding:1px 6px; margin-left:6px; vertical-align:middle; }
 .tab-panel { display:none; }
 .tab-panel.active { display:block; }
 
-/* ── Shared buttons ── */
-.btn { font-family:'Baloo 2'; font-weight:800; font-size:12px; padding:7px 14px; border-radius:8px;
-  border:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px; text-decoration:none; transition:opacity .15s; }
-.btn:hover { opacity:.8; }
-.btn-sm { padding:4px 10px; font-size:11px; }
-.btn-primary { background:rgba(116,192,252,.12); color:#74c0fc; border:1px solid rgba(116,192,252,.25); }
-.btn-success { background:rgba(91,227,143,.1); color:#5be38f; border:1px solid rgba(91,227,143,.22); }
-.btn-danger { background:rgba(248,113,113,.1); color:#f87171; border:1px solid rgba(248,113,113,.25); }
-.btn-ghost { background:rgba(255,255,255,.05); color:rgba(255,255,255,.5); border:1px solid rgba(255,255,255,.1); }
-.btn-ai { background:rgba(168,85,247,.12); color:#c084fc; border:1px solid rgba(168,85,247,.28); }
-.btn-new { background:linear-gradient(135deg,rgba(116,192,252,.18),rgba(168,85,247,.15)); color:#e0e2ed;
-  border:1px solid rgba(116,192,252,.3); padding:9px 18px; font-size:13px; }
+/* ─── Buttons ─── */
+.btn { font-family:'Baloo 2'; font-weight:800; font-size:12px; padding:8px 16px; border-radius:9px;
+  border:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px; text-decoration:none; transition:all .15s; }
+.btn:hover { filter:brightness(1.15); }
+.btn-sm { padding:4px 11px; font-size:11px; border-radius:7px; }
+.btn-primary { background:rgba(116,192,252,.14); color:var(--mod-accent); border:1px solid rgba(116,192,252,.28); }
+.btn-success { background:rgba(91,227,143,.1); color:var(--mod-green); border:1px solid rgba(91,227,143,.25); }
+.btn-danger { background:rgba(248,113,113,.1); color:var(--mod-red); border:1px solid rgba(248,113,113,.28); }
+.btn-ghost { background:rgba(255,255,255,.05); color:var(--mod-muted); border:1px solid var(--mod-border); }
+.btn-ai { background:rgba(168,85,247,.14); color:var(--mod-purple); border:1px solid rgba(168,85,247,.3); }
+.btn-new { background:linear-gradient(135deg,rgba(116,192,252,.18),rgba(168,85,247,.14));
+  color:var(--mod-text); border:1px solid rgba(116,192,252,.35); padding:10px 20px; font-size:13px; }
+.inline-form { display:inline; margin:0; }
 
-/* ── Cards ── */
-.card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:12px;
-  margin-bottom:10px; overflow:hidden; }
+/* ─── Cards ─── */
+.card { background:var(--mod-panel); border:1px solid var(--mod-border); border-radius:var(--mod-radius);
+  margin-bottom:10px; overflow:hidden; transition:border-color .15s; }
+.card:hover { border-color:rgba(255,255,255,.15); }
 .card-header { display:flex; align-items:center; gap:12px; padding:14px 18px; cursor:pointer; }
-.card-header:hover { background:rgba(255,255,255,.02); }
-.card-body { padding:16px 18px; border-top:1px solid rgba(255,255,255,.06); display:none; }
+.card-body { padding:18px; border-top:1px solid var(--mod-border); display:none; }
 .card-body.open { display:block; }
-.avatar { width:32px; height:32px; border-radius:50%; object-fit:cover; background:rgba(255,255,255,.08); flex-shrink:0; }
-.player-tag { font-family:'Baloo 2'; font-weight:800; font-size:13px; color:#e0e2ed; }
-.player-id { font-family:'Baloo 2'; font-size:11px; color:rgba(255,255,255,.35); }
-.card-meta { font-family:'Baloo 2'; font-size:11px; color:rgba(255,255,255,.35); margin-left:auto; white-space:nowrap; }
-.summary-text { font-size:13px; color:#c9ccdb; line-height:1.65; margin:10px 0; }
-.detail-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
-.detail-label { font-family:'Baloo 2'; font-weight:700; font-size:11px; color:rgba(255,255,255,.35); min-width:80px; }
+.card-expand { font-size:11px; color:var(--mod-muted); margin-left:4px; transition:transform .2s; }
+.card-expand.open { transform:rotate(180deg); }
 
-/* ── Pills ── */
-.pill { font-family:'Baloo 2'; font-weight:800; font-size:10px; text-transform:uppercase; letter-spacing:.06em;
-  padding:2px 9px; border-radius:99px; }
-.pill-type-ticket { background:rgba(116,192,252,.12); color:#74c0fc; border:1px solid rgba(116,192,252,.22); }
-.pill-type-general { background:rgba(251,191,36,.1); color:#fbbf24; border:1px solid rgba(251,191,36,.2); }
-.pill-type-player { background:rgba(168,85,247,.12); color:#c084fc; border:1px solid rgba(168,85,247,.22); }
-.pill-sev-low { background:rgba(251,191,36,.1); color:#fbbf24; border:1px solid rgba(251,191,36,.18); }
-.pill-sev-medium { background:rgba(251,146,60,.12); color:#fb923c; border:1px solid rgba(251,146,60,.25); }
-.pill-sev-high { background:rgba(248,113,113,.12); color:#f87171; border:1px solid rgba(248,113,113,.25); }
-.pill-action { background:rgba(255,255,255,.06); color:rgba(255,255,255,.5); border:1px solid rgba(255,255,255,.1); }
-.pill-flag-slur { background:rgba(248,113,113,.14); color:#f87171; border:1px solid rgba(248,113,113,.28); }
-.pill-flag-extreme { background:rgba(251,146,60,.14); color:#fb923c; border:1px solid rgba(251,146,60,.28); }
-.pill-flag-hate { background:rgba(168,85,247,.14); color:#c084fc; border:1px solid rgba(168,85,247,.28); }
+/* ─── Player chip ─── */
+.player-chip { display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
+.p-avatar { width:34px; height:34px; border-radius:50%; object-fit:cover; background:rgba(255,255,255,.08); flex-shrink:0; }
+.p-tag { font-family:'Baloo 2'; font-weight:800; font-size:14px; color:var(--mod-text);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
+.p-tag:hover { color:var(--mod-accent); text-decoration:underline; }
+.p-id { font-family:monospace; font-size:11px; color:var(--mod-muted); }
+.card-time { font-family:'Baloo 2'; font-size:11px; color:var(--mod-muted); flex-shrink:0; white-space:nowrap; }
 
-/* ── Filter pills ── */
-.filter-pills { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; align-items:center; }
-.filter-pill { font-family:'Baloo 2'; font-weight:800; font-size:12px; padding:5px 14px; border-radius:99px;
-  cursor:pointer; border:1px solid rgba(255,255,255,.1); color:rgba(255,255,255,.4); background:rgba(255,255,255,.04); transition:all .15s; }
-.filter-pill:hover { border-color:rgba(255,255,255,.2); color:rgba(255,255,255,.7); }
-.filter-pill.active { background:rgba(116,192,252,.12); border-color:rgba(116,192,252,.3); color:#74c0fc; }
-.filter-count { font-family:'Baloo 2'; font-size:12px; color:rgba(255,255,255,.3); margin-left:auto; }
+/* ─── Pills ─── */
+.pill { font-family:'Baloo 2'; font-weight:800; font-size:10px; text-transform:uppercase;
+  letter-spacing:.06em; padding:2px 9px; border-radius:99px; white-space:nowrap; flex-shrink:0; }
+.pill-ticket { background:rgba(116,192,252,.13); color:var(--mod-accent); border:1px solid rgba(116,192,252,.25); }
+.pill-general { background:rgba(251,191,36,.1); color:var(--mod-yellow); border:1px solid rgba(251,191,36,.2); }
+.pill-player { background:rgba(168,85,247,.12); color:var(--mod-purple); border:1px solid rgba(168,85,247,.25); }
+.pill-low { background:rgba(251,191,36,.1); color:var(--mod-yellow); border:1px solid rgba(251,191,36,.18); }
+.pill-medium { background:rgba(251,146,60,.12); color:var(--mod-orange); border:1px solid rgba(251,146,60,.25); }
+.pill-high { background:rgba(248,113,113,.13); color:var(--mod-red); border:1px solid rgba(248,113,113,.28); }
+.pill-action { background:rgba(255,255,255,.06); color:var(--mod-muted); border:1px solid var(--mod-border); }
+.pill-flag-slur { background:rgba(248,113,113,.14); color:var(--mod-red); border:1px solid rgba(248,113,113,.28); }
+.pill-flag-extreme { background:rgba(251,146,60,.14); color:var(--mod-orange); border:1px solid rgba(251,146,60,.28); }
+.pill-flag-hate { background:rgba(168,85,247,.14); color:var(--mod-purple); border:1px solid rgba(168,85,247,.28); }
 
-/* ── Flag card ── */
-.flag-content { font-size:13px; color:#c9ccdb; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07);
-  border-radius:8px; padding:10px 14px; line-height:1.65; white-space:pre-wrap; word-break:break-word; margin:8px 0; }
-.flag-match { font-family:monospace; font-size:12px; background:rgba(248,113,113,.1); color:#f87171; padding:1px 6px; border-radius:4px; }
-.disregarded-overlay { opacity:.35; pointer-events:none; }
-.card.disregarded .card-header { opacity:.35; }
+/* ─── Filter pills bar ─── */
+.filter-bar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:18px; }
+.fpill { font-family:'Baloo 2'; font-weight:800; font-size:12px; padding:5px 14px; border-radius:99px;
+  cursor:pointer; border:1px solid var(--mod-border); color:var(--mod-muted); background:var(--mod-panel); transition:all .15s; }
+.fpill:hover { border-color:rgba(255,255,255,.2); color:rgba(255,255,255,.7); }
+.fpill.active { background:rgba(116,192,252,.12); border-color:rgba(116,192,252,.35); color:var(--mod-accent); }
+.filter-count { font-family:'Baloo 2'; font-size:12px; color:var(--mod-muted); margin-left:auto; }
 
-/* ── Evidence list ── */
+/* ─── Summary / detail ─── */
+.summary { font-size:13px; color:#c9ccdb; line-height:1.7; margin:10px 0; }
+.detail-grid { display:grid; grid-template-columns:auto 1fr; gap:6px 16px; align-items:baseline; margin-bottom:12px; }
+.dl { font-family:'Baloo 2'; font-weight:700; font-size:11px; color:var(--mod-muted); white-space:nowrap; }
+.dv { font-size:13px; color:rgba(255,255,255,.6); }
+.divider { height:1px; background:var(--mod-border); margin:14px 0; }
+.section-label { font-family:'Baloo 2'; font-weight:800; font-size:11px; text-transform:uppercase;
+  letter-spacing:.07em; color:var(--mod-muted); margin-bottom:10px; }
+
+/* ─── Evidence items ─── */
 .ev-list { display:flex; flex-direction:column; gap:8px; }
 .ev-item { display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.03);
-  border:1px solid rgba(255,255,255,.07); border-radius:8px; padding:10px 12px; }
-.ev-thumb { width:60px; height:42px; object-fit:cover; border-radius:6px; flex-shrink:0; }
-.ev-icon { font-size:20px; flex-shrink:0; width:36px; text-align:center; }
-.ev-label { font-family:'Baloo 2'; font-weight:700; font-size:12px; color:#e0e2ed; }
-.ev-meta { font-family:'Baloo 2'; font-size:11px; color:rgba(255,255,255,.35); }
+  border:1px solid var(--mod-border); border-radius:9px; padding:10px 12px; }
+.ev-thumb { width:58px; height:40px; object-fit:cover; border-radius:6px; flex-shrink:0; }
+.ev-icon { font-size:20px; width:36px; text-align:center; flex-shrink:0; }
+.ev-label { font-family:'Baloo 2'; font-weight:700; font-size:12px; color:var(--mod-text); }
+.ev-meta { font-family:'Baloo 2'; font-size:11px; color:var(--mod-muted); }
 
-/* ── AI summary box ── */
-.ai-box { background:rgba(168,85,247,.07); border:1px solid rgba(168,85,247,.2); border-radius:10px;
-  padding:14px 16px; margin-top:12px; }
-.ai-box-label { font-family:'Baloo 2'; font-weight:800; font-size:11px; color:#c084fc; margin-bottom:6px; text-transform:uppercase; letter-spacing:.05em; }
-.ai-box-text { font-size:13px; color:#ddd6fe; line-height:1.7; }
+/* ─── Flag content ─── */
+.flag-content { font-size:13px; color:#c9ccdb; background:rgba(255,255,255,.03);
+  border:1px solid var(--mod-border); border-radius:8px; padding:10px 14px;
+  line-height:1.65; white-space:pre-wrap; word-break:break-word; margin:10px 0; }
+.flag-match { font-family:monospace; font-size:12px; background:rgba(248,113,113,.12); color:var(--mod-red); padding:2px 7px; border-radius:4px; }
+.card.disregarded .card-header { opacity:.35; }
 
-/* ── Snippet library ── */
-.snip-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
-.snip-card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:16px; }
-.snip-card-title { font-family:'Baloo 2'; font-weight:800; font-size:13px; color:#e0e2ed; margin-bottom:4px; }
-.snip-card-meta { font-family:'Baloo 2'; font-size:11px; color:rgba(255,255,255,.35); }
-.snip-card-actions { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+/* ─── Evidence Library ─── */
+.snip-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:12px; }
+.snip-card { background:var(--mod-panel); border:1px solid var(--mod-border); border-radius:var(--mod-radius); padding:16px;
+  transition:border-color .15s; }
+.snip-card:hover { border-color:rgba(255,255,255,.16); }
+.snip-card-id { font-family:'Baloo 2'; font-weight:900; font-size:11px; color:var(--mod-muted); margin-bottom:2px; }
+.snip-card-title { font-family:'Baloo 2'; font-weight:800; font-size:14px; color:var(--mod-text); margin-bottom:4px; }
+.snip-card-meta { font-family:'Baloo 2'; font-size:11px; color:var(--mod-muted); line-height:1.6; }
+.snip-card-actions { display:flex; gap:6px; margin-top:12px; flex-wrap:wrap; }
 
-/* ── Slide-in panel ── */
-.panel-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:800; opacity:0;
-  pointer-events:none; transition:opacity .25s; }
+/* ─── Chat log browser ─── */
+.browser-wrap { background:var(--mod-panel); border:1px solid rgba(116,192,252,.2);
+  border-radius:var(--mod-radius); margin-bottom:24px; overflow:hidden; }
+.browser-head { display:flex; align-items:center; gap:10px; padding:14px 20px;
+  cursor:pointer; border-bottom:1px solid var(--mod-border); }
+.browser-head-title { font-family:'Baloo 2'; font-weight:900; font-size:14px; color:var(--mod-accent); flex:1; }
+.browser-body { padding:18px 20px; display:none; }
+.browser-body.open { display:block; }
+.browser-controls { display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:end; margin-bottom:14px; }
+.form-label { font-family:'Baloo 2'; font-weight:800; font-size:11px; color:var(--mod-muted);
+  text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px; display:block; }
+.form-select { width:100%; background:rgba(255,255,255,.05); border:1px solid var(--mod-border); border-radius:8px;
+  padding:10px 12px; font-family:'Baloo 2'; font-weight:600; font-size:13px; color:var(--mod-text); outline:none; }
+.form-input { width:100%; background:rgba(255,255,255,.05); border:1px solid var(--mod-border); border-radius:8px;
+  padding:10px 12px; font-family:'Baloo 2'; font-weight:600; font-size:13px; color:var(--mod-text); outline:none; box-sizing:border-box; }
+.form-input:focus, .form-select:focus { border-color:rgba(116,192,252,.4); }
+.form-textarea { width:100%; background:rgba(255,255,255,.05); border:1px solid var(--mod-border); border-radius:8px;
+  padding:10px 12px; font-family:'Baloo 2'; font-weight:600; font-size:13px; color:var(--mod-text); outline:none;
+  resize:vertical; min-height:80px; box-sizing:border-box; line-height:1.6; }
+.form-textarea:focus { border-color:rgba(116,192,252,.4); }
+.msg-browser { max-height:380px; overflow-y:auto; background:rgba(0,0,0,.2); border:1px solid var(--mod-border);
+  border-radius:9px; padding:6px; margin-bottom:14px; scroll-behavior:smooth; }
+.msg-browser::-webkit-scrollbar { width:4px; }
+.msg-browser::-webkit-scrollbar-thumb { background:rgba(255,255,255,.12); border-radius:99px; }
+.msg-row { display:flex; align-items:flex-start; gap:10px; padding:8px 10px; border-radius:7px;
+  cursor:pointer; transition:background .1s; border:1px solid transparent; }
+.msg-row:hover { background:rgba(255,255,255,.04); }
+.msg-row.selected { background:rgba(116,192,252,.1); border-color:rgba(116,192,252,.3); }
+.msg-row.in-range { background:rgba(116,192,252,.05); border-left:2px solid rgba(116,192,252,.4); }
+.msg-av { width:28px; height:28px; border-radius:50%; flex-shrink:0; background:rgba(255,255,255,.08); }
+.msg-author { font-family:'Baloo 2'; font-weight:800; font-size:12px; color:var(--mod-text); }
+.msg-time { font-family:'Baloo 2'; font-size:10px; color:var(--mod-muted); margin-left:6px; }
+.msg-content { font-size:12px; color:#c9ccdb; line-height:1.55; word-break:break-word; white-space:pre-wrap; margin-top:2px; }
+.msg-attach { font-size:11px; color:var(--mod-accent); margin-top:2px; }
+.browser-save { background:rgba(255,255,255,.04); border:1px solid var(--mod-border); border-radius:9px; padding:14px; }
+.sel-count { font-family:'Baloo 2'; font-weight:800; font-size:12px; color:var(--mod-green); margin-bottom:10px; }
+
+/* ─── Slide-in panel ─── */
+.panel-overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:800; opacity:0; pointer-events:none; transition:opacity .25s; }
 .panel-overlay.open { opacity:1; pointer-events:all; }
-.slide-panel { position:fixed; top:0; right:0; height:100vh; width:min(520px,100vw);
-  background:#15161f; border-left:1px solid rgba(255,255,255,.1); z-index:900;
+.slide-panel { position:fixed; top:0; right:0; height:100vh; width:min(540px,100vw);
+  background:#12131d; border-left:1px solid var(--mod-border); z-index:900;
   transform:translateX(100%); transition:transform .3s cubic-bezier(.4,0,.2,1);
   display:flex; flex-direction:column; overflow:hidden; }
 .slide-panel.open { transform:translateX(0); }
-.panel-head { display:flex; align-items:center; gap:12px; padding:20px 24px; border-bottom:1px solid rgba(255,255,255,.08); flex-shrink:0; }
-.panel-head-title { font-family:'Baloo 2'; font-weight:900; font-size:17px; color:#e0e2ed; flex:1; }
-.panel-body { flex:1; overflow-y:auto; padding:20px 24px; }
+.panel-head { display:flex; align-items:center; gap:12px; padding:20px 24px;
+  border-bottom:1px solid var(--mod-border); flex-shrink:0;
+  background:linear-gradient(135deg,rgba(116,192,252,.06),rgba(168,85,247,.04)); }
+.panel-title { font-family:'Baloo 2'; font-weight:900; font-size:18px; color:var(--mod-text); flex:1; }
+.panel-body { flex:1; overflow-y:auto; padding:22px 24px; }
 .panel-body::-webkit-scrollbar { width:4px; }
 .panel-body::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:99px; }
 
-/* ── Panel form ── */
-.form-group { margin-bottom:16px; }
-.form-label { font-family:'Baloo 2'; font-weight:800; font-size:11px; color:rgba(255,255,255,.4);
-  text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px; display:block; }
-.form-input { width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
-  border-radius:8px; padding:10px 14px; font-family:'Baloo 2'; font-weight:600; font-size:13px;
-  color:#fff; outline:none; box-sizing:border-box; }
-.form-input:focus { border-color:rgba(116,192,252,.4); }
-.form-select { width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
-  border-radius:8px; padding:10px 14px; font-family:'Baloo 2'; font-weight:600; font-size:13px;
-  color:#fff; outline:none; box-sizing:border-box; }
-.form-textarea { width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
-  border-radius:8px; padding:10px 14px; font-family:'Baloo 2'; font-weight:600; font-size:13px;
-  color:#fff; outline:none; resize:vertical; min-height:90px; box-sizing:border-box; line-height:1.6; }
-.form-textarea:focus, .form-select:focus { border-color:rgba(116,192,252,.4); }
-.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+/* ─── Panel form ─── */
+.pform-group { margin-bottom:18px; }
+.pform-label { font-family:'Baloo 2'; font-weight:800; font-size:11px; color:var(--mod-muted);
+  text-transform:uppercase; letter-spacing:.05em; margin-bottom:7px; display:block; }
+.pform-input { width:100%; background:rgba(255,255,255,.05); border:1px solid var(--mod-border); border-radius:9px;
+  padding:11px 14px; font-family:'Baloo 2'; font-weight:600; font-size:13px; color:var(--mod-text);
+  outline:none; box-sizing:border-box; transition:border-color .15s; }
+.pform-input:focus { border-color:rgba(116,192,252,.45); }
+.pform-select { width:100%; background:rgba(255,255,255,.05); border:1px solid var(--mod-border); border-radius:9px;
+  padding:11px 14px; font-family:'Baloo 2'; font-weight:600; font-size:13px; color:var(--mod-text); outline:none; box-sizing:border-box; }
+.pform-select:focus { border-color:rgba(116,192,252,.45); }
+.pform-textarea { width:100%; background:rgba(255,255,255,.05); border:1px solid var(--mod-border); border-radius:9px;
+  padding:11px 14px; font-family:'Baloo 2'; font-weight:600; font-size:13px; color:var(--mod-text); outline:none;
+  resize:vertical; min-height:90px; box-sizing:border-box; line-height:1.65; }
+.pform-textarea:focus { border-color:rgba(116,192,252,.45); }
+.pform-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 
-/* ── Report type cards ── */
-.type-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:4px; }
-.type-card { border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:12px 10px; text-align:center;
-  cursor:pointer; transition:all .15s; background:rgba(255,255,255,.03); }
-.type-card:hover { border-color:rgba(255,255,255,.2); background:rgba(255,255,255,.06); }
-.type-card.selected { border-color:#74c0fc; background:rgba(116,192,252,.1); }
-.type-card.selected.gen { border-color:#fbbf24; background:rgba(251,191,36,.1); }
-.type-card.selected.player { border-color:#c084fc; background:rgba(168,85,247,.1); }
+/* ─── Type cards ─── */
+.type-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.type-card { border:1px solid var(--mod-border); border-radius:10px; padding:12px 8px; text-align:center;
+  cursor:pointer; transition:all .15s; background:var(--mod-panel); }
+.type-card:hover { border-color:rgba(255,255,255,.2); }
+.type-card.sel-ticket { border-color:var(--mod-accent); background:rgba(116,192,252,.1); }
+.type-card.sel-player { border-color:var(--mod-purple); background:rgba(168,85,247,.1); }
+.type-card.sel-general { border-color:var(--mod-yellow); background:rgba(251,191,36,.1); }
 .type-card-icon { font-size:22px; margin-bottom:4px; }
-.type-card-name { font-family:'Baloo 2'; font-weight:800; font-size:12px; color:#e0e2ed; }
-.type-card-desc { font-family:'Baloo 2'; font-size:10px; color:rgba(255,255,255,.35); margin-top:2px; }
+.type-card-name { font-family:'Baloo 2'; font-weight:800; font-size:12px; color:var(--mod-text); }
+.type-card-desc { font-family:'Baloo 2'; font-size:10px; color:var(--mod-muted); margin-top:2px; }
 
-/* ── Multi-snippet chips ── */
-.snip-chips { display:flex; flex-wrap:wrap; gap:6px; min-height:32px; margin-bottom:8px; }
+/* ─── Snippet chips ─── */
+.chip-row { display:flex; flex-wrap:wrap; gap:6px; min-height:28px; margin-bottom:8px; }
 .snip-chip { display:inline-flex; align-items:center; gap:6px; background:rgba(116,192,252,.1);
-  border:1px solid rgba(116,192,252,.25); border-radius:99px; padding:3px 10px;
-  font-family:'Baloo 2'; font-weight:700; font-size:12px; color:#74c0fc; }
-.snip-chip-rm { background:none; border:none; cursor:pointer; color:#74c0fc; font-size:13px; padding:0; line-height:1; }
-.snip-picker-list { max-height:200px; overflow-y:auto; border:1px solid rgba(255,255,255,.08); border-radius:8px; }
-.snip-row { display:flex; align-items:center; gap:10px; padding:9px 12px; cursor:pointer;
-  border-bottom:1px solid rgba(255,255,255,.05); transition:background .1s; }
-.snip-row:last-child { border-bottom:none; }
-.snip-row:hover { background:rgba(255,255,255,.04); }
-.snip-row.added { background:rgba(116,192,252,.07); }
-.snip-row-name { font-family:'Baloo 2'; font-weight:700; font-size:12px; color:#e0e2ed; }
-.snip-row-meta { font-family:'Baloo 2'; font-size:11px; color:rgba(255,255,255,.35); }
+  border:1px solid rgba(116,192,252,.28); border-radius:99px; padding:3px 10px 3px 10px;
+  font-family:'Baloo 2'; font-weight:700; font-size:12px; color:var(--mod-accent); }
+.chip-rm { background:none; border:none; cursor:pointer; color:var(--mod-accent); font-size:13px; padding:0; margin-left:2px; }
+.snip-pick-list { max-height:190px; overflow-y:auto; border:1px solid var(--mod-border); border-radius:9px; }
+.snip-pick-list::-webkit-scrollbar { width:3px; }
+.snip-pick-list::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:99px; }
+.snip-pick-row { display:flex; align-items:center; gap:10px; padding:9px 12px; cursor:pointer;
+  border-bottom:1px solid rgba(255,255,255,.04); transition:background .1s; }
+.snip-pick-row:last-child { border-bottom:none; }
+.snip-pick-row:hover { background:rgba(255,255,255,.04); }
+.snip-pick-row.picked { background:rgba(116,192,252,.08); }
+.snip-pick-name { font-family:'Baloo 2'; font-weight:700; font-size:12px; color:var(--mod-text); }
+.snip-pick-meta { font-family:'Baloo 2'; font-size:11px; color:var(--mod-muted); }
+.snip-pick-check { font-size:14px; color:var(--mod-accent); margin-left:auto; display:none; }
 
-/* ── AI result in panel ── */
-.ai-result { background:rgba(168,85,247,.07); border:1px solid rgba(168,85,247,.2); border-radius:10px;
-  padding:12px 14px; margin-top:10px; display:none; }
+/* ─── AI result ─── */
+.ai-result { background:rgba(168,85,247,.07); border:1px solid rgba(168,85,247,.22); border-radius:10px;
+  padding:14px 16px; margin-top:10px; display:none; }
 .ai-result.show { display:block; }
-.ai-result-text { font-size:13px; color:#ddd6fe; line-height:1.7; }
+.ai-result-text { font-size:13px; color:#ddd6fe; line-height:1.75; }
+.ai-label { font-family:'Baloo 2'; font-weight:800; font-size:11px; color:var(--mod-purple);
+  text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px; }
 
-/* ── Empty state ── */
+/* ─── Player history modal ─── */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:1000;
+  display:none; align-items:center; justify-content:center; padding:20px; }
+.modal-overlay.open { display:flex; }
+.modal { background:#12131d; border:1px solid var(--mod-border); border-radius:16px;
+  width:min(700px,100%); max-height:85vh; display:flex; flex-direction:column; overflow:hidden; }
+.modal-head { display:flex; align-items:center; gap:14px; padding:20px 24px;
+  border-bottom:1px solid var(--mod-border); flex-shrink:0; }
+.modal-body { flex:1; overflow-y:auto; padding:20px 24px; }
+.modal-body::-webkit-scrollbar { width:4px; }
+.modal-body::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:99px; }
+.history-section { margin-bottom:20px; }
+.history-section-title { font-family:'Baloo 2'; font-weight:900; font-size:12px; text-transform:uppercase;
+  letter-spacing:.07em; color:var(--mod-muted); margin-bottom:10px; border-bottom:1px solid var(--mod-border); padding-bottom:6px; }
+.history-row { display:flex; align-items:flex-start; gap:10px; padding:10px 12px;
+  background:var(--mod-panel); border:1px solid var(--mod-border); border-radius:9px; margin-bottom:7px; }
+.history-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:4px; }
+.history-summary { font-size:13px; color:#c9ccdb; line-height:1.6; }
+.history-meta { font-family:'Baloo 2'; font-size:11px; color:var(--mod-muted); margin-top:3px; }
+.profile-badge { display:flex; align-items:center; gap:12px; padding:14px 18px;
+  background:var(--mod-panel2); border-radius:10px; margin-bottom:18px; }
+.profile-stat { text-align:center; flex:1; }
+.profile-stat-num { font-family:'Baloo 2'; font-weight:900; font-size:22px; color:var(--mod-text); }
+.profile-stat-label { font-family:'Baloo 2'; font-size:11px; color:var(--mod-muted); }
+
+/* ─── Snippet viewer modal ─── */
+.snip-modal { background:#12131d; border:1px solid var(--mod-border); border-radius:16px;
+  width:min(680px,100%); max-height:80vh; display:flex; flex-direction:column; overflow:hidden; }
+.snip-modal-msgs { overflow-y:auto; padding:16px 22px; flex:1; }
+.snip-msg-row { display:flex; gap:10px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.04); }
+.snip-msg-row:last-child { border-bottom:none; }
+
+/* ─── Add ban form ─── */
+.add-ban-form { background:var(--mod-panel); border:1px solid rgba(248,113,113,.15);
+  border-radius:var(--mod-radius); padding:18px 20px; margin-bottom:20px; }
+
+/* ─── Empty state ─── */
 .empty { display:flex; flex-direction:column; align-items:center; justify-content:center;
-  padding:60px 20px; color:rgba(255,255,255,.25); text-align:center; }
-.empty-icon { font-size:40px; margin-bottom:12px; }
-.empty-text { font-family:'Baloo 2'; font-weight:700; font-size:14px; }
-
-/* ── Misc ── */
-.divider { height:1px; background:rgba(255,255,255,.07); margin:16px 0; }
-.section-title { font-family:'Baloo 2'; font-weight:900; font-size:12px; text-transform:uppercase;
-  letter-spacing:.07em; color:rgba(255,255,255,.3); margin-bottom:12px; }
-.inline-form { display:inline; }
+  padding:60px 20px; color:var(--mod-muted); text-align:center; gap:10px; }
+.empty-icon { font-size:44px; }
+.empty-text { font-family:'Baloo 2'; font-weight:700; font-size:15px; }
+.empty-sub { font-family:'Baloo 2'; font-size:12px; opacity:.7; }
 </style>
 
 <div class="mod-wrap">
 
-  <!-- Top bar -->
-  <div class="mod-topbar">
-    <h1 class="mod-title">Mod<span>eration</span></h1>
-    <button class="btn btn-new" onclick="openPanel()">＋ New Report</button>
+  <!-- Head -->
+  <div class="mod-head">
+    <div class="mod-title">Moderation</div>
+    <div class="mod-head-right">
+      <button class="btn btn-new" onclick="openPanel()">＋ New Report</button>
+    </div>
+  </div>
+
+  <!-- Stats strip -->
+  <%
+    const activeFlags = flagged.filter(f=>!f.disregarded).length;
+    const totalReports = allReports.length;
+    const totalBans = bans.length;
+    const totalSnips = snippets.length;
+  %>
+  <div class="stats-strip">
+    <div class="stat-chip" onclick="switchTab('flagged',document.querySelector('.tab-btn'))" style="cursor:pointer">
+      <div class="stat-chip-dot" style="background:#f87171"></div>
+      <div class="stat-chip-num"><%= activeFlags %></div>
+      <div class="stat-chip-label">Active Flags</div>
+    </div>
+    <div class="stat-chip">
+      <div class="stat-chip-dot" style="background:#74c0fc"></div>
+      <div class="stat-chip-num"><%= totalReports %></div>
+      <div class="stat-chip-label">Reports</div>
+    </div>
+    <div class="stat-chip">
+      <div class="stat-chip-dot" style="background:#fb923c"></div>
+      <div class="stat-chip-num"><%= totalBans %></div>
+      <div class="stat-chip-label">Active Bans</div>
+    </div>
+    <div class="stat-chip">
+      <div class="stat-chip-dot" style="background:#c084fc"></div>
+      <div class="stat-chip-num"><%= totalSnips %></div>
+      <div class="stat-chip-label">Evidence Snippets</div>
+    </div>
+  </div>
+
+  <!-- Player search -->
+  <div class="player-search-wrap">
+    <span class="player-search-ico">🔍</span>
+    <input type="text" class="player-search-input" id="globalSearch"
+      placeholder="Search player by Discord tag, ID or Minecraft IGN to see full history…"
+      oninput="debounceSearch(this.value)" autocomplete="off">
+    <div class="player-search-hint">Press Enter or click a result to open the player's full moderation history</div>
   </div>
 
   <!-- Tabs -->
   <div class="tab-nav">
     <button class="tab-btn active" onclick="switchTab('flagged',this)">
       🚩 Flagged
-      <% const newFlags = flagged.filter(f=>!f.disregarded).length; %>
-      <% if(newFlags>0){%><span class="tab-badge"><%= newFlags %></span><%}%>
-    </button>
-    <button class="tab-btn" onclick="switchTab('bans',this)">
-      🔨 Bans
-      <% if(bans.length>0){%><span class="tab-badge" style="background:#fb923c"><%= bans.length %></span><%}%>
+      <% if(activeFlags>0){ %><span class="tab-badge"><%= activeFlags %></span><% } %>
     </button>
     <button class="tab-btn" onclick="switchTab('reports',this)">
       📋 Reports
-      <% if(allReports.length>0){%><span class="tab-badge" style="background:#74c0fc"><%= allReports.length %></span><%}%>
+      <% if(totalReports>0){ %><span class="tab-badge" style="background:#74c0fc"><%= totalReports %></span><% } %>
+    </button>
+    <button class="tab-btn" onclick="switchTab('bans',this)">
+      🔨 Bans
+      <% if(totalBans>0){ %><span class="tab-badge" style="background:#fb923c"><%= totalBans %></span><% } %>
     </button>
     <button class="tab-btn" onclick="switchTab('evidence',this)">
-      💬 Evidence Library
-      <% if(snippets.length>0){%><span class="tab-badge" style="background:#c084fc"><%= snippets.length %></span><%}%>
+      💬 Evidence & Logs
+      <% if(totalSnips>0){ %><span class="tab-badge" style="background:#c084fc"><%= totalSnips %></span><% } %>
     </button>
   </div>
 
-  <!-- ═══════════════════ FLAGGED TAB ═══════════════════ -->
+  <!-- ══════════════ FLAGGED ══════════════ -->
   <div class="tab-panel active" id="tab-flagged">
-
-    <div class="filter-pills">
-      <button class="filter-pill active" onclick="filterFlags('all',this)">All</button>
-      <button class="filter-pill" onclick="filterFlags('active',this)">Active</button>
-      <button class="filter-pill" onclick="filterFlags('disregarded',this)">Disregarded</button>
-      <span class="filter-count"><%= flagged.length %> total</span>
+    <div class="filter-bar">
+      <button class="fpill active" onclick="filterFlags('all',this)">All <span style="opacity:.5">(<%= flagged.length %>)</span></button>
+      <button class="fpill" onclick="filterFlags('active',this)">Active <span style="opacity:.5">(<%= activeFlags %>)</span></button>
+      <button class="fpill" onclick="filterFlags('disregarded',this)">Disregarded <span style="opacity:.5">(<%= flagged.length - activeFlags %>)</span></button>
     </div>
-
     <% if(!flagged.length){ %>
     <div class="empty"><div class="empty-icon">✅</div><div class="empty-text">No flagged messages</div></div>
     <% } %>
-
     <% flagged.forEach(function(f){ %>
-    <%
-      const flagDate = new Date(f.flagged_at);
-      const isToday = flagDate.toDateString() === new Date().toDateString();
-      const typeClass = f.flag_type==='slur'?'pill-flag-slur': f.flag_type==='extremist'?'pill-flag-extreme':'pill-flag-hate';
-    %>
-    <div class="card <%= f.disregarded?'disregarded':'' %>" data-flag-state="<%= f.disregarded?'disregarded':'active' %>">
+    <% const fDate = new Date(f.flagged_at); const isToday = fDate.toDateString()===new Date().toDateString();
+       const tClass = f.flag_type==='slur'?'pill-flag-slur':f.flag_type==='extremist'?'pill-flag-extreme':'pill-flag-hate'; %>
+    <div class="card <%= f.disregarded?'disregarded':'' %>" data-fstate="<%= f.disregarded?'dis':'active' %>">
       <div class="card-header" onclick="toggleCard(this)">
-        <span class="pill <%= typeClass %>"><%= f.flag_type||'flagged' %></span>
+        <span class="pill <%= tClass %>"><%= f.flag_type||'flagged' %></span>
         <div style="flex:1;min-width:0">
-          <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#e0e2ed;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-            <%= (f.content||'').substring(0,120) %>
-          </div>
-          <div style="font-family:'Baloo 2';font-size:11px;color:rgba(255,255,255,.35);">
-            <%= f.author_tag||'Unknown' %>
-            <% if(f.channel_name){ %> · #<%= f.channel_name %><% } %>
-            <% if(f.guild_name){ %> · <%= f.guild_name %><% } %>
+          <div style="font-family:'Baloo 2';font-weight:700;font-size:13px;color:var(--mod-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+            <%= (f.content||'').substring(0,110) %></div>
+          <div style="font-family:'Baloo 2';font-size:11px;color:var(--mod-muted)">
+            <%= f.author_tag||'Unknown' %><% if(f.channel_name){ %> · #<%= f.channel_name %><% } %>
           </div>
         </div>
-        <div class="card-meta">
-          <% if(isToday){ %><span style="color:#f87171;margin-right:6px">● Today</span><% } %>
-          <%= flagDate.toLocaleDateString('en-GB') %>
-        </div>
-        <span style="color:rgba(255,255,255,.3);font-size:12px;margin-left:6px">▼</span>
+        <% if(isToday){ %><span style="font-family:'Baloo 2';font-size:11px;color:#f87171;font-weight:800">● Today</span><% } %>
+        <div class="card-time"><%= fDate.toLocaleDateString('en-GB') %></div>
+        <span class="card-expand">▼</span>
       </div>
       <div class="card-body">
         <div class="flag-content"><%= f.content %></div>
-        <% if(f.matched_word){ %>
-        <div style="margin-bottom:10px">Matched: <span class="flag-match"><%= f.matched_word %></span></div>
-        <% } %>
-        <div class="detail-row">
-          <span class="detail-label">Author ID</span>
-          <span style="font-family:monospace;font-size:12px;color:rgba(255,255,255,.5)"><%= f.author_id||'—' %></span>
+        <% if(f.matched_word){ %><div style="margin-bottom:12px">Matched: <span class="flag-match"><%= f.matched_word %></span></div><% } %>
+        <div class="detail-grid">
+          <span class="dl">Author</span><span class="dv"><%= f.author_tag||'—' %></span>
+          <span class="dl">Discord ID</span><span class="dv" style="font-family:monospace;font-size:11px"><%= f.author_id||'—' %></span>
+          <% if(f.channel_name){ %><span class="dl">Channel</span><span class="dv">#<%= f.channel_name %></span><% } %>
         </div>
-        <div class="detail-row">
-          <span class="detail-label">Message ID</span>
-          <span style="font-family:monospace;font-size:12px;color:rgba(255,255,255,.5)"><%= f.message_id||'—' %></span>
-        </div>
-        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
           <% if(!f.disregarded){ %>
           <form method="POST" action="/admin/moderation/flagged/<%= f.id %>/disregard" class="inline-form">
             <button class="btn btn-ghost btn-sm">Disregard</button>
           </form>
-          <button class="btn btn-primary btn-sm" data-id="<%= f.author_id %>" data-tag="<%= (f.author_tag||'').replace(/"/g,'&quot;') %>" onclick="prefillPanel(this.dataset.id,this.dataset.tag)">+ Create Report</button>
+          <button class="btn btn-primary btn-sm"
+            data-id="<%= f.author_id %>"
+            data-tag="<%= (f.author_tag||'').replace(/"/g,'&quot;') %>"
+            onclick="prefillPanel(this.dataset.id,this.dataset.tag)">＋ Create Report</button>
+          <button class="btn btn-ghost btn-sm"
+            data-id="<%= f.author_id %>"
+            onclick="openPlayerHistory(this.dataset.id,'<%= (f.author_tag||'Unknown').replace(/'/g,'&#39;') %>')">👤 Player History</button>
           <% } else { %>
           <form method="POST" action="/admin/moderation/flagged/<%= f.id %>/restore" class="inline-form">
             <button class="btn btn-ghost btn-sm">Restore</button>
@@ -275,169 +425,80 @@
     <% }); %>
   </div>
 
-  <!-- ═══════════════════ BANS TAB ═══════════════════ -->
-  <div class="tab-panel" id="tab-bans">
-
-    <!-- Add ban form -->
-    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:18px 20px;margin-bottom:20px">
-      <div class="section-title" style="margin-bottom:14px">Add New Ban</div>
-      <form method="POST" action="/admin/moderation/bans/add">
-        <div class="form-row" style="margin-bottom:12px">
-          <div class="form-group" style="margin:0">
-            <label class="form-label">Discord ID *</label>
-            <input type="text" name="discord_id" class="form-input" placeholder="123456789012345678" required>
-          </div>
-          <div class="form-group" style="margin:0">
-            <label class="form-label">Discord Tag *</label>
-            <input type="text" name="discord_tag" class="form-input" placeholder="username#0000" required>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Reason *</label>
-          <input type="text" name="reason" class="form-input" placeholder="Brief reason for the ban" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Notes</label>
-          <textarea name="notes" class="form-textarea" style="min-height:60px" placeholder="Additional context…"></textarea>
-        </div>
-        <button type="submit" class="btn btn-danger">Add Ban</button>
-      </form>
-    </div>
-
-    <% if(!bans.length){ %>
-    <div class="empty"><div class="empty-icon">🎉</div><div class="empty-text">No active bans</div></div>
-    <% } %>
-
-    <% bans.forEach(function(b){ %>
-    <%
-      const banDate = new Date(b.banned_at||b.created_at);
-    %>
-    <div class="card">
-      <div class="card-header" onclick="toggleCard(this)">
-        <% if(b.player_discord_avatar){ %>
-        <img src="<%= b.player_discord_avatar %>" class="avatar" alt="">
-        <% } else { %>
-        <div class="avatar" style="display:flex;align-items:center;justify-content:center;font-size:14px">🔨</div>
-        <% } %>
-        <div style="flex:1;min-width:0">
-          <div class="player-tag"><%= b.discord_tag||b.player_discord_tag||'Unknown' %></div>
-          <div class="player-id"><%= b.discord_id||b.player_discord_id||'' %></div>
-        </div>
-        <div class="card-meta"><%= banDate.toLocaleDateString('en-GB') %></div>
-        <span style="color:rgba(255,255,255,.3);font-size:12px;margin-left:6px">▼</span>
-      </div>
-      <div class="card-body">
-        <div class="detail-row">
-          <span class="detail-label">Reason</span>
-          <span class="summary-text" style="margin:0"><%= b.reason||'No reason given' %></span>
-        </div>
-        <% if(b.notes){ %>
-        <div class="detail-row">
-          <span class="detail-label">Notes</span>
-          <span style="font-size:13px;color:rgba(255,255,255,.5)"><%= b.notes %></span>
-        </div>
-        <% } %>
-        <% if(b.evidence && b.evidence.length){ %>
-        <div class="divider"></div>
-        <div class="section-title">Evidence (<%= b.evidence.length %>)</div>
-        <div class="ev-list">
-          <% b.evidence.forEach(function(ev){ %>
-          <div class="ev-item">
-            <span class="ev-icon">📎</span>
-            <div><div class="ev-label"><%= ev.label||ev.url||ev.filename||'File' %></div></div>
-          </div>
-          <% }); %>
-        </div>
-        <% } %>
-        <div style="display:flex;gap:8px;margin-top:14px">
-          <form method="POST" action="/admin/moderation/bans/<%= b.id %>/delete" class="inline-form"
-                onsubmit="return confirm('Remove this ban?')">
-            <button class="btn btn-danger btn-sm">Remove Ban</button>
-          </form>
-        </div>
-      </div>
-    </div>
-    <% }); %>
-  </div>
-
-  <!-- ═══════════════════ REPORTS TAB ═══════════════════ -->
+  <!-- ══════════════ REPORTS ══════════════ -->
   <div class="tab-panel" id="tab-reports">
-
-    <div class="filter-pills">
-      <button class="filter-pill active" onclick="filterReports('all',this)">All <span style="opacity:.5;font-weight:600">(<%= allReports.length %>)</span></button>
-      <button class="filter-pill" onclick="filterReports('ticket',this)">Tickets <span style="opacity:.5;font-weight:600">(<%= allReports.filter(r=>r._type==='ticket').length %>)</span></button>
-      <button class="filter-pill" onclick="filterReports('player',this)">In-Game <span style="opacity:.5;font-weight:600">(<%= allReports.filter(r=>r._type==='player').length %>)</span></button>
-      <button class="filter-pill" onclick="filterReports('general',this)">General <span style="opacity:.5;font-weight:600">(<%= allReports.filter(r=>r._type==='general').length %>)</span></button>
+    <div class="filter-bar">
+      <button class="fpill active" onclick="filterReports('all',this)">All <span style="opacity:.5">(<%= allReports.length %>)</span></button>
+      <button class="fpill" onclick="filterReports('ticket',this)">🎟 Tickets <span style="opacity:.5">(<%= allReports.filter(r=>r._type==='ticket').length %>)</span></button>
+      <button class="fpill" onclick="filterReports('player',this)">🎮 In-Game <span style="opacity:.5">(<%= allReports.filter(r=>r._type==='player').length %>)</span></button>
+      <button class="fpill" onclick="filterReports('general',this)">📝 General <span style="opacity:.5">(<%= allReports.filter(r=>r._type==='general').length %>)</span></button>
       <span class="filter-count"><%= allReports.length %> total</span>
     </div>
-
     <% if(!allReports.length){ %>
-    <div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No reports yet — use "New Report" to add one</div></div>
+    <div class="empty">
+      <div class="empty-icon">📋</div>
+      <div class="empty-text">No reports yet</div>
+      <div class="empty-sub">Click "＋ New Report" to log one</div>
+    </div>
     <% } %>
-
     <% allReports.forEach(function(r){ %>
     <%
       const rDate = new Date(r.created_at);
-      const sevClass = r.severity==='high'?'pill-sev-high':r.severity==='medium'?'pill-sev-medium':'pill-sev-low';
-      const typeLabel = r._type==='ticket'?'Ticket':r._type==='player'?'In-Game':'General';
-      const typeClass = r._type==='ticket'?'pill-type-ticket':r._type==='player'?'pill-type-player':'pill-type-general';
+      const sevClass = r.severity==='high'?'pill-high':r.severity==='medium'?'pill-medium':'pill-low';
+      const tLabel = r._type==='ticket'?'Ticket':r._type==='player'?'In-Game':'General';
+      const tClass = r._type==='ticket'?'pill-ticket':r._type==='player'?'pill-player':'pill-general';
       const evList = Array.isArray(r._evidence)?r._evidence:[];
     %>
     <div class="card" data-rtype="<%= r._type %>">
       <div class="card-header" onclick="toggleCard(this)">
         <% if(r.player_discord_avatar){ %>
-        <img src="<%= r.player_discord_avatar %>" class="avatar" alt="">
+        <img src="<%= r.player_discord_avatar %>" class="p-avatar" alt="" onerror="this.style.display='none'">
         <% } else { %>
-        <div class="avatar" style="display:flex;align-items:center;justify-content:center;font-size:15px">👤</div>
+        <div class="p-avatar" style="display:flex;align-items:center;justify-content:center;font-size:14px">👤</div>
         <% } %>
-        <div style="flex:1;min-width:0">
-          <div class="player-tag"><%= r.player_discord_tag||'Unknown' %></div>
-          <div style="font-family:'Baloo 2';font-size:11px;color:rgba(255,255,255,.35)"><%= r.player_discord_id||'' %></div>
+        <div class="player-chip">
+          <div>
+            <div class="p-tag" data-id="<%= r.player_discord_id %>" data-tag="<%= (r.player_discord_tag||'').replace(/"/g,'&quot;') %>"
+              onclick="event.stopPropagation();openPlayerHistory(this.dataset.id,this.dataset.tag)">
+              <%= r.player_discord_tag||'Unknown' %></div>
+            <div class="p-id"><%= r.player_discord_id||'' %></div>
+          </div>
         </div>
-        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
-          <span class="pill <%= typeClass %>"><%= typeLabel %></span>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:nowrap;flex-shrink:0">
+          <span class="pill <%= tClass %>"><%= tLabel %></span>
           <span class="pill <%= sevClass %>"><%= r.severity||'low' %></span>
           <% if(r.action_taken){ %><span class="pill pill-action"><%= r.action_taken %></span><% } %>
+          <% if(evList.length){ %><span style="font-family:'Baloo 2';font-size:11px;color:var(--mod-muted)">📎 <%= evList.length %></span><% } %>
         </div>
-        <div class="card-meta" style="margin-left:10px"><%= rDate.toLocaleDateString('en-GB') %></div>
-        <span style="color:rgba(255,255,255,.3);font-size:12px;margin-left:6px">▼</span>
+        <div class="card-time" style="margin-left:10px"><%= rDate.toLocaleDateString('en-GB') %></div>
+        <span class="card-expand">▼</span>
       </div>
       <div class="card-body">
-        <div class="summary-text"><%= r.summary %></div>
-
-        <div class="form-row" style="margin-bottom:8px">
-          <% if(r.staff_involved){ %>
-          <div class="detail-row"><span class="detail-label">Staff</span><span style="font-size:13px;color:rgba(255,255,255,.5)"><%= r.staff_involved %></span></div>
-          <% } %>
-          <% if(r._type==='player' && r.incident_type){ %>
-          <div class="detail-row"><span class="detail-label">Incident</span><span style="font-size:13px;color:rgba(255,255,255,.5)"><%= r.incident_type %></span></div>
-          <% } %>
-          <% if(r._type==='player' && r.location){ %>
-          <div class="detail-row"><span class="detail-label">Location</span><span style="font-size:13px;color:rgba(255,255,255,.5)"><%= r.location %></span></div>
-          <% } %>
+        <div class="summary"><%= r.summary %></div>
+        <div class="detail-grid">
+          <% if(r.staff_involved){ %><span class="dl">Staff</span><span class="dv"><%= r.staff_involved %></span><% } %>
+          <% if(r._type==='player'&&r.incident_type){ %><span class="dl">Incident</span><span class="dv"><%= r.incident_type %></span><% } %>
+          <% if(r._type==='player'&&r.location){ %><span class="dl">Location</span><span class="dv"><%= r.location %></span><% } %>
+          <% if(r.created_by){ %><span class="dl">Filed by</span><span class="dv"><%= r.created_by %></span><% } %>
         </div>
-
         <% if(r.notes){ %>
-        <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:10px 14px;font-size:13px;color:rgba(255,255,255,.5);margin-bottom:12px"><%= r.notes %></div>
-        <% } %>
-        <% if(r.created_by){ %>
-        <div class="detail-row"><span class="detail-label">Filed by</span><span style="font-size:13px;color:rgba(255,255,255,.35)"><%= r.created_by %></span></div>
+        <div style="background:rgba(255,255,255,.03);border:1px solid var(--mod-border);border-radius:8px;padding:10px 14px;font-size:13px;color:rgba(255,255,255,.5);margin-bottom:12px"><%= r.notes %></div>
         <% } %>
 
         <!-- Evidence -->
         <% if(evList.length){ %>
         <div class="divider"></div>
-        <div class="section-title">Evidence (<%= evList.length %>)</div>
+        <div class="section-label">Evidence (<%= evList.length %>)</div>
         <div class="ev-list">
           <% evList.forEach(function(ev){ %>
           <div class="ev-item">
-            <% if(ev.evidence_type==='file'){ %>
-              <% const isVid=['.mp4','.webm','.mov','.avi'].some(x=>(ev.filename||'').toLowerCase().endsWith(x)); %>
+            <% if(ev.evidence_type==='file'){
+              const isVid=['.mp4','.webm','.mov','.avi'].some(x=>(ev.filename||'').toLowerCase().endsWith(x)); %>
               <% if(isVid){ %>
                 <video src="/img/uploads/evidence/<%= ev.filename %>" class="ev-thumb" muted preload="metadata"></video>
               <% } else { %>
                 <a href="/img/uploads/evidence/<%= ev.filename %>" target="_blank">
-                  <img src="/img/uploads/evidence/<%= ev.filename %>" class="ev-thumb" alt="">
+                  <img src="/img/uploads/evidence/<%= ev.filename %>" class="ev-thumb" alt="" onerror="this.style.display='none'">
                 </a>
               <% } %>
             <% } else if(ev.evidence_type==='url'){ %>
@@ -448,14 +509,12 @@
             <div style="flex:1;min-width:0">
               <div class="ev-label"><%= ev.label||(ev.evidence_type==='snippet'?'Snippet #'+ev.snippet_id:ev.filename||ev.url||'Evidence') %></div>
               <div class="ev-meta">
-                <% if(ev.evidence_type==='url'){ %><a href="<%= ev.url %>" target="_blank" style="color:#74c0fc"><%= ev.url %></a>
-                <% } else if(ev.evidence_type==='snippet'){ %>Chat snippet
-                  <% if(ev.snippet_id){ %> · <button class="btn btn-success btn-sm" type="button" onclick="viewSnippet(<%= ev.snippet_id %>)">View</button><% } %>
-                <% } else { %>File<% } %>
+                <% if(ev.evidence_type==='url'){ %><a href="<%= ev.url %>" target="_blank" style="color:var(--mod-accent)"><%= ev.url %></a>
+                <% } else if(ev.evidence_type==='snippet'){ %>Chat snippet<% if(ev.snippet_id){ %> · <button type="button" class="btn btn-success btn-sm" onclick="viewSnippet(<%= ev.snippet_id %>)">View</button><% } %>
+                <% } else { %>File · <a href="/img/uploads/evidence/<%= ev.filename %>" target="_blank" style="color:var(--mod-accent)">Open</a><% } %>
               </div>
             </div>
-            <form method="POST" action="/admin/moderation/reports/evidence/<%= ev.id %>/delete" class="inline-form"
-                  onsubmit="return confirm('Remove evidence?')">
+            <form method="POST" action="/admin/moderation/reports/evidence/<%= ev.id %>/delete" class="inline-form" onsubmit="return confirm('Remove evidence?')">
               <button class="btn btn-danger btn-sm">✕</button>
             </form>
           </div>
@@ -463,79 +522,185 @@
         </div>
         <% } %>
 
-        <!-- Add more evidence inline -->
+        <!-- Add evidence -->
         <div class="divider"></div>
-        <div class="section-title">Add Evidence</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="section-label">Add Evidence</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
           <div>
-            <div class="form-label" style="margin-bottom:4px">📸 Upload file</div>
-            <form method="POST" action="/admin/moderation/reports/<%= r._type %>/<%= r.id %>/evidence/file"
-                  enctype="multipart/form-data" style="display:flex;flex-direction:column;gap:6px">
-              <input type="file" name="files" accept="image/*,video/*" multiple style="font-size:11px;color:rgba(255,255,255,.4)">
-              <button type="submit" class="btn btn-ghost btn-sm" style="width:fit-content">Upload</button>
+            <label class="form-label">📸 Upload file</label>
+            <form method="POST" action="/admin/moderation/reports/<%= r._type %>/<%= r.id %>/evidence/file" enctype="multipart/form-data">
+              <input type="file" name="files" accept="image/*,video/*" multiple style="font-size:11px;color:var(--mod-muted);margin-bottom:6px;display:block">
+              <button type="submit" class="btn btn-ghost btn-sm">Upload</button>
             </form>
           </div>
           <div>
-            <div class="form-label" style="margin-bottom:4px">🔗 Add URL</div>
-            <form method="POST" action="/admin/moderation/reports/<%= r._type %>/<%= r.id %>/evidence/url"
-                  style="display:flex;flex-direction:column;gap:6px">
-              <input type="url" name="url" class="form-input" placeholder="https://…" style="padding:6px 10px;font-size:12px">
-              <input type="text" name="label" class="form-input" placeholder="Label (optional)" style="padding:6px 10px;font-size:12px">
+            <label class="form-label">🔗 Add link</label>
+            <form method="POST" action="/admin/moderation/reports/<%= r._type %>/<%= r.id %>/evidence/url" style="display:flex;flex-direction:column;gap:6px">
+              <input type="url" name="url" class="form-input" placeholder="https://…" style="padding:7px 10px;font-size:12px">
+              <input type="text" name="label" class="form-input" placeholder="Label" style="padding:7px 10px;font-size:12px">
               <button type="submit" class="btn btn-ghost btn-sm" style="width:fit-content">Add</button>
             </form>
           </div>
         </div>
-        <div style="margin-top:10px">
-          <div class="form-label" style="margin-bottom:4px">💬 Attach snippet</div>
-          <form method="POST" action="/admin/moderation/reports/<%= r._type %>/<%= r.id %>/evidence/snippet"
-                style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+        <div>
+          <label class="form-label">💬 Attach snippet</label>
+          <form method="POST" action="/admin/moderation/reports/<%= r._type %>/<%= r.id %>/evidence/snippet" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
             <select name="snippet_id" class="form-select" style="flex:1;min-width:150px;padding:7px 10px;font-size:12px">
-              <option value="">— select snippet —</option>
-              <% (snippets||[]).forEach(function(s){ %>
+              <option value="">— pick snippet —</option>
+              <% snippets.forEach(function(s){ %>
               <option value="<%= s.id %>">#<%= s.id %> <%= s.label||'(untitled)' %> · <%= s.msg_count %> msgs</option>
               <% }); %>
             </select>
             <button type="submit" class="btn btn-success btn-sm">Attach</button>
           </form>
         </div>
-
         <div class="divider"></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <form method="POST" action="/admin/moderation/reports/<%= r._type %>/<%= r.id %>/delete" class="inline-form"
-                onsubmit="return confirm('Delete this report permanently?')">
-            <button class="btn btn-danger btn-sm">Delete Report</button>
+        <form method="POST" action="/admin/moderation/reports/<%= r._type %>/<%= r.id %>/delete" class="inline-form" onsubmit="return confirm('Delete this report?')">
+          <button class="btn btn-danger btn-sm">🗑 Delete Report</button>
+        </form>
+      </div>
+    </div>
+    <% }); %>
+  </div>
+
+  <!-- ══════════════ BANS ══════════════ -->
+  <div class="tab-panel" id="tab-bans">
+    <div class="add-ban-form">
+      <div class="section-label" style="margin-bottom:14px">➕ Add New Ban</div>
+      <form method="POST" action="/admin/moderation/bans/add">
+        <div class="pform-row" style="margin-bottom:12px">
+          <div><label class="pform-label">Discord ID *</label>
+            <input type="text" name="discord_id" class="pform-input" placeholder="123456789..." required></div>
+          <div><label class="pform-label">Discord Tag *</label>
+            <input type="text" name="discord_tag" class="pform-input" placeholder="username" required></div>
+        </div>
+        <div style="margin-bottom:12px"><label class="pform-label">Reason *</label>
+          <input type="text" name="reason" class="pform-input" placeholder="Reason for ban" required></div>
+        <div style="margin-bottom:12px"><label class="pform-label">Notes</label>
+          <textarea name="notes" class="pform-textarea" style="min-height:60px" placeholder="Additional notes…"></textarea></div>
+        <button type="submit" class="btn btn-danger">Add Ban</button>
+      </form>
+    </div>
+    <% if(!bans.length){ %>
+    <div class="empty"><div class="empty-icon">🎉</div><div class="empty-text">No active bans</div></div>
+    <% } %>
+    <% bans.forEach(function(b){ %>
+    <% const bDate = new Date(b.banned_at||b.created_at); %>
+    <div class="card">
+      <div class="card-header" onclick="toggleCard(this)">
+        <% if(b.player_discord_avatar||b.discord_avatar){ %>
+        <img src="<%= b.player_discord_avatar||b.discord_avatar %>" class="p-avatar" alt="" onerror="this.style.display='none'">
+        <% } else { %>
+        <div class="p-avatar" style="display:flex;align-items:center;justify-content:center;font-size:16px">🔨</div>
+        <% } %>
+        <div class="player-chip">
+          <div>
+            <div class="p-tag"><%= b.discord_tag||b.player_discord_tag||'Unknown' %></div>
+            <div class="p-id"><%= b.discord_id||b.player_discord_id||'' %></div>
+          </div>
+        </div>
+        <span class="pill pill-high">Banned</span>
+        <div class="card-time"><%= bDate.toLocaleDateString('en-GB') %></div>
+        <span class="card-expand">▼</span>
+      </div>
+      <div class="card-body">
+        <div class="detail-grid">
+          <span class="dl">Reason</span><span class="dv"><%= b.reason||'No reason given' %></span>
+          <% if(b.notes){ %><span class="dl">Notes</span><span class="dv"><%= b.notes %></span><% } %>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+          <form method="POST" action="/admin/moderation/bans/<%= b.id %>/delete" class="inline-form" onsubmit="return confirm('Remove this ban?')">
+            <button class="btn btn-danger btn-sm">Remove Ban</button>
           </form>
+          <% const bid = b.discord_id||b.player_discord_id; const btag = b.discord_tag||b.player_discord_tag||''; %>
+          <% if(bid){ %>
+          <button class="btn btn-ghost btn-sm" data-id="<%= bid %>" data-tag="<%= btag.replace(/"/g,'&quot;') %>"
+            onclick="openPlayerHistory(this.dataset.id,this.dataset.tag)">👤 Player History</button>
+          <% } %>
         </div>
       </div>
     </div>
     <% }); %>
   </div>
 
-  <!-- ═══════════════════ EVIDENCE LIBRARY TAB ═══════════════════ -->
+  <!-- ══════════════ EVIDENCE & LOGS ══════════════ -->
   <div class="tab-panel" id="tab-evidence">
 
+    <!-- Chat log browser -->
+    <div class="browser-wrap">
+      <div class="browser-head" onclick="toggleBrowser(this)">
+        <span style="font-size:18px">💬</span>
+        <span class="browser-head-title">Browse Discord Channel Logs</span>
+        <span style="font-family:'Baloo 2';font-size:11px;color:var(--mod-muted)">Select messages → save as evidence snippet</span>
+        <span style="font-size:12px;color:var(--mod-muted);margin-left:8px" id="browserArrow">▼</span>
+      </div>
+      <div class="browser-body" id="browserBody">
+        <div class="browser-controls">
+          <div>
+            <label class="form-label">Server (Guild)</label>
+            <select id="guildSel" class="form-select" onchange="loadChannels(this.value)">
+              <option value="">Loading guilds…</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Channel</label>
+            <select id="channelSel" class="form-select" onchange="">
+              <option value="">— pick channel —</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">&nbsp;</label>
+            <button class="btn btn-primary" onclick="loadMessages()">Load Messages</button>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-bottom:10px;align-items:center">
+          <button class="btn btn-ghost btn-sm" onclick="loadMoreMessages('before')">⬆ Load older</button>
+          <span id="browserStatus" style="font-family:'Baloo 2';font-size:12px;color:var(--mod-muted)">No messages loaded</span>
+          <button class="btn btn-ghost btn-sm" onclick="loadMoreMessages('after')">⬇ Load newer</button>
+        </div>
+
+        <div class="msg-browser" id="msgBrowser">
+          <div style="padding:30px;text-align:center;font-family:'Baloo 2';font-size:13px;color:var(--mod-muted)">
+            Pick a guild and channel, then click "Load Messages"
+          </div>
+        </div>
+
+        <div class="browser-save" id="browserSave" style="display:none">
+          <div class="sel-count" id="selCount">0 messages selected</div>
+          <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+            <div style="flex:1;min-width:180px">
+              <label class="form-label">Snippet label</label>
+              <input type="text" id="snippetLabel" class="form-input" placeholder="e.g. 'Username — harassment incident'">
+            </div>
+            <button class="btn btn-success" onclick="saveSnippet()">💾 Save Snippet</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearSelection()">Clear</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saved snippets -->
+    <div class="section-label" style="margin-bottom:14px">Saved Snippets (<%= snippets.length %>)</div>
     <% if(!snippets.length){ %>
     <div class="empty">
-      <div class="empty-icon">💬</div>
-      <div class="empty-text">No evidence snippets saved yet.</div>
-      <div style="font-family:'Baloo 2';font-size:12px;color:rgba(255,255,255,.25);margin-top:6px">Use the Chat Logs tab in your bot dashboard to save message snippets.</div>
+      <div class="empty-icon">🗂</div>
+      <div class="empty-text">No snippets saved yet</div>
+      <div class="empty-sub">Use the chat log browser above to save message ranges as evidence</div>
     </div>
     <% } %>
-
     <div class="snip-grid">
       <% snippets.forEach(function(s){ %>
       <div class="snip-card">
-        <div class="snip-card-title">#<%= s.id %> — <%= s.label||'(untitled)' %></div>
+        <div class="snip-card-id">Snippet #<%= s.id %></div>
+        <div class="snip-card-title"><%= s.label||'(untitled)' %></div>
         <div class="snip-card-meta">
-          <%= s.msg_count %> messages
-          <% if(s.channel_name){ %> · #<%= s.channel_name %><% } %>
-          <% if(s.guild_name){ %> · <%= s.guild_name %><% } %>
+          <%= s.msg_count %> messages<% if(s.channel_name){ %> · #<%= s.channel_name %><% } %><% if(s.guild_name){ %> · <%= s.guild_name %><% } %>
+          <br><%= new Date(s.created_at).toLocaleDateString('en-GB') %>
         </div>
-        <div class="snip-card-meta"><%= new Date(s.created_at).toLocaleDateString('en-GB') %></div>
         <div class="snip-card-actions">
-          <button class="btn btn-primary btn-sm" onclick="viewSnippet(<%= s.id %>)">View</button>
-          <form method="POST" action="/admin/moderation/snippets/<%= s.id %>/delete" class="inline-form"
-                onsubmit="return confirm('Delete this snippet?')">
+          <button class="btn btn-primary btn-sm" onclick="viewSnippet(<%= s.id %>)">👁 View</button>
+          <form method="POST" action="/admin/moderation/snippets/<%= s.id %>/delete" class="inline-form" onsubmit="return confirm('Delete snippet?')">
             <button class="btn btn-danger btn-sm">Delete</button>
           </form>
         </div>
@@ -547,21 +712,22 @@
 </div><!-- /mod-wrap -->
 
 
-<!-- ═══════════════════ SLIDE-IN PANEL ═══════════════════ -->
+<!-- ══════════════ NEW REPORT PANEL ══════════════ -->
 <div class="panel-overlay" id="panelOverlay" onclick="closePanel()"></div>
 <div class="slide-panel" id="slidePanel">
   <div class="panel-head">
-    <div class="panel-head-title">New Report</div>
+    <span style="font-size:22px">📋</span>
+    <div class="panel-title">New Report</div>
     <button class="btn btn-ghost btn-sm" onclick="closePanel()">✕ Close</button>
   </div>
   <div class="panel-body">
     <form method="POST" action="/admin/moderation/reports/add" id="reportForm" enctype="multipart/form-data">
 
-      <!-- Report type -->
-      <div class="form-group">
-        <label class="form-label">Report Type</label>
+      <!-- Type -->
+      <div class="pform-group">
+        <label class="pform-label">Report Type</label>
         <div class="type-cards">
-          <div class="type-card selected" onclick="selectType('ticket',this)">
+          <div class="type-card sel-ticket" onclick="selectType('ticket',this)">
             <div class="type-card-icon">🎟️</div>
             <div class="type-card-name">Ticket</div>
             <div class="type-card-desc">Discord ticket</div>
@@ -569,9 +735,9 @@
           <div class="type-card" onclick="selectType('player',this)">
             <div class="type-card-icon">🎮</div>
             <div class="type-card-name">In-Game</div>
-            <div class="type-card-desc">Server incident</div>
+            <div class="type-card-desc">Minecraft incident</div>
           </div>
-          <div class="type-card gen" onclick="selectType('general',this)">
+          <div class="type-card" onclick="selectType('general',this)">
             <div class="type-card-icon">📝</div>
             <div class="type-card-name">General</div>
             <div class="type-card-desc">Other report</div>
@@ -581,188 +747,205 @@
       </div>
 
       <!-- Player -->
-      <div class="form-group">
-        <label class="form-label">Player</label>
-        <div class="form-row">
-          <input type="text" name="player_discord_id" id="panelDiscordId" class="form-input" placeholder="Discord ID" required>
-          <input type="text" name="player_discord_tag" id="panelDiscordTag" class="form-input" placeholder="username or tag" required>
+      <div class="pform-group">
+        <label class="pform-label">Player</label>
+        <div class="pform-row">
+          <div><label class="pform-label" style="font-size:10px">Discord ID</label>
+            <input type="text" name="player_discord_id" id="panelDiscordId" class="pform-input" placeholder="123456789…" required></div>
+          <div><label class="pform-label" style="font-size:10px">Discord Tag</label>
+            <input type="text" name="player_discord_tag" id="panelDiscordTag" class="pform-input" placeholder="username" required></div>
         </div>
-        <!-- In-game only -->
-        <div id="playerIgnRow" style="display:none;margin-top:8px">
-          <input type="text" name="player_ign" class="form-input" placeholder="In-game username (optional)">
+        <div id="ignRow" style="display:none;margin-top:8px">
+          <label class="pform-label" style="font-size:10px">Minecraft IGN (optional)</label>
+          <input type="text" name="player_ign" class="pform-input" placeholder="In-game username">
         </div>
       </div>
 
       <!-- In-game fields -->
       <div id="ingameFields" style="display:none">
-        <div class="form-row form-group">
-          <div>
-            <label class="form-label">Incident Type</label>
-            <select name="incident_type" class="form-select">
-              <option value="cheating">Cheating</option>
+        <div class="pform-row pform-group">
+          <div><label class="pform-label">Incident Type</label>
+            <select name="incident_type" class="pform-select">
+              <option value="cheating">Cheating / Hacking</option>
               <option value="griefing">Griefing</option>
               <option value="harassment">Harassment</option>
-              <option value="exploit">Exploit</option>
+              <option value="exploit">Exploit / Bug Abuse</option>
+              <option value="inappropriate">Inappropriate Build</option>
               <option value="other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label class="form-label">Location</label>
-            <input type="text" name="location" class="form-input" placeholder="Server / coords (optional)">
-          </div>
+            </select></div>
+          <div><label class="pform-label">Location / Server</label>
+            <input type="text" name="location" class="pform-input" placeholder="e.g. SMP — coords or area"></div>
         </div>
       </div>
 
       <!-- Summary -->
-      <div class="form-group">
-        <label class="form-label">Summary *</label>
-        <textarea name="summary" id="panelSummary" class="form-textarea" placeholder="Describe what happened…" required></textarea>
+      <div class="pform-group">
+        <label class="pform-label">Summary *</label>
+        <textarea name="summary" id="panelSummary" class="pform-textarea" placeholder="What happened? Be specific…" required></textarea>
       </div>
 
       <!-- Action + Severity -->
-      <div class="form-row form-group">
-        <div>
-          <label class="form-label">Action Taken</label>
-          <select name="action_taken" class="form-select">
-            <option value="warning">Warning</option>
-            <option value="mute">Mute</option>
-            <option value="kick">Kick</option>
-            <option value="ban">Ban</option>
-            <option value="watchlist">Watchlist</option>
-            <option value="none">None</option>
-          </select>
-        </div>
-        <div>
-          <label class="form-label">Severity</label>
-          <select name="severity" class="form-select">
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
-        </div>
+      <div class="pform-row pform-group">
+        <div><label class="pform-label">Action Taken</label>
+          <select name="action_taken" class="pform-select">
+            <option value="warning">⚠️ Warning</option>
+            <option value="mute">🔇 Mute</option>
+            <option value="kick">👢 Kick</option>
+            <option value="ban">🔨 Ban</option>
+            <option value="watchlist">👀 Watchlist</option>
+            <option value="none">— None yet</option>
+          </select></div>
+        <div><label class="pform-label">Severity</label>
+          <select name="severity" class="pform-select">
+            <option value="low">🟡 Low</option>
+            <option value="medium">🟠 Medium</option>
+            <option value="high">🔴 High</option>
+          </select></div>
       </div>
 
       <!-- Staff -->
-      <div class="form-group">
-        <label class="form-label">Staff Involved</label>
-        <input type="text" name="staff_involved" class="form-input" placeholder="Names of staff involved (optional)">
+      <div class="pform-group">
+        <label class="pform-label">Staff Involved</label>
+        <input type="text" name="staff_involved" class="pform-input" placeholder="Names of staff (optional)">
       </div>
 
       <!-- Notes -->
-      <div class="form-group">
-        <label class="form-label">Additional Notes</label>
-        <textarea name="notes" class="form-textarea" style="min-height:60px" placeholder="Optional internal notes…"></textarea>
+      <div class="pform-group">
+        <label class="pform-label">Internal Notes</label>
+        <textarea name="notes" class="pform-textarea" style="min-height:60px" placeholder="Private notes not shown publicly…"></textarea>
       </div>
 
-      <!-- Multi-snippet picker -->
-      <div class="form-group">
-        <label class="form-label">Chat Evidence (Snippets)</label>
-        <div class="snip-chips" id="selectedChips">
-          <!-- chips added here -->
-        </div>
-        <input type="text" id="snipSearch" class="form-input" placeholder="Search snippets…" oninput="filterSnipRows()" style="margin-bottom:8px">
-        <div class="snip-picker-list" id="snipPickerList">
+      <!-- Snippets -->
+      <div class="pform-group">
+        <label class="pform-label">Chat Evidence Snippets</label>
+        <div class="chip-row" id="selectedChips"></div>
+        <input type="text" id="snipSearch" class="pform-input" placeholder="Search snippets…"
+          oninput="filterSnips()" style="margin-bottom:8px">
+        <div class="snip-pick-list" id="snipPickList">
           <% if(!snippets.length){ %>
-          <div style="padding:16px;text-align:center;font-family:'Baloo 2';font-size:12px;color:rgba(255,255,255,.3)">No snippets in library yet</div>
+          <div style="padding:16px;text-align:center;font-family:'Baloo 2';font-size:12px;color:var(--mod-muted)">
+            No snippets yet — use the Evidence & Logs tab to save some
+          </div>
           <% } %>
           <% snippets.forEach(function(s){ %>
-          <div class="snip-row" data-sid="<%= s.id %>"
+          <div class="snip-pick-row" data-sid="<%= s.id %>"
                data-label="<%= (s.label||'').toLowerCase() %>"
                data-slabel="<%= (s.label||'Snippet #'+s.id).replace(/"/g,'&quot;') %>"
                data-meta="<%= (s.channel_name||'').toLowerCase() %> <%= (s.guild_name||'').toLowerCase() %>"
                onclick="toggleSnip(parseInt(this.dataset.sid),this.dataset.slabel)">
-            <span style="font-size:16px">💬</span>
+            <span style="font-size:15px">💬</span>
             <div style="flex:1;min-width:0">
-              <div class="snip-row-name">#<%= s.id %> — <%= s.label||'(untitled)' %></div>
-              <div class="snip-row-meta"><%= s.msg_count %> msgs<% if(s.channel_name){ %> · #<%= s.channel_name %><% } %><% if(s.guild_name){ %> · <%= s.guild_name %><% } %></div>
+              <div class="snip-pick-name">#<%= s.id %> — <%= s.label||'(untitled)' %></div>
+              <div class="snip-pick-meta"><%= s.msg_count %> msgs<% if(s.channel_name){ %> · #<%= s.channel_name %><% } %></div>
             </div>
-            <span class="snip-row-check" style="font-size:16px;color:#74c0fc;display:none">✓</span>
+            <span class="snip-pick-check">✓</span>
           </div>
           <% }); %>
         </div>
-        <!-- hidden inputs injected by JS -->
         <div id="snipHiddenInputs"></div>
       </div>
 
       <!-- AI summarize -->
-      <div class="form-group" id="aiSumGroup" style="display:none">
-        <button type="button" class="btn btn-ai" onclick="aiSummarize()" id="aiSumBtn">✦ AI Summarize Selected Snippets</button>
+      <div class="pform-group" id="aiGroup" style="display:none">
+        <button type="button" class="btn btn-ai" id="aiBtn" onclick="aiSummarize()" style="width:100%;justify-content:center">
+          ✦ AI Summarize Selected Snippets
+        </button>
         <div class="ai-result" id="aiResult">
-          <div class="ai-box-label" style="color:#c084fc;font-family:'Baloo 2';font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">AI Summary</div>
-          <div class="ai-result-text" id="aiResultText"></div>
-          <button type="button" class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="useAiSummary()">Use as Summary</button>
+          <div class="ai-label">AI Summary</div>
+          <div class="ai-result-text" id="aiText"></div>
+          <button type="button" class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="useAiSummary()">Use as Summary ↑</button>
         </div>
       </div>
 
-      <!-- File evidence -->
-      <div class="form-group">
-        <label class="form-label">Attach Files (optional)</label>
-        <input type="file" name="files" accept="image/*,video/*" multiple style="font-size:12px;color:rgba(255,255,255,.4)">
+      <!-- File + URL evidence -->
+      <div class="pform-group">
+        <label class="pform-label">Attach Screenshots / Video</label>
+        <input type="file" name="files" accept="image/*,video/*" multiple style="font-size:12px;color:var(--mod-muted)">
       </div>
-
-      <!-- URL evidence -->
-      <div class="form-group">
-        <label class="form-label">Link Evidence (optional)</label>
-        <div class="form-row">
-          <input type="url" name="url" class="form-input" placeholder="https://…">
-          <input type="text" name="url_label" class="form-input" placeholder="Label (optional)">
+      <div class="pform-group">
+        <label class="pform-label">Link Evidence (optional)</label>
+        <div class="pform-row">
+          <input type="url" name="url" class="pform-input" placeholder="https://…">
+          <input type="text" name="url_label" class="pform-input" placeholder="Label">
         </div>
       </div>
 
-      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px">Submit Report</button>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;font-size:14px">
+        Submit Report
+      </button>
     </form>
   </div>
 </div>
 
-<!-- ═══════════════════ SNIPPET VIEWER MODAL ═══════════════════ -->
-<div id="snippetModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center">
-  <div style="background:#15161f;border:1px solid rgba(255,255,255,.1);border-radius:14px;width:min(660px,95vw);max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
-    <div style="display:flex;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid rgba(255,255,255,.08)">
-      <span style="font-family:'Baloo 2';font-weight:900;font-size:16px;color:#e0e2ed;flex:1" id="snipModalTitle">Snippet</span>
-      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('snippetModal').style.display='none'">✕ Close</button>
+
+<!-- ══════════════ PLAYER HISTORY MODAL ══════════════ -->
+<div class="modal-overlay" id="playerModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div id="playerModalAvatar" style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">👤</div>
+      <div style="flex:1;min-width:0">
+        <div id="playerModalTag" style="font-family:'Baloo 2';font-weight:900;font-size:18px;color:var(--mod-text)">Loading…</div>
+        <div id="playerModalId" style="font-family:monospace;font-size:11px;color:var(--mod-muted)"></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="closePlayerModal()">✕ Close</button>
     </div>
-    <div id="snipModalBody" style="overflow-y:auto;padding:16px 22px;flex:1"></div>
+    <div class="modal-body" id="playerModalBody">
+      <div style="text-align:center;padding:30px;color:var(--mod-muted);font-family:'Baloo 2'">Loading history…</div>
+    </div>
   </div>
 </div>
 
+
+<!-- ══════════════ SNIPPET VIEWER MODAL ══════════════ -->
+<div class="modal-overlay" id="snippetModal">
+  <div class="snip-modal">
+    <div class="modal-head">
+      <span style="font-size:20px">💬</span>
+      <div id="snippetModalTitle" style="font-family:'Baloo 2';font-weight:900;font-size:16px;color:var(--mod-text);flex:1">Snippet</div>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('snippetModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="snip-modal-msgs" id="snippetModalBody"></div>
+  </div>
+</div>
+
+
 <script>
-// ── Tab switching ──
+// ── Tab switching ──────────────────────────────────────────────────────────────
 function switchTab(name, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
-  btn.classList.add('active');
+  if (btn) btn.classList.add('active');
   location.hash = name;
 }
 
-// ── Card expand/collapse ──
+// ── Card expand ───────────────────────────────────────────────────────────────
 function toggleCard(header) {
   const body = header.nextElementSibling;
   body.classList.toggle('open');
-  const arrow = header.querySelector('span:last-child');
-  if (arrow) arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
+  const arr = header.querySelector('.card-expand');
+  if (arr) arr.classList.toggle('open', body.classList.contains('open'));
 }
 
-// ── Filter flags ──
+// ── Filter flags ──────────────────────────────────────────────────────────────
 function filterFlags(state, btn) {
-  document.querySelectorAll('#tab-flagged .filter-pill').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#tab-flagged .fpill').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
-  document.querySelectorAll('#tab-flagged .card').forEach(c => {
-    const s = c.dataset.flagState;
-    c.style.display = (state === 'all' || s === state) ? '' : 'none';
+  document.querySelectorAll('#tab-flagged .card[data-fstate]').forEach(c => {
+    c.style.display = (state === 'all' || c.dataset.fstate === state.substring(0,3)) ? '' : 'none';
   });
 }
 
-// ── Filter reports ──
+// ── Filter reports ────────────────────────────────────────────────────────────
 function filterReports(type, btn) {
-  document.querySelectorAll('#tab-reports .filter-pill').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#tab-reports .fpill').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.querySelectorAll('#tab-reports .card[data-rtype]').forEach(c => {
     c.style.display = (type === 'all' || c.dataset.rtype === type) ? '' : 'none';
   });
 }
 
-// ── Slide-in panel ──
+// ── Slide-in panel ────────────────────────────────────────────────────────────
 function openPanel() {
   document.getElementById('panelOverlay').classList.add('open');
   document.getElementById('slidePanel').classList.add('open');
@@ -773,126 +956,299 @@ function closePanel() {
   document.getElementById('slidePanel').classList.remove('open');
   document.body.style.overflow = '';
 }
-function prefillPanel(discordId, discordTag) {
+function prefillPanel(id, tag) {
   openPanel();
-  document.getElementById('panelDiscordId').value = discordId || '';
-  document.getElementById('panelDiscordTag').value = discordTag || '';
+  document.getElementById('panelDiscordId').value = id || '';
+  document.getElementById('panelDiscordTag').value = tag || '';
 }
 
-// ── Report type selection ──
+// ── Report type ───────────────────────────────────────────────────────────────
 function selectType(type, card) {
-  document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
-  card.classList.add('selected');
+  document.querySelectorAll('.type-card').forEach(c => c.className = 'type-card');
+  card.classList.add('sel-' + type);
   document.getElementById('reportType').value = type;
-  const ingame = type === 'player';
-  document.getElementById('ingameFields').style.display = ingame ? '' : 'none';
-  document.getElementById('playerIgnRow').style.display = ingame ? '' : 'none';
+  document.getElementById('ingameFields').style.display = type === 'player' ? '' : 'none';
+  document.getElementById('ignRow').style.display = type === 'player' ? '' : 'none';
 }
 
-// ── Multi-snippet picker ──
-const selectedSnips = {};
+// ── Snippet multi-picker ──────────────────────────────────────────────────────
+const selSnips = {};
 function toggleSnip(id, label) {
-  const row = document.querySelector(`.snip-row[data-sid="${id}"]`);
-  if (selectedSnips[id]) {
-    delete selectedSnips[id];
-    row && row.classList.remove('added');
-    const check = row && row.querySelector('.snip-row-check');
+  const row = document.querySelector(`.snip-pick-row[data-sid="${id}"]`);
+  const check = row && row.querySelector('.snip-pick-check');
+  if (selSnips[id]) {
+    delete selSnips[id];
+    if (row) row.classList.remove('picked');
     if (check) check.style.display = 'none';
     const chip = document.getElementById('chip-' + id);
     if (chip) chip.remove();
     const inp = document.getElementById('snipInp-' + id);
     if (inp) inp.remove();
   } else {
-    selectedSnips[id] = label;
-    row && row.classList.add('added');
-    const check = row && row.querySelector('.snip-row-check');
+    selSnips[id] = label;
+    if (row) row.classList.add('picked');
     if (check) check.style.display = '';
-
     const chip = document.createElement('span');
     chip.className = 'snip-chip'; chip.id = 'chip-' + id;
-    chip.innerHTML = `💬 ${label} <button type="button" class="snip-chip-rm" onclick="toggleSnip(${id},'')">✕</button>`;
+    chip.innerHTML = '💬 ' + label + ' <button type="button" class="chip-rm" onclick="toggleSnip(' + id + ',\'\')">✕</button>';
     document.getElementById('selectedChips').appendChild(chip);
-
     const inp = document.createElement('input');
     inp.type = 'hidden'; inp.name = 'snippet_ids[]'; inp.value = id; inp.id = 'snipInp-' + id;
     document.getElementById('snipHiddenInputs').appendChild(inp);
   }
-  const count = Object.keys(selectedSnips).length;
-  document.getElementById('aiSumGroup').style.display = count > 0 ? '' : 'none';
+  document.getElementById('aiGroup').style.display = Object.keys(selSnips).length ? '' : 'none';
 }
-function filterSnipRows() {
+function filterSnips() {
   const q = document.getElementById('snipSearch').value.toLowerCase();
-  document.querySelectorAll('.snip-row').forEach(r => {
-    const match = (r.dataset.label + ' ' + r.dataset.meta + ' ' + r.dataset.sid).includes(q);
-    r.style.display = match ? '' : 'none';
+  document.querySelectorAll('.snip-pick-row').forEach(r => {
+    r.style.display = (r.dataset.label + ' ' + r.dataset.meta + ' ' + r.dataset.sid).includes(q) ? '' : 'none';
   });
 }
 
-// ── AI Summarize ──
+// ── AI summarize ──────────────────────────────────────────────────────────────
 async function aiSummarize() {
-  const btn = document.getElementById('aiSumBtn');
-  const ids = Object.keys(selectedSnips);
+  const btn = document.getElementById('aiBtn');
+  const ids = Object.keys(selSnips).map(Number);
   if (!ids.length) return;
   btn.textContent = '⏳ Summarizing…'; btn.disabled = true;
   try {
     const r = await fetch('/admin/moderation/summarize', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ snippet_ids: ids.map(Number) })
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ snippet_ids: ids })
     });
-    const data = await r.json();
-    if (data.error) throw new Error(data.error);
-    document.getElementById('aiResultText').textContent = data.summary || '';
+    const d = await r.json();
+    document.getElementById('aiText').textContent = d.summary || d.error || 'No response';
     document.getElementById('aiResult').classList.add('show');
   } catch(e) {
-    document.getElementById('aiResultText').textContent = 'Error: ' + e.message;
+    document.getElementById('aiText').textContent = 'Error: ' + e.message;
     document.getElementById('aiResult').classList.add('show');
   }
   btn.textContent = '✦ AI Summarize Selected Snippets'; btn.disabled = false;
 }
 function useAiSummary() {
-  const text = document.getElementById('aiResultText').textContent;
-  document.getElementById('panelSummary').value = text;
+  document.getElementById('panelSummary').value = document.getElementById('aiText').textContent;
 }
 
-// ── Snippet viewer modal ──
+// ── Snippet viewer ────────────────────────────────────────────────────────────
 async function viewSnippet(id) {
-  document.getElementById('snippetModal').style.display = 'flex';
-  document.getElementById('snipModalTitle').textContent = 'Loading…';
-  document.getElementById('snipModalBody').innerHTML = '<div style="padding:20px;text-align:center;color:rgba(255,255,255,.3)">Loading…</div>';
+  document.getElementById('snippetModal').classList.add('open');
+  document.getElementById('snippetModalTitle').textContent = 'Loading…';
+  document.getElementById('snippetModalBody').innerHTML = '<div style="padding:30px;text-align:center;color:var(--mod-muted);font-family:\'Baloo 2\'">Loading…</div>';
   try {
-    const r = await fetch('/admin/moderation/snippets/' + id);
-    const data = await r.json();
-    document.getElementById('snipModalTitle').textContent = data.label || ('Snippet #' + id);
-    const msgs = data.messages || [];
-    if (!msgs.length) {
-      document.getElementById('snipModalBody').innerHTML = '<div style="padding:20px;text-align:center;color:rgba(255,255,255,.3)">No messages</div>';
-      return;
-    }
-    document.getElementById('snipModalBody').innerHTML = msgs.map(m => `
-      <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">
-        <img src="${m.avatar_url||''}" style="width:28px;height:28px;border-radius:50%;flex-shrink:0;background:rgba(255,255,255,.08)" onerror="this.style.visibility='hidden'">
+    const d = await fetch('/admin/moderation/snippets/' + id).then(r => r.json());
+    document.getElementById('snippetModalTitle').textContent = d.label || 'Snippet #' + id;
+    const msgs = d.messages || [];
+    if (!msgs.length) { document.getElementById('snippetModalBody').innerHTML = '<div style="padding:30px;text-align:center;color:var(--mod-muted)">No messages</div>'; return; }
+    document.getElementById('snippetModalBody').innerHTML = msgs.map(m => `
+      <div class="snip-msg-row">
+        <img src="${m.avatar_url||''}" style="width:30px;height:30px;border-radius:50%;flex-shrink:0;background:rgba(255,255,255,.08)" onerror="this.style.visibility='hidden'" alt="">
         <div>
-          <div style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:#e0e2ed">${escHtml(m.username||'Unknown')}
-            <span style="font-size:10px;color:rgba(255,255,255,.3);margin-left:6px">${m.timestamp ? new Date(m.timestamp).toLocaleString('en-GB') : ''}</span>
-          </div>
-          <div style="font-size:13px;color:#c9ccdb;line-height:1.6;white-space:pre-wrap;word-break:break-word">${escHtml(m.content||'')}</div>
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:var(--mod-text)">${h(m.username||'?')}
+            <span style="font-size:10px;color:var(--mod-muted);margin-left:6px">${m.timestamp?new Date(m.timestamp).toLocaleString('en-GB'):''}</span></div>
+          <div style="font-size:13px;color:#c9ccdb;line-height:1.6;white-space:pre-wrap;word-break:break-word">${h(m.content||'')}</div>
+          ${(m.attachments||[]).map(a=>`<div style="font-size:11px;color:var(--mod-accent)">📎 ${h(a.name||a.url)}</div>`).join('')}
         </div>
       </div>`).join('');
   } catch(e) {
-    document.getElementById('snipModalBody').innerHTML = `<div style="padding:20px;text-align:center;color:#f87171">Error: ${e.message}</div>`;
+    document.getElementById('snippetModalBody').innerHTML = `<div style="padding:20px;color:var(--mod-red)">Error: ${h(e.message)}</div>`;
   }
 }
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function h(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── Player history ────────────────────────────────────────────────────────────
+async function openPlayerHistory(discordId, tag) {
+  if (!discordId) return;
+  document.getElementById('playerModal').classList.add('open');
+  document.getElementById('playerModalTag').textContent = tag || discordId;
+  document.getElementById('playerModalId').textContent = discordId;
+  document.getElementById('playerModalBody').innerHTML = '<div style="padding:30px;text-align:center;color:var(--mod-muted);font-family:\'Baloo 2\'">Loading history…</div>';
+  try {
+    const d = await fetch('/admin/moderation/player/' + discordId + '/history').then(r => r.json());
+    const total = (d.flags||[]).length + (d.tickets||[]).length + (d.general||[]).length + (d.playerReports||[]).length + (d.bans||[]).length;
+    let html = `<div class="profile-badge">
+      <div class="profile-stat"><div class="profile-stat-num">${(d.flags||[]).length}</div><div class="profile-stat-label">Flags</div></div>
+      <div class="profile-stat"><div class="profile-stat-num">${(d.tickets||[]).length + (d.general||[]).length + (d.playerReports||[]).length}</div><div class="profile-stat-label">Reports</div></div>
+      <div class="profile-stat"><div class="profile-stat-num">${(d.bans||[]).length}</div><div class="profile-stat-label">Bans</div></div>
+    </div>`;
+    if (!total) { html += '<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">No moderation history</div></div>'; }
+
+    function section(title, rows, color, render) {
+      if (!rows || !rows.length) return '';
+      return `<div class="history-section"><div class="history-section-title">${title}</div>` +
+        rows.map(r => `<div class="history-row"><div class="history-dot" style="background:${color}"></div><div>${render(r)}</div></div>`).join('') + '</div>';
+    }
+    html += section('🔨 Bans', d.bans, '#f87171', b => `<div class="history-summary">${h(b.reason||'No reason')}</div><div class="history-meta">${new Date(b.banned_at||b.created_at).toLocaleDateString('en-GB')}</div>`);
+    html += section('🎟 Ticket Reports', d.tickets, '#74c0fc', r => `<div class="history-summary">${h(r.summary||'')}</div><div class="history-meta">${h(r.action_taken||'')} · ${h(r.severity||'')} · ${new Date(r.created_at).toLocaleDateString('en-GB')}</div>`);
+    html += section('🎮 In-Game Reports', d.playerReports, '#c084fc', r => `<div class="history-summary">${h(r.summary||'')}</div><div class="history-meta">${h(r.incident_type||'')} · ${h(r.severity||'')} · ${new Date(r.created_at).toLocaleDateString('en-GB')}</div>`);
+    html += section('📝 General Reports', d.general, '#fbbf24', r => `<div class="history-summary">${h(r.summary||'')}</div><div class="history-meta">${h(r.action_taken||'')} · ${new Date(r.created_at).toLocaleDateString('en-GB')}</div>`);
+    html += section('🚩 Flags', d.flags, '#fb923c', f => `<div class="history-summary">${h((f.content||'').substring(0,120))}</div><div class="history-meta">${h(f.flag_type||'')} · ${new Date(f.flagged_at).toLocaleDateString('en-GB')}</div>`);
+    document.getElementById('playerModalBody').innerHTML = html;
+  } catch(e) {
+    document.getElementById('playerModalBody').innerHTML = `<div style="padding:20px;color:var(--mod-red)">Error: ${h(e.message)}</div>`;
+  }
+}
+function closePlayerModal() { document.getElementById('playerModal').classList.remove('open'); }
+
+// ── Player search (debounced) ─────────────────────────────────────────────────
+let searchTimer;
+function debounceSearch(val) {
+  clearTimeout(searchTimer);
+  if (!val.trim()) return;
+  searchTimer = setTimeout(() => {
+    const q = val.toLowerCase();
+    // Search across visible player tags in all cards
+    let found = null;
+    document.querySelectorAll('.p-tag[data-id]').forEach(el => {
+      if (!found && (el.textContent.toLowerCase().includes(q) || (el.dataset.id||'').includes(q))) {
+        found = el;
+      }
+    });
+    if (found) {
+      const id = found.dataset.id;
+      const tag = found.dataset.tag || found.textContent;
+      openPlayerHistory(id, tag);
+      document.getElementById('globalSearch').value = '';
+    }
+  }, 500);
+}
+document.getElementById('globalSearch').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { clearTimeout(searchTimer); debounceSearch(e.target.value); }
+});
+
+// ── Chat log browser ──────────────────────────────────────────────────────────
+let browserMsgs = [], selStart = null, selSet = new Set();
+let currentGuildId = null, currentChannelId = null;
+let oldestMsgId = null, newestMsgId = null;
+
+function toggleBrowser(head) {
+  const body = document.getElementById('browserBody');
+  const arrow = document.getElementById('browserArrow');
+  const open = body.classList.toggle('open');
+  arrow.textContent = open ? '▲' : '▼';
+  if (open && document.getElementById('guildSel').options[0].value === '') loadGuilds();
 }
 
-// ── Init: restore tab from hash ──
+async function loadGuilds() {
+  const sel = document.getElementById('guildSel');
+  sel.innerHTML = '<option>Loading…</option>';
+  try {
+    const guilds = await fetch('/admin/moderation/discord/guilds').then(r => r.json());
+    sel.innerHTML = '<option value="">— pick server —</option>' +
+      guilds.map(g => `<option value="${g.id}">${h(g.name)}</option>`).join('');
+  } catch(e) { sel.innerHTML = '<option>Error loading guilds</option>'; }
+}
+
+async function loadChannels(guildId) {
+  currentGuildId = guildId;
+  const sel = document.getElementById('channelSel');
+  sel.innerHTML = '<option>Loading…</option>';
+  if (!guildId) { sel.innerHTML = '<option value="">— pick channel —</option>'; return; }
+  try {
+    const channels = await fetch('/admin/moderation/discord/channels/' + guildId).then(r => r.json());
+    sel.innerHTML = '<option value="">— pick channel —</option>' +
+      channels.map(c => `<option value="${c.id}">#${h(c.name)}</option>`).join('');
+  } catch(e) { sel.innerHTML = '<option>Error</option>'; }
+}
+
+async function loadMessages() {
+  const channelId = document.getElementById('channelSel').value;
+  if (!channelId) return;
+  currentChannelId = channelId;
+  selStart = null; selSet.clear(); updateSelUI();
+  document.getElementById('browserStatus').textContent = 'Loading…';
+  try {
+    const msgs = await fetch('/admin/moderation/discord/messages/' + channelId + '?limit=50').then(r => r.json());
+    browserMsgs = msgs.reverse();
+    if (browserMsgs.length) { oldestMsgId = browserMsgs[0].id; newestMsgId = browserMsgs[browserMsgs.length-1].id; }
+    renderMessages();
+    document.getElementById('browserStatus').textContent = browserMsgs.length + ' messages loaded · click to select · shift-click for range';
+  } catch(e) { document.getElementById('browserStatus').textContent = 'Error: ' + e.message; }
+}
+
+async function loadMoreMessages(dir) {
+  if (!currentChannelId || !browserMsgs.length) return;
+  const param = dir === 'before' ? 'before=' + oldestMsgId : 'after=' + newestMsgId;
+  try {
+    const msgs = await fetch('/admin/moderation/discord/messages/' + currentChannelId + '?limit=50&' + param).then(r => r.json());
+    if (!msgs.length) return;
+    const ordered = msgs.reverse();
+    if (dir === 'before') { browserMsgs = [...ordered, ...browserMsgs]; oldestMsgId = ordered[0].id; }
+    else { browserMsgs = [...browserMsgs, ...ordered]; newestMsgId = ordered[ordered.length-1].id; }
+    renderMessages();
+    document.getElementById('browserStatus').textContent = browserMsgs.length + ' messages total';
+  } catch(e) {}
+}
+
+function renderMessages() {
+  const container = document.getElementById('msgBrowser');
+  if (!browserMsgs.length) {
+    container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--mod-muted);font-family:\'Baloo 2\'">No messages</div>';
+    return;
+  }
+  container.innerHTML = browserMsgs.map((m, i) => {
+    const t = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) + ' ' + new Date(m.timestamp).toLocaleDateString('en-GB') : '';
+    const att = (m.attachments||[]).map(a => `<div class="msg-attach">📎 ${h(a.name||'attachment')}</div>`).join('');
+    return `<div class="msg-row" data-idx="${i}" data-id="${m.id}" onclick="clickMsg(event,${i})">
+      <img src="${m.avatar||''}" class="msg-av" onerror="this.style.visibility='hidden'" alt="">
+      <div style="flex:1;min-width:0">
+        <div><span class="msg-author">${h(m.author||'?')}</span><span class="msg-time">${t}</span></div>
+        <div class="msg-content">${h(m.content||'')}</div>${att}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function clickMsg(e, idx) {
+  if (e.shiftKey && selStart !== null) {
+    const a = Math.min(selStart, idx), b = Math.max(selStart, idx);
+    selSet.clear();
+    for (let i = a; i <= b; i++) selSet.add(i);
+  } else {
+    selStart = idx;
+    if (selSet.has(idx)) selSet.delete(idx); else selSet.add(idx);
+  }
+  updateSelUI();
+}
+
+function updateSelUI() {
+  document.querySelectorAll('#msgBrowser .msg-row').forEach(row => {
+    const idx = parseInt(row.dataset.idx);
+    row.classList.toggle('selected', selSet.has(idx));
+  });
+  const count = selSet.size;
+  document.getElementById('selCount').textContent = count + ' message' + (count===1?'':'s') + ' selected';
+  document.getElementById('browserSave').style.display = count ? '' : 'none';
+}
+
+function clearSelection() { selSet.clear(); selStart = null; updateSelUI(); }
+
+async function saveSnippet() {
+  if (!selSet.size) return;
+  const label = document.getElementById('snippetLabel').value.trim();
+  const selected = [...selSet].sort((a,b)=>a-b).map(i => browserMsgs[i]);
+  const guildName = document.getElementById('guildSel').selectedOptions[0]?.text || '';
+  const channelName = document.getElementById('channelSel').selectedOptions[0]?.text?.replace('#','') || '';
+  try {
+    const r = await fetch('/admin/moderation/snippets/save', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ label, guild_id: currentGuildId, guild_name: guildName,
+        channel_id: currentChannelId, channel_name: channelName,
+        messages: selected.map(m => ({ id:m.id, username:m.author, author_id:m.author_id,
+          avatar_url:m.avatar, content:m.content, timestamp:m.timestamp,
+          attachments:m.attachments||[] })) })
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    alert('Snippet #' + d.id + ' saved! Reload the page to see it in the library.');
+    clearSelection();
+  } catch(e) { alert('Error saving: ' + e.message); }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
 (function() {
   const hash = location.hash.replace('#','');
-  const valid = ['flagged','bans','reports','evidence'];
-  if (valid.includes(hash)) {
-    const btn = document.querySelector(`.tab-btn[onclick*="switchTab('${hash}'"]`);
+  if (['flagged','reports','bans','evidence'].includes(hash)) {
+    const btn = document.querySelector('.tab-btn[onclick*="' + hash + '"]');
     if (btn) switchTab(hash, btn);
   }
 })();
