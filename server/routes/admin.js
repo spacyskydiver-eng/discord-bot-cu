@@ -224,19 +224,25 @@ async function discordApi(apiPath) {
 
 router.get('/moderation', async (req, res) => {
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  const [flaggedRes, bansRes, ticketsRes, snippetsRes] = await Promise.all([
+  const [flaggedRes, bansRes, ticketsRes, snippetsRes, generalRes] = await Promise.all([
     db.query(`SELECT * FROM flagged_messages ORDER BY flagged_at DESC`),
     db.query(`SELECT b.*, COALESCE(json_agg(e ORDER BY e.created_at) FILTER (WHERE e.id IS NOT NULL), '[]') AS evidence
               FROM moderation_bans b LEFT JOIN ban_evidence e ON e.ban_id = b.id
               GROUP BY b.id ORDER BY b.banned_at DESC`),
-    db.query(`SELECT * FROM ticket_reports ORDER BY created_at DESC`),
-    db.query(`SELECT id, label, guild_name, channel_name, created_at, jsonb_array_length(messages) AS msg_count FROM chat_snippets ORDER BY created_at DESC`)
+    db.query(`SELECT t.*, s.label AS snippet_label, jsonb_array_length(s.messages) AS snippet_msg_count
+              FROM ticket_reports t LEFT JOIN chat_snippets s ON s.id = t.snippet_id
+              ORDER BY t.created_at DESC`),
+    db.query(`SELECT id, label, guild_name, channel_name, created_at, jsonb_array_length(messages) AS msg_count FROM chat_snippets ORDER BY created_at DESC`),
+    db.query(`SELECT g.*, s.label AS snippet_label, jsonb_array_length(s.messages) AS snippet_msg_count
+              FROM general_reports g LEFT JOIN chat_snippets s ON s.id = g.snippet_id
+              ORDER BY g.created_at DESC`)
   ]);
   res.render('new/admin-moderation', {
     flagged: flaggedRes.rows,
     bans: bansRes.rows,
     tickets: ticketsRes.rows,
     snippets: snippetsRes.rows,
+    general: generalRes.rows,
     todayStr: today.toISOString()
   });
 });
@@ -322,12 +328,12 @@ router.post('/moderation/bans/:id/delete', async (req, res) => {
 // ── Player history (AJAX) ─────────────────────────────────────────────────────
 router.get('/moderation/player/:discordId', async (req, res) => {
   const id = req.params.discordId;
-  const [flagsRes, bansRes, ticketsRes] = await Promise.all([
+  const [flagsRes, bansRes, ticketsRes, generalRes] = await Promise.all([
     db.query(`SELECT * FROM flagged_messages WHERE discord_id=$1 ORDER BY flagged_at DESC`, [id]),
     db.query(`SELECT * FROM moderation_bans WHERE discord_id=$1 ORDER BY banned_at DESC`, [id]),
-    db.query(`SELECT * FROM ticket_reports WHERE player_discord_id=$1 ORDER BY created_at DESC`, [id])
+    db.query(`SELECT * FROM ticket_reports WHERE player_discord_id=$1 ORDER BY created_at DESC`, [id]),
+    db.query(`SELECT * FROM general_reports WHERE player_discord_id=$1 ORDER BY created_at DESC`, [id])
   ]);
-  // Try to fetch Discord profile
   let profile = null;
   try {
     const u = await discordApi(`/users/${id}`);
@@ -336,7 +342,7 @@ router.get('/moderation/player/:discordId', async (req, res) => {
       avatar: u.avatar ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=64` : null
     };
   } catch (_) {}
-  res.json({ flags: flagsRes.rows, bans: bansRes.rows, tickets: ticketsRes.rows, profile });
+  res.json({ flags: flagsRes.rows, bans: bansRes.rows, tickets: ticketsRes.rows, general: generalRes.rows, profile });
 });
 
 // ── Discord API proxies (for chat log browser) ────────────────────────────────
@@ -443,6 +449,86 @@ router.post('/moderation/ticket-reports/:id/notes', async (req, res) => {
 router.post('/moderation/ticket-reports/:id/delete', async (req, res) => {
   await db.query(`DELETE FROM ticket_reports WHERE id=$1`, [req.params.id]);
   res.redirect('/admin/moderation#tickets');
+});
+
+// ── AI summarise ──────────────────────────────────────────────────────────────
+router.post('/moderation/summarize', express.json(), async (req, res) => {
+  const { snippet_id } = req.body;
+  if (!snippet_id) return res.status(400).json({ error: 'snippet_id required' });
+  const key = process.env.ANTHROPIC_API_KEY;
+  if (!key) return res.status(503).json({ error: 'ANTHROPIC_API_KEY not set on server. Add it in Render environment variables.' });
+
+  const row = (await db.query(`SELECT * FROM chat_snippets WHERE id=$1`, [snippet_id])).rows[0];
+  if (!row) return res.status(404).json({ error: 'Snippet not found' });
+
+  const msgs = Array.isArray(row.messages) ? row.messages : [];
+  const formatted = msgs.map(m => {
+    const ts = new Date(m.timestamp).toLocaleString('en-GB', { hour:'2-digit', minute:'2-digit', day:'numeric', month:'short' });
+    const att = (m.attachments||[]).length ? ` [attachment: ${m.attachments.map(a=>a.name||'file').join(', ')}]` : '';
+    return `[${ts}] ${m.author}: ${m.content||''}${att}`;
+  }).join('\n');
+
+  try {
+    const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 400,
+        messages: [{
+          role: 'user',
+          content: `You are a moderation assistant for a Minecraft event Discord server called Collective Union Events (CUE). Analyse this Discord support ticket conversation and write a concise moderation log entry (3-5 sentences max).
+
+Identify: who opened the ticket and what they wanted, any key evidence or context they shared, how staff responded, and what was decided/actioned. Write in past tense, factual tone. Do not include greetings or pleasantries.
+
+Conversation from channel: ${row.channel_name||'unknown'} in ${row.guild_name||'CUE Discord'}
+
+${formatted}`
+        }]
+      })
+    });
+    const data = await aiRes.json();
+    const summary = data.content?.[0]?.text || '';
+    res.json({ summary });
+  } catch (e) {
+    res.status(500).json({ error: 'AI request failed: ' + e.message });
+  }
+});
+
+// ── General Reports ───────────────────────────────────────────────────────────
+router.post('/moderation/general-reports/add', async (req, res) => {
+  const { player_discord_id, player_discord_tag, category, summary, action_taken, severity, notes, snippet_id } = req.body;
+  if (!player_discord_id || !player_discord_tag || !summary) return res.redirect('/admin/moderation#general');
+  let avatar = null;
+  try {
+    const u = await discordApi(`/users/${player_discord_id.trim()}`);
+    if (u.avatar) avatar = `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=64`;
+  } catch (_) {}
+  const result = await db.query(
+    `INSERT INTO general_reports (player_discord_id, player_discord_tag, player_discord_avatar, category, summary, action_taken, severity, notes, snippet_id, created_by)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
+    [
+      player_discord_id.trim(), player_discord_tag.trim(), avatar,
+      category || 'other', summary.trim(), action_taken || 'warning', severity || 'low',
+      (notes||'').trim(), snippet_id ? parseInt(snippet_id) : null,
+      req.session.user?.username || 'admin'
+    ]
+  );
+  res.redirect(`/admin/moderation#general-${result.rows[0].id}`);
+});
+
+router.post('/moderation/general-reports/:id/notes', async (req, res) => {
+  await db.query(`UPDATE general_reports SET notes=$1 WHERE id=$2`, [(req.body.notes||'').trim(), req.params.id]);
+  res.redirect(`/admin/moderation#general-${req.params.id}`);
+});
+
+router.post('/moderation/general-reports/:id/delete', async (req, res) => {
+  await db.query(`DELETE FROM general_reports WHERE id=$1`, [req.params.id]);
+  res.redirect('/admin/moderation#general');
 });
 
 // Admin preview of the application wizard

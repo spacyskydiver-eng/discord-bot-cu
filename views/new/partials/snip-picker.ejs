@@ -1,0 +1,45 @@
+<%
+// Expected locals: snippets (array), pickerId (string), inputName (string)
+%>
+<input type="hidden" name="<%= inputName %>" id="snip-input-<%= pickerId %>" value="">
+<div class="snip-picker">
+  <div class="snip-search">
+    <input type="text" id="snip-search-<%= pickerId %>" placeholder="Search snippets…"
+      oninput="snipPickerSearch('<%= pickerId %>')"
+      autocomplete="off">
+  </div>
+  <div class="snip-list" id="snip-list-<%= pickerId %>">
+    <% if (!snippets || !snippets.length) { %>
+    <div style="padding:16px 14px;font-family:'Baloo 2';font-size:12px;color:var(--muted);text-align:center">
+      No snippets saved yet — go to Chat Logs tab to save one.
+    </div>
+    <% } %>
+    <% (snippets||[]).forEach(function(s) { %>
+    <div class="snip-item" data-id="<%= s.id %>" data-label="<%= (s.label||'').toLowerCase() %>"
+         onclick="selectSnip('<%= pickerId %>', <%= s.id %>)">
+      <span class="snip-item-icon">💬</span>
+      <div style="flex:1;min-width:0">
+        <div class="snip-item-name">#<%= s.id %> — <%= s.label||'(untitled)' %></div>
+        <div class="snip-item-meta">
+          <%= s.msg_count %> msgs
+          <% if (s.channel_name) { %> · #<%= s.channel_name %><% } %>
+          <% if (s.guild_name) { %> in <%= s.guild_name %><% } %>
+          · <%= new Date(s.created_at).toLocaleDateString('en-GB') %>
+        </div>
+      </div>
+    </div>
+    <% }); %>
+  </div>
+  <div class="snip-preview" id="snip-preview-<%= pickerId %>">
+    <div class="snip-preview-header" onclick="toggleSnipMsgs('<%= pickerId %>', document.getElementById('snip-input-<%= pickerId %>').value)">
+      <span style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:#5be38f">📎 Selected:</span>
+      <span id="snip-preview-title-<%= pickerId %>" style="font-family:'Baloo 2';font-weight:700;font-size:12px;color:#e0e2ed;flex:1;margin-left:4px"></span>
+      <button type="button" style="background:none;border:none;cursor:pointer;font-family:'Baloo 2';font-size:11px;color:#74c0fc;padding:0">
+        ▼ Show messages
+      </button>
+      <button type="button" style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:5px;cursor:pointer;font-family:'Baloo 2';font-size:10px;color:#f87171;padding:2px 7px;margin-left:8px"
+        onclick="event.stopPropagation();selectSnip('<%= pickerId %>', null)">✕ Clear</button>
+    </div>
+    <div class="snip-msgs" id="snip-msgs-<%= pickerId %>"></div>
+  </div>
+</div>
