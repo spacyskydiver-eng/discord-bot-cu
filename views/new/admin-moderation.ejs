@@ -677,7 +677,7 @@
         <div class="browser-save" id="browserSave" style="display:none">
           <div class="sel-count" id="selCount">0 messages selected</div>
           <div style="display:flex;gap:8px;margin-top:8px">
-            <button class="btn btn-primary" onclick="addToBasket()">+ Add to Evidence</button>
+            <button id="addToEvidenceBtn" class="btn btn-primary" onclick="addToBasket()" disabled style="opacity:.4">+ Add to Evidence</button>
             <button class="btn btn-ghost btn-sm" onclick="clearSelection()">Clear</button>
           </div>
         </div>
@@ -1243,8 +1243,12 @@ function updateSelUI() {
     row.classList.toggle('selected', selSet.has(idx));
   });
   const count = selSet.size;
-  document.getElementById('selCount').textContent = count + ' message' + (count===1?'':'s') + ' selected';
-  document.getElementById('browserSave').style.display = count ? '' : 'none';
+  document.getElementById('selCount').textContent = count
+    ? count + ' message' + (count===1?'':'s') + ' selected — click "Add to Evidence" to queue them'
+    : 'Click messages to select them, then add to evidence';
+  const addBtn = document.getElementById('addToEvidenceBtn');
+  if (addBtn) { addBtn.disabled = count === 0; addBtn.style.opacity = count ? '1' : '.4'; }
+  document.getElementById('browserSave').style.display = browserMsgs.length ? '' : 'none';
 }
 
 function clearSelection() { selSet.clear(); selStart = null; updateSelUI(); }
