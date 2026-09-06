@@ -263,7 +263,7 @@
           <form method="POST" action="/admin/moderation/flagged/<%= f.id %>/disregard" class="inline-form">
             <button class="btn btn-ghost btn-sm">Disregard</button>
           </form>
-          <button class="btn btn-primary btn-sm" onclick="prefillPanel('<%= f.author_id %>','<%= (f.author_tag||'').replace(/'/g,\\'') %>')">+ Create Report</button>
+          <button class="btn btn-primary btn-sm" data-id="<%= f.author_id %>" data-tag="<%= (f.author_tag||'').replace(/"/g,'&quot;') %>" onclick="prefillPanel(this.dataset.id,this.dataset.tag)">+ Create Report</button>
           <% } else { %>
           <form method="POST" action="/admin/moderation/flagged/<%= f.id %>/restore" class="inline-form">
             <button class="btn btn-ghost btn-sm">Restore</button>
@@ -668,8 +668,9 @@
           <% snippets.forEach(function(s){ %>
           <div class="snip-row" data-sid="<%= s.id %>"
                data-label="<%= (s.label||'').toLowerCase() %>"
+               data-slabel="<%= (s.label||'Snippet #'+s.id).replace(/"/g,'&quot;') %>"
                data-meta="<%= (s.channel_name||'').toLowerCase() %> <%= (s.guild_name||'').toLowerCase() %>"
-               onclick="toggleSnip(<%= s.id %>,'<%= (s.label||'Snippet #'+s.id).replace(/'/g,\\'') %>')">
+               onclick="toggleSnip(parseInt(this.dataset.sid),this.dataset.slabel)">
             <span style="font-size:16px">💬</span>
             <div style="flex:1;min-width:0">
               <div class="snip-row-name">#<%= s.id %> — <%= s.label||'(untitled)' %></div>
