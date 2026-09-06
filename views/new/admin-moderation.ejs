@@ -893,36 +893,54 @@ function selectSnip(pickerId, snippetId) {
   document.getElementById('snip-msgs-'+pickerId).classList.remove('open');
   document.getElementById('snip-msgs-'+pickerId).innerHTML = '';
 
-  // Auto-fill player + staff from snippet messages (only for report forms)
+  // Auto-fill player + staff using Discord role classification (only for report forms)
   const pidId   = pickerId === 'ticket' ? 't-pid'   : pickerId === 'general' ? 'g-pid'   : null;
   const ptagId  = pickerId === 'ticket' ? 't-ptag'  : pickerId === 'general' ? 'g-ptag'  : null;
   const staffId = pickerId === 'ticket' ? 't-staff' : pickerId === 'general' ? 'g-staff' : null;
   if (!pidId) return;
 
-  fetch('/admin/moderation/snippets/'+snippetId).then(r=>r.json()).then(s => {
+  fetch('/admin/moderation/snippets/'+snippetId).then(r=>r.json()).then(async s => {
     const msgs = Array.isArray(s.messages) ? s.messages : [];
     if (!msgs.length) return;
 
-    // First author = player, everyone else = staff
+    // Collect unique author IDs from the snippet
     const seen = new Map();
     msgs.forEach(m => {
       const key = m.author_id || m.author;
-      if (!seen.has(key)) seen.set(key, { id: m.author_id || null, username: m.author });
+      if (key && !seen.has(key)) seen.set(key, { id: m.author_id || null, username: m.author });
     });
-    const participants = [...seen.values()];
-    const player = participants[0];
-    const staff  = participants.slice(1);
+    const uniqueIds = [...seen.values()].map(p => p.id).filter(Boolean);
+
+    // Ask the server to classify by actual Discord guild roles
+    let players = [], staff = [];
+    if (uniqueIds.length) {
+      try {
+        const cls = await fetch('/admin/moderation/discord/classify-members', {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ user_ids: uniqueIds })
+        }).then(r => r.json());
+        players = cls.players || [];
+        staff   = cls.staff   || [];
+      } catch (_) {
+        // Fallback: first author = player, rest = staff
+        const parts = [...seen.values()];
+        players = parts.slice(0, 1);
+        staff   = parts.slice(1);
+      }
+    }
 
     const pidEl   = document.getElementById(pidId);
     const ptagEl  = document.getElementById(ptagId);
     const staffEl = document.getElementById(staffId);
 
-    if (pidEl  && player?.id)       pidEl.value  = player.id;
-    if (ptagEl && player?.username) ptagEl.value = player.username;
-    if (staffEl && staff.length)    staffEl.value = staff.map(s => s.username).join(', ');
+    // Fill player (if only one non-staff found; if multiple, take first)
+    if (players.length && pidEl && !pidEl.value)  pidEl.value  = players[0].id || '';
+    if (players.length && ptagEl && !ptagEl.value) ptagEl.value = players[0].username || '';
+    // Fill staff (all staff members, comma-separated)
+    if (staff.length && staffEl) staffEl.value = staff.map(s => s.username).join(', ');
 
-    // Trigger the inline player history panel
-    if (player?.id) lookupPlayerInline(pickerId, player.id);
+    // Trigger the inline player history panel for the identified player
+    if (players[0]?.id) lookupPlayerInline(pickerId, players[0].id);
   }).catch(() => {});
 }
 

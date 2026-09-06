@@ -386,6 +386,43 @@ router.get('/moderation/discord/channels/:guildId', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// Classify a list of Discord user IDs as staff or player by checking their CUE guild roles
+router.post('/moderation/discord/classify-members', express.json(), async (req, res) => {
+  const { user_ids } = req.body;
+  if (!Array.isArray(user_ids) || !user_ids.length) return res.json({ players: [], staff: [] });
+  try {
+    // Fetch all guild roles once, identify staff roles by name keywords
+    const roles = await discordApi(`/guilds/${CU_GUILD_ID}/roles`);
+    const staffRoleIds = new Set(
+      roles
+        .filter(r => /staff|mod(?:erator)?|admin|host|manager|lead|owner|organis/i.test(r.name))
+        .map(r => r.id)
+    );
+    // Fetch each member in parallel
+    const results = await Promise.all(user_ids.map(async uid => {
+      try {
+        const member = await discordApi(`/guilds/${CU_GUILD_ID}/members/${uid}`);
+        const isStaff = (member.roles || []).some(rid => staffRoleIds.has(rid));
+        return {
+          id: uid,
+          username: member.user?.username || uid,
+          avatar: member.user?.avatar
+            ? `https://cdn.discordapp.com/avatars/${uid}/${member.user.avatar}.png?size=32`
+            : null,
+          roles: (member.roles || []).map(rid => roles.find(r => r.id === rid)?.name).filter(Boolean),
+          isStaff
+        };
+      } catch (_) {
+        return { id: uid, username: uid, avatar: null, roles: [], isStaff: false };
+      }
+    }));
+    res.json({
+      players: results.filter(r => !r.isStaff),
+      staff:   results.filter(r => r.isStaff)
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 router.get('/moderation/discord/messages/:channelId', async (req, res) => {
   try {
     const { before, after, limit = 50 } = req.query;
@@ -484,32 +521,51 @@ router.post('/moderation/summarize', express.json(), async (req, res) => {
 
   const msgs = Array.isArray(row.messages) ? row.messages : [];
 
-  // Identify unique participants and deduce player vs staff.
-  // Heuristic: the person who sent the first message is the ticket opener (player).
-  // Anyone else is assumed to be staff responding.
-  const seen = new Map(); // author_id -> { username, count, firstIndex }
+  // Classify participants by actual guild roles
+  const seen = new Map();
   msgs.forEach((m, i) => {
     const id = m.author_id || m.author;
-    if (!seen.has(id)) seen.set(id, { username: m.author, id: m.author_id || null, count: 0, firstIndex: i });
-    seen.get(id).count++;
+    if (!seen.has(id)) seen.set(id, { username: m.author, id: m.author_id || null, firstIndex: i });
   });
-  const participants = [...seen.values()].sort((a, b) => a.firstIndex - b.firstIndex);
-  const player = participants[0] || null;
-  const staffList = participants.slice(1);
+  const uniqueIds = [...seen.values()].map(p => p.id).filter(Boolean);
 
+  let player = null, staffList = [];
+  try {
+    const roles = await discordApi(`/guilds/${CU_GUILD_ID}/roles`);
+    const staffRoleIds = new Set(
+      roles.filter(r => /staff|mod(?:erator)?|admin|host|manager|lead|owner|organis/i.test(r.name)).map(r => r.id)
+    );
+    const members = await Promise.all(uniqueIds.map(async uid => {
+      try {
+        const m = await discordApi(`/guilds/${CU_GUILD_ID}/members/${uid}`);
+        const isStaff = (m.roles||[]).some(rid => staffRoleIds.has(rid));
+        return { id: uid, username: m.user?.username || uid, isStaff };
+      } catch (_) { return { id: uid, username: seen.get(uid)?.username || uid, isStaff: false }; }
+    }));
+    const players = members.filter(m => !m.isStaff);
+    staffList = members.filter(m => m.isStaff);
+    player = players[0] || null;
+  } catch (_) {
+    // Fallback if guild lookup fails
+    const parts = [...seen.values()];
+    player = parts[0] || null;
+    staffList = parts.slice(1);
+  }
+
+  const playerIds = new Set(player ? [player.id] : []);
   const formatted = msgs.map(m => {
     const ts = new Date(m.timestamp).toLocaleString('en-GB', { hour:'2-digit', minute:'2-digit', day:'numeric', month:'short' });
     const att = (m.attachments||[]).length ? ` [attachment: ${m.attachments.map(a=>a.name||'file').join(', ')}]` : '';
-    const role = player && (m.author_id || m.author) === (player.id || player.username) ? '[player]' : '[staff]';
+    const role = playerIds.has(m.author_id || m.author) ? '[player]' : '[staff]';
     return `[${ts}] ${role} ${m.author}: ${m.content||''}${att}`;
   }).join('\n');
 
   const prompt = `You are a moderation assistant for a Minecraft event Discord server called Collective Union Events (CUE). Analyse this Discord conversation and write a concise moderation log entry (3-5 sentences max).
 
-The ticket was opened by: ${player ? `${player.username} (Discord ID: ${player.id||'unknown'})` : 'unknown'}
+The player (reported user): ${player ? `${player.username} (Discord ID: ${player.id||'unknown'})` : 'unknown'}
 Staff involved: ${staffList.length ? staffList.map(s=>s.username).join(', ') : 'none identified'}
 
-Identify: what the player wanted, any key evidence or context they shared, how staff responded, and what was decided or actioned. Write in past tense, factual tone. Do not include greetings or pleasantries.
+Identify: what the player did or requested, any key evidence shared, how staff responded, and what was decided or actioned. Write in past tense, factual tone. Do not include greetings or pleasantries.
 
 Conversation from channel: ${row.channel_name||'unknown'} in ${row.guild_name||'CUE Discord'}
 
