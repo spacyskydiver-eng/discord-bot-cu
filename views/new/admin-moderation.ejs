@@ -675,14 +675,19 @@
         </div>
 
         <div class="browser-save" id="browserSave" style="display:none">
-          <div class="sel-count" id="selCount">0 messages selected</div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;flex-wrap:wrap">
+            <div class="sel-count" id="selCount">0 messages selected</div>
+            <div id="pendingBadge" style="display:none;font-family:'Baloo 2';font-weight:800;font-size:11px;background:rgba(116,192,252,.15);border:1px solid rgba(116,192,252,.3);color:#74c0fc;padding:3px 10px;border-radius:99px">
+              📎 <span id="pendingCount">0</span> snippet(s) queued for report
+            </div>
+          </div>
           <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
             <div style="flex:1;min-width:180px">
               <label class="form-label">Snippet label</label>
               <input type="text" id="snippetLabel" class="form-input" placeholder="e.g. 'Username — harassment #tickets'">
             </div>
-            <button class="btn btn-success" onclick="saveSnippet(false)">💾 Save & Add to Report</button>
             <button class="btn btn-primary btn-sm" onclick="saveSnippet(true)">💾 Save + Browse Another</button>
+            <button class="btn btn-success" onclick="saveSnippet(false)">✅ Done — Open Report</button>
             <button class="btn btn-ghost btn-sm" onclick="clearSelection()">Clear</button>
           </div>
           <div id="saveToast" style="display:none;margin-top:10px;background:rgba(91,227,143,.1);border:1px solid rgba(91,227,143,.25);border-radius:8px;padding:10px 14px;font-family:'Baloo 2';font-size:12px;color:#5be38f"></div>
@@ -1260,27 +1265,34 @@ async function saveSnippet(browseAnother) {
     const displayLabel = label || ('Snippet #' + d.id);
     const msgCount = selected.length;
 
-    // Inject into snippet picker in New Report panel (no reload needed)
+    // Inject into picker AND auto-select it (accumulates across multiple channels)
     injectSnippetIntoPicker(d.id, displayLabel, msgCount, channelName);
 
     // Inject into Evidence Library grid
     injectSnippetIntoLibrary(d.id, displayLabel, msgCount, channelName, guildName);
 
+    // Update pending badge
+    const count = Object.keys(selSnips).length;
+    const badge = document.getElementById('pendingBadge');
+    document.getElementById('pendingCount').textContent = count;
+    badge.style.display = count ? '' : 'none';
+
     // Show toast
     const toast = document.getElementById('saveToast');
-    toast.textContent = '✓ Snippet #' + d.id + ' saved and added to the New Report panel. ' +
-      (browseAnother ? 'Pick another channel to add more evidence.' : 'Open "New Report" to select it.');
     toast.style.display = '';
+    if (browseAnother) {
+      toast.textContent = '✓ Snippet #' + d.id + ' saved and queued (' + count + ' total). Change the channel above and select more messages, then click "Done — Open Report".';
+    } else {
+      toast.textContent = '✓ Snippet #' + d.id + ' saved. Opening report with ' + count + ' snippet(s) pre-selected.';
+    }
 
     clearSelection();
     document.getElementById('snippetLabel').value = '';
 
-    // Auto-open panel and select the new snippet
     if (!browseAnother) {
       openPanel();
       setTimeout(() => {
         const row = document.querySelector('.snip-pick-row[data-sid="' + d.id + '"]');
-        if (row && !selSnips[d.id]) row.click();
         row && row.scrollIntoView({ behavior:'smooth', block:'center' });
       }, 200);
     }
@@ -1289,7 +1301,6 @@ async function saveSnippet(browseAnother) {
 
 function injectSnippetIntoPicker(id, label, msgCount, channelName) {
   const list = document.getElementById('snipPickList');
-  // Remove "no snippets" placeholder if present
   const placeholder = list.querySelector('[data-placeholder]');
   if (placeholder) placeholder.remove();
   const div = document.createElement('div');
@@ -1305,6 +1316,8 @@ function injectSnippetIntoPicker(id, label, msgCount, channelName) {
       '<div class="snip-pick-meta">' + msgCount + ' msgs' + (channelName ? ' · #' + h(channelName) : '') + ' · just saved</div>' +
     '</div><span class="snip-pick-check">✓</span>';
   list.insertBefore(div, list.firstChild);
+  // Auto-select this snippet so it's already checked when you open the report panel
+  toggleSnip(id, label);
 }
 
 function injectSnippetIntoLibrary(id, label, msgCount, channelName, guildName) {
