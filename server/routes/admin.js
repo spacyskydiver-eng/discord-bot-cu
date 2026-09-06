@@ -462,15 +462,33 @@ router.post('/moderation/summarize', express.json(), async (req, res) => {
   if (!row) return res.status(404).json({ error: 'Snippet not found' });
 
   const msgs = Array.isArray(row.messages) ? row.messages : [];
+
+  // Identify unique participants and deduce player vs staff.
+  // Heuristic: the person who sent the first message is the ticket opener (player).
+  // Anyone else is assumed to be staff responding.
+  const seen = new Map(); // author_id -> { username, count, firstIndex }
+  msgs.forEach((m, i) => {
+    const id = m.author_id || m.author;
+    if (!seen.has(id)) seen.set(id, { username: m.author, id: m.author_id || null, count: 0, firstIndex: i });
+    seen.get(id).count++;
+  });
+  const participants = [...seen.values()].sort((a, b) => a.firstIndex - b.firstIndex);
+  const player = participants[0] || null;
+  const staffList = participants.slice(1);
+
   const formatted = msgs.map(m => {
     const ts = new Date(m.timestamp).toLocaleString('en-GB', { hour:'2-digit', minute:'2-digit', day:'numeric', month:'short' });
     const att = (m.attachments||[]).length ? ` [attachment: ${m.attachments.map(a=>a.name||'file').join(', ')}]` : '';
-    return `[${ts}] ${m.author}: ${m.content||''}${att}`;
+    const role = player && (m.author_id || m.author) === (player.id || player.username) ? '[player]' : '[staff]';
+    return `[${ts}] ${role} ${m.author}: ${m.content||''}${att}`;
   }).join('\n');
 
   const prompt = `You are a moderation assistant for a Minecraft event Discord server called Collective Union Events (CUE). Analyse this Discord conversation and write a concise moderation log entry (3-5 sentences max).
 
-Identify: who opened the ticket/raised the issue and what they wanted, any key evidence or context shared, how staff responded, and what was decided or actioned. Write in past tense, factual tone. Do not include greetings or pleasantries.
+The ticket was opened by: ${player ? `${player.username} (Discord ID: ${player.id||'unknown'})` : 'unknown'}
+Staff involved: ${staffList.length ? staffList.map(s=>s.username).join(', ') : 'none identified'}
+
+Identify: what the player wanted, any key evidence or context they shared, how staff responded, and what was decided or actioned. Write in past tense, factual tone. Do not include greetings or pleasantries.
 
 Conversation from channel: ${row.channel_name||'unknown'} in ${row.guild_name||'CUE Discord'}
 
@@ -498,7 +516,11 @@ ${formatted}`;
     }
     const summary = candidate?.content?.parts?.[0]?.text || '';
     if (!summary) return res.status(500).json({ error: 'Gemini returned no text. Raw response: ' + JSON.stringify(data).slice(0, 300) });
-    res.json({ summary });
+    res.json({
+      summary,
+      player: player ? { id: player.id, username: player.username } : null,
+      staff: staffList.map(s => s.username)
+    });
   } catch (e) {
     res.status(500).json({ error: 'AI request failed: ' + e.message });
   }

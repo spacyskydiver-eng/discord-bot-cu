@@ -893,10 +893,13 @@ async function aiSummarize(formType) {
   const inputId = 'snip-input-' + formType;
   const snippetId = document.getElementById(inputId)?.value;
   const summaryId = formType === 'ticket' ? 't-summary' : 'g-summary';
+  const pidId     = formType === 'ticket' ? 't-pid'     : 'g-pid';
+  const ptagId    = formType === 'ticket' ? 't-ptag'    : 'g-ptag';
   const statusId  = formType === 'ticket' ? 'ai-sum-status' : 'ai-sum-status-general';
   if (!snippetId) { alert('Select a snippet first — the AI will summarise it.'); return; }
   const status = document.getElementById(statusId);
   status.textContent = '✨ Generating…';
+  status.style.color = 'var(--muted)';
   try {
     const r = await fetch('/admin/moderation/summarize', {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -905,7 +908,15 @@ async function aiSummarize(formType) {
     const data = await r.json();
     if (data.error) { status.textContent = '⚠ ' + data.error; status.style.color='#f87171'; return; }
     document.getElementById(summaryId).value = data.summary;
-    status.textContent = '✓ Done';
+    // Auto-fill player fields if they are empty and we detected a player
+    if (data.player) {
+      const pidEl  = document.getElementById(pidId);
+      const ptagEl = document.getElementById(ptagId);
+      if (pidEl && !pidEl.value && data.player.id)       pidEl.value  = data.player.id;
+      if (ptagEl && !ptagEl.value && data.player.username) ptagEl.value = data.player.username;
+    }
+    const staffNote = data.staff?.length ? ` · staff: ${data.staff.join(', ')}` : '';
+    status.textContent = '✓ Done' + staffNote;
     status.style.color = '#5be38f';
   } catch(e) { status.textContent = '⚠ Request failed'; status.style.color='#f87171'; }
 }
