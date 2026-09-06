@@ -1,0 +1,103 @@
+<%
+// Params: reportType ('ticket'|'general'|'player'), reportId, evidence (array), snippets (array)
+// For ticket/general, primarySnippetId and primarySnippetLabel are optional legacy fields
+const anchor = reportType === 'player' ? 'player-report' : reportType;
+const evList = Array.isArray(evidence) ? evidence : [];
+%>
+<div class="ev-section">
+  <div style="font-family:'Baloo 2';font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px">
+    Evidence (<%= evList.length + (primarySnippetId ? 1 : 0) %> items)
+  </div>
+
+  <% if (primarySnippetId) { %>
+  <div class="ev-item ev-item-snippet">
+    <span class="ev-icon">💬</span>
+    <div class="ev-info">
+      <div class="ev-label"><%= primarySnippetLabel || 'Primary snippet' %></div>
+      <div class="ev-meta">Chat snippet</div>
+    </div>
+    <button type="button" class="mod-btn mod-btn-success mod-btn-sm" onclick="viewSnippet(<%= primarySnippetId %>)">View</button>
+  </div>
+  <% } %>
+
+  <% evList.forEach(function(ev) { %>
+  <div class="ev-item" id="ev-<%= ev.id %>">
+    <% if (ev.evidence_type === 'file') {
+      const isVideo = ['.mp4','.webm','.mov','.avi'].some(x => (ev.filename||'').toLowerCase().endsWith(x));
+    %>
+      <% if (isVideo) { %>
+        <video src="/img/uploads/evidence/<%= ev.filename %>" class="ev-thumb" muted preload="metadata"></video>
+      <% } else { %>
+        <a href="/img/uploads/evidence/<%= ev.filename %>" target="_blank">
+          <img src="/img/uploads/evidence/<%= ev.filename %>" class="ev-thumb">
+        </a>
+      <% } %>
+      <div class="ev-info">
+        <div class="ev-label"><%= ev.label || ev.filename %></div>
+        <div class="ev-meta">File · <a href="/img/uploads/evidence/<%= ev.filename %>" target="_blank" style="color:#74c0fc">Open</a></div>
+      </div>
+    <% } else if (ev.evidence_type === 'url') { %>
+      <span class="ev-icon">🔗</span>
+      <div class="ev-info">
+        <div class="ev-label"><%= ev.label || 'Link' %></div>
+        <div class="ev-meta"><a href="<%= ev.url %>" target="_blank" style="color:#74c0fc;max-width:260px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= ev.url %></a></div>
+      </div>
+    <% } else if (ev.evidence_type === 'snippet') { %>
+      <span class="ev-icon">💬</span>
+      <div class="ev-info">
+        <div class="ev-label"><%= ev.label || ('Snippet #' + ev.snippet_id) %></div>
+        <div class="ev-meta">Chat snippet</div>
+      </div>
+      <% if (ev.snippet_id) { %><button type="button" class="mod-btn mod-btn-success mod-btn-sm" onclick="viewSnippet(<%= ev.snippet_id %>)">View</button><% } %>
+    <% } %>
+    <form method="POST" action="/admin/moderation/reports/evidence/<%= ev.id %>/delete" onsubmit="return confirm('Remove?')" style="margin:0">
+      <button class="mod-btn mod-btn-danger mod-btn-sm">✕</button>
+    </form>
+  </div>
+  <% }); %>
+
+  <!-- Add more evidence -->
+  <div class="ev-add-section">
+    <div style="font-family:'Baloo 2';font-weight:800;font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Add evidence</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+
+      <!-- Upload files -->
+      <div class="ev-add-box">
+        <div class="field-label" style="margin-bottom:6px">📸 Upload screenshots / video</div>
+        <form method="POST" action="/admin/moderation/reports/<%= reportType %>/<%= reportId %>/evidence/file"
+              enctype="multipart/form-data" style="display:flex;flex-direction:column;gap:6px">
+          <input type="file" name="files" accept="image/*,video/*" multiple
+                 style="font-size:11px;color:var(--muted)">
+          <button type="submit" class="mod-btn mod-btn-ghost mod-btn-sm" style="width:fit-content">Upload</button>
+        </form>
+      </div>
+
+      <!-- Add URL -->
+      <div class="ev-add-box">
+        <div class="field-label" style="margin-bottom:6px">🔗 Add URL</div>
+        <form method="POST" action="/admin/moderation/reports/<%= reportType %>/<%= reportId %>/evidence/url"
+              style="display:flex;flex-direction:column;gap:6px">
+          <input type="url" name="url" class="mod-input" placeholder="https://…" style="width:100%">
+          <input type="text" name="label" class="mod-input" placeholder="Label (optional)" style="width:100%">
+          <button type="submit" class="mod-btn mod-btn-ghost mod-btn-sm" style="width:fit-content">Add</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Snippet from library -->
+    <div class="ev-add-box" style="margin-top:8px">
+      <div class="field-label" style="margin-bottom:6px">💬 Attach snippet from evidence library</div>
+      <form method="POST" action="/admin/moderation/reports/<%= reportType %>/<%= reportId %>/evidence/snippet"
+            style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+        <select name="snippet_id" class="mod-select" style="flex:1;min-width:160px">
+          <option value="">— select snippet —</option>
+          <% (snippets||[]).forEach(function(s) { %>
+          <option value="<%= s.id %>">#<%= s.id %> <%= s.label||'(untitled)' %> · <%= s.msg_count %> msgs</option>
+          <% }); %>
+        </select>
+        <input type="text" name="label" class="mod-input" placeholder="Label (optional)" style="width:130px">
+        <button type="submit" class="mod-btn mod-btn-success mod-btn-sm">Attach</button>
+      </form>
+    </div>
+  </div>
+</div>

@@ -148,6 +148,18 @@
 
 .empty-state { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:36px; text-align:center; color:var(--muted); font-family:'Baloo 2'; font-size:14px; }
 
+/* Evidence section */
+.ev-section { margin-top:14px; padding-top:14px; border-top:1px solid var(--line); }
+.ev-item { display:flex; align-items:center; gap:10px; padding:8px 10px; background:rgba(255,255,255,.02); border:1px solid var(--line); border-radius:8px; margin-bottom:6px; }
+.ev-item-snippet { border-left:3px solid rgba(91,227,143,.4); }
+.ev-icon { font-size:20px; flex-shrink:0; width:36px; text-align:center; }
+.ev-thumb { width:52px; height:36px; object-fit:cover; border-radius:5px; flex-shrink:0; cursor:pointer; }
+.ev-info { flex:1; min-width:0; }
+.ev-label { font-family:'Baloo 2'; font-weight:800; font-size:12px; color:#e0e2ed; }
+.ev-meta { font-family:'Baloo 2'; font-size:11px; color:var(--muted); }
+.ev-add-section { margin-top:12px; padding:12px; background:rgba(255,255,255,.02); border:1px dashed rgba(255,255,255,.1); border-radius:8px; }
+.ev-add-box { background:rgba(255,255,255,.02); border:1px solid var(--line); border-radius:8px; padding:10px 12px; }
+
 /* Inline player panel */
 .player-panel { background:rgba(116,192,252,.04); border:1px solid rgba(116,192,252,.18); border-radius:10px; padding:14px 16px; margin-bottom:12px; display:none; }
 .player-panel.visible { display:block; }
@@ -191,6 +203,10 @@
     <button class="mod-tab" data-panel="general">
       General Reports
       <% if (general.length) { %><span class="mod-badge" style="background:#fb923c"><%= general.length %></span><% } %>
+    </button>
+    <button class="mod-tab" data-panel="playerreps">
+      Player Reports
+      <% if (playerReps.length) { %><span class="mod-badge" style="background:#a78bfa"><%= playerReps.length %></span><% } %>
     </button>
     <button class="mod-tab" data-panel="chatlogs">Chat Logs / Evidence</button>
   </div>
@@ -490,7 +506,13 @@
             <button type="button" class="mod-btn mod-btn-success mod-btn-sm" onclick="viewSnippet(<%= t.snippet_id %>)">💬 View snippet #<%= t.snippet_id %> (<%= t.snippet_msg_count %> msgs)</button>
           </div>
           <% } %>
-          <div class="field-label">Notes</div>
+          <%- include('partials/report-evidence', {
+            reportType: 'ticket', reportId: t.id,
+            evidence: t.extra_evidence || [],
+            primarySnippetId: t.snippet_id, primarySnippetLabel: t.snippet_label,
+            snippets
+          }) %>
+          <div class="field-label" style="margin-top:14px">Notes</div>
           <form method="POST" action="/admin/moderation/ticket-reports/<%= t.id %>/notes">
             <textarea name="notes" class="mod-textarea"><%= t.notes||'' %></textarea>
             <button type="submit" class="mod-btn mod-btn-ghost mod-btn-sm" style="margin:6px 0 14px">Save notes</button>
@@ -643,7 +665,13 @@
             <button type="button" class="mod-btn mod-btn-success mod-btn-sm" onclick="viewSnippet(<%= g.snippet_id %>)">💬 View snippet #<%= g.snippet_id %> (<%= g.snippet_msg_count %> msgs)</button>
           </div>
           <% } %>
-          <div class="field-label">Notes</div>
+          <%- include('partials/report-evidence', {
+            reportType: 'general', reportId: g.id,
+            evidence: g.extra_evidence || [],
+            primarySnippetId: g.snippet_id, primarySnippetLabel: g.snippet_label,
+            snippets
+          }) %>
+          <div class="field-label" style="margin-top:14px">Notes</div>
           <form method="POST" action="/admin/moderation/general-reports/<%= g.id %>/notes">
             <textarea name="notes" class="mod-textarea"><%= g.notes||'' %></textarea>
             <button type="submit" class="mod-btn mod-btn-ghost mod-btn-sm" style="margin:6px 0 14px">Save notes</button>
@@ -657,6 +685,205 @@
     <% }); %>
   </div>
 
+
+  <!-- ══════════════════════ PLAYER REPORTS ══════════════════════════════════ -->
+  <div id="panel-playerreps" class="mod-panel" id="player-reports">
+    <div class="add-form-wrap" style="border-color:rgba(167,139,250,.2)">
+      <div class="add-form-header" onclick="toggleAcc('add-playerrep-body','add-playerrep-arr')">
+        <span style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#a78bfa">+ Log a player report</span>
+        <span style="font-family:'Baloo 2';font-size:11px;color:var(--muted);margin-left:8px">— in-game slurs, bans, disciplinary actions, screenshots</span>
+        <span id="add-playerrep-arr" style="font-size:12px;color:var(--muted);margin-left:auto">▼</span>
+      </div>
+      <div class="add-form-body" id="add-playerrep-body">
+        <form method="POST" action="/admin/moderation/player-reports/add" enctype="multipart/form-data" style="padding-top:14px" id="playerrep-add-form">
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div>
+              <div class="field-label">Player Discord ID *</div>
+              <input type="text" name="player_discord_id" id="pr-pid" class="mod-input" style="width:100%" placeholder="Discord ID" required oninput="debounceLookup('playerrep',this.value)">
+            </div>
+            <div>
+              <div class="field-label">Player Username *</div>
+              <input type="text" name="player_discord_tag" id="pr-ptag" class="mod-input" style="width:100%" placeholder="username" required>
+            </div>
+          </div>
+          <div id="player-panel-playerrep" class="player-panel"></div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+            <div>
+              <div class="field-label">Player IGN (Minecraft)</div>
+              <input type="text" name="player_ign" id="pr-ign" class="mod-input" style="width:100%" placeholder="e.g. Notch">
+            </div>
+            <div>
+              <div class="field-label">Incident type</div>
+              <select name="incident_type" class="mod-select" style="width:100%">
+                <option value="slur">Slur / hate speech</option>
+                <option value="harassment">Harassment</option>
+                <option value="cheating">Cheating</option>
+                <option value="griefing">Griefing</option>
+                <option value="conduct">General conduct</option>
+                <option value="threat">Threats</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div>
+              <div class="field-label">Where it happened</div>
+              <select name="location" class="mod-select" style="width:100%">
+                <option value="Game chat">Game chat</option>
+                <option value="Discord">Discord server</option>
+                <option value="Discord DM">Discord DM</option>
+                <option value="Nation server">Nation server</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-bottom:10px">
+            <div class="field-label">Staff involved</div>
+            <input type="text" name="staff_involved" id="pr-staff" class="mod-input" style="width:100%" placeholder="Auto-filled from snippet · editable">
+          </div>
+
+          <!-- Evidence picker (snippet) -->
+          <div style="margin-bottom:10px">
+            <div class="field-label" style="margin-bottom:8px">Primary snippet from evidence library <span style="font-weight:600;color:var(--muted)">(optional)</span></div>
+            <%- include('partials/snip-picker', { snippets, pickerId: 'playerrep', inputName: 'snippet_id' }) %>
+          </div>
+
+          <!-- File uploads at creation -->
+          <div style="margin-bottom:10px">
+            <div class="field-label" style="margin-bottom:6px">Upload screenshots / video evidence</div>
+            <div style="background:rgba(255,255,255,.02);border:1px dashed rgba(255,255,255,.1);border-radius:8px;padding:12px">
+              <input type="file" name="files" accept="image/*,video/*" multiple style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">
+              <div style="font-family:'Baloo 2';font-size:11px;color:var(--muted)">Images and video, up to 50MB each. Multiple files supported.</div>
+            </div>
+          </div>
+
+          <!-- URL evidence at creation -->
+          <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-bottom:14px">
+            <div>
+              <div class="field-label">Evidence URL <span style="font-weight:600;color:var(--muted)">(optional)</span></div>
+              <input type="url" name="ev_url" class="mod-input" style="width:100%" placeholder="https://… (Imgur, Gyazo, etc.)">
+            </div>
+            <div>
+              <div class="field-label">URL label</div>
+              <input type="text" name="ev_url_label" class="mod-input" placeholder="e.g. Screenshot" style="width:140px">
+            </div>
+          </div>
+
+          <div style="margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <div class="field-label" style="margin:0">Summary *</div>
+              <button type="button" class="mod-btn mod-btn-ai mod-btn-sm" onclick="aiSummarize('playerrep')">✨ Auto-summarise from snippet</button>
+              <span id="ai-sum-status-playerrep" style="font-family:'Baloo 2';font-size:11px;color:var(--muted)"></span>
+            </div>
+            <textarea name="summary" id="pr-summary" class="mod-textarea" placeholder="What happened? What did the player do? What action was taken and why?" required></textarea>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+            <div>
+              <div class="field-label">Action taken</div>
+              <select name="action_taken" class="mod-select" style="width:100%">
+                <option value="no_action">No action (logged only)</option>
+                <option value="warning">Verbal warning</option>
+                <option value="written_warning">Written warning</option>
+                <option value="mute">Mute</option>
+                <option value="kick">Kick</option>
+                <option value="ban" selected>Ban</option>
+              </select>
+            </div>
+            <div>
+              <div class="field-label">Severity</div>
+              <select name="severity" class="mod-select" style="width:100%">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high" selected>High</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-bottom:14px">
+            <div class="field-label">Notes</div>
+            <textarea name="notes" class="mod-textarea" style="min-height:50px" placeholder="Any extra context…"></textarea>
+          </div>
+          <button type="submit" class="mod-btn" style="background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.25);font-size:13px;padding:8px 18px">Save player report</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <span class="filter-label">Type</span>
+      <select id="pr-type" onchange="filterPlayerReps()">
+        <option value="">All</option><option value="slur">Slur</option><option value="harassment">Harassment</option>
+        <option value="cheating">Cheating</option><option value="griefing">Griefing</option>
+        <option value="conduct">Conduct</option><option value="threat">Threats</option><option value="other">Other</option>
+      </select>
+      <span class="filter-label">Severity</span>
+      <select id="pr-sev" onchange="filterPlayerReps()">
+        <option value="">All</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option>
+      </select>
+      <span class="filter-label">Action</span>
+      <select id="pr-act" onchange="filterPlayerReps()">
+        <option value="">All</option><option value="ban">Ban</option><option value="kick">Kick</option>
+        <option value="mute">Mute</option><option value="written_warning">Written warning</option>
+        <option value="warning">Warning</option><option value="no_action">No action</option>
+      </select>
+      <span class="filter-label">Player</span>
+      <input type="text" id="pr-player" placeholder="tag / ID / IGN…" oninput="filterPlayerReps()" style="width:150px">
+      <span class="filter-count" id="pr-count"><%= playerReps.length %> reports</span>
+    </div>
+
+    <% if (!playerReps.length) { %><div class="empty-state">No player reports yet — log in-game incidents, slur screenshots, bans, and disciplinary actions here.</div><% } %>
+
+    <% const prIncidentLabels={slur:'Slur',harassment:'Harassment',cheating:'Cheating',griefing:'Griefing',conduct:'Conduct',threat:'Threats',other:'Other'};
+       const prIncidentColors={slur:'#f87171',harassment:'#fb923c',cheating:'#fbbf24',griefing:'#a3e635',conduct:'#74c0fc',threat:'#e879f9',other:'var(--muted)'};
+       const prActionLabels={no_action:'Logged only',warning:'Warning',written_warning:'Written warning',mute:'Mute',kick:'Kick',ban:'Ban'};
+    %>
+    <% playerReps.forEach(function(pr) {
+      const sevClass = pr.severity==='high'?'sev-high':pr.severity==='medium'?'sev-medium':'sev-low';
+      const evidence = Array.isArray(pr.evidence) ? pr.evidence : [];
+    %>
+    <div class="record-card" id="player-report-<%= pr.id %>"
+         data-player="<%= (pr.player_discord_tag||'').toLowerCase() %> <%= pr.player_discord_id %> <%= (pr.player_ign||'').toLowerCase() %>"
+         data-sev="<%= pr.severity %>" data-act="<%= pr.action_taken %>" data-type="<%= pr.incident_type %>">
+      <div class="record-header" onclick="toggleAcc('pr-body-<%= pr.id %>','pr-arr-<%= pr.id %>')">
+        <% if(pr.player_discord_avatar){%><img src="<%= pr.player_discord_avatar %>" class="player-avatar" onerror="this.style.display='none'">
+        <% }else{%><div class="player-avatar" style="display:flex;align-items:center;justify-content:center;font-size:14px;background:rgba(167,139,250,.1)">⚔️</div><% } %>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span class="player-chip" onclick="event.stopPropagation();openPlayerModal('<%= pr.player_discord_id %>')"><span class="player-name">@<%= pr.player_discord_tag %></span></span>
+            <% if(pr.player_ign){%><span style="font-family:'Baloo 2';font-weight:800;font-size:11px;color:#5be38f">⛏ <%= pr.player_ign %></span><% } %>
+            <span style="font-family:'Baloo 2';font-weight:800;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:<%= prIncidentColors[pr.incident_type]||'var(--muted)' %>"><%= prIncidentLabels[pr.incident_type]||pr.incident_type %></span>
+            <span class="sev <%= sevClass %>"><%= pr.severity %></span>
+            <span class="action-pill"><%= prActionLabels[pr.action_taken]||pr.action_taken %></span>
+            <% if(evidence.length){%><span class="action-pill">📎 <%= evidence.length %> evidence</span><% } %>
+            <% if(pr.location){%><span class="action-pill">📍 <%= pr.location %></span><% } %>
+          </div>
+          <div style="font-size:12px;color:var(--muted);font-family:'Baloo 2';margin-top:2px"><%= new Date(pr.created_at).toLocaleString('en-GB') %> · by <%= pr.created_by %><% if(pr.staff_involved){%> · staff: <%= pr.staff_involved %><% } %></div>
+        </div>
+        <span id="pr-arr-<%= pr.id %>" style="font-size:12px;color:var(--muted);flex-shrink:0">▼</span>
+      </div>
+      <div class="record-body" id="pr-body-<%= pr.id %>">
+        <div style="padding-top:14px">
+          <div class="field-label">Summary</div>
+          <div style="background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:13px;color:#c9ccdb;line-height:1.7;white-space:pre-wrap;margin-bottom:14px"><%= pr.summary %></div>
+          <%- include('partials/report-evidence', {
+            reportType: 'player', reportId: pr.id,
+            evidence: pr.evidence || [],
+            primarySnippetId: null, primarySnippetLabel: null,
+            snippets
+          }) %>
+          <div class="field-label" style="margin-top:14px">Notes</div>
+          <form method="POST" action="/admin/moderation/player-reports/<%= pr.id %>/notes">
+            <textarea name="notes" class="mod-textarea"><%= pr.notes||'' %></textarea>
+            <button type="submit" class="mod-btn mod-btn-ghost mod-btn-sm" style="margin:6px 0 14px">Save notes</button>
+          </form>
+          <form method="POST" action="/admin/moderation/player-reports/<%= pr.id %>/delete" onsubmit="return confirm('Delete this player report and all its evidence?')">
+            <button class="mod-btn mod-btn-danger mod-btn-sm">Delete report</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <% }); %>
+  </div>
 
   <!-- ══════════════════════ CHAT LOGS / EVIDENCE LIBRARY ═══════════════════ -->
   <div id="panel-chatlogs" class="mod-panel">
@@ -740,7 +967,7 @@ function showTab(name) {
 }
 (function() {
   const h = location.hash.slice(1);
-  const map = { bans:'bans', tickets:'tickets', general:'general', chatlogs:'chatlogs', flagged:'flagged' };
+  const map = { bans:'bans', tickets:'tickets', general:'general', chatlogs:'chatlogs', flagged:'flagged', 'player-report':'playerreps', 'player-reports':'playerreps' };
   for (const [key, tab] of Object.entries(map)) {
     if (h === key || h.startsWith(key.replace('s','') + '-') || h.startsWith(key + '-')) {
       showTab(tab);
@@ -793,6 +1020,23 @@ function filterBans() {
     if (show) v++;
   });
   document.getElementById('ban-count').textContent = v + ' bans';
+}
+
+function filterPlayerReps() {
+  const type   = document.getElementById('pr-type').value;
+  const sev    = document.getElementById('pr-sev').value;
+  const act    = document.getElementById('pr-act').value;
+  const player = document.getElementById('pr-player').value.toLowerCase();
+  let v = 0;
+  document.querySelectorAll('#panel-playerreps .record-card').forEach(c => {
+    const show = (!type || c.dataset.type===type)
+              && (!sev  || c.dataset.sev===sev)
+              && (!act  || c.dataset.act===act)
+              && (!player || c.dataset.player.includes(player));
+    c.style.display = show ? '' : 'none';
+    if (show) v++;
+  });
+  document.getElementById('pr-count').textContent = v + ' reports';
 }
 
 function filterCards(sel, sevId, actId, playerId, countId, catId) {
@@ -894,9 +1138,9 @@ function selectSnip(pickerId, snippetId) {
   document.getElementById('snip-msgs-'+pickerId).innerHTML = '';
 
   // Auto-fill player + staff using Discord role classification (only for report forms)
-  const pidId   = pickerId === 'ticket' ? 't-pid'   : pickerId === 'general' ? 'g-pid'   : null;
-  const ptagId  = pickerId === 'ticket' ? 't-ptag'  : pickerId === 'general' ? 'g-ptag'  : null;
-  const staffId = pickerId === 'ticket' ? 't-staff' : pickerId === 'general' ? 'g-staff' : null;
+  const pidId   = pickerId === 'ticket' ? 't-pid'   : pickerId === 'general' ? 'g-pid'   : pickerId === 'playerrep' ? 'pr-pid'   : null;
+  const ptagId  = pickerId === 'ticket' ? 't-ptag'  : pickerId === 'general' ? 'g-ptag'  : pickerId === 'playerrep' ? 'pr-ptag'  : null;
+  const staffId = pickerId === 'ticket' ? 't-staff' : pickerId === 'general' ? 'g-staff' : pickerId === 'playerrep' ? 'pr-staff' : null;
   if (!pidId) return;
 
   fetch('/admin/moderation/snippets/'+snippetId).then(r=>r.json()).then(async s => {
@@ -971,10 +1215,10 @@ function toggleSnipMsgs(pickerId, snippetId) {
 async function aiSummarize(formType) {
   const inputId = 'snip-input-' + formType;
   const snippetId = document.getElementById(inputId)?.value;
-  const summaryId = formType === 'ticket' ? 't-summary' : 'g-summary';
-  const pidId     = formType === 'ticket' ? 't-pid'     : 'g-pid';
-  const ptagId    = formType === 'ticket' ? 't-ptag'    : 'g-ptag';
-  const statusId  = formType === 'ticket' ? 'ai-sum-status' : 'ai-sum-status-general';
+  const summaryId = formType === 'ticket' ? 't-summary' : formType === 'general' ? 'g-summary' : 'pr-summary';
+  const pidId     = formType === 'ticket' ? 't-pid'   : formType === 'general' ? 'g-pid'   : 'pr-pid';
+  const ptagId    = formType === 'ticket' ? 't-ptag'  : formType === 'general' ? 'g-ptag'  : 'pr-ptag';
+  const statusId  = formType === 'ticket' ? 'ai-sum-status' : formType === 'general' ? 'ai-sum-status-general' : 'ai-sum-status-playerrep';
   if (!snippetId) { alert('Select a snippet first — the AI will summarise it.'); return; }
   const status = document.getElementById(statusId);
   status.textContent = '✨ Generating…';
@@ -1111,7 +1355,7 @@ async function lookupPlayerInline(formType, discordId) {
 }
 
 function renderPlayerPanel(el, data, formType, discordId) {
-  const ptagId = formType === 'ticket' ? 't-ptag' : 'g-ptag';
+  const ptagId = formType === 'ticket' ? 't-ptag' : formType === 'general' ? 'g-ptag' : 'pr-ptag';
 
   // Auto-fill username if blank
   if (data.profile?.tag) {

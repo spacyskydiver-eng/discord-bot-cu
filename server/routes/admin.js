@@ -224,18 +224,29 @@ async function discordApi(apiPath) {
 
 router.get('/moderation', async (req, res) => {
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  const [flaggedRes, bansRes, ticketsRes, snippetsRes, generalRes] = await Promise.all([
+  const [flaggedRes, bansRes, ticketsRes, snippetsRes, generalRes, playerRepsRes] = await Promise.all([
     db.query(`SELECT * FROM flagged_messages ORDER BY flagged_at DESC`),
     db.query(`SELECT b.*, COALESCE(json_agg(e ORDER BY e.created_at) FILTER (WHERE e.id IS NOT NULL), '[]') AS evidence
               FROM moderation_bans b LEFT JOIN ban_evidence e ON e.ban_id = b.id
               GROUP BY b.id ORDER BY b.banned_at DESC`),
-    db.query(`SELECT t.*, s.label AS snippet_label, jsonb_array_length(s.messages) AS snippet_msg_count
-              FROM ticket_reports t LEFT JOIN chat_snippets s ON s.id = t.snippet_id
-              ORDER BY t.created_at DESC`),
+    db.query(`SELECT t.*, s.label AS snippet_label, jsonb_array_length(s.messages) AS snippet_msg_count,
+              COALESCE(json_agg(re ORDER BY re.created_at) FILTER (WHERE re.id IS NOT NULL), '[]') AS extra_evidence
+              FROM ticket_reports t
+              LEFT JOIN chat_snippets s ON s.id = t.snippet_id
+              LEFT JOIN report_evidence re ON re.report_type='ticket' AND re.report_id=t.id
+              GROUP BY t.id, s.label, s.messages ORDER BY t.created_at DESC`),
     db.query(`SELECT id, label, guild_name, channel_name, created_at, jsonb_array_length(messages) AS msg_count FROM chat_snippets ORDER BY created_at DESC`),
-    db.query(`SELECT g.*, s.label AS snippet_label, jsonb_array_length(s.messages) AS snippet_msg_count
-              FROM general_reports g LEFT JOIN chat_snippets s ON s.id = g.snippet_id
-              ORDER BY g.created_at DESC`)
+    db.query(`SELECT g.*, s.label AS snippet_label, jsonb_array_length(s.messages) AS snippet_msg_count,
+              COALESCE(json_agg(re ORDER BY re.created_at) FILTER (WHERE re.id IS NOT NULL), '[]') AS extra_evidence
+              FROM general_reports g
+              LEFT JOIN chat_snippets s ON s.id = g.snippet_id
+              LEFT JOIN report_evidence re ON re.report_type='general' AND re.report_id=g.id
+              GROUP BY g.id, s.label, s.messages ORDER BY g.created_at DESC`),
+    db.query(`SELECT pr.*,
+              COALESCE(json_agg(re ORDER BY re.created_at) FILTER (WHERE re.id IS NOT NULL), '[]') AS evidence
+              FROM player_reports pr
+              LEFT JOIN report_evidence re ON re.report_type='player' AND re.report_id=pr.id
+              GROUP BY pr.id ORDER BY pr.created_at DESC`)
   ]);
   res.render('new/admin-moderation', {
     flagged: flaggedRes.rows,
@@ -243,6 +254,7 @@ router.get('/moderation', async (req, res) => {
     tickets: ticketsRes.rows,
     snippets: snippetsRes.rows,
     general: generalRes.rows,
+    playerReps: playerRepsRes.rows,
     todayStr: today.toISOString()
   });
 });
@@ -637,8 +649,120 @@ router.post('/moderation/general-reports/:id/notes', async (req, res) => {
 });
 
 router.post('/moderation/general-reports/:id/delete', async (req, res) => {
+  await db.query(`DELETE FROM report_evidence WHERE report_type='general' AND report_id=$1`, [req.params.id]);
   await db.query(`DELETE FROM general_reports WHERE id=$1`, [req.params.id]);
   res.redirect('/admin/moderation#general');
+});
+
+// ── Report Evidence (shared across ticket / general / player reports) ─────────
+router.post('/moderation/reports/:type/:id/evidence/file', evidenceUpload.array('files', 20), async (req, res) => {
+  const { type, id } = req.params;
+  const files = req.files || [];
+  for (const file of files) {
+    await db.query(
+      `INSERT INTO report_evidence (report_type, report_id, evidence_type, filename, label) VALUES ($1,$2,'file',$3,$4)`,
+      [type, parseInt(id), file.filename, file.originalname]
+    );
+  }
+  res.redirect(`/admin/moderation#${type === 'player' ? 'player-report' : type}-${id}`);
+});
+
+router.post('/moderation/reports/:type/:id/evidence/url', async (req, res) => {
+  const { type, id } = req.params;
+  const { url, label } = req.body;
+  if (url?.trim()) {
+    await db.query(
+      `INSERT INTO report_evidence (report_type, report_id, evidence_type, url, label) VALUES ($1,$2,'url',$3,$4)`,
+      [type, parseInt(id), url.trim(), (label||'').trim() || null]
+    );
+  }
+  res.redirect(`/admin/moderation#${type === 'player' ? 'player-report' : type}-${id}`);
+});
+
+router.post('/moderation/reports/:type/:id/evidence/snippet', async (req, res) => {
+  const { type, id } = req.params;
+  const { snippet_id, label } = req.body;
+  if (snippet_id) {
+    await db.query(
+      `INSERT INTO report_evidence (report_type, report_id, evidence_type, snippet_id, label) VALUES ($1,$2,'snippet',$3,$4)`,
+      [type, parseInt(id), parseInt(snippet_id), (label||'').trim() || null]
+    );
+  }
+  res.redirect(`/admin/moderation#${type === 'player' ? 'player-report' : type}-${id}`);
+});
+
+router.post('/moderation/reports/evidence/:id/delete', async (req, res) => {
+  const ev = (await db.query(`SELECT * FROM report_evidence WHERE id=$1`, [req.params.id])).rows[0];
+  if (!ev) return res.redirect('/admin/moderation');
+  if (ev.evidence_type === 'file' && ev.filename) {
+    try { require('fs').unlinkSync(path.join(__dirname, '../../public/img/uploads/evidence', ev.filename)); } catch (_) {}
+  }
+  await db.query(`DELETE FROM report_evidence WHERE id=$1`, [req.params.id]);
+  const anchor = ev.report_type === 'player' ? 'player-report' : ev.report_type;
+  res.redirect(`/admin/moderation#${anchor}-${ev.report_id}`);
+});
+
+// ── Player Reports ────────────────────────────────────────────────────────────
+router.post('/moderation/player-reports/add', evidenceUpload.array('files', 20), async (req, res) => {
+  const { player_discord_id, player_discord_tag, player_ign, incident_type, location,
+          summary, action_taken, severity, staff_involved, notes, snippet_id, ev_url, ev_url_label } = req.body;
+  if (!player_discord_id || !player_discord_tag || !summary) return res.redirect('/admin/moderation#player-reports');
+  let avatar = null;
+  try {
+    const u = await discordApi(`/users/${player_discord_id.trim()}`);
+    if (u.avatar) avatar = `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=64`;
+  } catch (_) {}
+  const result = await db.query(
+    `INSERT INTO player_reports (player_discord_id, player_discord_tag, player_discord_avatar, player_ign,
+       incident_type, location, summary, action_taken, severity, staff_involved, notes, created_by)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`,
+    [
+      player_discord_id.trim(), player_discord_tag.trim(), avatar,
+      (player_ign||'').trim() || null, incident_type || 'other', (location||'').trim() || null,
+      summary.trim(), action_taken || 'no_action', severity || 'low',
+      (staff_involved||'').trim() || null, (notes||'').trim(),
+      req.session.user?.username || 'admin'
+    ]
+  );
+  const repId = result.rows[0].id;
+  // Attach snippet evidence if chosen
+  if (snippet_id) {
+    await db.query(
+      `INSERT INTO report_evidence (report_type, report_id, evidence_type, snippet_id) VALUES ('player',$1,'snippet',$2)`,
+      [repId, parseInt(snippet_id)]
+    );
+  }
+  // Attach uploaded files
+  for (const file of (req.files || [])) {
+    await db.query(
+      `INSERT INTO report_evidence (report_type, report_id, evidence_type, filename, label) VALUES ('player',$1,'file',$2,$3)`,
+      [repId, file.filename, file.originalname]
+    );
+  }
+  // Attach URL evidence
+  if ((ev_url||'').trim()) {
+    await db.query(
+      `INSERT INTO report_evidence (report_type, report_id, evidence_type, url, label) VALUES ('player',$1,'url',$2,$3)`,
+      [repId, ev_url.trim(), (ev_url_label||'').trim() || null]
+    );
+  }
+  res.redirect(`/admin/moderation#player-report-${repId}`);
+});
+
+router.post('/moderation/player-reports/:id/notes', async (req, res) => {
+  await db.query(`UPDATE player_reports SET notes=$1 WHERE id=$2`, [(req.body.notes||'').trim(), req.params.id]);
+  res.redirect(`/admin/moderation#player-report-${req.params.id}`);
+});
+
+router.post('/moderation/player-reports/:id/delete', async (req, res) => {
+  // Delete associated file evidence from disk
+  const evRes = await db.query(`SELECT * FROM report_evidence WHERE report_type='player' AND report_id=$1 AND evidence_type='file'`, [req.params.id]);
+  for (const ev of evRes.rows) {
+    try { require('fs').unlinkSync(path.join(__dirname, '../../public/img/uploads/evidence', ev.filename)); } catch (_) {}
+  }
+  await db.query(`DELETE FROM report_evidence WHERE report_type='player' AND report_id=$1`, [req.params.id]);
+  await db.query(`DELETE FROM player_reports WHERE id=$1`, [req.params.id]);
+  res.redirect('/admin/moderation#player-reports');
 });
 
 // Admin preview of the application wizard
