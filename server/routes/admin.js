@@ -579,7 +579,7 @@ ${formatted}`;
         headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 400, temperature: 0.3 }
+          generationConfig: { maxOutputTokens: 1024, temperature: 0.3 }
         })
       }
     );
