@@ -387,6 +387,10 @@
               <input type="text" name="player_discord_tag" id="t-ptag" class="mod-input" style="width:100%" placeholder="e.g. milkchocolatebetterthandark" required>
             </div>
           </div>
+          <div style="margin-bottom:10px">
+            <div class="field-label">Staff involved</div>
+            <input type="text" name="staff_involved" id="t-staff" class="mod-input" style="width:100%" placeholder="Auto-filled from snippet · editable">
+          </div>
           <div id="player-panel-ticket" class="player-panel"></div>
 
           <!-- Evidence picker -->
@@ -475,6 +479,9 @@
       </div>
       <div class="record-body" id="ticket-body-<%= t.id %>">
         <div style="padding-top:14px">
+          <% if(t.staff_involved){%>
+          <div style="font-family:'Baloo 2';font-size:12px;color:var(--muted);margin-bottom:10px">👤 Staff: <strong style="color:#e0e2ed"><%= t.staff_involved %></strong></div>
+          <% } %>
           <div class="field-label">Summary</div>
           <div style="background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:13px;color:#c9ccdb;line-height:1.7;white-space:pre-wrap;margin-bottom:14px"><%= t.summary %></div>
           <% if(t.snippet_id){%>
@@ -537,6 +544,10 @@
           <div style="margin-bottom:10px">
             <div class="field-label" style="margin-bottom:8px">Evidence snippet <span style="font-weight:600;color:var(--muted)">(optional)</span></div>
             <%- include('partials/snip-picker', { snippets, pickerId: 'general', inputName: 'snippet_id' }) %>
+          </div>
+          <div style="margin-bottom:10px">
+            <div class="field-label">Staff involved</div>
+            <input type="text" name="staff_involved" id="g-staff" class="mod-input" style="width:100%" placeholder="Auto-filled from snippet · editable">
           </div>
 
           <div style="margin-bottom:10px">
@@ -621,6 +632,9 @@
       </div>
       <div class="record-body" id="general-body-<%= g.id %>">
         <div style="padding-top:14px">
+          <% if(g.staff_involved){%>
+          <div style="font-family:'Baloo 2';font-size:12px;color:var(--muted);margin-bottom:10px">👤 Staff: <strong style="color:#e0e2ed"><%= g.staff_involved %></strong></div>
+          <% } %>
           <div class="field-label">Summary</div>
           <div style="background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:13px;color:#c9ccdb;line-height:1.7;white-space:pre-wrap;margin-bottom:14px"><%= g.summary %></div>
           <% if(g.snippet_id){%>
@@ -868,19 +882,48 @@ function snipPickerSearch(pickerId) {
 }
 
 function selectSnip(pickerId, snippetId) {
-  // Update hidden input
   document.getElementById('snip-input-'+pickerId).value = snippetId || '';
-  // Highlight selected item
   document.querySelectorAll('#snip-list-'+pickerId+' .snip-item').forEach(el => {
     el.classList.toggle('selected', el.dataset.id == snippetId);
   });
-  // Show/hide preview
   const preview = document.getElementById('snip-preview-'+pickerId);
   if (!snippetId) { preview.classList.remove('open'); return; }
   preview.classList.add('open');
   document.getElementById('snip-preview-title-'+pickerId).textContent = allSnippets.find(s=>s.id==snippetId)?.label || 'Snippet #'+snippetId;
   document.getElementById('snip-msgs-'+pickerId).classList.remove('open');
   document.getElementById('snip-msgs-'+pickerId).innerHTML = '';
+
+  // Auto-fill player + staff from snippet messages (only for report forms)
+  const pidId   = pickerId === 'ticket' ? 't-pid'   : pickerId === 'general' ? 'g-pid'   : null;
+  const ptagId  = pickerId === 'ticket' ? 't-ptag'  : pickerId === 'general' ? 'g-ptag'  : null;
+  const staffId = pickerId === 'ticket' ? 't-staff' : pickerId === 'general' ? 'g-staff' : null;
+  if (!pidId) return;
+
+  fetch('/admin/moderation/snippets/'+snippetId).then(r=>r.json()).then(s => {
+    const msgs = Array.isArray(s.messages) ? s.messages : [];
+    if (!msgs.length) return;
+
+    // First author = player, everyone else = staff
+    const seen = new Map();
+    msgs.forEach(m => {
+      const key = m.author_id || m.author;
+      if (!seen.has(key)) seen.set(key, { id: m.author_id || null, username: m.author });
+    });
+    const participants = [...seen.values()];
+    const player = participants[0];
+    const staff  = participants.slice(1);
+
+    const pidEl   = document.getElementById(pidId);
+    const ptagEl  = document.getElementById(ptagId);
+    const staffEl = document.getElementById(staffId);
+
+    if (pidEl  && player?.id)       pidEl.value  = player.id;
+    if (ptagEl && player?.username) ptagEl.value = player.username;
+    if (staffEl && staff.length)    staffEl.value = staff.map(s => s.username).join(', ');
+
+    // Trigger the inline player history panel
+    if (player?.id) lookupPlayerInline(pickerId, player.id);
+  }).catch(() => {});
 }
 
 function toggleSnipMsgs(pickerId, snippetId) {

@@ -442,21 +442,20 @@ router.post('/moderation/bans/:id/evidence/snippet', async (req, res) => {
 
 // ── Ticket Reports ────────────────────────────────────────────────────────────
 router.post('/moderation/ticket-reports/add', async (req, res) => {
-  const { player_discord_id, player_discord_tag, ticket_ref, ticket_channel_id, guild_name, summary, action_taken, severity, notes } = req.body;
+  const { player_discord_id, player_discord_tag, summary, action_taken, severity, notes, snippet_id, staff_involved } = req.body;
   if (!player_discord_id || !player_discord_tag || !summary) return res.redirect('/admin/moderation#tickets');
-  // Try to fetch avatar
   let avatar = null;
   try {
     const u = await discordApi(`/users/${player_discord_id.trim()}`);
     if (u.avatar) avatar = `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=64`;
   } catch (_) {}
   const result = await db.query(
-    `INSERT INTO ticket_reports (player_discord_id, player_discord_tag, player_discord_avatar, ticket_ref, ticket_channel_id, guild_name, summary, action_taken, severity, notes, created_by)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
+    `INSERT INTO ticket_reports (player_discord_id, player_discord_tag, player_discord_avatar, summary, action_taken, severity, notes, snippet_id, staff_involved, created_by)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
     [
       player_discord_id.trim(), player_discord_tag.trim(), avatar,
-      (ticket_ref||'').trim() || null, (ticket_channel_id||'').trim() || null, (guild_name||'').trim() || null,
       summary.trim(), action_taken || 'warning', severity || 'low', (notes||'').trim(),
+      snippet_id ? parseInt(snippet_id) : null, (staff_involved||'').trim() || null,
       req.session.user?.username || 'admin'
     ]
   );
@@ -557,14 +556,15 @@ router.post('/moderation/general-reports/add', async (req, res) => {
     const u = await discordApi(`/users/${player_discord_id.trim()}`);
     if (u.avatar) avatar = `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=64`;
   } catch (_) {}
+  const { staff_involved } = req.body;
   const result = await db.query(
-    `INSERT INTO general_reports (player_discord_id, player_discord_tag, player_discord_avatar, category, summary, action_taken, severity, notes, snippet_id, created_by)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
+    `INSERT INTO general_reports (player_discord_id, player_discord_tag, player_discord_avatar, category, summary, action_taken, severity, notes, snippet_id, staff_involved, created_by)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
     [
       player_discord_id.trim(), player_discord_tag.trim(), avatar,
       category || 'other', summary.trim(), action_taken || 'warning', severity || 'low',
       (notes||'').trim(), snippet_id ? parseInt(snippet_id) : null,
-      req.session.user?.username || 'admin'
+      (staff_involved||'').trim() || null, req.session.user?.username || 'admin'
     ]
   );
   res.redirect(`/admin/moderation#general-${result.rows[0].id}`);
