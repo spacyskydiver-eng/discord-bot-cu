@@ -489,8 +489,15 @@ ${formatted}`;
       }
     );
     const data = await aiRes.json();
-    const summary = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    if (!summary) return res.status(500).json({ error: 'Gemini returned no content. Check your API key.' });
+    // Surface API-level errors (bad key, quota, etc.)
+    if (data.error) return res.status(500).json({ error: `Gemini API error: ${data.error.message}` });
+    const candidate = data.candidates?.[0];
+    // Safety filter or other non-STOP finish
+    if (candidate && candidate.finishReason && candidate.finishReason !== 'STOP') {
+      return res.status(500).json({ error: `Gemini blocked response (reason: ${candidate.finishReason}). Try rephrasing or shortening the snippet.` });
+    }
+    const summary = candidate?.content?.parts?.[0]?.text || '';
+    if (!summary) return res.status(500).json({ error: 'Gemini returned no text. Raw response: ' + JSON.stringify(data).slice(0, 300) });
     res.json({ summary });
   } catch (e) {
     res.status(500).json({ error: 'AI request failed: ' + e.message });
