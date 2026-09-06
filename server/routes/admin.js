@@ -455,8 +455,8 @@ router.post('/moderation/ticket-reports/:id/delete', async (req, res) => {
 router.post('/moderation/summarize', express.json(), async (req, res) => {
   const { snippet_id } = req.body;
   if (!snippet_id) return res.status(400).json({ error: 'snippet_id required' });
-  const key = process.env.ANTHROPIC_API_KEY;
-  if (!key) return res.status(503).json({ error: 'ANTHROPIC_API_KEY not set on server. Add it in Render environment variables.' });
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) return res.status(503).json({ error: 'GEMINI_API_KEY not set on server. Add it in Render environment variables.' });
 
   const row = (await db.query(`SELECT * FROM chat_snippets WHERE id=$1`, [snippet_id])).rows[0];
   if (!row) return res.status(404).json({ error: 'Snippet not found' });
@@ -468,31 +468,29 @@ router.post('/moderation/summarize', express.json(), async (req, res) => {
     return `[${ts}] ${m.author}: ${m.content||''}${att}`;
   }).join('\n');
 
-  try {
-    const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 400,
-        messages: [{
-          role: 'user',
-          content: `You are a moderation assistant for a Minecraft event Discord server called Collective Union Events (CUE). Analyse this Discord support ticket conversation and write a concise moderation log entry (3-5 sentences max).
+  const prompt = `You are a moderation assistant for a Minecraft event Discord server called Collective Union Events (CUE). Analyse this Discord conversation and write a concise moderation log entry (3-5 sentences max).
 
-Identify: who opened the ticket and what they wanted, any key evidence or context they shared, how staff responded, and what was decided/actioned. Write in past tense, factual tone. Do not include greetings or pleasantries.
+Identify: who opened the ticket/raised the issue and what they wanted, any key evidence or context shared, how staff responded, and what was decided or actioned. Write in past tense, factual tone. Do not include greetings or pleasantries.
 
 Conversation from channel: ${row.channel_name||'unknown'} in ${row.guild_name||'CUE Discord'}
 
-${formatted}`
-        }]
-      })
-    });
+${formatted}`;
+
+  try {
+    const aiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 400, temperature: 0.3 }
+        })
+      }
+    );
     const data = await aiRes.json();
-    const summary = data.content?.[0]?.text || '';
+    const summary = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    if (!summary) return res.status(500).json({ error: 'Gemini returned no content. Check your API key.' });
     res.json({ summary });
   } catch (e) {
     res.status(500).json({ error: 'AI request failed: ' + e.message });
