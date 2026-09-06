@@ -229,25 +229,28 @@ router.get('/moderation', async (req, res) => {
     db.query(`SELECT b.*, COALESCE(json_agg(e ORDER BY e.created_at) FILTER (WHERE e.id IS NOT NULL), '[]') AS evidence
               FROM moderation_bans b LEFT JOIN ban_evidence e ON e.ban_id = b.id
               GROUP BY b.id ORDER BY b.banned_at DESC`),
-    db.query(`SELECT t.*, s.label AS snippet_label, jsonb_array_length(s.messages) AS snippet_msg_count,
-              COALESCE(json_agg(re ORDER BY re.created_at) FILTER (WHERE re.id IS NOT NULL), '[]') AS extra_evidence
+    db.query(`SELECT t.*, COALESCE(json_agg(re ORDER BY re.created_at) FILTER (WHERE re.id IS NOT NULL), '[]') AS extra_evidence
               FROM ticket_reports t
-              LEFT JOIN chat_snippets s ON s.id = t.snippet_id
               LEFT JOIN report_evidence re ON re.report_type='ticket' AND re.report_id=t.id
-              GROUP BY t.id, s.label, s.messages ORDER BY t.created_at DESC`),
+              GROUP BY t.id ORDER BY t.created_at DESC`),
     db.query(`SELECT id, label, guild_name, channel_name, created_at, jsonb_array_length(messages) AS msg_count FROM chat_snippets ORDER BY created_at DESC`),
-    db.query(`SELECT g.*, s.label AS snippet_label, jsonb_array_length(s.messages) AS snippet_msg_count,
-              COALESCE(json_agg(re ORDER BY re.created_at) FILTER (WHERE re.id IS NOT NULL), '[]') AS extra_evidence
+    db.query(`SELECT g.*, COALESCE(json_agg(re ORDER BY re.created_at) FILTER (WHERE re.id IS NOT NULL), '[]') AS extra_evidence
               FROM general_reports g
-              LEFT JOIN chat_snippets s ON s.id = g.snippet_id
               LEFT JOIN report_evidence re ON re.report_type='general' AND re.report_id=g.id
-              GROUP BY g.id, s.label, s.messages ORDER BY g.created_at DESC`),
+              GROUP BY g.id ORDER BY g.created_at DESC`),
     db.query(`SELECT pr.*,
               COALESCE(json_agg(re ORDER BY re.created_at) FILTER (WHERE re.id IS NOT NULL), '[]') AS evidence
               FROM player_reports pr
               LEFT JOIN report_evidence re ON re.report_type='player' AND re.report_id=pr.id
               GROUP BY pr.id ORDER BY pr.created_at DESC`)
   ]);
+  // Merge all report types into one sorted list for the unified Reports tab
+  const allReports = [
+    ...ticketsRes.rows.map(r => ({ ...r, _type: 'ticket', _evidence: r.extra_evidence })),
+    ...generalRes.rows.map(r => ({ ...r, _type: 'general', _evidence: r.extra_evidence })),
+    ...playerRepsRes.rows.map(r => ({ ...r, _type: 'player', _evidence: r.evidence }))
+  ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
   res.render('new/admin-moderation', {
     flagged: flaggedRes.rows,
     bans: bansRes.rows,
@@ -255,6 +258,7 @@ router.get('/moderation', async (req, res) => {
     snippets: snippetsRes.rows,
     general: generalRes.rows,
     playerReps: playerRepsRes.rows,
+    allReports,
     todayStr: today.toISOString()
   });
 });
@@ -475,7 +479,7 @@ router.get('/moderation/snippets/:id', async (req, res) => {
 
 router.post('/moderation/snippets/:id/delete', async (req, res) => {
   await db.query(`DELETE FROM chat_snippets WHERE id=$1`, [req.params.id]);
-  res.redirect('/admin/moderation#chatlogs');
+  res.redirect('/admin/moderation#evidence');
 });
 
 // Attach snippet as evidence on a ban
@@ -521,17 +525,31 @@ router.post('/moderation/ticket-reports/:id/delete', async (req, res) => {
   res.redirect('/admin/moderation#tickets');
 });
 
-// ── AI summarise ──────────────────────────────────────────────────────────────
+// ── AI summarise (supports single snippet_id or array of snippet_ids) ─────────
 router.post('/moderation/summarize', express.json(), async (req, res) => {
-  const { snippet_id } = req.body;
-  if (!snippet_id) return res.status(400).json({ error: 'snippet_id required' });
+  // Accept snippet_ids (array) or legacy snippet_id (single)
+  let snippetIds = req.body.snippet_ids || (req.body.snippet_id ? [req.body.snippet_id] : []);
+  if (!Array.isArray(snippetIds)) snippetIds = [snippetIds];
+  snippetIds = snippetIds.map(Number).filter(Boolean);
+  if (!snippetIds.length) return res.status(400).json({ error: 'At least one snippet required' });
+
   const key = process.env.GEMINI_API_KEY;
   if (!key) return res.status(503).json({ error: 'GEMINI_API_KEY not set on server. Add it in Render environment variables.' });
 
-  const row = (await db.query(`SELECT * FROM chat_snippets WHERE id=$1`, [snippet_id])).rows[0];
-  if (!row) return res.status(404).json({ error: 'Snippet not found' });
+  // Fetch all requested snippets
+  const snippetRows = (await Promise.all(
+    snippetIds.map(id => db.query(`SELECT * FROM chat_snippets WHERE id=$1`, [id]).then(r => r.rows[0]))
+  )).filter(Boolean);
+  if (!snippetRows.length) return res.status(404).json({ error: 'Snippet not found' });
 
-  const msgs = Array.isArray(row.messages) ? row.messages : [];
+  // Merge all messages across snippets, sorted by timestamp
+  const allMsgs = [];
+  snippetRows.forEach(row => {
+    (Array.isArray(row.messages) ? row.messages : []).forEach(m => allMsgs.push({ ...m, _source: row.label || `Snippet #${row.id}` }));
+  });
+  allMsgs.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  const msgs = allMsgs;
+  const row = snippetRows[0]; // for channel/guild name in prompt
 
   // Classify participants by actual guild roles
   const seen = new Map();
@@ -572,14 +590,18 @@ router.post('/moderation/summarize', express.json(), async (req, res) => {
     return `[${ts}] ${role} ${m.author}: ${m.content||''}${att}`;
   }).join('\n');
 
-  const prompt = `You are a moderation assistant for a Minecraft event Discord server called Collective Union Events (CUE). Analyse this Discord conversation and write a concise moderation log entry (3-5 sentences max).
+  const sourceNote = snippetRows.length > 1
+    ? `${snippetRows.length} conversations: ${snippetRows.map(s => s.label || `Snippet #${s.id}`).join(', ')}`
+    : `channel: ${row.channel_name||'unknown'} in ${row.guild_name||'CUE Discord'}`;
+
+  const prompt = `You are a moderation assistant for a Minecraft event Discord server called Collective Union Events (CUE). Analyse this Discord conversation${snippetRows.length > 1 ? ' (merged from multiple snippets)' : ''} and write a concise moderation log entry (3-5 sentences max).
 
 The player (reported user): ${player ? `${player.username} (Discord ID: ${player.id||'unknown'})` : 'unknown'}
 Staff involved: ${staffList.length ? staffList.map(s=>s.username).join(', ') : 'none identified'}
 
 Identify: what the player did or requested, any key evidence shared, how staff responded, and what was decided or actioned. Write in past tense, factual tone. Do not include greetings or pleasantries.
 
-Conversation from channel: ${row.channel_name||'unknown'} in ${row.guild_name||'CUE Discord'}
+Source: ${sourceNote}
 
 ${formatted}`;
 
@@ -618,6 +640,83 @@ ${formatted}`;
   } catch (e) {
     res.status(500).json({ error: 'AI request failed: ' + e.message });
   }
+});
+
+// ── Unified report creation (new panel form) ──────────────────────────────────
+router.post('/moderation/reports/add', evidenceUpload.array('files', 20), async (req, res) => {
+  const { type, player_discord_id, player_discord_tag, summary, action_taken, severity,
+          notes, staff_involved, incident_type, location, url, url_label } = req.body;
+  let snippet_ids = req.body.snippet_ids || [];
+  if (!Array.isArray(snippet_ids)) snippet_ids = snippet_ids ? [snippet_ids] : [];
+  snippet_ids = snippet_ids.map(Number).filter(Boolean);
+
+  if (!player_discord_id || !player_discord_tag || !summary)
+    return res.redirect('/admin/moderation#reports');
+
+  let avatar = null;
+  try {
+    const u = await discordApi(`/users/${player_discord_id.trim()}`);
+    if (u.avatar) avatar = `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=64`;
+  } catch (_) {}
+
+  const rType = type || 'ticket';
+  let repId;
+
+  if (rType === 'ticket') {
+    const r = await db.query(
+      `INSERT INTO ticket_reports (player_discord_id, player_discord_tag, player_discord_avatar, summary, action_taken, severity, notes, staff_involved, created_by)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
+      [player_discord_id.trim(), player_discord_tag.trim(), avatar, summary.trim(),
+       action_taken||'warning', severity||'low', (notes||'').trim(),
+       (staff_involved||'').trim()||null, req.session.user?.username||'admin']
+    );
+    repId = r.rows[0].id;
+  } else if (rType === 'general') {
+    const r = await db.query(
+      `INSERT INTO general_reports (player_discord_id, player_discord_tag, player_discord_avatar, summary, action_taken, severity, notes, staff_involved, created_by)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
+      [player_discord_id.trim(), player_discord_tag.trim(), avatar, summary.trim(),
+       action_taken||'warning', severity||'low', (notes||'').trim(),
+       (staff_involved||'').trim()||null, req.session.user?.username||'admin']
+    );
+    repId = r.rows[0].id;
+  } else { // player
+    const r = await db.query(
+      `INSERT INTO player_reports (player_discord_id, player_discord_tag, player_discord_avatar, player_ign,
+         incident_type, location, summary, action_taken, severity, notes, staff_involved, created_by)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`,
+      [player_discord_id.trim(), player_discord_tag.trim(), avatar,
+       (req.body.player_ign||'').trim()||null, incident_type||'other',
+       (location||'').trim()||null, summary.trim(), action_taken||'warning',
+       severity||'low', (notes||'').trim(),
+       (staff_involved||'').trim()||null, req.session.user?.username||'admin']
+    );
+    repId = r.rows[0].id;
+  }
+
+  // Insert snippet evidence
+  for (const sid of snippet_ids) {
+    await db.query(
+      `INSERT INTO report_evidence (report_type, report_id, evidence_type, snippet_id) VALUES ($1,$2,'snippet',$3)`,
+      [rType, repId, sid]
+    );
+  }
+  // Insert file evidence
+  for (const file of (req.files || [])) {
+    await db.query(
+      `INSERT INTO report_evidence (report_type, report_id, evidence_type, filename, label) VALUES ($1,$2,'file',$3,$4)`,
+      [rType, repId, file.filename, file.originalname]
+    );
+  }
+  // Insert URL evidence
+  if ((url||'').trim()) {
+    await db.query(
+      `INSERT INTO report_evidence (report_type, report_id, evidence_type, url, label) VALUES ($1,$2,'url',$3,$4)`,
+      [rType, repId, url.trim(), (url_label||'').trim()||null]
+    );
+  }
+
+  res.redirect('/admin/moderation#reports');
 });
 
 // ── General Reports ───────────────────────────────────────────────────────────
@@ -700,6 +799,16 @@ router.post('/moderation/reports/evidence/:id/delete', async (req, res) => {
   await db.query(`DELETE FROM report_evidence WHERE id=$1`, [req.params.id]);
   const anchor = ev.report_type === 'player' ? 'player-report' : ev.report_type;
   res.redirect(`/admin/moderation#${anchor}-${ev.report_id}`);
+});
+
+// ── Unified report delete (new panel) ────────────────────────────────────────
+router.post('/moderation/reports/:type/:id/delete', async (req, res) => {
+  const { type, id } = req.params;
+  const table = type === 'ticket' ? 'ticket_reports' : type === 'general' ? 'general_reports' : type === 'player' ? 'player_reports' : null;
+  if (!table) return res.redirect('/admin/moderation#reports');
+  await db.query(`DELETE FROM report_evidence WHERE report_type=$1 AND report_id=$2`, [type, id]);
+  await db.query(`DELETE FROM ${table} WHERE id=$1`, [id]);
+  res.redirect('/admin/moderation#reports');
 });
 
 // ── Player Reports ────────────────────────────────────────────────────────────

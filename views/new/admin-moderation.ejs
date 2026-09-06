@@ -2,1466 +2,899 @@
 <%- include('partials/header') %>
 
 <style>
-.mod-wrap { max-width: 1140px; margin: 0 auto; padding-bottom: 80px; }
+/* ── Layout ── */
+.mod-wrap { max-width: 1100px; margin: 0 auto; padding: 24px 20px 100px; }
+.mod-topbar { display:flex; align-items:center; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
+.mod-title { font-family:'Baloo 2'; font-weight:900; font-size:24px; color:#e0e2ed; margin:0; }
+.mod-title span { color:#74c0fc; }
 
-/* Top bar */
-.mod-topbar { display:flex; align-items:center; gap:14px; margin:20px 0 18px; flex-wrap:wrap; }
-.mod-title { font-family:'Baloo 2'; font-weight:800; font-size:22px; color:#e0e2ed; }
-.mod-search { flex:1; min-width:200px; max-width:340px; position:relative; }
-.mod-search input { width:100%; background:var(--panel); border:1px solid var(--line); border-radius:10px;
-  padding:8px 12px 8px 34px; font-family:'Baloo 2'; font-weight:700; font-size:13px; color:#fff; outline:none; box-sizing:border-box; }
-.mod-search input:focus { border-color:rgba(255,255,255,.2); }
-.mod-search-ico { position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:14px; pointer-events:none; }
-.mod-search-btn { font-family:'Baloo 2'; font-weight:800; font-size:12px; padding:8px 16px; border-radius:10px;
-  background:rgba(116,192,252,.12); color:#74c0fc; border:1px solid rgba(116,192,252,.25); cursor:pointer; }
-.mod-search-btn:hover { background:rgba(116,192,252,.2); }
+/* ── Tabs ── */
+.tab-nav { display:flex; gap:4px; border-bottom:2px solid rgba(255,255,255,.07); margin-bottom:24px; }
+.tab-btn { font-family:'Baloo 2'; font-weight:800; font-size:13px; padding:10px 18px; border-radius:10px 10px 0 0;
+  border:1px solid transparent; border-bottom:none; cursor:pointer; color:rgba(255,255,255,.4);
+  background:none; position:relative; bottom:-2px; white-space:nowrap; transition:all .15s; }
+.tab-btn:hover { color:rgba(255,255,255,.7); background:rgba(255,255,255,.04); }
+.tab-btn.active { color:#e0e2ed; background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.1); border-bottom-color:rgba(18,19,28,1); }
+.tab-badge { background:#f87171; color:#fff; font-size:10px; font-weight:800; border-radius:99px;
+  padding:1px 6px; margin-left:6px; vertical-align:middle; }
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
 
-/* Tabs */
-.mod-tabs { display:flex; gap:2px; border-bottom:2px solid var(--line); margin-bottom:20px; overflow-x:auto; }
-.mod-tab { font-family:'Baloo 2'; font-weight:800; font-size:12px; padding:9px 16px; border-radius:10px 10px 0 0;
-  border:1px solid transparent; border-bottom:none; cursor:pointer; color:var(--muted); background:none;
-  position:relative; bottom:-2px; white-space:nowrap; }
-.mod-tab:hover { background:var(--panel-2); color:var(--text); }
-.mod-tab.active { background:var(--panel); border-color:var(--line); color:#e0e2ed; }
-.mod-badge { display:inline-flex; align-items:center; justify-content:center; color:#fff;
-  font-size:10px; font-weight:800; border-radius:99px; padding:0 5px; min-width:16px; height:16px; margin-left:5px; }
-.mod-panel { display:none; }
-.mod-panel.active { display:block; }
+/* ── Shared buttons ── */
+.btn { font-family:'Baloo 2'; font-weight:800; font-size:12px; padding:7px 14px; border-radius:8px;
+  border:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px; text-decoration:none; transition:opacity .15s; }
+.btn:hover { opacity:.8; }
+.btn-sm { padding:4px 10px; font-size:11px; }
+.btn-primary { background:rgba(116,192,252,.12); color:#74c0fc; border:1px solid rgba(116,192,252,.25); }
+.btn-success { background:rgba(91,227,143,.1); color:#5be38f; border:1px solid rgba(91,227,143,.22); }
+.btn-danger { background:rgba(248,113,113,.1); color:#f87171; border:1px solid rgba(248,113,113,.25); }
+.btn-ghost { background:rgba(255,255,255,.05); color:rgba(255,255,255,.5); border:1px solid rgba(255,255,255,.1); }
+.btn-ai { background:rgba(168,85,247,.12); color:#c084fc; border:1px solid rgba(168,85,247,.28); }
+.btn-new { background:linear-gradient(135deg,rgba(116,192,252,.18),rgba(168,85,247,.15)); color:#e0e2ed;
+  border:1px solid rgba(116,192,252,.3); padding:9px 18px; font-size:13px; }
 
-/* Filter bar */
-.filter-bar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:16px;
-  background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 14px; }
-.filter-bar select, .filter-bar input[type=text] { background:rgba(255,255,255,.04); border:1px solid var(--line);
-  border-radius:7px; padding:6px 10px; font-family:'Baloo 2'; font-weight:700; font-size:12px; color:#ccc; outline:none; }
-.filter-label { font-family:'Baloo 2'; font-weight:700; font-size:11px; color:var(--muted); }
-.filter-count { font-family:'Baloo 2'; font-size:11px; color:var(--muted); margin-left:auto; }
+/* ── Cards ── */
+.card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:12px;
+  margin-bottom:10px; overflow:hidden; }
+.card-header { display:flex; align-items:center; gap:12px; padding:14px 18px; cursor:pointer; }
+.card-header:hover { background:rgba(255,255,255,.02); }
+.card-body { padding:16px 18px; border-top:1px solid rgba(255,255,255,.06); display:none; }
+.card-body.open { display:block; }
+.avatar { width:32px; height:32px; border-radius:50%; object-fit:cover; background:rgba(255,255,255,.08); flex-shrink:0; }
+.player-tag { font-family:'Baloo 2'; font-weight:800; font-size:13px; color:#e0e2ed; }
+.player-id { font-family:'Baloo 2'; font-size:11px; color:rgba(255,255,255,.35); }
+.card-meta { font-family:'Baloo 2'; font-size:11px; color:rgba(255,255,255,.35); margin-left:auto; white-space:nowrap; }
+.summary-text { font-size:13px; color:#c9ccdb; line-height:1.65; margin:10px 0; }
+.detail-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
+.detail-label { font-family:'Baloo 2'; font-weight:700; font-size:11px; color:rgba(255,255,255,.35); min-width:80px; }
 
-/* Buttons */
-.mod-btn { font-family:'Baloo 2'; font-weight:700; font-size:12px; padding:5px 12px; border-radius:7px;
-  border:none; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:5px; transition:opacity .15s; }
-.mod-btn:hover { opacity:.8; }
-.mod-btn-ghost { background:var(--panel-2); border:1px solid var(--line); color:var(--muted); }
-.mod-btn-danger { background:rgba(248,113,113,.1); color:#f87171; border:1px solid rgba(248,113,113,.25); }
-.mod-btn-primary { background:rgba(116,192,252,.1); color:#74c0fc; border:1px solid rgba(116,192,252,.2); }
-.mod-btn-success { background:rgba(91,227,143,.1); color:#5be38f; border:1px solid rgba(91,227,143,.2); }
-.mod-btn-ai { background:rgba(168,85,247,.12); color:#c084fc; border:1px solid rgba(168,85,247,.25); }
-.mod-btn-sm { padding:3px 9px; font-size:11px; }
+/* ── Pills ── */
+.pill { font-family:'Baloo 2'; font-weight:800; font-size:10px; text-transform:uppercase; letter-spacing:.06em;
+  padding:2px 9px; border-radius:99px; }
+.pill-type-ticket { background:rgba(116,192,252,.12); color:#74c0fc; border:1px solid rgba(116,192,252,.22); }
+.pill-type-general { background:rgba(251,191,36,.1); color:#fbbf24; border:1px solid rgba(251,191,36,.2); }
+.pill-type-player { background:rgba(168,85,247,.12); color:#c084fc; border:1px solid rgba(168,85,247,.22); }
+.pill-sev-low { background:rgba(251,191,36,.1); color:#fbbf24; border:1px solid rgba(251,191,36,.18); }
+.pill-sev-medium { background:rgba(251,146,60,.12); color:#fb923c; border:1px solid rgba(251,146,60,.25); }
+.pill-sev-high { background:rgba(248,113,113,.12); color:#f87171; border:1px solid rgba(248,113,113,.25); }
+.pill-action { background:rgba(255,255,255,.06); color:rgba(255,255,255,.5); border:1px solid rgba(255,255,255,.1); }
+.pill-flag-slur { background:rgba(248,113,113,.14); color:#f87171; border:1px solid rgba(248,113,113,.28); }
+.pill-flag-extreme { background:rgba(251,146,60,.14); color:#fb923c; border:1px solid rgba(251,146,60,.28); }
+.pill-flag-hate { background:rgba(168,85,247,.14); color:#c084fc; border:1px solid rgba(168,85,247,.28); }
 
-/* Inputs */
-.mod-input { background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:8px;
-  padding:9px 12px; font-family:'Baloo 2'; font-weight:600; font-size:13px; color:#fff; outline:none; box-sizing:border-box; }
-.mod-input:focus { border-color:rgba(255,255,255,.2); }
-.mod-textarea { width:100%; background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:8px;
-  padding:10px 14px; font-family:'Baloo 2'; font-weight:600; font-size:13px; color:#fff; outline:none;
-  resize:vertical; min-height:80px; box-sizing:border-box; line-height:1.6; }
-.mod-textarea:focus { border-color:rgba(255,255,255,.2); }
-.mod-select { background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:8px;
-  padding:8px 12px; font-family:'Baloo 2'; font-weight:600; font-size:13px; color:#fff; outline:none; }
-.field-label { font-size:11px; color:var(--muted); font-family:'Baloo 2'; font-weight:700; margin-bottom:4px; }
+/* ── Filter pills ── */
+.filter-pills { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; align-items:center; }
+.filter-pill { font-family:'Baloo 2'; font-weight:800; font-size:12px; padding:5px 14px; border-radius:99px;
+  cursor:pointer; border:1px solid rgba(255,255,255,.1); color:rgba(255,255,255,.4); background:rgba(255,255,255,.04); transition:all .15s; }
+.filter-pill:hover { border-color:rgba(255,255,255,.2); color:rgba(255,255,255,.7); }
+.filter-pill.active { background:rgba(116,192,252,.12); border-color:rgba(116,192,252,.3); color:#74c0fc; }
+.filter-count { font-family:'Baloo 2'; font-size:12px; color:rgba(255,255,255,.3); margin-left:auto; }
 
-/* Pills */
-.sev { font-family:'Baloo 2'; font-weight:800; font-size:10px; text-transform:uppercase; letter-spacing:.06em; padding:2px 8px; border-radius:99px; }
-.sev-low { background:rgba(251,191,36,.1); color:#fbbf24; border:1px solid rgba(251,191,36,.2); }
-.sev-medium { background:rgba(251,146,60,.12); color:#fb923c; border:1px solid rgba(251,146,60,.25); }
-.sev-high { background:rgba(248,113,113,.12); color:#f87171; border:1px solid rgba(248,113,113,.25); }
-.action-pill { font-family:'Baloo 2'; font-weight:800; font-size:10px; text-transform:uppercase; letter-spacing:.05em;
-  padding:2px 8px; border-radius:99px; border:1px solid var(--line); background:rgba(255,255,255,.06); color:var(--muted); }
+/* ── Flag card ── */
+.flag-content { font-size:13px; color:#c9ccdb; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07);
+  border-radius:8px; padding:10px 14px; line-height:1.65; white-space:pre-wrap; word-break:break-word; margin:8px 0; }
+.flag-match { font-family:monospace; font-size:12px; background:rgba(248,113,113,.1); color:#f87171; padding:1px 6px; border-radius:4px; }
+.disregarded-overlay { opacity:.35; pointer-events:none; }
+.card.disregarded .card-header { opacity:.35; }
 
-/* Flag card */
-.flag-card { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px 18px; margin-bottom:8px; }
-.flag-card.today { border-left:3px solid #f87171; }
-.flag-card.disregarded { opacity:.35; }
-.flag-type { font-family:'Baloo 2'; font-weight:800; font-size:10px; text-transform:uppercase; letter-spacing:.06em; padding:2px 8px; border-radius:5px; flex-shrink:0; }
-.flag-type.slur { background:rgba(248,113,113,.15); color:#f87171; border:1px solid rgba(248,113,113,.3); }
-.flag-type.extremist { background:rgba(251,146,60,.15); color:#fb923c; border:1px solid rgba(251,146,60,.3); }
-.flag-content { font-size:13px; color:#c9ccdb; background:rgba(255,255,255,.03); border:1px solid var(--line); border-radius:8px; padding:9px 12px; line-height:1.6; white-space:pre-wrap; word-break:break-word; margin:8px 0; }
-.flag-matched { font-family:monospace; font-size:12px; background:rgba(248,113,113,.1); color:#f87171; padding:1px 6px; border-radius:4px; }
-
-/* Ban / ticket / general card */
-.record-card { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); margin-bottom:10px; overflow:hidden; }
-.record-header { display:flex; align-items:center; gap:12px; padding:14px 18px; cursor:pointer; }
-.record-header:hover { background:rgba(255,255,255,.02); }
-.record-body { padding:0 18px 18px; border-top:1px solid var(--line); display:none; }
-.record-body.open { display:block; }
-.player-chip { display:inline-flex; align-items:center; gap:6px; cursor:pointer; }
-.player-chip:hover .player-name { text-decoration:underline; }
-.player-avatar { width:30px; height:30px; border-radius:50%; object-fit:cover; background:rgba(255,255,255,.08); }
-.player-name { font-family:'Baloo 2'; font-weight:800; font-size:13px; color:#e0e2ed; }
-.ev-row { display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--line); }
-.ev-row:last-child { border-bottom:none; }
-
-/* Add-form collapsible */
-.add-form-wrap { background:var(--panel); border:1px solid rgba(116,192,252,.2); border-radius:var(--radius); margin-bottom:16px; overflow:hidden; }
-.add-form-header { display:flex; align-items:center; gap:10px; padding:12px 18px; cursor:pointer; }
-.add-form-header:hover { background:rgba(255,255,255,.02); }
-.add-form-body { padding:0 18px 18px; border-top:1px solid var(--line); display:none; }
-.add-form-body.open { display:block; }
-
-/* Snippet picker */
-.snip-picker { border:1px solid var(--line); border-radius:10px; overflow:hidden; }
-.snip-search { padding:10px 12px; border-bottom:1px solid var(--line); background:rgba(255,255,255,.02); }
-.snip-search input { width:100%; background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:7px; padding:7px 10px;
-  font-family:'Baloo 2'; font-weight:700; font-size:12px; color:#fff; outline:none; box-sizing:border-box; }
-.snip-list { max-height:240px; overflow-y:auto; }
-.snip-item { display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; border-bottom:1px solid var(--line); transition:background .1s; }
-.snip-item:last-child { border-bottom:none; }
-.snip-item:hover { background:rgba(255,255,255,.04); }
-.snip-item.selected { background:rgba(116,192,252,.08); border-left:3px solid #74c0fc; }
-.snip-item-icon { font-size:18px; flex-shrink:0; }
-.snip-item-name { font-family:'Baloo 2'; font-weight:800; font-size:13px; color:#e0e2ed; }
-.snip-item-meta { font-family:'Baloo 2'; font-size:11px; color:var(--muted); }
-.snip-preview { border-top:1px solid var(--line); background:rgba(255,255,255,.01); display:none; }
-.snip-preview.open { display:block; }
-.snip-preview-header { display:flex; align-items:center; gap:8px; padding:8px 14px; cursor:pointer; border-bottom:1px solid var(--line); }
-.snip-preview-header:hover { background:rgba(255,255,255,.03); }
-.snip-msgs { max-height:300px; overflow-y:auto; padding:8px 14px; display:none; }
-.snip-msgs.open { display:block; }
-.snip-msg-row { display:flex; gap:8px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,.04); }
-.snip-msg-row:last-child { border-bottom:none; }
-
-/* Chat log browser */
-.chat-browser { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:18px; margin-bottom:16px; }
-#msg-list { max-height:420px; overflow-y:auto; background:rgba(255,255,255,.02); border:1px solid var(--line); border-radius:8px; padding:6px; margin:12px 0; }
-.msg-row { display:flex; align-items:flex-start; gap:10px; padding:7px 10px; border-radius:7px; cursor:pointer; transition:background .1s; }
-.msg-row:hover { background:rgba(255,255,255,.04); }
-.msg-row.selected { background:rgba(116,192,252,.1); border:1px solid rgba(116,192,252,.25); }
-.msg-row.in-range { background:rgba(116,192,252,.04); border-left:2px solid rgba(116,192,252,.3); }
-.msg-avatar-sm { width:26px; height:26px; border-radius:50%; flex-shrink:0; background:rgba(255,255,255,.08); }
-.msg-author { font-family:'Baloo 2'; font-weight:800; font-size:12px; color:#e0e2ed; }
-.msg-ts { font-family:'Baloo 2'; font-weight:600; font-size:11px; color:var(--muted); margin-left:6px; }
-.msg-content { font-size:13px; color:#c0c3d5; line-height:1.5; word-break:break-word; }
-.msg-att { font-size:11px; color:#74c0fc; }
-.snippet-card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px 16px; margin-bottom:8px; display:flex; align-items:center; gap:12px; }
-
-/* Player modal */
-#player-modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:1000; align-items:center; justify-content:center; }
-#player-modal-bg.open { display:flex; }
-#player-modal { background:#12131a; border:1px solid var(--line); border-radius:14px; width:min(580px,95vw); max-height:85vh; overflow-y:auto; padding:24px; }
-.timeline-item { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--line); }
-.timeline-item:last-child { border-bottom:none; }
-.timeline-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; margin-top:4px; }
-
-/* Snippet viewer modal */
-#snippet-modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:1001; align-items:center; justify-content:center; }
-#snippet-modal-bg.open { display:flex; }
-#snippet-modal { background:#12131a; border:1px solid var(--line); border-radius:14px; width:min(660px,95vw); max-height:85vh; overflow-y:auto; padding:24px; }
-
-.empty-state { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:36px; text-align:center; color:var(--muted); font-family:'Baloo 2'; font-size:14px; }
-
-/* Evidence section */
-.ev-section { margin-top:14px; padding-top:14px; border-top:1px solid var(--line); }
-.ev-item { display:flex; align-items:center; gap:10px; padding:8px 10px; background:rgba(255,255,255,.02); border:1px solid var(--line); border-radius:8px; margin-bottom:6px; }
-.ev-item-snippet { border-left:3px solid rgba(91,227,143,.4); }
+/* ── Evidence list ── */
+.ev-list { display:flex; flex-direction:column; gap:8px; }
+.ev-item { display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07); border-radius:8px; padding:10px 12px; }
+.ev-thumb { width:60px; height:42px; object-fit:cover; border-radius:6px; flex-shrink:0; }
 .ev-icon { font-size:20px; flex-shrink:0; width:36px; text-align:center; }
-.ev-thumb { width:52px; height:36px; object-fit:cover; border-radius:5px; flex-shrink:0; cursor:pointer; }
-.ev-info { flex:1; min-width:0; }
-.ev-label { font-family:'Baloo 2'; font-weight:800; font-size:12px; color:#e0e2ed; }
-.ev-meta { font-family:'Baloo 2'; font-size:11px; color:var(--muted); }
-.ev-add-section { margin-top:12px; padding:12px; background:rgba(255,255,255,.02); border:1px dashed rgba(255,255,255,.1); border-radius:8px; }
-.ev-add-box { background:rgba(255,255,255,.02); border:1px solid var(--line); border-radius:8px; padding:10px 12px; }
+.ev-label { font-family:'Baloo 2'; font-weight:700; font-size:12px; color:#e0e2ed; }
+.ev-meta { font-family:'Baloo 2'; font-size:11px; color:rgba(255,255,255,.35); }
 
-/* Inline player panel */
-.player-panel { background:rgba(116,192,252,.04); border:1px solid rgba(116,192,252,.18); border-radius:10px; padding:14px 16px; margin-bottom:12px; display:none; }
-.player-panel.visible { display:block; }
-.player-panel-head { display:flex; align-items:center; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
-.player-panel-mc { display:flex; align-items:center; gap:8px; background:rgba(91,227,143,.06); border:1px solid rgba(91,227,143,.15); border-radius:8px; padding:6px 10px; }
-.player-panel-stats { display:flex; gap:6px; flex-wrap:wrap; }
-.player-panel-stat { font-family:'Baloo 2'; font-weight:800; font-size:11px; padding:3px 9px; border-radius:99px; }
-.player-panel-history { margin-top:10px; border-top:1px solid rgba(255,255,255,.06); padding-top:10px; }
-.player-panel-record { display:flex; align-items:flex-start; gap:8px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,.04); font-family:'Baloo 2'; font-size:12px; }
-.player-panel-record:last-child { border-bottom:none; }
-.pp-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:3px; }
-.warn-banner { background:rgba(248,113,113,.1); border:1px solid rgba(248,113,113,.25); border-radius:8px; padding:7px 12px; font-family:'Baloo 2'; font-weight:800; font-size:12px; color:#f87171; margin-bottom:8px; }
+/* ── AI summary box ── */
+.ai-box { background:rgba(168,85,247,.07); border:1px solid rgba(168,85,247,.2); border-radius:10px;
+  padding:14px 16px; margin-top:12px; }
+.ai-box-label { font-family:'Baloo 2'; font-weight:800; font-size:11px; color:#c084fc; margin-bottom:6px; text-transform:uppercase; letter-spacing:.05em; }
+.ai-box-text { font-size:13px; color:#ddd6fe; line-height:1.7; }
+
+/* ── Snippet library ── */
+.snip-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+.snip-card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:16px; }
+.snip-card-title { font-family:'Baloo 2'; font-weight:800; font-size:13px; color:#e0e2ed; margin-bottom:4px; }
+.snip-card-meta { font-family:'Baloo 2'; font-size:11px; color:rgba(255,255,255,.35); }
+.snip-card-actions { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+
+/* ── Slide-in panel ── */
+.panel-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:800; opacity:0;
+  pointer-events:none; transition:opacity .25s; }
+.panel-overlay.open { opacity:1; pointer-events:all; }
+.slide-panel { position:fixed; top:0; right:0; height:100vh; width:min(520px,100vw);
+  background:#15161f; border-left:1px solid rgba(255,255,255,.1); z-index:900;
+  transform:translateX(100%); transition:transform .3s cubic-bezier(.4,0,.2,1);
+  display:flex; flex-direction:column; overflow:hidden; }
+.slide-panel.open { transform:translateX(0); }
+.panel-head { display:flex; align-items:center; gap:12px; padding:20px 24px; border-bottom:1px solid rgba(255,255,255,.08); flex-shrink:0; }
+.panel-head-title { font-family:'Baloo 2'; font-weight:900; font-size:17px; color:#e0e2ed; flex:1; }
+.panel-body { flex:1; overflow-y:auto; padding:20px 24px; }
+.panel-body::-webkit-scrollbar { width:4px; }
+.panel-body::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:99px; }
+
+/* ── Panel form ── */
+.form-group { margin-bottom:16px; }
+.form-label { font-family:'Baloo 2'; font-weight:800; font-size:11px; color:rgba(255,255,255,.4);
+  text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px; display:block; }
+.form-input { width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+  border-radius:8px; padding:10px 14px; font-family:'Baloo 2'; font-weight:600; font-size:13px;
+  color:#fff; outline:none; box-sizing:border-box; }
+.form-input:focus { border-color:rgba(116,192,252,.4); }
+.form-select { width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+  border-radius:8px; padding:10px 14px; font-family:'Baloo 2'; font-weight:600; font-size:13px;
+  color:#fff; outline:none; box-sizing:border-box; }
+.form-textarea { width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+  border-radius:8px; padding:10px 14px; font-family:'Baloo 2'; font-weight:600; font-size:13px;
+  color:#fff; outline:none; resize:vertical; min-height:90px; box-sizing:border-box; line-height:1.6; }
+.form-textarea:focus, .form-select:focus { border-color:rgba(116,192,252,.4); }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+/* ── Report type cards ── */
+.type-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:4px; }
+.type-card { border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:12px 10px; text-align:center;
+  cursor:pointer; transition:all .15s; background:rgba(255,255,255,.03); }
+.type-card:hover { border-color:rgba(255,255,255,.2); background:rgba(255,255,255,.06); }
+.type-card.selected { border-color:#74c0fc; background:rgba(116,192,252,.1); }
+.type-card.selected.gen { border-color:#fbbf24; background:rgba(251,191,36,.1); }
+.type-card.selected.player { border-color:#c084fc; background:rgba(168,85,247,.1); }
+.type-card-icon { font-size:22px; margin-bottom:4px; }
+.type-card-name { font-family:'Baloo 2'; font-weight:800; font-size:12px; color:#e0e2ed; }
+.type-card-desc { font-family:'Baloo 2'; font-size:10px; color:rgba(255,255,255,.35); margin-top:2px; }
+
+/* ── Multi-snippet chips ── */
+.snip-chips { display:flex; flex-wrap:wrap; gap:6px; min-height:32px; margin-bottom:8px; }
+.snip-chip { display:inline-flex; align-items:center; gap:6px; background:rgba(116,192,252,.1);
+  border:1px solid rgba(116,192,252,.25); border-radius:99px; padding:3px 10px;
+  font-family:'Baloo 2'; font-weight:700; font-size:12px; color:#74c0fc; }
+.snip-chip-rm { background:none; border:none; cursor:pointer; color:#74c0fc; font-size:13px; padding:0; line-height:1; }
+.snip-picker-list { max-height:200px; overflow-y:auto; border:1px solid rgba(255,255,255,.08); border-radius:8px; }
+.snip-row { display:flex; align-items:center; gap:10px; padding:9px 12px; cursor:pointer;
+  border-bottom:1px solid rgba(255,255,255,.05); transition:background .1s; }
+.snip-row:last-child { border-bottom:none; }
+.snip-row:hover { background:rgba(255,255,255,.04); }
+.snip-row.added { background:rgba(116,192,252,.07); }
+.snip-row-name { font-family:'Baloo 2'; font-weight:700; font-size:12px; color:#e0e2ed; }
+.snip-row-meta { font-family:'Baloo 2'; font-size:11px; color:rgba(255,255,255,.35); }
+
+/* ── AI result in panel ── */
+.ai-result { background:rgba(168,85,247,.07); border:1px solid rgba(168,85,247,.2); border-radius:10px;
+  padding:12px 14px; margin-top:10px; display:none; }
+.ai-result.show { display:block; }
+.ai-result-text { font-size:13px; color:#ddd6fe; line-height:1.7; }
+
+/* ── Empty state ── */
+.empty { display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:60px 20px; color:rgba(255,255,255,.25); text-align:center; }
+.empty-icon { font-size:40px; margin-bottom:12px; }
+.empty-text { font-family:'Baloo 2'; font-weight:700; font-size:14px; }
+
+/* ── Misc ── */
+.divider { height:1px; background:rgba(255,255,255,.07); margin:16px 0; }
+.section-title { font-family:'Baloo 2'; font-weight:900; font-size:12px; text-transform:uppercase;
+  letter-spacing:.07em; color:rgba(255,255,255,.3); margin-bottom:12px; }
+.inline-form { display:inline; }
 </style>
 
-<main class="wrap">
 <div class="mod-wrap">
 
+  <!-- Top bar -->
   <div class="mod-topbar">
-    <span class="mod-title">Moderation</span>
-    <div class="mod-search">
-      <span class="mod-search-ico">🔍</span>
-      <input type="text" id="globalSearch" placeholder="Player ID or username…" onkeydown="if(event.key==='Enter')openPlayerModal(this.value)">
-    </div>
-    <button class="mod-search-btn" onclick="openPlayerModal(document.getElementById('globalSearch').value)">Player History</button>
-    <a href="/admin" class="mod-btn mod-btn-ghost" style="margin-left:auto">← Admin</a>
+    <h1 class="mod-title">Mod<span>eration</span></h1>
+    <button class="btn btn-new" onclick="openPanel()">＋ New Report</button>
   </div>
 
-  <div class="mod-tabs">
-    <button class="mod-tab active" data-panel="flagged">
-      Flagged
-      <% const activeFlags = flagged.filter(f=>!f.disregarded); if (activeFlags.length) { %><span class="mod-badge" style="background:#f87171"><%= activeFlags.length %></span><% } %>
+  <!-- Tabs -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('flagged',this)">
+      🚩 Flagged
+      <% const newFlags = flagged.filter(f=>!f.disregarded).length; %>
+      <% if(newFlags>0){%><span class="tab-badge"><%= newFlags %></span><%}%>
     </button>
-    <button class="mod-tab" data-panel="bans">
-      Bans
-      <% if (bans.length) { %><span class="mod-badge" style="background:#e879f9"><%= bans.length %></span><% } %>
+    <button class="tab-btn" onclick="switchTab('bans',this)">
+      🔨 Bans
+      <% if(bans.length>0){%><span class="tab-badge" style="background:#fb923c"><%= bans.length %></span><%}%>
     </button>
-    <button class="mod-tab" data-panel="tickets">
-      Ticket Reports
-      <% if (tickets.length) { %><span class="mod-badge" style="background:#74c0fc;color:#0a1a2e"><%= tickets.length %></span><% } %>
+    <button class="tab-btn" onclick="switchTab('reports',this)">
+      📋 Reports
+      <% if(allReports.length>0){%><span class="tab-badge" style="background:#74c0fc"><%= allReports.length %></span><%}%>
     </button>
-    <button class="mod-tab" data-panel="general">
-      General Reports
-      <% if (general.length) { %><span class="mod-badge" style="background:#fb923c"><%= general.length %></span><% } %>
+    <button class="tab-btn" onclick="switchTab('evidence',this)">
+      💬 Evidence Library
+      <% if(snippets.length>0){%><span class="tab-badge" style="background:#c084fc"><%= snippets.length %></span><%}%>
     </button>
-    <button class="mod-tab" data-panel="playerreps">
-      Player Reports
-      <% if (playerReps.length) { %><span class="mod-badge" style="background:#a78bfa"><%= playerReps.length %></span><% } %>
-    </button>
-    <button class="mod-tab" data-panel="chatlogs">Chat Logs / Evidence</button>
   </div>
 
+  <!-- ═══════════════════ FLAGGED TAB ═══════════════════ -->
+  <div class="tab-panel active" id="tab-flagged">
 
-  <!-- ══════════════════════ FLAGGED ══════════════════════════════════════════ -->
-  <div id="panel-flagged" class="mod-panel active">
-    <div class="filter-bar">
-      <span class="filter-label">Type</span>
-      <select id="f-type" onchange="filterFlags()"><option value="">All</option><option value="slur">Slur</option><option value="extremist">Extremist</option></select>
-      <span class="filter-label">Time</span>
-      <select id="f-time" onchange="filterFlags()"><option value="">All time</option><option value="today">Today</option><option value="week">This week</option></select>
-      <span class="filter-label">Player</span>
-      <input type="text" id="f-player" placeholder="tag or ID…" oninput="filterFlags()" style="width:140px">
-      <label style="display:flex;align-items:center;gap:5px;font-family:'Baloo 2';font-weight:700;font-size:12px;color:var(--muted);cursor:pointer">
-        <input type="checkbox" id="f-dis" onchange="filterFlags()"> Show disregarded
-      </label>
-      <span class="filter-count" id="f-count"><%= flagged.length %> total</span>
+    <div class="filter-pills">
+      <button class="filter-pill active" onclick="filterFlags('all',this)">All</button>
+      <button class="filter-pill" onclick="filterFlags('active',this)">Active</button>
+      <button class="filter-pill" onclick="filterFlags('disregarded',this)">Disregarded</button>
+      <span class="filter-count"><%= flagged.length %> total</span>
     </div>
 
-    <% if (!flagged.length) { %><div class="empty-state">No flagged messages — the bot logs them here automatically.</div><% } %>
+    <% if(!flagged.length){ %>
+    <div class="empty"><div class="empty-icon">✅</div><div class="empty-text">No flagged messages</div></div>
+    <% } %>
 
-    <div id="flags-list">
-    <% flagged.forEach(function(f) {
-      const isToday = new Date(f.flagged_at) >= new Date(todayStr);
-      const isWeek  = new Date(f.flagged_at) >= new Date(Date.now() - 7*86400000);
+    <% flagged.forEach(function(f){ %>
+    <%
+      const flagDate = new Date(f.flagged_at);
+      const isToday = flagDate.toDateString() === new Date().toDateString();
+      const typeClass = f.flag_type==='slur'?'pill-flag-slur': f.flag_type==='extremist'?'pill-flag-extreme':'pill-flag-hate';
     %>
-    <div class="flag-card<%= isToday?' today':'' %><%= f.disregarded?' disregarded':'' %>"
-         data-dis="<%= f.disregarded?'1':'0' %>" data-type="<%= f.flag_type %>"
-         data-player="<%= (f.discord_tag||'').toLowerCase() %> <%= f.discord_id %>"
-         data-today="<%= isToday?'1':'0' %>" data-week="<%= isWeek?'1':'0' %>" id="flag-<%= f.id %>">
-      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">
-        <span class="flag-type <%= f.flag_type==='slur'?'slur':'extremist' %>"><%= f.flag_type==='slur'?'Racist Slur':'Extremist' %></span>
-        <div style="flex:1">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <span class="player-chip" onclick="openPlayerModal('<%= f.discord_id %>')"><span class="player-name">@<%= f.discord_tag %></span></span>
-            <span style="font-size:11px;color:var(--muted);font-family:'Baloo 2'"><%= f.discord_id %></span>
-            <% if (isToday) { %><span class="sev sev-high" style="font-size:9px">TODAY</span><% } %>
-            <span class="flag-matched"><%= f.matched_term %></span>
+    <div class="card <%= f.disregarded?'disregarded':'' %>" data-flag-state="<%= f.disregarded?'disregarded':'active' %>">
+      <div class="card-header" onclick="toggleCard(this)">
+        <span class="pill <%= typeClass %>"><%= f.flag_type||'flagged' %></span>
+        <div style="flex:1;min-width:0">
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#e0e2ed;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+            <%= (f.content||'').substring(0,120) %>
           </div>
-          <div style="font-size:11px;color:var(--muted);font-family:'Baloo 2';margin-top:2px"><%= f.guild_name %> · #<%= f.channel_name %> · <%= new Date(f.flagged_at).toLocaleString('en-GB') %></div>
+          <div style="font-family:'Baloo 2';font-size:11px;color:rgba(255,255,255,.35);">
+            <%= f.author_tag||'Unknown' %>
+            <% if(f.channel_name){ %> · #<%= f.channel_name %><% } %>
+            <% if(f.guild_name){ %> · <%= f.guild_name %><% } %>
+          </div>
         </div>
+        <div class="card-meta">
+          <% if(isToday){ %><span style="color:#f87171;margin-right:6px">● Today</span><% } %>
+          <%= flagDate.toLocaleDateString('en-GB') %>
+        </div>
+        <span style="color:rgba(255,255,255,.3);font-size:12px;margin-left:6px">▼</span>
       </div>
-      <div class="flag-content"><%= f.message_content %></div>
-      <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">
-        <% if (!f.disregarded) { %>
-        <form method="POST" action="/admin/moderation/flagged/<%= f.id %>/disregard" style="margin:0"><button class="mod-btn mod-btn-ghost mod-btn-sm">✓ Disregard</button></form>
-        <% } else { %>
-        <form method="POST" action="/admin/moderation/flagged/<%= f.id %>/restore" style="margin:0"><button class="mod-btn mod-btn-ghost mod-btn-sm">↩ Restore</button></form>
+      <div class="card-body">
+        <div class="flag-content"><%= f.content %></div>
+        <% if(f.matched_word){ %>
+        <div style="margin-bottom:10px">Matched: <span class="flag-match"><%= f.matched_word %></span></div>
         <% } %>
-        <button class="mod-btn mod-btn-primary mod-btn-sm" onclick="toggleFlagTag(<%= f.id %>)">📎 Tag as evidence on ban</button>
-        <div id="ftag-<%= f.id %>" style="display:none;width:100%;margin-top:8px">
-          <form method="POST" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end" id="ftag-form-<%= f.id %>">
-            <div style="flex:1;min-width:160px">
-              <div class="field-label">Attach to ban</div>
-              <select name="ban_id_sel" class="mod-select" style="width:100%"
-                onchange="document.getElementById('ftag-form-<%= f.id %>').action='/admin/moderation/bans/'+this.value+'/evidence/flag'">
-                <option value="">— select ban —</option>
-                <% bans.forEach(function(b){ %><option value="<%= b.id %>"><%= b.discord_tag %> — <%= (b.reason||'No reason').slice(0,35) %></option><% }); %>
-              </select>
-            </div>
-            <div><div class="field-label">Label</div><input type="text" name="label" class="mod-input" placeholder="optional" style="width:150px"></div>
-            <input type="hidden" name="flagged_message_id" value="<%= f.id %>">
-            <button type="submit" class="mod-btn mod-btn-primary mod-btn-sm"
-              onclick="const s=this.form.querySelector('[name=ban_id_sel]');if(!s.value){event.preventDefault();alert('Select a ban first')}">Attach</button>
-            <button type="button" class="mod-btn mod-btn-ghost mod-btn-sm" onclick="toggleFlagTag(<%= f.id %>)">Cancel</button>
+        <div class="detail-row">
+          <span class="detail-label">Author ID</span>
+          <span style="font-family:monospace;font-size:12px;color:rgba(255,255,255,.5)"><%= f.author_id||'—' %></span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Message ID</span>
+          <span style="font-family:monospace;font-size:12px;color:rgba(255,255,255,.5)"><%= f.message_id||'—' %></span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+          <% if(!f.disregarded){ %>
+          <form method="POST" action="/admin/moderation/flagged/<%= f.id %>/disregard" class="inline-form">
+            <button class="btn btn-ghost btn-sm">Disregard</button>
           </form>
-        </div>
-      </div>
-    </div>
-    <% }); %>
-    </div>
-  </div>
-
-
-  <!-- ══════════════════════ BANS ════════════════════════════════════════════ -->
-  <div id="panel-bans" class="mod-panel">
-    <div class="filter-bar">
-      <span class="filter-label">Search</span>
-      <input type="text" id="ban-search" placeholder="player tag or ID…" oninput="filterBans()" style="width:220px">
-      <span class="filter-count" id="ban-count"><%= bans.length %> bans</span>
-    </div>
-    <% if (!bans.length) { %><div class="empty-state">No bans — synced automatically from Discord.</div><% } %>
-
-    <% bans.forEach(function(b) { const evidence = Array.isArray(b.evidence)?b.evidence:[]; %>
-    <div class="record-card" id="ban-<%= b.id %>" data-player="<%= (b.discord_tag||'').toLowerCase() %> <%= b.discord_id %>">
-      <div class="record-header" onclick="toggleAcc('ban-body-<%= b.id %>','ban-arr-<%= b.id %>')">
-        <% if (b.discord_avatar) { %><img src="<%= b.discord_avatar %>" class="player-avatar" onerror="this.style.display='none'">
-        <% } else { %><div class="player-avatar" style="display:flex;align-items:center;justify-content:center;font-size:14px;background:rgba(248,113,113,.1)">🚫</div><% } %>
-        <div style="flex:1">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <span class="player-chip" onclick="event.stopPropagation();openPlayerModal('<%= b.discord_id %>')"><span class="player-name" style="color:#f87171">@<%= b.discord_tag %></span></span>
-            <span style="font-size:11px;color:var(--muted);font-family:'Baloo 2'"><%= b.discord_id %></span>
-          </div>
-          <div style="font-size:12px;color:var(--muted);font-family:'Baloo 2';margin-top:2px"><%= b.reason||'No reason' %> · <%= new Date(b.banned_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) %><% if(b.banned_by){%> · by <%= b.banned_by %><% } %></div>
-        </div>
-        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
-          <% if(evidence.length){%><span style="font-family:'Baloo 2';font-size:11px;color:var(--muted)"><%= evidence.length %> evidence</span><% } %>
-          <% if(b.notes){%><span class="action-pill">notes</span><% } %>
-          <span id="ban-arr-<%= b.id %>" style="font-size:12px;color:var(--muted)">▼</span>
-        </div>
-      </div>
-      <div class="record-body" id="ban-body-<%= b.id %>">
-        <div style="padding-top:14px">
-          <div class="field-label" style="margin-bottom:6px">Notes</div>
-          <form method="POST" action="/admin/moderation/bans/<%= b.id %>/notes">
-            <textarea name="notes" class="mod-textarea"><%= b.notes||'' %></textarea>
-            <button type="submit" class="mod-btn mod-btn-ghost mod-btn-sm" style="margin:6px 0 16px">Save notes</button>
+          <button class="btn btn-primary btn-sm" onclick="prefillPanel('<%= f.author_id %>','<%= (f.author_tag||'').replace(/'/g,\\'') %>')">+ Create Report</button>
+          <% } else { %>
+          <form method="POST" action="/admin/moderation/flagged/<%= f.id %>/restore" class="inline-form">
+            <button class="btn btn-ghost btn-sm">Restore</button>
           </form>
-
-          <% if(evidence.length){ %>
-          <div class="field-label" style="margin-bottom:8px">Evidence (<%= evidence.length %>)</div>
-          <div style="background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin-bottom:12px">
-            <% evidence.forEach(function(ev){ %>
-            <div class="ev-row">
-              <% if(ev.evidence_type==='file'){const isV=['.mp4','.webm','.mov','.avi'].some(x=>(ev.filename||'').endsWith(x)); %>
-                <% if(isV){%><video src="/img/uploads/evidence/<%= ev.filename %>" style="width:44px;height:32px;border-radius:4px;object-fit:cover" muted></video>
-                <% }else{%><img src="/img/uploads/evidence/<%= ev.filename %>" style="width:44px;height:32px;border-radius:4px;object-fit:cover"><% } %>
-                <div style="flex:1;font-family:'Baloo 2';font-size:12px;color:#e0e2ed;font-weight:700"><%= ev.label||ev.filename %><a href="/img/uploads/evidence/<%= ev.filename %>" target="_blank" style="display:block;color:#74c0fc;font-size:11px;text-decoration:none">View</a></div>
-              <% }else if(ev.evidence_type==='url'){ %>
-                <div style="width:44px;height:32px;border-radius:4px;background:rgba(116,192,252,.08);display:flex;align-items:center;justify-content:center;font-size:16px">🔗</div>
-                <div style="flex:1;font-family:'Baloo 2';font-size:12px;color:#e0e2ed;font-weight:700"><%= ev.label||'Link' %><a href="<%= ev.url %>" target="_blank" style="display:block;color:#74c0fc;font-size:11px;text-decoration:none;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= ev.url %></a></div>
-              <% }else if(ev.evidence_type==='flag'){ %>
-                <div style="width:44px;height:32px;border-radius:4px;background:rgba(248,113,113,.08);display:flex;align-items:center;justify-content:center;font-size:16px">⚠️</div>
-                <div style="flex:1;font-family:'Baloo 2';font-size:12px;color:#e0e2ed;font-weight:700"><%= ev.label||'Flagged message' %><a href="#flag-<%= ev.flagged_message_id %>" onclick="showTab('flagged')" style="display:block;color:#f87171;font-size:11px;text-decoration:none">View flag #<%= ev.flagged_message_id %></a></div>
-              <% }else if(ev.evidence_type==='snippet'){ %>
-                <div style="width:44px;height:32px;border-radius:4px;background:rgba(91,227,143,.08);display:flex;align-items:center;justify-content:center;font-size:16px">💬</div>
-                <div style="flex:1;font-family:'Baloo 2';font-size:12px;color:#e0e2ed;font-weight:700"><%= ev.label||'Chat snippet' %><button type="button" onclick="viewSnippet(<%= ev.snippet_id %>)" style="background:none;border:none;cursor:pointer;color:#5be38f;font-size:11px;font-family:'Baloo 2';padding:0">View snippet #<%= ev.snippet_id %></button></div>
-              <% } %>
-              <form method="POST" action="/admin/moderation/bans/<%= b.id %>/evidence/<%= ev.id %>/delete" onsubmit="return confirm('Remove?')" style="margin:0">
-                <button class="mod-btn mod-btn-danger mod-btn-sm">✕</button>
-              </form>
-            </div>
-            <% }); %>
-          </div>
           <% } %>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-            <div style="border:1px dashed rgba(255,255,255,.1);border-radius:8px;padding:12px">
-              <div class="field-label" style="margin-bottom:7px">Upload file</div>
-              <form method="POST" action="/admin/moderation/bans/<%= b.id %>/evidence/upload" enctype="multipart/form-data">
-                <input type="file" name="file" accept="image/*,video/*" style="font-size:11px;color:var(--muted);display:block;margin-bottom:6px">
-                <input type="text" name="label" class="mod-input" placeholder="Label" style="width:100%;margin-bottom:6px">
-                <button type="submit" class="mod-btn mod-btn-ghost mod-btn-sm">Upload</button>
-              </form>
-            </div>
-            <div style="border:1px dashed rgba(255,255,255,.1);border-radius:8px;padding:12px">
-              <div class="field-label" style="margin-bottom:7px">Add URL</div>
-              <form method="POST" action="/admin/moderation/bans/<%= b.id %>/evidence/upload">
-                <input type="url" name="url" class="mod-input" placeholder="https://…" style="width:100%;margin-bottom:6px">
-                <input type="text" name="label" class="mod-input" placeholder="Label" style="width:100%;margin-bottom:6px">
-                <button type="submit" class="mod-btn mod-btn-ghost mod-btn-sm">Add</button>
-              </form>
-            </div>
-          </div>
-          <div style="border:1px dashed rgba(91,227,143,.15);border-radius:8px;padding:12px;margin-bottom:14px">
-            <div class="field-label" style="margin-bottom:7px">Attach snippet from evidence library</div>
-            <form method="POST" action="/admin/moderation/bans/<%= b.id %>/evidence/snippet" style="display:flex;gap:8px;flex-wrap:wrap">
-              <select name="snippet_id" class="mod-select" style="flex:1">
-                <option value="">— select snippet —</option>
-                <% snippets.forEach(function(s){ %><option value="<%= s.id %>">#<%= s.id %> <%= s.label||'(untitled)' %> · <%= s.msg_count %> msgs</option><% }); %>
-              </select>
-              <input type="text" name="label" class="mod-input" placeholder="Label" style="width:140px">
-              <button type="submit" class="mod-btn mod-btn-success mod-btn-sm">Attach</button>
-            </form>
-          </div>
-          <form method="POST" action="/admin/moderation/bans/<%= b.id %>/delete" onsubmit="return confirm('Delete this ban record?')">
-            <button class="mod-btn mod-btn-danger mod-btn-sm">Delete ban record</button>
-          </form>
         </div>
       </div>
     </div>
     <% }); %>
   </div>
 
+  <!-- ═══════════════════ BANS TAB ═══════════════════ -->
+  <div class="tab-panel" id="tab-bans">
 
-  <!-- ══════════════════════ TICKET REPORTS ═══════════════════════════════════ -->
-  <div id="panel-tickets" class="mod-panel">
-    <div class="add-form-wrap">
-      <div class="add-form-header" onclick="toggleAcc('add-ticket-body','add-ticket-arr')">
-        <span style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#74c0fc">+ Log a ticket report</span>
-        <span id="add-ticket-arr" style="font-size:12px;color:var(--muted);margin-left:auto">▼</span>
-      </div>
-      <div class="add-form-body" id="add-ticket-body">
-        <form method="POST" action="/admin/moderation/ticket-reports/add" style="padding-top:14px" id="ticket-add-form">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-            <div>
-              <div class="field-label">Player Discord ID *</div>
-              <input type="text" name="player_discord_id" id="t-pid" class="mod-input" style="width:100%" placeholder="e.g. 1399661992712863758" required
-                oninput="debounceLookup('ticket',this.value)">
-            </div>
-            <div>
-              <div class="field-label">Player Username *</div>
-              <input type="text" name="player_discord_tag" id="t-ptag" class="mod-input" style="width:100%" placeholder="e.g. milkchocolatebetterthandark" required>
-            </div>
+    <!-- Add ban form -->
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:18px 20px;margin-bottom:20px">
+      <div class="section-title" style="margin-bottom:14px">Add New Ban</div>
+      <form method="POST" action="/admin/moderation/bans/add">
+        <div class="form-row" style="margin-bottom:12px">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Discord ID *</label>
+            <input type="text" name="discord_id" class="form-input" placeholder="123456789012345678" required>
           </div>
-          <div style="margin-bottom:10px">
-            <div class="field-label">Staff involved</div>
-            <input type="text" name="staff_involved" id="t-staff" class="mod-input" style="width:100%" placeholder="Auto-filled from snippet · editable">
-          </div>
-          <div id="player-panel-ticket" class="player-panel"></div>
-
-          <!-- Evidence picker -->
-          <div style="margin-bottom:10px">
-            <div class="field-label" style="margin-bottom:8px">Evidence snippet <span style="font-weight:600;color:var(--muted)">(optional — select from your saved snippets)</span></div>
-            <%- include('partials/snip-picker', { snippets, pickerId: 'ticket', inputName: 'snippet_id' }) %>
-          </div>
-
-          <div style="margin-bottom:10px">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-              <div class="field-label" style="margin:0">Summary *</div>
-              <button type="button" class="mod-btn mod-btn-ai mod-btn-sm" id="ai-sum-btn" onclick="aiSummarize('ticket')" style="margin-left:4px">✨ Auto-summarise from snippet</button>
-              <span id="ai-sum-status" style="font-family:'Baloo 2';font-size:11px;color:var(--muted)"></span>
-            </div>
-            <textarea name="summary" id="t-summary" class="mod-textarea" placeholder="What happened in the ticket? What was said/decided?" required></textarea>
-          </div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-            <div>
-              <div class="field-label">Action taken</div>
-              <select name="action_taken" class="mod-select" style="width:100%">
-                <option value="no_action">No action</option>
-                <option value="warning" selected>Verbal warning</option>
-                <option value="written_warning">Written warning</option>
-                <option value="kick">Kick</option>
-                <option value="ban">Ban</option>
-              </select>
-            </div>
-            <div>
-              <div class="field-label">Severity</div>
-              <select name="severity" class="mod-select" style="width:100%">
-                <option value="low" selected>Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
-            </div>
-          </div>
-          <div style="margin-bottom:14px">
-            <div class="field-label">Additional notes</div>
-            <textarea name="notes" class="mod-textarea" style="min-height:50px" placeholder="Optional extra context…"></textarea>
-          </div>
-          <button type="submit" class="mod-btn mod-btn-primary" style="font-size:13px;padding:8px 18px">Save ticket report</button>
-        </form>
-      </div>
-    </div>
-
-    <div class="filter-bar">
-      <span class="filter-label">Severity</span>
-      <select id="t-sev" onchange="filterCards('.ticket-card','t-sev','t-act','t-player','t-count')">
-        <option value="">All</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option>
-      </select>
-      <span class="filter-label">Action</span>
-      <select id="t-act" onchange="filterCards('.ticket-card','t-sev','t-act','t-player','t-count')">
-        <option value="">All</option><option value="ban">Ban</option><option value="kick">Kick</option>
-        <option value="written_warning">Written warning</option><option value="warning">Warning</option><option value="no_action">No action</option>
-      </select>
-      <span class="filter-label">Player</span>
-      <input type="text" id="t-player" placeholder="tag or ID…" oninput="filterCards('.ticket-card','t-sev','t-act','t-player','t-count')" style="width:140px">
-      <span class="filter-count" id="t-count"><%= tickets.length %> reports</span>
-    </div>
-
-    <% if (!tickets.length) { %><div class="empty-state">No ticket reports yet — log one with the form above.</div><% } %>
-
-    <% tickets.forEach(function(t) {
-      const sevClass = t.severity==='high'?'sev-high':t.severity==='medium'?'sev-medium':'sev-low';
-      const actionLabels = {no_action:'No action',warning:'Warning',written_warning:'Written warning',kick:'Kick',ban:'Ban'};
-    %>
-    <div class="record-card ticket-card" id="ticket-<%= t.id %>"
-         data-player="<%= (t.player_discord_tag||'').toLowerCase() %> <%= t.player_discord_id %>"
-         data-sev="<%= t.severity %>" data-act="<%= t.action_taken %>">
-      <div class="record-header" onclick="toggleAcc('ticket-body-<%= t.id %>','ticket-arr-<%= t.id %>')">
-        <% if(t.player_discord_avatar){%><img src="<%= t.player_discord_avatar %>" class="player-avatar" onerror="this.style.display='none'">
-        <% }else{%><div class="player-avatar" style="display:flex;align-items:center;justify-content:center;font-size:14px;background:rgba(116,192,252,.1)">🎟</div><% } %>
-        <div style="flex:1">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <span class="player-chip" onclick="event.stopPropagation();openPlayerModal('<%= t.player_discord_id %>')"><span class="player-name">@<%= t.player_discord_tag %></span></span>
-            <span class="sev <%= sevClass %>"><%= t.severity %></span>
-            <span class="action-pill"><%= actionLabels[t.action_taken]||t.action_taken %></span>
-            <% if(t.snippet_label){%><span class="action-pill">📎 <%= t.snippet_label.slice(0,25) %></span><% } %>
-          </div>
-          <div style="font-size:12px;color:var(--muted);font-family:'Baloo 2';margin-top:2px">
-            <%= new Date(t.created_at).toLocaleString('en-GB') %> · by <%= t.created_by %>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Discord Tag *</label>
+            <input type="text" name="discord_tag" class="form-input" placeholder="username#0000" required>
           </div>
         </div>
-        <span id="ticket-arr-<%= t.id %>" style="font-size:12px;color:var(--muted);flex-shrink:0">▼</span>
-      </div>
-      <div class="record-body" id="ticket-body-<%= t.id %>">
-        <div style="padding-top:14px">
-          <% if(t.staff_involved){%>
-          <div style="font-family:'Baloo 2';font-size:12px;color:var(--muted);margin-bottom:10px">👤 Staff: <strong style="color:#e0e2ed"><%= t.staff_involved %></strong></div>
-          <% } %>
-          <div class="field-label">Summary</div>
-          <div style="background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:13px;color:#c9ccdb;line-height:1.7;white-space:pre-wrap;margin-bottom:14px"><%= t.summary %></div>
-          <% if(t.snippet_id){%>
-          <div style="margin-bottom:14px">
-            <span style="font-family:'Baloo 2';font-size:12px;color:var(--muted)">Evidence: </span>
-            <button type="button" class="mod-btn mod-btn-success mod-btn-sm" onclick="viewSnippet(<%= t.snippet_id %>)">💬 View snippet #<%= t.snippet_id %> (<%= t.snippet_msg_count %> msgs)</button>
-          </div>
-          <% } %>
-          <%- include('partials/report-evidence', {
-            reportType: 'ticket', reportId: t.id,
-            evidence: t.extra_evidence || [],
-            primarySnippetId: t.snippet_id, primarySnippetLabel: t.snippet_label,
-            snippets
-          }) %>
-          <div class="field-label" style="margin-top:14px">Notes</div>
-          <form method="POST" action="/admin/moderation/ticket-reports/<%= t.id %>/notes">
-            <textarea name="notes" class="mod-textarea"><%= t.notes||'' %></textarea>
-            <button type="submit" class="mod-btn mod-btn-ghost mod-btn-sm" style="margin:6px 0 14px">Save notes</button>
-          </form>
-          <form method="POST" action="/admin/moderation/ticket-reports/<%= t.id %>/delete" onsubmit="return confirm('Delete this report?')">
-            <button class="mod-btn mod-btn-danger mod-btn-sm">Delete report</button>
-          </form>
+        <div class="form-group">
+          <label class="form-label">Reason *</label>
+          <input type="text" name="reason" class="form-input" placeholder="Brief reason for the ban" required>
         </div>
-      </div>
-    </div>
-    <% }); %>
-  </div>
-
-
-  <!-- ══════════════════════ GENERAL REPORTS ══════════════════════════════════ -->
-  <div id="panel-general" class="mod-panel">
-    <div class="add-form-wrap" style="border-color:rgba(251,146,60,.2)">
-      <div class="add-form-header" onclick="toggleAcc('add-general-body','add-general-arr')">
-        <span style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#fb923c">+ Log a general report</span>
-        <span style="font-family:'Baloo 2';font-size:11px;color:var(--muted);margin-left:8px">— flagged messages, in-game incidents, DM screenshots, anything outside a ticket</span>
-        <span id="add-general-arr" style="font-size:12px;color:var(--muted);margin-left:auto">▼</span>
-      </div>
-      <div class="add-form-body" id="add-general-body">
-        <form method="POST" action="/admin/moderation/general-reports/add" style="padding-top:14px" id="general-add-form">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
-            <div>
-              <div class="field-label">Player Discord ID *</div>
-              <input type="text" name="player_discord_id" id="g-pid" class="mod-input" style="width:100%" placeholder="Discord ID" required
-                oninput="debounceLookup('general',this.value)">
-            </div>
-            <div>
-              <div class="field-label">Player Username *</div>
-              <input type="text" name="player_discord_tag" id="g-ptag" class="mod-input" style="width:100%" placeholder="username" required>
-            </div>
-            <div>
-              <div class="field-label">Category</div>
-              <select name="category" class="mod-select" style="width:100%">
-                <option value="slur">Slur / hate speech</option>
-                <option value="harassment">Harassment</option>
-                <option value="cheating">Cheating</option>
-                <option value="griefing">Griefing</option>
-                <option value="conduct">General conduct</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-          </div>
-
-          <div id="player-panel-general" class="player-panel"></div>
-
-          <!-- Evidence picker -->
-          <div style="margin-bottom:10px">
-            <div class="field-label" style="margin-bottom:8px">Evidence snippet <span style="font-weight:600;color:var(--muted)">(optional)</span></div>
-            <%- include('partials/snip-picker', { snippets, pickerId: 'general', inputName: 'snippet_id' }) %>
-          </div>
-          <div style="margin-bottom:10px">
-            <div class="field-label">Staff involved</div>
-            <input type="text" name="staff_involved" id="g-staff" class="mod-input" style="width:100%" placeholder="Auto-filled from snippet · editable">
-          </div>
-
-          <div style="margin-bottom:10px">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-              <div class="field-label" style="margin:0">Summary *</div>
-              <button type="button" class="mod-btn mod-btn-ai mod-btn-sm" onclick="aiSummarize('general')">✨ Auto-summarise from snippet</button>
-              <span id="ai-sum-status-general" style="font-family:'Baloo 2';font-size:11px;color:var(--muted)"></span>
-            </div>
-            <textarea name="summary" id="g-summary" class="mod-textarea" placeholder="What happened? What evidence did you find? What was your assessment?" required></textarea>
-          </div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-            <div>
-              <div class="field-label">Action taken</div>
-              <select name="action_taken" class="mod-select" style="width:100%">
-                <option value="no_action">No action (logged only)</option>
-                <option value="warning" selected>Verbal warning</option>
-                <option value="written_warning">Written warning</option>
-                <option value="kick">Kick</option>
-                <option value="ban">Ban</option>
-              </select>
-            </div>
-            <div>
-              <div class="field-label">Severity</div>
-              <select name="severity" class="mod-select" style="width:100%">
-                <option value="low" selected>Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
-            </div>
-          </div>
-          <div style="margin-bottom:14px">
-            <div class="field-label">Additional notes</div>
-            <textarea name="notes" class="mod-textarea" style="min-height:50px" placeholder="Any extra context, links, or notes…"></textarea>
-          </div>
-          <button type="submit" class="mod-btn" style="background:rgba(251,146,60,.12);color:#fb923c;border:1px solid rgba(251,146,60,.25);font-size:13px;padding:8px 18px">Save general report</button>
-        </form>
-      </div>
-    </div>
-
-    <div class="filter-bar">
-      <span class="filter-label">Category</span>
-      <select id="g-cat" onchange="filterCards('.general-card','g-cat','g-sev','g-player','g-count','cat')">
-        <option value="">All</option><option value="slur">Slur</option><option value="harassment">Harassment</option>
-        <option value="cheating">Cheating</option><option value="griefing">Griefing</option><option value="conduct">Conduct</option><option value="other">Other</option>
-      </select>
-      <span class="filter-label">Severity</span>
-      <select id="g-sev" onchange="filterCards('.general-card','g-cat','g-sev','g-player','g-count','cat')">
-        <option value="">All</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option>
-      </select>
-      <span class="filter-label">Player</span>
-      <input type="text" id="g-player" placeholder="tag or ID…" oninput="filterCards('.general-card','g-cat','g-sev','g-player','g-count','cat')" style="width:140px">
-      <span class="filter-count" id="g-count"><%= general.length %> reports</span>
-    </div>
-
-    <% if (!general.length) { %><div class="empty-state">No general reports yet — log flagged messages, in-game incidents, or anything else here.</div><% } %>
-
-    <% const catLabels={slur:'Slur / hate speech',harassment:'Harassment',cheating:'Cheating',griefing:'Griefing',conduct:'Conduct',other:'Other'};
-       const catColors={slur:'#f87171',harassment:'#fb923c',cheating:'#fbbf24',griefing:'#a3e635',conduct:'#74c0fc',other:'var(--muted)'};
-    %>
-    <% general.forEach(function(g) {
-      const sevClass = g.severity==='high'?'sev-high':g.severity==='medium'?'sev-medium':'sev-low';
-      const actionLabels = {no_action:'Logged only',warning:'Warning',written_warning:'Written warning',kick:'Kick',ban:'Ban'};
-    %>
-    <div class="record-card general-card" id="general-<%= g.id %>"
-         data-player="<%= (g.player_discord_tag||'').toLowerCase() %> <%= g.player_discord_id %>"
-         data-sev="<%= g.severity %>" data-act="<%= g.action_taken %>" data-cat="<%= g.category %>">
-      <div class="record-header" onclick="toggleAcc('general-body-<%= g.id %>','general-arr-<%= g.id %>')">
-        <% if(g.player_discord_avatar){%><img src="<%= g.player_discord_avatar %>" class="player-avatar" onerror="this.style.display='none'">
-        <% }else{%><div class="player-avatar" style="display:flex;align-items:center;justify-content:center;font-size:14px;background:rgba(251,146,60,.1)">📋</div><% } %>
-        <div style="flex:1">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <span class="player-chip" onclick="event.stopPropagation();openPlayerModal('<%= g.player_discord_id %>')"><span class="player-name">@<%= g.player_discord_tag %></span></span>
-            <span style="font-family:'Baloo 2';font-weight:800;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:<%= catColors[g.category]||'var(--muted)' %>"><%= catLabels[g.category]||g.category %></span>
-            <span class="sev <%= sevClass %>"><%= g.severity %></span>
-            <span class="action-pill"><%= actionLabels[g.action_taken]||g.action_taken %></span>
-            <% if(g.snippet_label){%><span class="action-pill">📎 <%= g.snippet_label.slice(0,25) %></span><% } %>
-          </div>
-          <div style="font-size:12px;color:var(--muted);font-family:'Baloo 2';margin-top:2px"><%= new Date(g.created_at).toLocaleString('en-GB') %> · by <%= g.created_by %></div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <textarea name="notes" class="form-textarea" style="min-height:60px" placeholder="Additional context…"></textarea>
         </div>
-        <span id="general-arr-<%= g.id %>" style="font-size:12px;color:var(--muted);flex-shrink:0">▼</span>
-      </div>
-      <div class="record-body" id="general-body-<%= g.id %>">
-        <div style="padding-top:14px">
-          <% if(g.staff_involved){%>
-          <div style="font-family:'Baloo 2';font-size:12px;color:var(--muted);margin-bottom:10px">👤 Staff: <strong style="color:#e0e2ed"><%= g.staff_involved %></strong></div>
-          <% } %>
-          <div class="field-label">Summary</div>
-          <div style="background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:13px;color:#c9ccdb;line-height:1.7;white-space:pre-wrap;margin-bottom:14px"><%= g.summary %></div>
-          <% if(g.snippet_id){%>
-          <div style="margin-bottom:14px">
-            <span style="font-family:'Baloo 2';font-size:12px;color:var(--muted)">Evidence: </span>
-            <button type="button" class="mod-btn mod-btn-success mod-btn-sm" onclick="viewSnippet(<%= g.snippet_id %>)">💬 View snippet #<%= g.snippet_id %> (<%= g.snippet_msg_count %> msgs)</button>
-          </div>
-          <% } %>
-          <%- include('partials/report-evidence', {
-            reportType: 'general', reportId: g.id,
-            evidence: g.extra_evidence || [],
-            primarySnippetId: g.snippet_id, primarySnippetLabel: g.snippet_label,
-            snippets
-          }) %>
-          <div class="field-label" style="margin-top:14px">Notes</div>
-          <form method="POST" action="/admin/moderation/general-reports/<%= g.id %>/notes">
-            <textarea name="notes" class="mod-textarea"><%= g.notes||'' %></textarea>
-            <button type="submit" class="mod-btn mod-btn-ghost mod-btn-sm" style="margin:6px 0 14px">Save notes</button>
-          </form>
-          <form method="POST" action="/admin/moderation/general-reports/<%= g.id %>/delete" onsubmit="return confirm('Delete this report?')">
-            <button class="mod-btn mod-btn-danger mod-btn-sm">Delete report</button>
-          </form>
-        </div>
-      </div>
-    </div>
-    <% }); %>
-  </div>
-
-
-  <!-- ══════════════════════ PLAYER REPORTS ══════════════════════════════════ -->
-  <div id="panel-playerreps" class="mod-panel" id="player-reports">
-    <div class="add-form-wrap" style="border-color:rgba(167,139,250,.2)">
-      <div class="add-form-header" onclick="toggleAcc('add-playerrep-body','add-playerrep-arr')">
-        <span style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#a78bfa">+ Log a player report</span>
-        <span style="font-family:'Baloo 2';font-size:11px;color:var(--muted);margin-left:8px">— in-game slurs, bans, disciplinary actions, screenshots</span>
-        <span id="add-playerrep-arr" style="font-size:12px;color:var(--muted);margin-left:auto">▼</span>
-      </div>
-      <div class="add-form-body" id="add-playerrep-body">
-        <form method="POST" action="/admin/moderation/player-reports/add" enctype="multipart/form-data" style="padding-top:14px" id="playerrep-add-form">
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-            <div>
-              <div class="field-label">Player Discord ID *</div>
-              <input type="text" name="player_discord_id" id="pr-pid" class="mod-input" style="width:100%" placeholder="Discord ID" required oninput="debounceLookup('playerrep',this.value)">
-            </div>
-            <div>
-              <div class="field-label">Player Username *</div>
-              <input type="text" name="player_discord_tag" id="pr-ptag" class="mod-input" style="width:100%" placeholder="username" required>
-            </div>
-          </div>
-          <div id="player-panel-playerrep" class="player-panel"></div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
-            <div>
-              <div class="field-label">Player IGN (Minecraft)</div>
-              <input type="text" name="player_ign" id="pr-ign" class="mod-input" style="width:100%" placeholder="e.g. Notch">
-            </div>
-            <div>
-              <div class="field-label">Incident type</div>
-              <select name="incident_type" class="mod-select" style="width:100%">
-                <option value="slur">Slur / hate speech</option>
-                <option value="harassment">Harassment</option>
-                <option value="cheating">Cheating</option>
-                <option value="griefing">Griefing</option>
-                <option value="conduct">General conduct</option>
-                <option value="threat">Threats</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div>
-              <div class="field-label">Where it happened</div>
-              <select name="location" class="mod-select" style="width:100%">
-                <option value="Game chat">Game chat</option>
-                <option value="Discord">Discord server</option>
-                <option value="Discord DM">Discord DM</option>
-                <option value="Nation server">Nation server</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-          </div>
-
-          <div style="margin-bottom:10px">
-            <div class="field-label">Staff involved</div>
-            <input type="text" name="staff_involved" id="pr-staff" class="mod-input" style="width:100%" placeholder="Auto-filled from snippet · editable">
-          </div>
-
-          <!-- Evidence picker (snippet) -->
-          <div style="margin-bottom:10px">
-            <div class="field-label" style="margin-bottom:8px">Primary snippet from evidence library <span style="font-weight:600;color:var(--muted)">(optional)</span></div>
-            <%- include('partials/snip-picker', { snippets, pickerId: 'playerrep', inputName: 'snippet_id' }) %>
-          </div>
-
-          <!-- File uploads at creation -->
-          <div style="margin-bottom:10px">
-            <div class="field-label" style="margin-bottom:6px">Upload screenshots / video evidence</div>
-            <div style="background:rgba(255,255,255,.02);border:1px dashed rgba(255,255,255,.1);border-radius:8px;padding:12px">
-              <input type="file" name="files" accept="image/*,video/*" multiple style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">
-              <div style="font-family:'Baloo 2';font-size:11px;color:var(--muted)">Images and video, up to 50MB each. Multiple files supported.</div>
-            </div>
-          </div>
-
-          <!-- URL evidence at creation -->
-          <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-bottom:14px">
-            <div>
-              <div class="field-label">Evidence URL <span style="font-weight:600;color:var(--muted)">(optional)</span></div>
-              <input type="url" name="ev_url" class="mod-input" style="width:100%" placeholder="https://… (Imgur, Gyazo, etc.)">
-            </div>
-            <div>
-              <div class="field-label">URL label</div>
-              <input type="text" name="ev_url_label" class="mod-input" placeholder="e.g. Screenshot" style="width:140px">
-            </div>
-          </div>
-
-          <div style="margin-bottom:10px">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-              <div class="field-label" style="margin:0">Summary *</div>
-              <button type="button" class="mod-btn mod-btn-ai mod-btn-sm" onclick="aiSummarize('playerrep')">✨ Auto-summarise from snippet</button>
-              <span id="ai-sum-status-playerrep" style="font-family:'Baloo 2';font-size:11px;color:var(--muted)"></span>
-            </div>
-            <textarea name="summary" id="pr-summary" class="mod-textarea" placeholder="What happened? What did the player do? What action was taken and why?" required></textarea>
-          </div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-            <div>
-              <div class="field-label">Action taken</div>
-              <select name="action_taken" class="mod-select" style="width:100%">
-                <option value="no_action">No action (logged only)</option>
-                <option value="warning">Verbal warning</option>
-                <option value="written_warning">Written warning</option>
-                <option value="mute">Mute</option>
-                <option value="kick">Kick</option>
-                <option value="ban" selected>Ban</option>
-              </select>
-            </div>
-            <div>
-              <div class="field-label">Severity</div>
-              <select name="severity" class="mod-select" style="width:100%">
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high" selected>High</option>
-              </select>
-            </div>
-          </div>
-          <div style="margin-bottom:14px">
-            <div class="field-label">Notes</div>
-            <textarea name="notes" class="mod-textarea" style="min-height:50px" placeholder="Any extra context…"></textarea>
-          </div>
-          <button type="submit" class="mod-btn" style="background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.25);font-size:13px;padding:8px 18px">Save player report</button>
-        </form>
-      </div>
-    </div>
-
-    <div class="filter-bar">
-      <span class="filter-label">Type</span>
-      <select id="pr-type" onchange="filterPlayerReps()">
-        <option value="">All</option><option value="slur">Slur</option><option value="harassment">Harassment</option>
-        <option value="cheating">Cheating</option><option value="griefing">Griefing</option>
-        <option value="conduct">Conduct</option><option value="threat">Threats</option><option value="other">Other</option>
-      </select>
-      <span class="filter-label">Severity</span>
-      <select id="pr-sev" onchange="filterPlayerReps()">
-        <option value="">All</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option>
-      </select>
-      <span class="filter-label">Action</span>
-      <select id="pr-act" onchange="filterPlayerReps()">
-        <option value="">All</option><option value="ban">Ban</option><option value="kick">Kick</option>
-        <option value="mute">Mute</option><option value="written_warning">Written warning</option>
-        <option value="warning">Warning</option><option value="no_action">No action</option>
-      </select>
-      <span class="filter-label">Player</span>
-      <input type="text" id="pr-player" placeholder="tag / ID / IGN…" oninput="filterPlayerReps()" style="width:150px">
-      <span class="filter-count" id="pr-count"><%= playerReps.length %> reports</span>
-    </div>
-
-    <% if (!playerReps.length) { %><div class="empty-state">No player reports yet — log in-game incidents, slur screenshots, bans, and disciplinary actions here.</div><% } %>
-
-    <% const prIncidentLabels={slur:'Slur',harassment:'Harassment',cheating:'Cheating',griefing:'Griefing',conduct:'Conduct',threat:'Threats',other:'Other'};
-       const prIncidentColors={slur:'#f87171',harassment:'#fb923c',cheating:'#fbbf24',griefing:'#a3e635',conduct:'#74c0fc',threat:'#e879f9',other:'var(--muted)'};
-       const prActionLabels={no_action:'Logged only',warning:'Warning',written_warning:'Written warning',mute:'Mute',kick:'Kick',ban:'Ban'};
-    %>
-    <% playerReps.forEach(function(pr) {
-      const sevClass = pr.severity==='high'?'sev-high':pr.severity==='medium'?'sev-medium':'sev-low';
-      const evidence = Array.isArray(pr.evidence) ? pr.evidence : [];
-    %>
-    <div class="record-card" id="player-report-<%= pr.id %>"
-         data-player="<%= (pr.player_discord_tag||'').toLowerCase() %> <%= pr.player_discord_id %> <%= (pr.player_ign||'').toLowerCase() %>"
-         data-sev="<%= pr.severity %>" data-act="<%= pr.action_taken %>" data-type="<%= pr.incident_type %>">
-      <div class="record-header" onclick="toggleAcc('pr-body-<%= pr.id %>','pr-arr-<%= pr.id %>')">
-        <% if(pr.player_discord_avatar){%><img src="<%= pr.player_discord_avatar %>" class="player-avatar" onerror="this.style.display='none'">
-        <% }else{%><div class="player-avatar" style="display:flex;align-items:center;justify-content:center;font-size:14px;background:rgba(167,139,250,.1)">⚔️</div><% } %>
-        <div style="flex:1">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <span class="player-chip" onclick="event.stopPropagation();openPlayerModal('<%= pr.player_discord_id %>')"><span class="player-name">@<%= pr.player_discord_tag %></span></span>
-            <% if(pr.player_ign){%><span style="font-family:'Baloo 2';font-weight:800;font-size:11px;color:#5be38f">⛏ <%= pr.player_ign %></span><% } %>
-            <span style="font-family:'Baloo 2';font-weight:800;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:<%= prIncidentColors[pr.incident_type]||'var(--muted)' %>"><%= prIncidentLabels[pr.incident_type]||pr.incident_type %></span>
-            <span class="sev <%= sevClass %>"><%= pr.severity %></span>
-            <span class="action-pill"><%= prActionLabels[pr.action_taken]||pr.action_taken %></span>
-            <% if(evidence.length){%><span class="action-pill">📎 <%= evidence.length %> evidence</span><% } %>
-            <% if(pr.location){%><span class="action-pill">📍 <%= pr.location %></span><% } %>
-          </div>
-          <div style="font-size:12px;color:var(--muted);font-family:'Baloo 2';margin-top:2px"><%= new Date(pr.created_at).toLocaleString('en-GB') %> · by <%= pr.created_by %><% if(pr.staff_involved){%> · staff: <%= pr.staff_involved %><% } %></div>
-        </div>
-        <span id="pr-arr-<%= pr.id %>" style="font-size:12px;color:var(--muted);flex-shrink:0">▼</span>
-      </div>
-      <div class="record-body" id="pr-body-<%= pr.id %>">
-        <div style="padding-top:14px">
-          <div class="field-label">Summary</div>
-          <div style="background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:13px;color:#c9ccdb;line-height:1.7;white-space:pre-wrap;margin-bottom:14px"><%= pr.summary %></div>
-          <%- include('partials/report-evidence', {
-            reportType: 'player', reportId: pr.id,
-            evidence: pr.evidence || [],
-            primarySnippetId: null, primarySnippetLabel: null,
-            snippets
-          }) %>
-          <div class="field-label" style="margin-top:14px">Notes</div>
-          <form method="POST" action="/admin/moderation/player-reports/<%= pr.id %>/notes">
-            <textarea name="notes" class="mod-textarea"><%= pr.notes||'' %></textarea>
-            <button type="submit" class="mod-btn mod-btn-ghost mod-btn-sm" style="margin:6px 0 14px">Save notes</button>
-          </form>
-          <form method="POST" action="/admin/moderation/player-reports/<%= pr.id %>/delete" onsubmit="return confirm('Delete this player report and all its evidence?')">
-            <button class="mod-btn mod-btn-danger mod-btn-sm">Delete report</button>
-          </form>
-        </div>
-      </div>
-    </div>
-    <% }); %>
-  </div>
-
-  <!-- ══════════════════════ CHAT LOGS / EVIDENCE LIBRARY ═══════════════════ -->
-  <div id="panel-chatlogs" class="mod-panel">
-
-    <div class="chat-browser">
-      <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px">Browse channels · save snippets to evidence library</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <div><div class="field-label">Server</div><select id="cl-guild" class="mod-select" style="width:100%" onchange="loadChannels()"><option value="">Loading…</option></select></div>
-        <div><div class="field-label">Channel</div><select id="cl-channel" class="mod-select" style="width:100%" onchange="loadMessages()"><option value="">Select server first</option></select></div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
-        <button class="mod-btn mod-btn-ghost mod-btn-sm" onclick="loadMessages('older')">← Load older</button>
-        <button class="mod-btn mod-btn-ghost mod-btn-sm" onclick="loadMessages('newer')">Load newer →</button>
-        <span id="cl-status" style="font-family:'Baloo 2';font-size:11px;color:var(--muted)">Select a channel</span>
-        <button class="mod-btn mod-btn-ghost mod-btn-sm" style="margin-left:auto" onclick="clearSelection()">Clear selection</button>
-      </div>
-      <div id="msg-list"><div style="padding:24px;text-align:center;color:var(--muted);font-family:'Baloo 2';font-size:13px">No messages loaded.</div></div>
-      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-top:12px">
-        <div style="flex:1;min-width:180px"><div class="field-label">Snippet name</div><input type="text" id="cl-label" class="mod-input" style="width:100%" placeholder="e.g. ticket-0081 — continuity threats"></div>
-        <button class="mod-btn mod-btn-success" onclick="saveSnippet()" id="save-snip-btn" disabled>Save snippet (<span id="sel-count">0</span> msgs)</button>
-      </div>
-      <div id="save-feedback" style="font-family:'Baloo 2';font-size:12px;color:#5be38f;margin-top:6px;display:none"></div>
-    </div>
-
-    <!-- Evidence library -->
-    <div style="font-family:'Baloo 2';font-weight:800;font-size:14px;color:#e0e2ed;margin-bottom:4px">Evidence Library</div>
-    <div style="font-family:'Baloo 2';font-size:12px;color:var(--muted);margin-bottom:14px">Saved snippets. Attach them to ban records, ticket reports, or general reports.</div>
-
-    <% if (!snippets.length) { %><div class="empty-state">No snippets saved yet — browse a channel above and save a selection.</div><% } %>
-    <% snippets.forEach(function(s) { %>
-    <div class="snippet-card" id="snippet-<%= s.id %>">
-      <div style="width:38px;height:38px;border-radius:8px;background:rgba(91,227,143,.08);border:1px solid rgba(91,227,143,.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">💬</div>
-      <div style="flex:1">
-        <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#e0e2ed">#<%= s.id %> — <%= s.label||'(untitled)' %></div>
-        <div style="font-family:'Baloo 2';font-size:11px;color:var(--muted)"><%= s.msg_count %> messages<% if(s.channel_name){%> · #<%= s.channel_name %><% } %><% if(s.guild_name){%> in <%= s.guild_name %><% } %> · <%= new Date(s.created_at).toLocaleDateString('en-GB') %></div>
-      </div>
-      <button type="button" class="mod-btn mod-btn-primary mod-btn-sm" onclick="viewSnippet(<%= s.id %>)">View</button>
-      <form method="POST" action="/admin/moderation/snippets/<%= s.id %>/delete" onsubmit="return confirm('Delete snippet? Cannot be undone.')" style="margin:0">
-        <button class="mod-btn mod-btn-danger mod-btn-sm">✕</button>
+        <button type="submit" class="btn btn-danger">Add Ban</button>
       </form>
     </div>
+
+    <% if(!bans.length){ %>
+    <div class="empty"><div class="empty-icon">🎉</div><div class="empty-text">No active bans</div></div>
+    <% } %>
+
+    <% bans.forEach(function(b){ %>
+    <%
+      const banDate = new Date(b.banned_at||b.created_at);
+    %>
+    <div class="card">
+      <div class="card-header" onclick="toggleCard(this)">
+        <% if(b.player_discord_avatar){ %>
+        <img src="<%= b.player_discord_avatar %>" class="avatar" alt="">
+        <% } else { %>
+        <div class="avatar" style="display:flex;align-items:center;justify-content:center;font-size:14px">🔨</div>
+        <% } %>
+        <div style="flex:1;min-width:0">
+          <div class="player-tag"><%= b.discord_tag||b.player_discord_tag||'Unknown' %></div>
+          <div class="player-id"><%= b.discord_id||b.player_discord_id||'' %></div>
+        </div>
+        <div class="card-meta"><%= banDate.toLocaleDateString('en-GB') %></div>
+        <span style="color:rgba(255,255,255,.3);font-size:12px;margin-left:6px">▼</span>
+      </div>
+      <div class="card-body">
+        <div class="detail-row">
+          <span class="detail-label">Reason</span>
+          <span class="summary-text" style="margin:0"><%= b.reason||'No reason given' %></span>
+        </div>
+        <% if(b.notes){ %>
+        <div class="detail-row">
+          <span class="detail-label">Notes</span>
+          <span style="font-size:13px;color:rgba(255,255,255,.5)"><%= b.notes %></span>
+        </div>
+        <% } %>
+        <% if(b.evidence && b.evidence.length){ %>
+        <div class="divider"></div>
+        <div class="section-title">Evidence (<%= b.evidence.length %>)</div>
+        <div class="ev-list">
+          <% b.evidence.forEach(function(ev){ %>
+          <div class="ev-item">
+            <span class="ev-icon">📎</span>
+            <div><div class="ev-label"><%= ev.label||ev.url||ev.filename||'File' %></div></div>
+          </div>
+          <% }); %>
+        </div>
+        <% } %>
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <form method="POST" action="/admin/moderation/bans/<%= b.id %>/delete" class="inline-form"
+                onsubmit="return confirm('Remove this ban?')">
+            <button class="btn btn-danger btn-sm">Remove Ban</button>
+          </form>
+        </div>
+      </div>
+    </div>
     <% }); %>
   </div>
 
-</div>
-</main>
+  <!-- ═══════════════════ REPORTS TAB ═══════════════════ -->
+  <div class="tab-panel" id="tab-reports">
 
-
-<!-- ═══════════════════════ PLAYER HISTORY MODAL ════════════════════════════ -->
-<div id="player-modal-bg" onclick="if(event.target===this)closePlayerModal()">
-  <div id="player-modal">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
-      <img id="pm-avatar" src="" style="width:48px;height:48px;border-radius:50%;display:none">
-      <div><div id="pm-name" style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#e0e2ed"></div><div id="pm-id" style="font-family:'Baloo 2';font-size:12px;color:var(--muted)"></div></div>
-      <button onclick="closePlayerModal()" class="mod-btn mod-btn-ghost mod-btn-sm" style="margin-left:auto">✕ Close</button>
+    <div class="filter-pills">
+      <button class="filter-pill active" onclick="filterReports('all',this)">All <span style="opacity:.5;font-weight:600">(<%= allReports.length %>)</span></button>
+      <button class="filter-pill" onclick="filterReports('ticket',this)">Tickets <span style="opacity:.5;font-weight:600">(<%= allReports.filter(r=>r._type==='ticket').length %>)</span></button>
+      <button class="filter-pill" onclick="filterReports('player',this)">In-Game <span style="opacity:.5;font-weight:600">(<%= allReports.filter(r=>r._type==='player').length %>)</span></button>
+      <button class="filter-pill" onclick="filterReports('general',this)">General <span style="opacity:.5;font-weight:600">(<%= allReports.filter(r=>r._type==='general').length %>)</span></button>
+      <span class="filter-count"><%= allReports.length %> total</span>
     </div>
-    <div id="pm-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px"></div>
-    <div id="pm-timeline"></div>
-    <div id="pm-loading" style="text-align:center;color:var(--muted);font-family:'Baloo 2';padding:30px">Loading…</div>
+
+    <% if(!allReports.length){ %>
+    <div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No reports yet — use "New Report" to add one</div></div>
+    <% } %>
+
+    <% allReports.forEach(function(r){ %>
+    <%
+      const rDate = new Date(r.created_at);
+      const sevClass = r.severity==='high'?'pill-sev-high':r.severity==='medium'?'pill-sev-medium':'pill-sev-low';
+      const typeLabel = r._type==='ticket'?'Ticket':r._type==='player'?'In-Game':'General';
+      const typeClass = r._type==='ticket'?'pill-type-ticket':r._type==='player'?'pill-type-player':'pill-type-general';
+      const evList = Array.isArray(r._evidence)?r._evidence:[];
+    %>
+    <div class="card" data-rtype="<%= r._type %>">
+      <div class="card-header" onclick="toggleCard(this)">
+        <% if(r.player_discord_avatar){ %>
+        <img src="<%= r.player_discord_avatar %>" class="avatar" alt="">
+        <% } else { %>
+        <div class="avatar" style="display:flex;align-items:center;justify-content:center;font-size:15px">👤</div>
+        <% } %>
+        <div style="flex:1;min-width:0">
+          <div class="player-tag"><%= r.player_discord_tag||'Unknown' %></div>
+          <div style="font-family:'Baloo 2';font-size:11px;color:rgba(255,255,255,.35)"><%= r.player_discord_id||'' %></div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+          <span class="pill <%= typeClass %>"><%= typeLabel %></span>
+          <span class="pill <%= sevClass %>"><%= r.severity||'low' %></span>
+          <% if(r.action_taken){ %><span class="pill pill-action"><%= r.action_taken %></span><% } %>
+        </div>
+        <div class="card-meta" style="margin-left:10px"><%= rDate.toLocaleDateString('en-GB') %></div>
+        <span style="color:rgba(255,255,255,.3);font-size:12px;margin-left:6px">▼</span>
+      </div>
+      <div class="card-body">
+        <div class="summary-text"><%= r.summary %></div>
+
+        <div class="form-row" style="margin-bottom:8px">
+          <% if(r.staff_involved){ %>
+          <div class="detail-row"><span class="detail-label">Staff</span><span style="font-size:13px;color:rgba(255,255,255,.5)"><%= r.staff_involved %></span></div>
+          <% } %>
+          <% if(r._type==='player' && r.incident_type){ %>
+          <div class="detail-row"><span class="detail-label">Incident</span><span style="font-size:13px;color:rgba(255,255,255,.5)"><%= r.incident_type %></span></div>
+          <% } %>
+          <% if(r._type==='player' && r.location){ %>
+          <div class="detail-row"><span class="detail-label">Location</span><span style="font-size:13px;color:rgba(255,255,255,.5)"><%= r.location %></span></div>
+          <% } %>
+        </div>
+
+        <% if(r.notes){ %>
+        <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:10px 14px;font-size:13px;color:rgba(255,255,255,.5);margin-bottom:12px"><%= r.notes %></div>
+        <% } %>
+        <% if(r.created_by){ %>
+        <div class="detail-row"><span class="detail-label">Filed by</span><span style="font-size:13px;color:rgba(255,255,255,.35)"><%= r.created_by %></span></div>
+        <% } %>
+
+        <!-- Evidence -->
+        <% if(evList.length){ %>
+        <div class="divider"></div>
+        <div class="section-title">Evidence (<%= evList.length %>)</div>
+        <div class="ev-list">
+          <% evList.forEach(function(ev){ %>
+          <div class="ev-item">
+            <% if(ev.evidence_type==='file'){ %>
+              <% const isVid=['.mp4','.webm','.mov','.avi'].some(x=>(ev.filename||'').toLowerCase().endsWith(x)); %>
+              <% if(isVid){ %>
+                <video src="/img/uploads/evidence/<%= ev.filename %>" class="ev-thumb" muted preload="metadata"></video>
+              <% } else { %>
+                <a href="/img/uploads/evidence/<%= ev.filename %>" target="_blank">
+                  <img src="/img/uploads/evidence/<%= ev.filename %>" class="ev-thumb" alt="">
+                </a>
+              <% } %>
+            <% } else if(ev.evidence_type==='url'){ %>
+              <span class="ev-icon">🔗</span>
+            <% } else { %>
+              <span class="ev-icon">💬</span>
+            <% } %>
+            <div style="flex:1;min-width:0">
+              <div class="ev-label"><%= ev.label||(ev.evidence_type==='snippet'?'Snippet #'+ev.snippet_id:ev.filename||ev.url||'Evidence') %></div>
+              <div class="ev-meta">
+                <% if(ev.evidence_type==='url'){ %><a href="<%= ev.url %>" target="_blank" style="color:#74c0fc"><%= ev.url %></a>
+                <% } else if(ev.evidence_type==='snippet'){ %>Chat snippet
+                  <% if(ev.snippet_id){ %> · <button class="btn btn-success btn-sm" type="button" onclick="viewSnippet(<%= ev.snippet_id %>)">View</button><% } %>
+                <% } else { %>File<% } %>
+              </div>
+            </div>
+            <form method="POST" action="/admin/moderation/reports/evidence/<%= ev.id %>/delete" class="inline-form"
+                  onsubmit="return confirm('Remove evidence?')">
+              <button class="btn btn-danger btn-sm">✕</button>
+            </form>
+          </div>
+          <% }); %>
+        </div>
+        <% } %>
+
+        <!-- Add more evidence inline -->
+        <div class="divider"></div>
+        <div class="section-title">Add Evidence</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div class="form-label" style="margin-bottom:4px">📸 Upload file</div>
+            <form method="POST" action="/admin/moderation/reports/<%= r._type %>/<%= r.id %>/evidence/file"
+                  enctype="multipart/form-data" style="display:flex;flex-direction:column;gap:6px">
+              <input type="file" name="files" accept="image/*,video/*" multiple style="font-size:11px;color:rgba(255,255,255,.4)">
+              <button type="submit" class="btn btn-ghost btn-sm" style="width:fit-content">Upload</button>
+            </form>
+          </div>
+          <div>
+            <div class="form-label" style="margin-bottom:4px">🔗 Add URL</div>
+            <form method="POST" action="/admin/moderation/reports/<%= r._type %>/<%= r.id %>/evidence/url"
+                  style="display:flex;flex-direction:column;gap:6px">
+              <input type="url" name="url" class="form-input" placeholder="https://…" style="padding:6px 10px;font-size:12px">
+              <input type="text" name="label" class="form-input" placeholder="Label (optional)" style="padding:6px 10px;font-size:12px">
+              <button type="submit" class="btn btn-ghost btn-sm" style="width:fit-content">Add</button>
+            </form>
+          </div>
+        </div>
+        <div style="margin-top:10px">
+          <div class="form-label" style="margin-bottom:4px">💬 Attach snippet</div>
+          <form method="POST" action="/admin/moderation/reports/<%= r._type %>/<%= r.id %>/evidence/snippet"
+                style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+            <select name="snippet_id" class="form-select" style="flex:1;min-width:150px;padding:7px 10px;font-size:12px">
+              <option value="">— select snippet —</option>
+              <% (snippets||[]).forEach(function(s){ %>
+              <option value="<%= s.id %>">#<%= s.id %> <%= s.label||'(untitled)' %> · <%= s.msg_count %> msgs</option>
+              <% }); %>
+            </select>
+            <button type="submit" class="btn btn-success btn-sm">Attach</button>
+          </form>
+        </div>
+
+        <div class="divider"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <form method="POST" action="/admin/moderation/reports/<%= r._type %>/<%= r.id %>/delete" class="inline-form"
+                onsubmit="return confirm('Delete this report permanently?')">
+            <button class="btn btn-danger btn-sm">Delete Report</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <% }); %>
+  </div>
+
+  <!-- ═══════════════════ EVIDENCE LIBRARY TAB ═══════════════════ -->
+  <div class="tab-panel" id="tab-evidence">
+
+    <% if(!snippets.length){ %>
+    <div class="empty">
+      <div class="empty-icon">💬</div>
+      <div class="empty-text">No evidence snippets saved yet.</div>
+      <div style="font-family:'Baloo 2';font-size:12px;color:rgba(255,255,255,.25);margin-top:6px">Use the Chat Logs tab in your bot dashboard to save message snippets.</div>
+    </div>
+    <% } %>
+
+    <div class="snip-grid">
+      <% snippets.forEach(function(s){ %>
+      <div class="snip-card">
+        <div class="snip-card-title">#<%= s.id %> — <%= s.label||'(untitled)' %></div>
+        <div class="snip-card-meta">
+          <%= s.msg_count %> messages
+          <% if(s.channel_name){ %> · #<%= s.channel_name %><% } %>
+          <% if(s.guild_name){ %> · <%= s.guild_name %><% } %>
+        </div>
+        <div class="snip-card-meta"><%= new Date(s.created_at).toLocaleDateString('en-GB') %></div>
+        <div class="snip-card-actions">
+          <button class="btn btn-primary btn-sm" onclick="viewSnippet(<%= s.id %>)">View</button>
+          <form method="POST" action="/admin/moderation/snippets/<%= s.id %>/delete" class="inline-form"
+                onsubmit="return confirm('Delete this snippet?')">
+            <button class="btn btn-danger btn-sm">Delete</button>
+          </form>
+        </div>
+      </div>
+      <% }); %>
+    </div>
+  </div>
+
+</div><!-- /mod-wrap -->
+
+
+<!-- ═══════════════════ SLIDE-IN PANEL ═══════════════════ -->
+<div class="panel-overlay" id="panelOverlay" onclick="closePanel()"></div>
+<div class="slide-panel" id="slidePanel">
+  <div class="panel-head">
+    <div class="panel-head-title">New Report</div>
+    <button class="btn btn-ghost btn-sm" onclick="closePanel()">✕ Close</button>
+  </div>
+  <div class="panel-body">
+    <form method="POST" action="/admin/moderation/reports/add" id="reportForm" enctype="multipart/form-data">
+
+      <!-- Report type -->
+      <div class="form-group">
+        <label class="form-label">Report Type</label>
+        <div class="type-cards">
+          <div class="type-card selected" onclick="selectType('ticket',this)">
+            <div class="type-card-icon">🎟️</div>
+            <div class="type-card-name">Ticket</div>
+            <div class="type-card-desc">Discord ticket</div>
+          </div>
+          <div class="type-card" onclick="selectType('player',this)">
+            <div class="type-card-icon">🎮</div>
+            <div class="type-card-name">In-Game</div>
+            <div class="type-card-desc">Server incident</div>
+          </div>
+          <div class="type-card gen" onclick="selectType('general',this)">
+            <div class="type-card-icon">📝</div>
+            <div class="type-card-name">General</div>
+            <div class="type-card-desc">Other report</div>
+          </div>
+        </div>
+        <input type="hidden" name="type" id="reportType" value="ticket">
+      </div>
+
+      <!-- Player -->
+      <div class="form-group">
+        <label class="form-label">Player</label>
+        <div class="form-row">
+          <input type="text" name="player_discord_id" id="panelDiscordId" class="form-input" placeholder="Discord ID" required>
+          <input type="text" name="player_discord_tag" id="panelDiscordTag" class="form-input" placeholder="username or tag" required>
+        </div>
+        <!-- In-game only -->
+        <div id="playerIgnRow" style="display:none;margin-top:8px">
+          <input type="text" name="player_ign" class="form-input" placeholder="In-game username (optional)">
+        </div>
+      </div>
+
+      <!-- In-game fields -->
+      <div id="ingameFields" style="display:none">
+        <div class="form-row form-group">
+          <div>
+            <label class="form-label">Incident Type</label>
+            <select name="incident_type" class="form-select">
+              <option value="cheating">Cheating</option>
+              <option value="griefing">Griefing</option>
+              <option value="harassment">Harassment</option>
+              <option value="exploit">Exploit</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Location</label>
+            <input type="text" name="location" class="form-input" placeholder="Server / coords (optional)">
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="form-group">
+        <label class="form-label">Summary *</label>
+        <textarea name="summary" id="panelSummary" class="form-textarea" placeholder="Describe what happened…" required></textarea>
+      </div>
+
+      <!-- Action + Severity -->
+      <div class="form-row form-group">
+        <div>
+          <label class="form-label">Action Taken</label>
+          <select name="action_taken" class="form-select">
+            <option value="warning">Warning</option>
+            <option value="mute">Mute</option>
+            <option value="kick">Kick</option>
+            <option value="ban">Ban</option>
+            <option value="watchlist">Watchlist</option>
+            <option value="none">None</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Severity</label>
+          <select name="severity" class="form-select">
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Staff -->
+      <div class="form-group">
+        <label class="form-label">Staff Involved</label>
+        <input type="text" name="staff_involved" class="form-input" placeholder="Names of staff involved (optional)">
+      </div>
+
+      <!-- Notes -->
+      <div class="form-group">
+        <label class="form-label">Additional Notes</label>
+        <textarea name="notes" class="form-textarea" style="min-height:60px" placeholder="Optional internal notes…"></textarea>
+      </div>
+
+      <!-- Multi-snippet picker -->
+      <div class="form-group">
+        <label class="form-label">Chat Evidence (Snippets)</label>
+        <div class="snip-chips" id="selectedChips">
+          <!-- chips added here -->
+        </div>
+        <input type="text" id="snipSearch" class="form-input" placeholder="Search snippets…" oninput="filterSnipRows()" style="margin-bottom:8px">
+        <div class="snip-picker-list" id="snipPickerList">
+          <% if(!snippets.length){ %>
+          <div style="padding:16px;text-align:center;font-family:'Baloo 2';font-size:12px;color:rgba(255,255,255,.3)">No snippets in library yet</div>
+          <% } %>
+          <% snippets.forEach(function(s){ %>
+          <div class="snip-row" data-sid="<%= s.id %>"
+               data-label="<%= (s.label||'').toLowerCase() %>"
+               data-meta="<%= (s.channel_name||'').toLowerCase() %> <%= (s.guild_name||'').toLowerCase() %>"
+               onclick="toggleSnip(<%= s.id %>,'<%= (s.label||'Snippet #'+s.id).replace(/'/g,\\'') %>')">
+            <span style="font-size:16px">💬</span>
+            <div style="flex:1;min-width:0">
+              <div class="snip-row-name">#<%= s.id %> — <%= s.label||'(untitled)' %></div>
+              <div class="snip-row-meta"><%= s.msg_count %> msgs<% if(s.channel_name){ %> · #<%= s.channel_name %><% } %><% if(s.guild_name){ %> · <%= s.guild_name %><% } %></div>
+            </div>
+            <span class="snip-row-check" style="font-size:16px;color:#74c0fc;display:none">✓</span>
+          </div>
+          <% }); %>
+        </div>
+        <!-- hidden inputs injected by JS -->
+        <div id="snipHiddenInputs"></div>
+      </div>
+
+      <!-- AI summarize -->
+      <div class="form-group" id="aiSumGroup" style="display:none">
+        <button type="button" class="btn btn-ai" onclick="aiSummarize()" id="aiSumBtn">✦ AI Summarize Selected Snippets</button>
+        <div class="ai-result" id="aiResult">
+          <div class="ai-box-label" style="color:#c084fc;font-family:'Baloo 2';font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">AI Summary</div>
+          <div class="ai-result-text" id="aiResultText"></div>
+          <button type="button" class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="useAiSummary()">Use as Summary</button>
+        </div>
+      </div>
+
+      <!-- File evidence -->
+      <div class="form-group">
+        <label class="form-label">Attach Files (optional)</label>
+        <input type="file" name="files" accept="image/*,video/*" multiple style="font-size:12px;color:rgba(255,255,255,.4)">
+      </div>
+
+      <!-- URL evidence -->
+      <div class="form-group">
+        <label class="form-label">Link Evidence (optional)</label>
+        <div class="form-row">
+          <input type="url" name="url" class="form-input" placeholder="https://…">
+          <input type="text" name="url_label" class="form-input" placeholder="Label (optional)">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px">Submit Report</button>
+    </form>
   </div>
 </div>
 
-<!-- ═══════════════════════ SNIPPET VIEWER MODAL ════════════════════════════ -->
-<div id="snippet-modal-bg" onclick="if(event.target===this)this.classList.remove('open')" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1001;align-items:center;justify-content:center">
-  <div id="snippet-modal" style="background:#12131a;border:1px solid var(--line);border-radius:14px;width:min(680px,95vw);max-height:85vh;overflow-y:auto;padding:24px">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-      <span id="sv-label" style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#e0e2ed"></span>
-      <button onclick="document.getElementById('snippet-modal-bg').style.display='none'" class="mod-btn mod-btn-ghost mod-btn-sm" style="margin-left:auto">✕</button>
+<!-- ═══════════════════ SNIPPET VIEWER MODAL ═══════════════════ -->
+<div id="snippetModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:#15161f;border:1px solid rgba(255,255,255,.1);border-radius:14px;width:min(660px,95vw);max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
+    <div style="display:flex;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid rgba(255,255,255,.08)">
+      <span style="font-family:'Baloo 2';font-weight:900;font-size:16px;color:#e0e2ed;flex:1" id="snipModalTitle">Snippet</span>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('snippetModal').style.display='none'">✕ Close</button>
     </div>
-    <div id="sv-messages"></div>
+    <div id="snipModalBody" style="overflow-y:auto;padding:16px 22px;flex:1"></div>
   </div>
 </div>
-
 
 <script>
-// ── Tab switching ─────────────────────────────────────────────────────────────
-document.querySelectorAll('.mod-tab').forEach(btn => btn.addEventListener('click', () => showTab(btn.dataset.panel)));
-function showTab(name) {
-  document.querySelectorAll('.mod-tab').forEach(b => b.classList.toggle('active', b.dataset.panel === name));
-  document.querySelectorAll('.mod-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+// ── Tab switching ──
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+  location.hash = name;
 }
-(function() {
-  const h = location.hash.slice(1);
-  const map = { bans:'bans', tickets:'tickets', general:'general', chatlogs:'chatlogs', flagged:'flagged', 'player-report':'playerreps', 'player-reports':'playerreps' };
-  for (const [key, tab] of Object.entries(map)) {
-    if (h === key || h.startsWith(key.replace('s','') + '-') || h.startsWith(key + '-')) {
-      showTab(tab);
-      if (h !== tab) setTimeout(() => {
-        const el = document.getElementById(h);
-        if (el) { el.scrollIntoView({ behavior:'smooth', block:'center' }); }
-        // auto-open accordion
-        const bodyId = h.replace(/^(ban|ticket|general|snippet)-(\d+)$/, '$1-body-$2');
-        const arrId  = h.replace(/^(ban|ticket|general|snippet)-(\d+)$/, '$1-arr-$2');
-        if (document.getElementById(bodyId)) toggleAcc(bodyId, arrId);
-      }, 80);
-      break;
-    }
+
+// ── Card expand/collapse ──
+function toggleCard(header) {
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+  const arrow = header.querySelector('span:last-child');
+  if (arrow) arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
+}
+
+// ── Filter flags ──
+function filterFlags(state, btn) {
+  document.querySelectorAll('#tab-flagged .filter-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#tab-flagged .card').forEach(c => {
+    const s = c.dataset.flagState;
+    c.style.display = (state === 'all' || s === state) ? '' : 'none';
+  });
+}
+
+// ── Filter reports ──
+function filterReports(type, btn) {
+  document.querySelectorAll('#tab-reports .filter-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#tab-reports .card[data-rtype]').forEach(c => {
+    c.style.display = (type === 'all' || c.dataset.rtype === type) ? '' : 'none';
+  });
+}
+
+// ── Slide-in panel ──
+function openPanel() {
+  document.getElementById('panelOverlay').classList.add('open');
+  document.getElementById('slidePanel').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closePanel() {
+  document.getElementById('panelOverlay').classList.remove('open');
+  document.getElementById('slidePanel').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function prefillPanel(discordId, discordTag) {
+  openPanel();
+  document.getElementById('panelDiscordId').value = discordId || '';
+  document.getElementById('panelDiscordTag').value = discordTag || '';
+}
+
+// ── Report type selection ──
+function selectType(type, card) {
+  document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  document.getElementById('reportType').value = type;
+  const ingame = type === 'player';
+  document.getElementById('ingameFields').style.display = ingame ? '' : 'none';
+  document.getElementById('playerIgnRow').style.display = ingame ? '' : 'none';
+}
+
+// ── Multi-snippet picker ──
+const selectedSnips = {};
+function toggleSnip(id, label) {
+  const row = document.querySelector(`.snip-row[data-sid="${id}"]`);
+  if (selectedSnips[id]) {
+    delete selectedSnips[id];
+    row && row.classList.remove('added');
+    const check = row && row.querySelector('.snip-row-check');
+    if (check) check.style.display = 'none';
+    const chip = document.getElementById('chip-' + id);
+    if (chip) chip.remove();
+    const inp = document.getElementById('snipInp-' + id);
+    if (inp) inp.remove();
+  } else {
+    selectedSnips[id] = label;
+    row && row.classList.add('added');
+    const check = row && row.querySelector('.snip-row-check');
+    if (check) check.style.display = '';
+
+    const chip = document.createElement('span');
+    chip.className = 'snip-chip'; chip.id = 'chip-' + id;
+    chip.innerHTML = `💬 ${label} <button type="button" class="snip-chip-rm" onclick="toggleSnip(${id},'')">✕</button>`;
+    document.getElementById('selectedChips').appendChild(chip);
+
+    const inp = document.createElement('input');
+    inp.type = 'hidden'; inp.name = 'snippet_ids[]'; inp.value = id; inp.id = 'snipInp-' + id;
+    document.getElementById('snipHiddenInputs').appendChild(inp);
   }
-})();
-
-// ── Accordion ─────────────────────────────────────────────────────────────────
-function toggleAcc(bodyId, arrId) {
-  const b = document.getElementById(bodyId), a = document.getElementById(arrId);
-  if (!b) return;
-  b.classList.toggle('open');
-  if (a) a.textContent = b.classList.contains('open') ? '▲' : '▼';
+  const count = Object.keys(selectedSnips).length;
+  document.getElementById('aiSumGroup').style.display = count > 0 ? '' : 'none';
 }
-
-// ── Filters ───────────────────────────────────────────────────────────────────
-function filterFlags() {
-  const type = document.getElementById('f-type').value;
-  const time = document.getElementById('f-time').value;
-  const player = document.getElementById('f-player').value.toLowerCase();
-  const showDis = document.getElementById('f-dis').checked;
-  let v = 0;
-  document.querySelectorAll('#flags-list .flag-card').forEach(c => {
-    if (c.dataset.dis==='1' && !showDis) { c.style.display='none'; return; }
-    if (type && c.dataset.type !== type) { c.style.display='none'; return; }
-    if (time==='today' && c.dataset.today!=='1') { c.style.display='none'; return; }
-    if (time==='week' && c.dataset.week!=='1') { c.style.display='none'; return; }
-    if (player && !c.dataset.player.includes(player)) { c.style.display='none'; return; }
-    c.style.display=''; v++;
-  });
-  document.getElementById('f-count').textContent = v + ' shown';
-}
-document.querySelectorAll('#flags-list .flag-card[data-dis="1"]').forEach(c => c.style.display='none');
-
-function filterBans() {
-  const q = document.getElementById('ban-search').value.toLowerCase();
-  let v = 0;
-  document.querySelectorAll('#panel-bans .record-card').forEach(c => {
-    const show = !q || c.dataset.player.includes(q);
-    c.style.display = show ? '' : 'none';
-    if (show) v++;
-  });
-  document.getElementById('ban-count').textContent = v + ' bans';
-}
-
-function filterPlayerReps() {
-  const type   = document.getElementById('pr-type').value;
-  const sev    = document.getElementById('pr-sev').value;
-  const act    = document.getElementById('pr-act').value;
-  const player = document.getElementById('pr-player').value.toLowerCase();
-  let v = 0;
-  document.querySelectorAll('#panel-playerreps .record-card').forEach(c => {
-    const show = (!type || c.dataset.type===type)
-              && (!sev  || c.dataset.sev===sev)
-              && (!act  || c.dataset.act===act)
-              && (!player || c.dataset.player.includes(player));
-    c.style.display = show ? '' : 'none';
-    if (show) v++;
-  });
-  document.getElementById('pr-count').textContent = v + ' reports';
-}
-
-function filterCards(sel, sevId, actId, playerId, countId, catId) {
-  const sev    = document.getElementById(sevId).value;
-  const act    = document.getElementById(actId).value;
-  const player = document.getElementById(playerId).value.toLowerCase();
-  const cat    = catId ? document.getElementById(catId)?.value : null;
-  let v = 0;
-  document.querySelectorAll(sel).forEach(c => {
-    const show = (!sev || c.dataset.sev===sev)
-              && (!act || c.dataset.act===act)
-              && (!player || c.dataset.player.includes(player))
-              && (!cat || c.dataset.cat===cat);
-    c.style.display = show ? '' : 'none';
-    if (show) v++;
-  });
-  document.getElementById(countId).textContent = v + ' reports';
-}
-
-function toggleFlagTag(id) {
-  const el = document.getElementById('ftag-'+id);
-  if (el) el.style.display = el.style.display==='none'?'block':'none';
-}
-
-// ── Player modal ──────────────────────────────────────────────────────────────
-function openPlayerModal(id) {
-  if (!id?.trim()) return;
-  const bg = document.getElementById('player-modal-bg');
-  bg.classList.add('open');
-  document.getElementById('pm-loading').style.display='block';
-  document.getElementById('pm-timeline').innerHTML='';
-  document.getElementById('pm-stats').innerHTML='';
-  document.getElementById('pm-name').textContent = id;
-  document.getElementById('pm-id').textContent='';
-  document.getElementById('pm-avatar').style.display='none';
-  fetch('/admin/moderation/player/'+encodeURIComponent(id.trim())).then(r=>r.json()).then(data => {
-    document.getElementById('pm-loading').style.display='none';
-    if (data.profile) {
-      document.getElementById('pm-name').textContent='@'+data.profile.tag;
-      if (data.profile.avatar) { const av=document.getElementById('pm-avatar'); av.src=data.profile.avatar; av.style.display=''; }
-    }
-    document.getElementById('pm-id').textContent = id;
-    const highTickets = data.tickets.filter(t=>t.severity==='high').length;
-    const highGeneral = data.general?.filter(g=>g.severity==='high').length||0;
-    document.getElementById('pm-stats').innerHTML = `
-      <div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:10px;text-align:center">
-        <div style="font-family:'Baloo 2';font-weight:800;font-size:20px;color:#f87171">${data.flags.length}</div>
-        <div style="font-family:'Baloo 2';font-size:11px;color:var(--muted)">Flagged</div></div>
-      <div style="background:rgba(232,121,249,.08);border:1px solid rgba(232,121,249,.2);border-radius:8px;padding:10px;text-align:center">
-        <div style="font-family:'Baloo 2';font-weight:800;font-size:20px;color:#e879f9">${data.bans.length}</div>
-        <div style="font-family:'Baloo 2';font-size:11px;color:var(--muted)">Bans</div></div>
-      <div style="background:rgba(116,192,252,.08);border:1px solid rgba(116,192,252,.2);border-radius:8px;padding:10px;text-align:center">
-        <div style="font-family:'Baloo 2';font-weight:800;font-size:20px;color:#74c0fc">${data.tickets.length}</div>
-        <div style="font-family:'Baloo 2';font-size:11px;color:var(--muted)">Tickets${highTickets?' ('+highTickets+' high)':''}</div></div>
-      <div style="background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.2);border-radius:8px;padding:10px;text-align:center">
-        <div style="font-family:'Baloo 2';font-weight:800;font-size:20px;color:#fb923c">${data.general?.length||0}</div>
-        <div style="font-family:'Baloo 2';font-size:11px;color:var(--muted)">Reports${highGeneral?' ('+highGeneral+' high)':''}</div></div>
-    `;
-    const items = [
-      ...data.flags.map(f => ({ ts:new Date(f.flagged_at), type:'flag', col:'#f87171', label:`Flagged: "${(f.message_content||'').slice(0,70)}…"`, sub:`#${f.channel_name} · matched: ${f.matched_term}` })),
-      ...data.bans.map(b => ({ ts:new Date(b.banned_at), type:'ban', col:'#e879f9', label:`Banned: ${b.reason||'No reason'}`, sub:`By ${b.banned_by||'Discord'}` })),
-      ...data.tickets.map(t => ({ ts:new Date(t.created_at), type:'ticket', col:'#74c0fc', label:`Ticket: ${t.summary?.slice(0,80)||''}`, sub:`${t.action_taken} · ${t.severity}` })),
-      ...(data.general||[]).map(g => ({ ts:new Date(g.created_at), type:'general', col:'#fb923c', label:`Report (${g.category}): ${g.summary?.slice(0,70)||''}`, sub:`${g.action_taken} · ${g.severity}` }))
-    ].sort((a,b)=>b.ts-a.ts);
-    document.getElementById('pm-timeline').innerHTML = items.length ? items.map(item=>`
-      <div class="timeline-item">
-        <div class="timeline-dot" style="background:${item.col}"></div>
-        <div style="flex:1"><div style="font-family:'Baloo 2';font-weight:700;font-size:13px;color:#e0e2ed">${item.label}</div>
-        <div style="font-family:'Baloo 2';font-size:11px;color:var(--muted)">${item.sub} · ${item.ts.toLocaleDateString('en-GB')}</div></div>
-      </div>`).join('') : '<div style="text-align:center;color:var(--muted);font-family:\'Baloo 2\';font-size:13px;padding:20px">No history for this player.</div>';
-  }).catch(()=>{ document.getElementById('pm-loading').textContent='Error loading data.'; });
-}
-function closePlayerModal() { document.getElementById('player-modal-bg').classList.remove('open'); }
-
-// ── Player modal: include general reports ─────────────────────────────────────
-// (Route needs updating too — done in admin.js)
-
-// ── Snippet picker ────────────────────────────────────────────────────────────
-const allSnippets = <%- JSON.stringify(snippets) %>;
-
-function snipPickerSearch(pickerId) {
-  const q = document.getElementById('snip-search-'+pickerId).value.toLowerCase();
-  document.querySelectorAll('#snip-list-'+pickerId+' .snip-item').forEach(el => {
-    const name = (el.dataset.label||'').toLowerCase();
-    el.style.display = (!q || name.includes(q)) ? '' : 'none';
+function filterSnipRows() {
+  const q = document.getElementById('snipSearch').value.toLowerCase();
+  document.querySelectorAll('.snip-row').forEach(r => {
+    const match = (r.dataset.label + ' ' + r.dataset.meta + ' ' + r.dataset.sid).includes(q);
+    r.style.display = match ? '' : 'none';
   });
 }
 
-function selectSnip(pickerId, snippetId) {
-  document.getElementById('snip-input-'+pickerId).value = snippetId || '';
-  document.querySelectorAll('#snip-list-'+pickerId+' .snip-item').forEach(el => {
-    el.classList.toggle('selected', el.dataset.id == snippetId);
-  });
-  const preview = document.getElementById('snip-preview-'+pickerId);
-  if (!snippetId) { preview.classList.remove('open'); return; }
-  preview.classList.add('open');
-  document.getElementById('snip-preview-title-'+pickerId).textContent = allSnippets.find(s=>s.id==snippetId)?.label || 'Snippet #'+snippetId;
-  document.getElementById('snip-msgs-'+pickerId).classList.remove('open');
-  document.getElementById('snip-msgs-'+pickerId).innerHTML = '';
-
-  // Auto-fill player + staff using Discord role classification (only for report forms)
-  const pidId   = pickerId === 'ticket' ? 't-pid'   : pickerId === 'general' ? 'g-pid'   : pickerId === 'playerrep' ? 'pr-pid'   : null;
-  const ptagId  = pickerId === 'ticket' ? 't-ptag'  : pickerId === 'general' ? 'g-ptag'  : pickerId === 'playerrep' ? 'pr-ptag'  : null;
-  const staffId = pickerId === 'ticket' ? 't-staff' : pickerId === 'general' ? 'g-staff' : pickerId === 'playerrep' ? 'pr-staff' : null;
-  if (!pidId) return;
-
-  fetch('/admin/moderation/snippets/'+snippetId).then(r=>r.json()).then(async s => {
-    const msgs = Array.isArray(s.messages) ? s.messages : [];
-    if (!msgs.length) return;
-
-    // Collect unique author IDs from the snippet
-    const seen = new Map();
-    msgs.forEach(m => {
-      const key = m.author_id || m.author;
-      if (key && !seen.has(key)) seen.set(key, { id: m.author_id || null, username: m.author });
-    });
-    const uniqueIds = [...seen.values()].map(p => p.id).filter(Boolean);
-
-    // Ask the server to classify by actual Discord guild roles
-    let players = [], staff = [];
-    if (uniqueIds.length) {
-      try {
-        const cls = await fetch('/admin/moderation/discord/classify-members', {
-          method: 'POST', headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({ user_ids: uniqueIds })
-        }).then(r => r.json());
-        players = cls.players || [];
-        staff   = cls.staff   || [];
-      } catch (_) {
-        // Fallback: first author = player, rest = staff
-        const parts = [...seen.values()];
-        players = parts.slice(0, 1);
-        staff   = parts.slice(1);
-      }
-    }
-
-    const pidEl   = document.getElementById(pidId);
-    const ptagEl  = document.getElementById(ptagId);
-    const staffEl = document.getElementById(staffId);
-
-    // Fill player (if only one non-staff found; if multiple, take first)
-    if (players.length && pidEl && !pidEl.value)  pidEl.value  = players[0].id || '';
-    if (players.length && ptagEl && !ptagEl.value) ptagEl.value = players[0].username || '';
-    // Fill staff (all staff members, comma-separated)
-    if (staff.length && staffEl) staffEl.value = staff.map(s => s.username).join(', ');
-
-    // Trigger the inline player history panel for the identified player
-    if (players[0]?.id) lookupPlayerInline(pickerId, players[0].id);
-  }).catch(() => {});
-}
-
-function toggleSnipMsgs(pickerId, snippetId) {
-  const el = document.getElementById('snip-msgs-'+pickerId);
-  if (el.classList.contains('open')) { el.classList.remove('open'); return; }
-  el.classList.add('open');
-  if (el.innerHTML) return; // already loaded
-  el.innerHTML = '<div style="padding:12px;color:var(--muted);font-family:\'Baloo 2\'">Loading…</div>';
-  fetch('/admin/moderation/snippets/'+snippetId).then(r=>r.json()).then(s => {
-    const msgs = Array.isArray(s.messages)?s.messages:[];
-    el.innerHTML = msgs.map(m => {
-      const ts = new Date(m.timestamp).toLocaleString('en-GB',{hour12:false,hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'});
-      return `<div class="snip-msg-row">
-        ${m.avatar?`<img src="${m.avatar}" style="width:22px;height:22px;border-radius:50%;flex-shrink:0">`:
-          `<div style="width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.08);flex-shrink:0"></div>`}
-        <div style="flex:1;min-width:0">
-          <span style="font-family:'Baloo 2';font-weight:800;font-size:11px;color:#e0e2ed">${m.author}</span>
-          <span style="font-family:'Baloo 2';font-size:10px;color:var(--muted);margin-left:6px">${ts}</span>
-          <div style="font-size:12px;color:#c0c3d5;word-break:break-word">${m.content||''}</div>
-        </div>
-      </div>`;
-    }).join('') || '<div style="padding:10px;color:var(--muted);font-family:\'Baloo 2\'">No messages.</div>';
-  });
-}
-
-// ── AI summarise ──────────────────────────────────────────────────────────────
-async function aiSummarize(formType) {
-  const inputId = 'snip-input-' + formType;
-  const snippetId = document.getElementById(inputId)?.value;
-  const summaryId = formType === 'ticket' ? 't-summary' : formType === 'general' ? 'g-summary' : 'pr-summary';
-  const pidId     = formType === 'ticket' ? 't-pid'   : formType === 'general' ? 'g-pid'   : 'pr-pid';
-  const ptagId    = formType === 'ticket' ? 't-ptag'  : formType === 'general' ? 'g-ptag'  : 'pr-ptag';
-  const statusId  = formType === 'ticket' ? 'ai-sum-status' : formType === 'general' ? 'ai-sum-status-general' : 'ai-sum-status-playerrep';
-  if (!snippetId) { alert('Select a snippet first — the AI will summarise it.'); return; }
-  const status = document.getElementById(statusId);
-  status.textContent = '✨ Generating…';
-  status.style.color = 'var(--muted)';
+// ── AI Summarize ──
+async function aiSummarize() {
+  const btn = document.getElementById('aiSumBtn');
+  const ids = Object.keys(selectedSnips);
+  if (!ids.length) return;
+  btn.textContent = '⏳ Summarizing…'; btn.disabled = true;
   try {
     const r = await fetch('/admin/moderation/summarize', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ snippet_id: parseInt(snippetId) })
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ snippet_ids: ids.map(Number) })
     });
     const data = await r.json();
-    if (data.error) { status.textContent = '⚠ ' + data.error; status.style.color='#f87171'; return; }
-    document.getElementById(summaryId).value = data.summary;
-    // Auto-fill player fields if they are empty and we detected a player
-    if (data.player) {
-      const pidEl  = document.getElementById(pidId);
-      const ptagEl = document.getElementById(ptagId);
-      if (pidEl && !pidEl.value && data.player.id)         pidEl.value  = data.player.id;
-      if (ptagEl && !ptagEl.value && data.player.username) ptagEl.value = data.player.username;
-      // Trigger inline player panel if we filled in a Discord ID
-      if (data.player.id) lookupPlayerInline(formType, data.player.id);
-    }
-    const staffNote = data.staff?.length ? ` · staff: ${data.staff.join(', ')}` : '';
-    status.textContent = '✓ Done' + staffNote;
-    status.style.color = '#5be38f';
-  } catch(e) { status.textContent = '⚠ Request failed'; status.style.color='#f87171'; }
-}
-
-// ── Chat log browser ──────────────────────────────────────────────────────────
-let clGuilds=[],clChannels=[],clMessages=[],selFrom=null,selTo=null;
-fetch('/admin/moderation/discord/guilds').then(r=>r.json()).then(g => {
-  clGuilds=g;
-  document.getElementById('cl-guild').innerHTML='<option value="">— select server —</option>'+g.map(x=>`<option value="${x.id}">${x.name}</option>`).join('');
-}).catch(()=>{});
-
-function loadChannels() {
-  const guildId=document.getElementById('cl-guild').value; if(!guildId) return;
-  document.getElementById('cl-channel').innerHTML='<option>Loading…</option>';
-  clMessages=[]; selFrom=null; selTo=null;
-  fetch('/admin/moderation/discord/channels/'+guildId).then(r=>r.json()).then(chs => {
-    clChannels=chs;
-    document.getElementById('cl-channel').innerHTML='<option value="">— select channel —</option>'+chs.map(c=>`<option value="${c.id}">#${c.name}</option>`).join('');
-  });
-}
-function loadMessages(dir) {
-  const chId=document.getElementById('cl-channel').value; if(!chId) return;
-  let qs='?limit=50';
-  if(dir==='older'&&clMessages.length) qs+='&before='+clMessages[clMessages.length-1].id;
-  if(dir==='newer'&&clMessages.length) qs+='&after='+clMessages[0].id;
-  document.getElementById('cl-status').textContent='Loading…';
-  fetch('/admin/moderation/discord/messages/'+chId+qs).then(r=>r.json()).then(msgs => {
-    if(!dir) clMessages=msgs;
-    else if(dir==='older') clMessages=[...clMessages,...msgs];
-    else clMessages=[...msgs,...clMessages];
-    renderMessages();
-    document.getElementById('cl-status').textContent=clMessages.length+' messages';
-  }).catch(e=>{ document.getElementById('cl-status').textContent='Error: '+e.message; });
-}
-function renderMessages() {
-  const fi=selFrom?clMessages.findIndex(m=>m.id===selFrom):-1;
-  const ti=selTo?clMessages.findIndex(m=>m.id===selTo):-1;
-  const rMin=fi>=0&&ti>=0?Math.min(fi,ti):-1, rMax=fi>=0&&ti>=0?Math.max(fi,ti):-1;
-  document.getElementById('msg-list').innerHTML=clMessages.map((m,i)=>{
-    const inR=rMin>=0&&i>=rMin&&i<=rMax, isE=m.id===selFrom||m.id===selTo;
-    const ts=new Date(m.timestamp).toLocaleString('en-GB',{hour12:false,hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'});
-    const att=(m.attachments||[]).length?`<span class="msg-att"> 📎 ${m.attachments.map(a=>a.name).join(', ')}</span>`:'';
-    return `<div class="msg-row${isE?' selected':inR?' in-range':''}" onclick="selectMsg('${m.id}')" data-id="${m.id}">
-      ${m.avatar?`<img src="${m.avatar}" class="msg-avatar-sm">`:`<div class="msg-avatar-sm"></div>`}
-      <div style="flex:1;min-width:0">
-        <div><span class="msg-author">${m.author}</span><span class="msg-ts">${ts}</span>
-        ${m.id===selFrom?'<span style="float:right;font-family:\'Baloo 2\';font-size:10px;color:#74c0fc;font-weight:800">▶ FROM</span>':m.id===selTo?'<span style="float:right;font-family:\'Baloo 2\';font-size:10px;color:#74c0fc;font-weight:800">◀ TO</span>':''}</div>
-        <div class="msg-content">${m.content||'<em style="color:var(--muted)">[no text]</em>'}${att}</div>
-      </div>
-    </div>`;
-  }).join('');
-  updateSelCount();
-}
-function selectMsg(id) {
-  if(!selFrom){selFrom=id;}else if(!selTo&&id!==selFrom){selTo=id;}else{selFrom=id;selTo=null;}
-  renderMessages();
-}
-function clearSelection(){selFrom=null;selTo=null;renderMessages();}
-function updateSelCount(){
-  let c=0;
-  if(selFrom&&selTo){const fi=clMessages.findIndex(m=>m.id===selFrom),ti=clMessages.findIndex(m=>m.id===selTo);if(fi>=0&&ti>=0)c=Math.abs(ti-fi)+1;}
-  else if(selFrom)c=1;
-  document.getElementById('sel-count').textContent=c;
-  document.getElementById('save-snip-btn').disabled=c===0;
-}
-async function saveSnippet(){
-  if(!selFrom) return;
-  const fi=clMessages.findIndex(m=>m.id===selFrom),ti=selTo?clMessages.findIndex(m=>m.id===selTo):fi;
-  const rMin=Math.min(fi,ti),rMax=Math.max(fi,ti);
-  const sel=clMessages.slice(rMin,rMax+1);
-  const gs=document.getElementById('cl-guild'),cs=document.getElementById('cl-channel');
-  const r=await fetch('/admin/moderation/snippets/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-    label:document.getElementById('cl-label').value.trim(),
-    guild_id:gs.value,guild_name:gs.options[gs.selectedIndex]?.text,
-    channel_id:cs.value,channel_name:(cs.options[cs.selectedIndex]?.text||'').replace('#',''),
-    messages:sel
-  })});
-  const data=await r.json();
-  if(data.id){
-    const fb=document.getElementById('save-feedback');
-    fb.style.display='block';fb.textContent=`✓ Snippet #${data.id} saved. Reload to see it in the library.`;
-    clearSelection();document.getElementById('cl-label').value='';
+    if (data.error) throw new Error(data.error);
+    document.getElementById('aiResultText').textContent = data.summary || '';
+    document.getElementById('aiResult').classList.add('show');
+  } catch(e) {
+    document.getElementById('aiResultText').textContent = 'Error: ' + e.message;
+    document.getElementById('aiResult').classList.add('show');
   }
+  btn.textContent = '✦ AI Summarize Selected Snippets'; btn.disabled = false;
+}
+function useAiSummary() {
+  const text = document.getElementById('aiResultText').textContent;
+  document.getElementById('panelSummary').value = text;
 }
 
-// ── Inline player panel ───────────────────────────────────────────────────────
-const _lookupTimers = {};
-function debounceLookup(formType, value) {
-  clearTimeout(_lookupTimers[formType]);
-  const v = (value || '').trim();
-  if (v.length < 6) { hidePlayerPanel(formType); return; }
-  _lookupTimers[formType] = setTimeout(() => lookupPlayerInline(formType, v), 600);
-}
-
-function hidePlayerPanel(formType) {
-  const el = document.getElementById('player-panel-' + formType);
-  if (el) { el.classList.remove('visible'); el.innerHTML = ''; }
-}
-
-async function lookupPlayerInline(formType, discordId) {
-  const el = document.getElementById('player-panel-' + formType);
-  if (!el) return;
-  el.classList.add('visible');
-  el.innerHTML = '<div style="font-family:\'Baloo 2\';font-size:12px;color:var(--muted);padding:4px 0">Looking up player…</div>';
+// ── Snippet viewer modal ──
+async function viewSnippet(id) {
+  document.getElementById('snippetModal').style.display = 'flex';
+  document.getElementById('snipModalTitle').textContent = 'Loading…';
+  document.getElementById('snipModalBody').innerHTML = '<div style="padding:20px;text-align:center;color:rgba(255,255,255,.3)">Loading…</div>';
   try {
-    const data = await fetch('/admin/moderation/player/' + encodeURIComponent(discordId)).then(r => r.json());
-    renderPlayerPanel(el, data, formType, discordId);
-  } catch (e) {
-    el.innerHTML = '<div style="font-family:\'Baloo 2\';font-size:12px;color:#f87171">Failed to look up player.</div>';
-  }
-}
-
-function renderPlayerPanel(el, data, formType, discordId) {
-  const ptagId = formType === 'ticket' ? 't-ptag' : formType === 'general' ? 'g-ptag' : 'pr-ptag';
-
-  // Auto-fill username if blank
-  if (data.profile?.tag) {
-    const ptagEl = document.getElementById(ptagId);
-    if (ptagEl && !ptagEl.value) ptagEl.value = data.profile.tag;
-  }
-
-  const flags   = data.flags   || [];
-  const bans    = data.bans    || [];
-  const tickets = data.tickets || [];
-  const general = data.general || [];
-  const allRecords = [
-    ...flags.map(f   => ({ type:'flag',    col:'#f87171', label:`Flagged: "${(f.message_content||'').slice(0,60)}…"`, sub:`${f.flag_type} · ${new Date(f.flagged_at).toLocaleDateString('en-GB')}` })),
-    ...bans.map(b    => ({ type:'ban',     col:'#e879f9', label:`Banned: ${b.reason||'No reason'}`, sub:`${new Date(b.banned_at).toLocaleDateString('en-GB')}` })),
-    ...tickets.map(t => ({ type:'ticket',  col:'#74c0fc', label:`Ticket: ${(t.summary||'').slice(0,60)}`, sub:`${t.action_taken} · ${t.severity} · ${new Date(t.created_at).toLocaleDateString('en-GB')}` })),
-    ...general.map(g => ({ type:'general', col:'#fb923c', label:`Report (${g.category}): ${(g.summary||'').slice(0,55)}`, sub:`${g.action_taken} · ${g.severity} · ${new Date(g.created_at).toLocaleDateString('en-GB')}` })),
-  ].sort((a, b) => 0); // keep insertion order (already desc by date from server)
-
-  const hasHighSev = [...tickets, ...general].some(r => r.severity === 'high') || bans.length > 0;
-  const totalRecords = flags.length + bans.length + tickets.length + general.length;
-
-  let html = '';
-
-  if (hasHighSev) {
-    html += `<div class="warn-banner">⚠ This player has prior high-severity records or bans — review history below before logging.</div>`;
-  }
-
-  // Profile row
-  html += `<div class="player-panel-head">`;
-  if (data.profile?.avatar) {
-    html += `<img src="${data.profile.avatar}" style="width:40px;height:40px;border-radius:50%;border:2px solid rgba(116,192,252,.3)">`;
-  }
-  html += `<div style="flex:1;min-width:0">
-    <div style="font-family:'Baloo 2';font-weight:800;font-size:14px;color:#e0e2ed">${data.profile ? '@' + data.profile.tag : discordId}</div>
-    <div style="font-family:'Baloo 2';font-size:11px;color:var(--muted)">${discordId}</div>
-  </div>`;
-
-  // Minecraft head + IGN
-  if (data.minecraft) {
-    const mc = data.minecraft;
-    html += `<div class="player-panel-mc">`;
-    if (mc.head) html += `<img src="${mc.head}" style="width:28px;height:28px;border-radius:4px;image-rendering:pixelated">`;
-    html += `<div>
-      <div style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:#5be38f">${mc.ign}</div>
-      <div style="font-family:'Baloo 2';font-size:10px;color:var(--muted)">${mc.app_status || 'in event'}</div>
-    </div></div>`;
-  } else {
-    html += `<div style="font-family:'Baloo 2';font-size:11px;color:var(--muted);font-style:italic">Not in event</div>`;
-  }
-  html += `</div>`; // end player-panel-head
-
-  // Stat pills
-  html += `<div class="player-panel-stats">
-    <span class="player-panel-stat" style="background:rgba(248,113,113,.1);color:#f87171;border:1px solid rgba(248,113,113,.2)">${flags.length} flags</span>
-    <span class="player-panel-stat" style="background:rgba(232,121,249,.1);color:#e879f9;border:1px solid rgba(232,121,249,.2)">${bans.length} ban${bans.length!==1?'s':''}</span>
-    <span class="player-panel-stat" style="background:rgba(116,192,252,.1);color:#74c0fc;border:1px solid rgba(116,192,252,.2)">${tickets.length} ticket${tickets.length!==1?'s':''}</span>
-    <span class="player-panel-stat" style="background:rgba(251,146,60,.1);color:#fb923c;border:1px solid rgba(251,146,60,.2)">${general.length} report${general.length!==1?'s':''}</span>
-  </div>`;
-
-  // History records
-  if (allRecords.length) {
-    html += `<div class="player-panel-history">
-      <div style="font-family:'Baloo 2';font-weight:800;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">History</div>`;
-    allRecords.slice(0, 8).forEach(r => {
-      html += `<div class="player-panel-record">
-        <div class="pp-dot" style="background:${r.col}"></div>
-        <div style="flex:1;min-width:0">
-          <div style="color:#c9ccdb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.label}</div>
-          <div style="color:var(--muted);font-size:11px">${r.sub}</div>
-        </div>
-      </div>`;
-    });
-    if (allRecords.length > 8) {
-      html += `<div style="font-family:'Baloo 2';font-size:11px;color:var(--muted);padding-top:4px">+${allRecords.length - 8} more — <button type="button" onclick="openPlayerModal('${discordId}')" style="background:none;border:none;cursor:pointer;color:#74c0fc;font-family:'Baloo 2';font-size:11px;padding:0">view full history</button></div>`;
+    const r = await fetch('/admin/moderation/snippets/' + id);
+    const data = await r.json();
+    document.getElementById('snipModalTitle').textContent = data.label || ('Snippet #' + id);
+    const msgs = data.messages || [];
+    if (!msgs.length) {
+      document.getElementById('snipModalBody').innerHTML = '<div style="padding:20px;text-align:center;color:rgba(255,255,255,.3)">No messages</div>';
+      return;
     }
-    html += `</div>`;
-  } else {
-    html += `<div style="font-family:'Baloo 2';font-size:12px;color:var(--muted);margin-top:8px;font-style:italic">No prior moderation records.</div>`;
+    document.getElementById('snipModalBody').innerHTML = msgs.map(m => `
+      <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+        <img src="${m.avatar_url||''}" style="width:28px;height:28px;border-radius:50%;flex-shrink:0;background:rgba(255,255,255,.08)" onerror="this.style.visibility='hidden'">
+        <div>
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:#e0e2ed">${escHtml(m.username||'Unknown')}
+            <span style="font-size:10px;color:rgba(255,255,255,.3);margin-left:6px">${m.timestamp ? new Date(m.timestamp).toLocaleString('en-GB') : ''}</span>
+          </div>
+          <div style="font-size:13px;color:#c9ccdb;line-height:1.6;white-space:pre-wrap;word-break:break-word">${escHtml(m.content||'')}</div>
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    document.getElementById('snipModalBody').innerHTML = `<div style="padding:20px;text-align:center;color:#f87171">Error: ${e.message}</div>`;
   }
-
-  el.innerHTML = html;
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── Snippet viewer ─────────────────────────────────────────────────────────────
-function viewSnippet(id){
-  const bg=document.getElementById('snippet-modal-bg');
-  bg.style.display='flex';
-  document.getElementById('sv-label').textContent='Loading snippet #'+id+'…';
-  document.getElementById('sv-messages').innerHTML='<div style="text-align:center;color:var(--muted);font-family:\'Baloo 2\';padding:30px">Loading…</div>';
-  fetch('/admin/moderation/snippets/'+id).then(r=>r.json()).then(s=>{
-    document.getElementById('sv-label').textContent=(s.label||'Snippet #'+s.id)+(s.channel_name?' · #'+s.channel_name:'')+(s.guild_name?' · '+s.guild_name:'');
-    const msgs=Array.isArray(s.messages)?s.messages:[];
-    document.getElementById('sv-messages').innerHTML=msgs.length?msgs.map(m=>{
-      const ts=new Date(m.timestamp).toLocaleString('en-GB',{hour12:false,hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'});
-      const att=(m.attachments||[]).length?`<div style="font-size:11px;color:#74c0fc;margin-top:3px">📎 ${m.attachments.map(a=>a.name||a.url).join(', ')}</div>`:'';
-      return `<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)">
-        ${m.avatar?`<img src="${m.avatar}" style="width:28px;height:28px;border-radius:50%;flex-shrink:0">`:
-          `<div style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.08);flex-shrink:0"></div>`}
-        <div style="flex:1;min-width:0">
-          <span style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:#e0e2ed">${m.author}</span>
-          <span style="font-family:'Baloo 2';font-size:11px;color:var(--muted);margin-left:8px">${ts}</span>
-          <div style="font-size:13px;color:#c0c3d5;margin-top:2px;word-break:break-word">${m.content||'<em style="color:var(--muted)">[no text]</em>'}${att}</div>
-        </div></div>`;
-    }).join(''):'<div style="text-align:center;color:var(--muted);font-family:\'Baloo 2\';padding:20px">No messages.</div>';
-  }).catch(()=>{ document.getElementById('sv-messages').innerHTML='<div style="text-align:center;color:#f87171;font-family:\'Baloo 2\';padding:20px">Failed to load.</div>'; });
-}
+// ── Init: restore tab from hash ──
+(function() {
+  const hash = location.hash.replace('#','');
+  const valid = ['flagged','bans','reports','evidence'];
+  if (valid.includes(hash)) {
+    const btn = document.querySelector(`.tab-btn[onclick*="switchTab('${hash}'"]`);
+    if (btn) switchTab(hash, btn);
+  }
+})();
 </script>
 
-<%- include('partials/foot') %>
+<%- include('partials/footer') %>
