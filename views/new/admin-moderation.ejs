@@ -147,6 +147,19 @@
 #snippet-modal { background:#12131a; border:1px solid var(--line); border-radius:14px; width:min(660px,95vw); max-height:85vh; overflow-y:auto; padding:24px; }
 
 .empty-state { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:36px; text-align:center; color:var(--muted); font-family:'Baloo 2'; font-size:14px; }
+
+/* Inline player panel */
+.player-panel { background:rgba(116,192,252,.04); border:1px solid rgba(116,192,252,.18); border-radius:10px; padding:14px 16px; margin-bottom:12px; display:none; }
+.player-panel.visible { display:block; }
+.player-panel-head { display:flex; align-items:center; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
+.player-panel-mc { display:flex; align-items:center; gap:8px; background:rgba(91,227,143,.06); border:1px solid rgba(91,227,143,.15); border-radius:8px; padding:6px 10px; }
+.player-panel-stats { display:flex; gap:6px; flex-wrap:wrap; }
+.player-panel-stat { font-family:'Baloo 2'; font-weight:800; font-size:11px; padding:3px 9px; border-radius:99px; }
+.player-panel-history { margin-top:10px; border-top:1px solid rgba(255,255,255,.06); padding-top:10px; }
+.player-panel-record { display:flex; align-items:flex-start; gap:8px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,.04); font-family:'Baloo 2'; font-size:12px; }
+.player-panel-record:last-child { border-bottom:none; }
+.pp-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:3px; }
+.warn-banner { background:rgba(248,113,113,.1); border:1px solid rgba(248,113,113,.25); border-radius:8px; padding:7px 12px; font-family:'Baloo 2'; font-weight:800; font-size:12px; color:#f87171; margin-bottom:8px; }
 </style>
 
 <main class="wrap">
@@ -366,13 +379,15 @@
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
             <div>
               <div class="field-label">Player Discord ID *</div>
-              <input type="text" name="player_discord_id" id="t-pid" class="mod-input" style="width:100%" placeholder="e.g. 1399661992712863758" required>
+              <input type="text" name="player_discord_id" id="t-pid" class="mod-input" style="width:100%" placeholder="e.g. 1399661992712863758" required
+                oninput="debounceLookup('ticket',this.value)">
             </div>
             <div>
               <div class="field-label">Player Username *</div>
               <input type="text" name="player_discord_tag" id="t-ptag" class="mod-input" style="width:100%" placeholder="e.g. milkchocolatebetterthandark" required>
             </div>
           </div>
+          <div id="player-panel-ticket" class="player-panel"></div>
 
           <!-- Evidence picker -->
           <div style="margin-bottom:10px">
@@ -496,7 +511,8 @@
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
             <div>
               <div class="field-label">Player Discord ID *</div>
-              <input type="text" name="player_discord_id" id="g-pid" class="mod-input" style="width:100%" placeholder="Discord ID" required>
+              <input type="text" name="player_discord_id" id="g-pid" class="mod-input" style="width:100%" placeholder="Discord ID" required
+                oninput="debounceLookup('general',this.value)">
             </div>
             <div>
               <div class="field-label">Player Username *</div>
@@ -514,6 +530,8 @@
               </select>
             </div>
           </div>
+
+          <div id="player-panel-general" class="player-panel"></div>
 
           <!-- Evidence picker -->
           <div style="margin-bottom:10px">
@@ -912,8 +930,10 @@ async function aiSummarize(formType) {
     if (data.player) {
       const pidEl  = document.getElementById(pidId);
       const ptagEl = document.getElementById(ptagId);
-      if (pidEl && !pidEl.value && data.player.id)       pidEl.value  = data.player.id;
+      if (pidEl && !pidEl.value && data.player.id)         pidEl.value  = data.player.id;
       if (ptagEl && !ptagEl.value && data.player.username) ptagEl.value = data.player.username;
+      // Trigger inline player panel if we filled in a Discord ID
+      if (data.player.id) lookupPlayerInline(formType, data.player.id);
     }
     const staffNote = data.staff?.length ? ` · staff: ${data.staff.join(', ')}` : '';
     status.textContent = '✓ Done' + staffNote;
@@ -1000,6 +1020,118 @@ async function saveSnippet(){
     fb.style.display='block';fb.textContent=`✓ Snippet #${data.id} saved. Reload to see it in the library.`;
     clearSelection();document.getElementById('cl-label').value='';
   }
+}
+
+// ── Inline player panel ───────────────────────────────────────────────────────
+const _lookupTimers = {};
+function debounceLookup(formType, value) {
+  clearTimeout(_lookupTimers[formType]);
+  const v = (value || '').trim();
+  if (v.length < 6) { hidePlayerPanel(formType); return; }
+  _lookupTimers[formType] = setTimeout(() => lookupPlayerInline(formType, v), 600);
+}
+
+function hidePlayerPanel(formType) {
+  const el = document.getElementById('player-panel-' + formType);
+  if (el) { el.classList.remove('visible'); el.innerHTML = ''; }
+}
+
+async function lookupPlayerInline(formType, discordId) {
+  const el = document.getElementById('player-panel-' + formType);
+  if (!el) return;
+  el.classList.add('visible');
+  el.innerHTML = '<div style="font-family:\'Baloo 2\';font-size:12px;color:var(--muted);padding:4px 0">Looking up player…</div>';
+  try {
+    const data = await fetch('/admin/moderation/player/' + encodeURIComponent(discordId)).then(r => r.json());
+    renderPlayerPanel(el, data, formType, discordId);
+  } catch (e) {
+    el.innerHTML = '<div style="font-family:\'Baloo 2\';font-size:12px;color:#f87171">Failed to look up player.</div>';
+  }
+}
+
+function renderPlayerPanel(el, data, formType, discordId) {
+  const ptagId = formType === 'ticket' ? 't-ptag' : 'g-ptag';
+
+  // Auto-fill username if blank
+  if (data.profile?.tag) {
+    const ptagEl = document.getElementById(ptagId);
+    if (ptagEl && !ptagEl.value) ptagEl.value = data.profile.tag;
+  }
+
+  const flags   = data.flags   || [];
+  const bans    = data.bans    || [];
+  const tickets = data.tickets || [];
+  const general = data.general || [];
+  const allRecords = [
+    ...flags.map(f   => ({ type:'flag',    col:'#f87171', label:`Flagged: "${(f.message_content||'').slice(0,60)}…"`, sub:`${f.flag_type} · ${new Date(f.flagged_at).toLocaleDateString('en-GB')}` })),
+    ...bans.map(b    => ({ type:'ban',     col:'#e879f9', label:`Banned: ${b.reason||'No reason'}`, sub:`${new Date(b.banned_at).toLocaleDateString('en-GB')}` })),
+    ...tickets.map(t => ({ type:'ticket',  col:'#74c0fc', label:`Ticket: ${(t.summary||'').slice(0,60)}`, sub:`${t.action_taken} · ${t.severity} · ${new Date(t.created_at).toLocaleDateString('en-GB')}` })),
+    ...general.map(g => ({ type:'general', col:'#fb923c', label:`Report (${g.category}): ${(g.summary||'').slice(0,55)}`, sub:`${g.action_taken} · ${g.severity} · ${new Date(g.created_at).toLocaleDateString('en-GB')}` })),
+  ].sort((a, b) => 0); // keep insertion order (already desc by date from server)
+
+  const hasHighSev = [...tickets, ...general].some(r => r.severity === 'high') || bans.length > 0;
+  const totalRecords = flags.length + bans.length + tickets.length + general.length;
+
+  let html = '';
+
+  if (hasHighSev) {
+    html += `<div class="warn-banner">⚠ This player has prior high-severity records or bans — review history below before logging.</div>`;
+  }
+
+  // Profile row
+  html += `<div class="player-panel-head">`;
+  if (data.profile?.avatar) {
+    html += `<img src="${data.profile.avatar}" style="width:40px;height:40px;border-radius:50%;border:2px solid rgba(116,192,252,.3)">`;
+  }
+  html += `<div style="flex:1;min-width:0">
+    <div style="font-family:'Baloo 2';font-weight:800;font-size:14px;color:#e0e2ed">${data.profile ? '@' + data.profile.tag : discordId}</div>
+    <div style="font-family:'Baloo 2';font-size:11px;color:var(--muted)">${discordId}</div>
+  </div>`;
+
+  // Minecraft head + IGN
+  if (data.minecraft) {
+    const mc = data.minecraft;
+    html += `<div class="player-panel-mc">`;
+    if (mc.head) html += `<img src="${mc.head}" style="width:28px;height:28px;border-radius:4px;image-rendering:pixelated">`;
+    html += `<div>
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:#5be38f">${mc.ign}</div>
+      <div style="font-family:'Baloo 2';font-size:10px;color:var(--muted)">${mc.app_status || 'in event'}</div>
+    </div></div>`;
+  } else {
+    html += `<div style="font-family:'Baloo 2';font-size:11px;color:var(--muted);font-style:italic">Not in event</div>`;
+  }
+  html += `</div>`; // end player-panel-head
+
+  // Stat pills
+  html += `<div class="player-panel-stats">
+    <span class="player-panel-stat" style="background:rgba(248,113,113,.1);color:#f87171;border:1px solid rgba(248,113,113,.2)">${flags.length} flags</span>
+    <span class="player-panel-stat" style="background:rgba(232,121,249,.1);color:#e879f9;border:1px solid rgba(232,121,249,.2)">${bans.length} ban${bans.length!==1?'s':''}</span>
+    <span class="player-panel-stat" style="background:rgba(116,192,252,.1);color:#74c0fc;border:1px solid rgba(116,192,252,.2)">${tickets.length} ticket${tickets.length!==1?'s':''}</span>
+    <span class="player-panel-stat" style="background:rgba(251,146,60,.1);color:#fb923c;border:1px solid rgba(251,146,60,.2)">${general.length} report${general.length!==1?'s':''}</span>
+  </div>`;
+
+  // History records
+  if (allRecords.length) {
+    html += `<div class="player-panel-history">
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">History</div>`;
+    allRecords.slice(0, 8).forEach(r => {
+      html += `<div class="player-panel-record">
+        <div class="pp-dot" style="background:${r.col}"></div>
+        <div style="flex:1;min-width:0">
+          <div style="color:#c9ccdb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.label}</div>
+          <div style="color:var(--muted);font-size:11px">${r.sub}</div>
+        </div>
+      </div>`;
+    });
+    if (allRecords.length > 8) {
+      html += `<div style="font-family:'Baloo 2';font-size:11px;color:var(--muted);padding-top:4px">+${allRecords.length - 8} more — <button type="button" onclick="openPlayerModal('${discordId}')" style="background:none;border:none;cursor:pointer;color:#74c0fc;font-family:'Baloo 2';font-size:11px;padding:0">view full history</button></div>`;
+    }
+    html += `</div>`;
+  } else {
+    html += `<div style="font-family:'Baloo 2';font-size:12px;color:var(--muted);margin-top:8px;font-style:italic">No prior moderation records.</div>`;
+  }
+
+  el.innerHTML = html;
 }
 
 // ── Snippet viewer ─────────────────────────────────────────────────────────────

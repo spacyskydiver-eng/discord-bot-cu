@@ -328,11 +328,12 @@ router.post('/moderation/bans/:id/delete', async (req, res) => {
 // ── Player history (AJAX) ─────────────────────────────────────────────────────
 router.get('/moderation/player/:discordId', async (req, res) => {
   const id = req.params.discordId;
-  const [flagsRes, bansRes, ticketsRes, generalRes] = await Promise.all([
+  const [flagsRes, bansRes, ticketsRes, generalRes, appRes] = await Promise.all([
     db.query(`SELECT * FROM flagged_messages WHERE discord_id=$1 ORDER BY flagged_at DESC`, [id]),
     db.query(`SELECT * FROM moderation_bans WHERE discord_id=$1 ORDER BY banned_at DESC`, [id]),
     db.query(`SELECT * FROM ticket_reports WHERE player_discord_id=$1 ORDER BY created_at DESC`, [id]),
-    db.query(`SELECT * FROM general_reports WHERE player_discord_id=$1 ORDER BY created_at DESC`, [id])
+    db.query(`SELECT * FROM general_reports WHERE player_discord_id=$1 ORDER BY created_at DESC`, [id]),
+    db.query(`SELECT ign, status FROM structured_applications WHERE discord_id=$1 ORDER BY id DESC LIMIT 1`, [id])
   ]);
   let profile = null;
   try {
@@ -342,7 +343,28 @@ router.get('/moderation/player/:discordId', async (req, res) => {
       avatar: u.avatar ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=64` : null
     };
   } catch (_) {}
-  res.json({ flags: flagsRes.rows, bans: bansRes.rows, tickets: ticketsRes.rows, general: generalRes.rows, profile });
+  // Minecraft IGN + head via Mojang
+  let minecraft = null;
+  const appRow = appRes.rows[0];
+  if (appRow?.ign) {
+    try {
+      const mojang = await fetch(`https://api.mojang.com/users/profiles/minecraft/${encodeURIComponent(appRow.ign)}`);
+      if (mojang.ok) {
+        const mj = await mojang.json();
+        minecraft = {
+          ign: mj.name || appRow.ign,
+          uuid: mj.id,
+          head: `https://crafatar.com/avatars/${mj.id}?size=48&overlay=true`,
+          app_status: appRow.status
+        };
+      } else {
+        minecraft = { ign: appRow.ign, uuid: null, head: null, app_status: appRow.status };
+      }
+    } catch (_) {
+      minecraft = { ign: appRow.ign, uuid: null, head: null, app_status: appRow.status };
+    }
+  }
+  res.json({ flags: flagsRes.rows, bans: bansRes.rows, tickets: ticketsRes.rows, general: generalRes.rows, profile, minecraft });
 });
 
 // ── Discord API proxies (for chat log browser) ────────────────────────────────
