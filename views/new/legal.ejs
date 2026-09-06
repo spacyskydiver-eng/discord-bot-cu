@@ -1,0 +1,109 @@
+<%- include('partials/head', { pageTitle: 'Legal' }) %>
+<%- include('partials/header') %>
+
+<style>
+.legal-wrap { max-width: 780px; margin: 0 auto; padding-bottom: 80px; }
+.legal-section { margin-bottom: 36px; }
+.legal-section h2 { font-family: 'Baloo 2'; font-weight: 800; font-size: 16px; color: #e0e2ed; margin: 0 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.legal-section p, .legal-section li { font-family: 'Baloo 2'; font-weight: 600; font-size: 14px; color: #9a9db0; line-height: 1.8; margin: 0 0 10px; }
+.legal-section ul { padding-left: 20px; margin: 0 0 10px; }
+.legal-section li { margin-bottom: 4px; }
+.legal-section a { color: #74c0fc; text-decoration: none; }
+.legal-section a:hover { text-decoration: underline; }
+.legal-badge { display: inline-flex; align-items: center; gap: 6px; font-family: 'Baloo 2'; font-weight: 700; font-size: 11px; padding: 3px 10px; border-radius: 99px; margin-bottom: 14px; }
+.legal-badge.discord { background: rgba(88,101,242,.12); color: #818cf8; border: 1px solid rgba(88,101,242,.25); }
+.legal-badge.minecraft { background: rgba(22,163,74,.1); color: #5be38f; border: 1px solid rgba(22,163,74,.2); }
+.legal-badge.bot { background: rgba(116,192,252,.1); color: #74c0fc; border: 1px solid rgba(116,192,252,.2); }
+.legal-badge.store { background: rgba(251,191,36,.1); color: #fbbf24; border: 1px solid rgba(251,191,36,.2); }
+.legal-toc { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 22px; margin-bottom: 32px; }
+.legal-toc div { font-family: 'Baloo 2'; font-weight: 800; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; }
+.legal-toc a { display: block; font-family: 'Baloo 2'; font-weight: 700; font-size: 13px; color: #74c0fc; text-decoration: none; padding: 3px 0; }
+.legal-toc a:hover { text-decoration: underline; }
+.last-updated { font-family: 'Baloo 2'; font-size: 12px; color: var(--muted); margin-bottom: 28px; }
+</style>
+
+<main class="wrap">
+<div class="legal-wrap">
+
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">Legal & Privacy</h1>
+      <p class="last-updated">Last updated: September 2026</p>
+    </div>
+  </div>
+
+  <div class="legal-toc">
+    <div>Contents</div>
+    <a href="#affiliation">Third-Party Affiliations</a>
+    <a href="#discord-bot">Discord Bot & Data Collection</a>
+    <a href="#website-data">Website Data & Sessions</a>
+    <a href="#store">Store & Payments</a>
+    <a href="#conduct">Code of Conduct & Bans</a>
+    <a href="#liability">Limitation of Liability</a>
+    <a href="#contact">Contact</a>
+  </div>
+
+  <div class="legal-section" id="affiliation">
+    <h2>Third-Party Affiliations</h2>
+    <span class="legal-badge discord">Discord</span>
+    <p>Collective Union Events (CUE) is an independent, community-run organisation. We are <strong style="color:#e0e2ed">not affiliated with, endorsed by, sponsored by, or in any way officially connected to Discord Inc.</strong> The Discord name, logo, and related marks are trademarks of Discord Inc. Our use of Discord's platform and APIs is governed by <a href="https://discord.com/terms" target="_blank">Discord's Terms of Service</a> and <a href="https://discord.com/developers/docs/policies-and-agreements/developer-policy" target="_blank">Developer Policy</a>.</p>
+    <span class="legal-badge minecraft">Minecraft / Microsoft</span>
+    <p>We are <strong style="color:#e0e2ed">not affiliated with, endorsed by, or associated with Mojang Studios or Microsoft Corporation.</strong> Minecraft is a registered trademark of Mojang Studios. Microsoft and its subsidiaries have no involvement in the operation, management, or content of Collective Union Events. Any Minecraft-related content on this platform is community-generated and used in accordance with <a href="https://www.minecraft.net/en-us/eula" target="_blank">Mojang's End User Licence Agreement</a> and <a href="https://www.minecraft.net/en-us/usage-guidelines" target="_blank">Usage Guidelines</a>.</p>
+  </div>
+
+  <div class="legal-section" id="discord-bot">
+    <h2>Discord Bot & Data Collection</h2>
+    <span class="legal-badge bot">CUE Bot</span>
+    <p>We operate a Discord bot ("CUE Bot") in our main server and, with permission, in participating nation servers. By being a member of a server where CUE Bot is present, you acknowledge that it may collect and process the following data:</p>
+    <ul>
+      <li><strong style="color:#e0e2ed">Discord user ID, username, and display name</strong> — used to identify participants, link Discord accounts to event applications, and manage roles.</li>
+      <li><strong style="color:#e0e2ed">Message content</strong> — scanned in real time for terms that violate our community rules (e.g. hate speech). Flagged messages and the matched term are logged to our moderation system for staff review. Messages that are not flagged are not stored.</li>
+      <li><strong style="color:#e0e2ed">Server and channel information</strong> — server name, channel name, and message timestamps associated with any flagged content.</li>
+      <li><strong style="color:#e0e2ed">Role membership</strong> — checked to enforce eligibility for applications and event features.</li>
+      <li><strong style="color:#e0e2ed">Nation server activity</strong> — in approved nation servers, the bot monitors member counts, online status, and server presence to track event participation. No private messages are read.</li>
+    </ul>
+    <p>Data collected by the bot is stored securely in our database (Neon/PostgreSQL) and is accessible only to CUE staff. We do not sell, share, or transfer your data to any third party. Moderation logs are retained for the duration of the event and may be kept for up to 12 months thereafter for accountability purposes.</p>
+    <p>To request deletion of your data, contact us via the details in the <a href="#contact">Contact</a> section below.</p>
+  </div>
+
+  <div class="legal-section" id="website-data">
+    <h2>Website Data & Sessions</h2>
+    <p>When you log in to this website via Discord OAuth2, we store a session cookie in your browser to keep you authenticated. This session contains your Discord user ID, username, avatar, and role information. Sessions expire automatically after a period of inactivity.</p>
+    <p>We do not use third-party analytics, advertising cookies, or tracking pixels. No data is shared with advertisers. The only third-party service your browser communicates with during normal site use is Google Fonts (for typography).</p>
+    <p>Your application data (answers submitted to event applications, IGN, availability, etc.) is stored in our database and used solely for the purpose of running the event. Staff can view this data as part of the review process.</p>
+  </div>
+
+  <div class="legal-section" id="store">
+    <h2>Store & Payments</h2>
+    <span class="legal-badge store">Tebex</span>
+    <p>Purchases made through the CUE store are processed by <strong style="color:#e0e2ed">Tebex Limited</strong>, a third-party payment platform. We do not store or handle payment card details. All payment processing, refund eligibility, and transaction records are managed by Tebex in accordance with their <a href="https://www.tebex.io/terms" target="_blank">Terms of Service</a>.</p>
+    <p>In-game items or perks purchased through our store are granted at our discretion and are tied to the specific event they are purchased for. We reserve the right to modify or revoke store items if they are found to be in breach of our event rules or Minecraft's usage guidelines.</p>
+  </div>
+
+  <div class="legal-section" id="conduct">
+    <h2>Code of Conduct & Bans</h2>
+    <p>Participation in Collective Union Events is subject to our community rules, which are enforced across our Discord server, website, and any affiliated servers. Violations — including but not limited to hate speech, harassment, cheating, or bad-faith participation — may result in removal from events, loss of any purchased perks, and a ban from future events.</p>
+    <p>Ban records, including the reason and any supporting evidence, are retained by staff for accountability. Bans are not automatically reversed. If you believe a ban was issued in error, you may contact staff via the details below.</p>
+  </div>
+
+  <div class="legal-section" id="liability">
+    <h2>Limitation of Liability</h2>
+    <p>Collective Union Events is a volunteer-run community project. We provide this platform and events on an <strong style="color:#e0e2ed">"as is"</strong> basis without warranties of any kind. We are not responsible for:</p>
+    <ul>
+      <li>Service interruptions, data loss, or technical issues outside our control</li>
+      <li>The content or conduct of third-party servers participating in our events</li>
+      <li>Actions taken by Discord Inc., Mojang Studios, or Microsoft that affect your account or access</li>
+      <li>Any loss arising from participation in, or exclusion from, an event</li>
+    </ul>
+    <p>By using this website or participating in our events, you accept these terms in full.</p>
+  </div>
+
+  <div class="legal-section" id="contact">
+    <h2>Contact</h2>
+    <p>For data deletion requests, ban appeals, or any other legal enquiries, please reach out to CUE staff directly through our <a href="https://discord.gg/cuevents" target="_blank">Discord server</a>. We aim to respond within 7 days.</p>
+  </div>
+
+</div>
+</main>
+
+<%- include('partials/foot') %>

@@ -44,6 +44,7 @@ router.get('/staff', async (req, res) => {
   res.render('new/staff', { staffRoles, isStaff, formatDesc });
 });
 router.get('/rules', (req, res) => res.render('rules'));
+router.get('/legal', (req, res) => res.render('new/legal'));
 
 // ── New design routes (designPreview only) ──────────────────────────────────
 
