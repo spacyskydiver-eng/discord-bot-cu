@@ -450,17 +450,67 @@ router.get('/moderation/discord/messages/:channelId', async (req, res) => {
     let qs = `?limit=${Math.min(parseInt(limit)||50, 100)}`;
     if (before) qs += `&before=${before}`;
     if (after) qs += `&after=${after}`;
+
+    // Fetch live messages from Discord
     const msgs = await discordApi(`/channels/${req.params.channelId}/messages${qs}`);
-    res.json(msgs.map(m => ({
+    const live = msgs.map(m => ({
       id: m.id,
       author: m.author.username,
       author_id: m.author.id,
-      avatar: m.author.avatar ? `https://cdn.discordapp.com/avatars/${m.author.id}/${m.author.avatar}.png?size=32` : null,
+      avatar: m.author.avatar ? `https://cdn.discordapp.com/avatars/${m.author.id}/${m.author.avatar}.png?size=64` : null,
       content: m.content,
       timestamp: m.timestamp,
       attachments: m.attachments.map(a => ({ url: a.url, name: a.filename, type: a.content_type })),
-      embeds: m.embeds.length
-    })));
+      embeds: m.embeds.length,
+      deleted: false,
+      edited: false
+    }));
+
+    // Find time window of the fetched batch to pull deleted messages in same range
+    if (live.length) {
+      const timestamps = live.map(m => new Date(m.timestamp));
+      const minTime = new Date(Math.min(...timestamps) - 60000); // 1 min buffer
+      const maxTime = new Date(Math.max(...timestamps) + 60000);
+      const liveIds = new Set(live.map(m => m.id));
+
+      const deleted = await db.query(
+        `SELECT * FROM message_logs
+         WHERE channel_id = $1 AND deleted = TRUE AND sent_at BETWEEN $2 AND $3`,
+        [req.params.channelId, minTime, maxTime]
+      );
+
+      const deletedMsgs = deleted.rows
+        .filter(r => !liveIds.has(r.message_id))
+        .map(r => ({
+          id: r.message_id,
+          author: r.author_tag || 'Unknown',
+          author_id: r.author_id,
+          avatar: r.author_avatar,
+          content: r.content || '',
+          timestamp: r.sent_at,
+          attachments: Array.isArray(r.attachments) ? r.attachments : [],
+          embeds: 0,
+          deleted: true,
+          deleted_at: r.deleted_at,
+          edited: r.edited,
+          original_content: r.original_content
+        }));
+
+      // Also mark live messages that were edited
+      if (live.length) {
+        const editedRes = await db.query(
+          `SELECT message_id, original_content FROM message_logs WHERE channel_id=$1 AND edited=TRUE AND message_id = ANY($2)`,
+          [req.params.channelId, live.map(m => m.id)]
+        );
+        const editMap = new Map(editedRes.rows.map(r => [r.message_id, r.original_content]));
+        live.forEach(m => { if (editMap.has(m.id)) { m.edited = true; m.original_content = editMap.get(m.id); } });
+      }
+
+      const merged = [...live, ...deletedMsgs].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      return res.json(merged);
+    }
+
+    res.json(live);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

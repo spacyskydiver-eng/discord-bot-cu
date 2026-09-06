@@ -175,6 +175,14 @@
 .msg-row:hover { background:rgba(255,255,255,.04); }
 .msg-row.selected { background:rgba(116,192,252,.1); border-color:rgba(116,192,252,.3); }
 .msg-row.in-range { background:rgba(116,192,252,.05); border-left:2px solid rgba(116,192,252,.4); }
+.msg-row.deleted { background:rgba(248,113,113,.05); border-left:2px solid rgba(248,113,113,.35); opacity:.85; }
+.msg-row.deleted:hover { background:rgba(248,113,113,.09); }
+.msg-row.deleted.selected { background:rgba(248,113,113,.15); border-color:rgba(248,113,113,.5); }
+.msg-deleted-badge { font-family:'Baloo 2'; font-weight:800; font-size:10px; color:#f87171;
+  background:rgba(248,113,113,.12); border:1px solid rgba(248,113,113,.25); border-radius:4px; padding:1px 6px; margin-left:6px; }
+.msg-edited-badge { font-family:'Baloo 2'; font-weight:800; font-size:10px; color:#fb923c;
+  background:rgba(251,146,60,.1); border:1px solid rgba(251,146,60,.22); border-radius:4px; padding:1px 6px; margin-left:6px; }
+.msg-original { font-size:11px; color:rgba(255,255,255,.35); margin-top:3px; text-decoration:line-through; }
 .msg-av { width:28px; height:28px; border-radius:50%; flex-shrink:0; background:rgba(255,255,255,.08); }
 .msg-author { font-family:'Baloo 2'; font-weight:800; font-size:12px; color:var(--mod-text); }
 .msg-time { font-family:'Baloo 2'; font-size:10px; color:var(--mod-muted); margin-left:6px; }
@@ -1189,12 +1197,17 @@ function renderMessages() {
   }
   container.innerHTML = browserMsgs.map((m, i) => {
     const t = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) + ' ' + new Date(m.timestamp).toLocaleDateString('en-GB') : '';
-    const att = (m.attachments||[]).map(a => `<div class="msg-attach">📎 ${h(a.name||'attachment')}</div>`).join('');
-    return `<div class="msg-row" data-idx="${i}" data-id="${m.id}" onclick="clickMsg(event,${i})">
+    const att = (m.attachments||[]).map(a => `<div class="msg-attach">📎 ${h(a.name||a.url||'attachment')}</div>`).join('');
+    const delBadge = m.deleted ? `<span class="msg-deleted-badge">🗑 Deleted${m.deleted_at ? ' ' + new Date(m.deleted_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) : ''}</span>` : '';
+    const editBadge = m.edited ? `<span class="msg-edited-badge">✏ Edited</span>` : '';
+    const origLine = m.edited && m.original_content ? `<div class="msg-original">Original: ${h(m.original_content)}</div>` : '';
+    const rowClass = m.deleted ? 'msg-row deleted' : 'msg-row';
+    return `<div class="${rowClass}" data-idx="${i}" data-id="${m.id}" onclick="clickMsg(event,${i})">
       <img src="${m.avatar||''}" class="msg-av" onerror="this.style.visibility='hidden'" alt="">
       <div style="flex:1;min-width:0">
-        <div><span class="msg-author">${h(m.author||'?')}</span><span class="msg-time">${t}</span></div>
-        <div class="msg-content">${h(m.content||'')}</div>${att}
+        <div><span class="msg-author">${h(m.author||'?')}</span><span class="msg-time">${t}</span>${delBadge}${editBadge}</div>
+        <div class="msg-content" style="${m.deleted?'opacity:.65':''}">${h(m.content||'[no content]')}</div>
+        ${origLine}${att}
       </div>
     </div>`;
   }).join('');

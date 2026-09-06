@@ -67,6 +67,24 @@ client.on('guildBanRemove', async (ban) => {
 
 client.on('messageCreate', require('./events/messageCreate'));
 
+client.on('messageDelete', async (message) => {
+  if (!message.guild || message.author?.bot) return;
+  db.query(
+    `UPDATE message_logs SET deleted = TRUE, deleted_at = NOW() WHERE message_id = $1`,
+    [message.id]
+  ).catch(() => {});
+});
+
+client.on('messageUpdate', async (oldMsg, newMsg) => {
+  if (!newMsg.guild || newMsg.author?.bot) return;
+  if (oldMsg.content === newMsg.content) return;
+  db.query(
+    `UPDATE message_logs SET content = $1, edited = TRUE, original_content = COALESCE(original_content, $2)
+     WHERE message_id = $3`,
+    [newMsg.content || '', oldMsg.content || '', newMsg.id]
+  ).catch(() => {});
+});
+
 const CU_GUILD_ID = '1449004906068312189';
 const NATION_FORUM_ID = '1531798329397215242';
 const NATION_LEADER_ROLE_ID = '1531798604849872976';

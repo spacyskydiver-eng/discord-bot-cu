@@ -28,6 +28,20 @@ const NATION_FORUM_ID = '1531798329397215242';
 module.exports = async (message) => {
   if (!message.guild) return;
 
+  // Log every non-bot message for moderation (enables deleted message tracking)
+  if (!message.author.bot) {
+    db.query(
+      `INSERT INTO message_logs (message_id, guild_id, channel_id, author_id, author_tag, author_avatar, content, attachments, sent_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT (message_id) DO NOTHING`,
+      [message.id, message.guild.id, message.channel.id, message.author.id,
+       message.author.username,
+       message.author.avatar ? `https://cdn.discordapp.com/avatars/${message.author.id}/${message.author.avatar}.png?size=64` : null,
+       message.content || null,
+       JSON.stringify([...message.attachments.values()].map(a => ({ url: a.url, name: a.filename, type: a.contentType }))),
+       message.createdAt]
+    ).catch(() => {});
+  }
+
   // Nation advert forum: only allow the starter message per thread; delete everything else
   if (!message.author.bot && message.channel.isThread() && message.channel.parentId === NATION_FORUM_ID) {
     // In forum threads, thread.id === starter message.id
