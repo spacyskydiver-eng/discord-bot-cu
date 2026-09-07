@@ -24,14 +24,14 @@ body { overflow: hidden; }
 .nm-tile { position: absolute; width: 1024px; height: 1024px; image-rendering: pixelated; display: block; }
 
 .nm-marker { position: absolute; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; pointer-events: none; z-index: 10; }
-.nm-marker-pin { width: 12px; height: 12px; background: #e83535; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 2px 8px rgba(232,53,53,.6); flex-shrink: 0; }
-.nm-marker-line { width: 2px; height: 16px; background: #e83535; flex-shrink: 0; order: -1; }
-.nm-marker-label { position: absolute; top: -36px; background: rgba(10,10,18,.92); border: 1px solid rgba(232,53,53,.5); border-radius: 6px; padding: 3px 8px; font-family: 'Baloo 2'; font-weight: 800; font-size: 11px; color: #fff; white-space: nowrap; }
+.nm-marker-pin { width: 22px; height: 22px; background: radial-gradient(circle at 35% 35%, #f87171, #dc2626); border: 3px solid rgba(248,113,113,.5); border-radius: 50%; box-shadow: 0 0 0 4px rgba(220,38,38,.25), 0 4px 14px rgba(220,38,38,.55); flex-shrink: 0; }
+.nm-marker-line { width: 3px; height: 18px; background: linear-gradient(to bottom, #dc2626, transparent); flex-shrink: 0; order: -1; }
+.nm-marker-label { position: absolute; top: -44px; left: 50%; transform: translateX(-50%); background: rgba(10,10,18,.92); border: 1px solid rgba(220,38,38,.45); border-radius: 7px; padding: 4px 10px; font-family: 'Baloo 2'; font-weight: 800; font-size: 12px; color: #fecaca; white-space: nowrap; }
 
-/* Other nations (faded) */
-.nm-marker-other .nm-marker-pin { background: #888; box-shadow: none; border-color: rgba(255,255,255,.4); }
-.nm-marker-other .nm-marker-line { background: #888; }
-.nm-marker-other .nm-marker-label { border-color: rgba(255,255,255,.15); color: rgba(255,255,255,.5); }
+/* Other nations (purple, still visible) */
+.nm-marker-other .nm-marker-pin { background: radial-gradient(circle at 35% 35%, #c084fc, #7c3aed); border-color: rgba(192,132,252,.4); box-shadow: 0 0 0 3px rgba(124,58,237,.2), 0 3px 10px rgba(124,58,237,.4); }
+.nm-marker-other .nm-marker-line { background: linear-gradient(to bottom, #7c3aed, transparent); }
+.nm-marker-other .nm-marker-label { border-color: rgba(168,85,247,.3); color: rgba(233,213,255,.7); }
 
 /* Confirm panel */
 .nm-confirm {

@@ -1,0 +1,312 @@
+<%- include('partials/head', { pageTitle: 'Nation Map' }) %>
+<%- include('partials/header') %>
+
+<style>
+* { box-sizing: border-box; }
+body { overflow: hidden; }
+
+.wm-wrap { display: flex; flex-direction: column; height: calc(100vh - 60px); }
+
+.wm-bar {
+  display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+  background: var(--panel); border-bottom: 1px solid var(--line);
+  flex-shrink: 0; flex-wrap: wrap;
+}
+.wm-bar-title { font-family: 'Baloo 2'; font-weight: 900; font-size: 17px; color: var(--text); }
+.wm-spacer { flex: 1; }
+.wm-zoom { display: flex; align-items: center; gap: 4px; }
+.wm-zoom-btn { width: 32px; height: 32px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; color: var(--text); font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .1s; }
+.wm-zoom-btn:hover { background: rgba(255,255,255,.08); }
+.wm-zoom-label { font-family: 'Baloo 2'; font-weight: 800; font-size: 13px; color: var(--muted); min-width: 44px; text-align: center; }
+.wm-coords { font-family: 'Baloo 2'; font-weight: 700; font-size: 12px; color: var(--muted); min-width: 140px; text-align: right; }
+
+.wm-viewport { flex: 1; position: relative; overflow: hidden; background: #0c0c12; cursor: grab; }
+.wm-viewport.dragging { cursor: grabbing; }
+
+#wmGrid { position: absolute; width: 5120px; height: 5120px; transform-origin: 0 0; }
+.wm-tile { position: absolute; width: 1024px; height: 1024px; image-rendering: pixelated; display: block; }
+
+/* ── Nation pins — big and bold ── */
+.wm-pin { position: absolute; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; pointer-events: auto; z-index: 10; cursor: pointer; }
+.wm-pin:hover .wm-pin-bubble { transform: scale(1.08); border-color: rgba(192,132,252,.8); }
+.wm-pin:hover .wm-pin-label { opacity: 1; }
+
+.wm-pin-bubble {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #e879f9, #7c3aed);
+  border: 3px solid rgba(232,121,249,.5);
+  box-shadow: 0 0 0 4px rgba(124,58,237,.25), 0 4px 16px rgba(124,58,237,.5);
+  flex-shrink: 0; transition: transform .15s, border-color .15s;
+}
+.wm-pin-stem { width: 3px; height: 18px; background: linear-gradient(to bottom, #a855f7, transparent); flex-shrink: 0; order: -1; }
+.wm-pin-label {
+  position: absolute; top: -44px; left: 50%; transform: translateX(-50%);
+  background: rgba(10,10,18,.92); border: 1px solid rgba(168,85,247,.45);
+  border-radius: 7px; padding: 4px 10px;
+  font-family: 'Baloo 2'; font-weight: 800; font-size: 12px; color: #e9d5ff;
+  white-space: nowrap; pointer-events: none;
+  opacity: 0.85; transition: opacity .15s;
+}
+.wm-pin:hover .wm-pin-bubble {
+  box-shadow: 0 0 0 6px rgba(124,58,237,.35), 0 4px 20px rgba(168,85,247,.7);
+}
+
+/* Pins not yet placed */
+.wm-pin-waiting {
+  position: absolute;
+  font-family: 'Baloo 2'; font-weight: 700; font-size: 11px; color: var(--muted);
+}
+
+/* Mining region overlay */
+#wmSvg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; overflow: visible; }
+
+/* Side panel */
+.wm-panel {
+  position: absolute; top: 10px; right: 10px;
+  background: rgba(10,10,18,.9); border: 1px solid var(--line);
+  border-radius: 12px; padding: 12px 14px;
+  font-family: 'Baloo 2'; font-size: 12px;
+  z-index: 20; min-width: 180px; max-width: 230px;
+  max-height: calc(100% - 24px); overflow-y: auto;
+  backdrop-filter: blur(8px);
+}
+.wm-panel::-webkit-scrollbar { width: 3px; }
+.wm-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 99px; }
+.wm-panel-title { font-weight: 800; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+.wm-panel-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; cursor: pointer; padding: 3px 6px; border-radius: 6px; transition: background .1s; }
+.wm-panel-row:hover { background: rgba(168,85,247,.1); }
+.wm-panel-dot { width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #e879f9, #7c3aed); flex-shrink: 0; box-shadow: 0 0 6px rgba(168,85,247,.5); }
+.wm-panel-dot.waiting { background: rgba(255,255,255,.15); box-shadow: none; }
+.wm-panel-name { font-weight: 700; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wm-panel-name.muted { color: var(--muted); font-weight: 600; }
+.wm-divider { border: none; border-top: 1px solid var(--line); margin: 8px 0; }
+.wm-badge { font-size: 10px; font-weight: 800; background: rgba(168,85,247,.15); color: #c084fc; border-radius: 5px; padding: 1px 6px; flex-shrink: 0; }
+
+/* Tooltip on click */
+.wm-tooltip {
+  position: absolute; z-index: 40;
+  background: rgba(10,10,18,.95); border: 1px solid rgba(168,85,247,.4);
+  border-radius: 10px; padding: 10px 14px;
+  font-family: 'Baloo 2'; font-size: 13px; font-weight: 700; color: var(--text);
+  pointer-events: none; white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0,0,0,.5);
+}
+.wm-tooltip-sub { font-size: 11px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+</style>
+
+<div class="wm-wrap">
+  <div class="wm-bar">
+    <span class="wm-bar-title">🗺 Nation Map</span>
+    <span style="font-family:'Baloo 2';font-size:12px;color:var(--muted)">
+      <%= nations.filter(n => n.map_x != null).length %> of <%= nations.length %> nations placed
+    </span>
+    <div class="wm-spacer"></div>
+    <div class="wm-zoom">
+      <button class="wm-zoom-btn" onclick="zoom(-1)">−</button>
+      <span class="wm-zoom-label" id="zoomLabel">25%</span>
+      <button class="wm-zoom-btn" onclick="zoom(1)">+</button>
+    </div>
+    <span class="wm-coords" id="wmCoords">X — · Z —</span>
+  </div>
+
+  <div class="wm-viewport" id="wmViewport">
+    <div id="wmGrid">
+
+      <%
+      const tiles = [
+        { col:1,row:1,file:'1_1_x-1536_z-1536' },
+        { col:1,row:2,file:'1_2_x-1536_z-512' },
+        { col:1,row:3,file:'1_3_x-1536_z512' },
+        { col:2,row:1,file:'2_1_x-512_z-1536' },
+        { col:2,row:2,file:'2_2_x-512_z-512' },
+        { col:2,row:3,file:'2_3_x-512_z512' },
+        { col:3,row:1,file:'3_1_x512_z-1536' },
+        { col:3,row:2,file:'3_2_x512_z-512' },
+        { col:3,row:3,file:'3_3_x512_z512' }
+      ];
+      %>
+      <% tiles.forEach(function(t) { %>
+        <img class="wm-tile" loading="lazy" src="/img/map-tiles/<%= t.file %>.png"
+          style="left:<%= t.col*1024 %>px;top:<%= t.row*1024 %>px;" draggable="false">
+      <% }); %>
+
+      <!-- Nation pins -->
+      <% nations.forEach(function(n) {
+        if (n.map_x == null) return;
+        const px = n.map_x + 2560;
+        const py = n.map_z + 2560;
+      %>
+        <div class="wm-pin" style="left:<%= px %>px;top:<%= py %>px;"
+             data-name="<%= n.server_name.replace(/"/g,'&quot;') %>"
+             data-x="<%= n.map_x %>" data-z="<%= n.map_z %>"
+             onclick="showTooltip(event,this)">
+          <div class="wm-pin-label"><%= n.server_name %></div>
+          <div class="wm-pin-stem"></div>
+          <div class="wm-pin-bubble"></div>
+        </div>
+      <% }); %>
+    </div>
+
+    <!-- SVG mining region overlay -->
+    <svg id="wmSvg">
+      <defs>
+        <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="10" stroke="rgba(251,146,60,0.35)" stroke-width="3"/>
+        </pattern>
+      </defs>
+    </svg>
+
+    <div id="wmTooltip" class="wm-tooltip" style="display:none">
+      <div id="wmTipName"></div>
+      <div class="wm-tooltip-sub" id="wmTipCoords"></div>
+    </div>
+
+    <!-- Side panel -->
+    <div class="wm-panel">
+      <div class="wm-panel-title">Placed (<%= nations.filter(n=>n.map_x!=null).length %>)</div>
+      <% nations.filter(n=>n.map_x!=null).forEach(function(n){ %>
+      <div class="wm-panel-row" onclick="flyTo(<%= n.map_x %>,<%= n.map_z %>)">
+        <div class="wm-panel-dot"></div>
+        <span class="wm-panel-name"><%= n.server_name %></span>
+        <span class="wm-badge">X<%= n.map_x %></span>
+      </div>
+      <% }); %>
+
+      <% const waiting = nations.filter(n=>n.map_x==null); %>
+      <% if (waiting.length) { %>
+      <hr class="wm-divider">
+      <div class="wm-panel-title">Not yet placed (<%= waiting.length %>)</div>
+      <% waiting.forEach(function(n){ %>
+      <div class="wm-panel-row" style="cursor:default">
+        <div class="wm-panel-dot waiting"></div>
+        <span class="wm-panel-name muted"><%= n.server_name %></span>
+      </div>
+      <% }); %>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<script>
+var MINING_REGIONS = <%- JSON.stringify(miningRegions) %>;
+var WORLD_ORIGIN = 2560;
+var scale = 0.25;
+var panX = 0, panY = 0;
+var dragging = false, mousedownOnMap = false, lastX = 0, lastY = 0;
+var clickMoved = false;
+var viewport = document.getElementById('wmViewport');
+var grid = document.getElementById('wmGrid');
+var svg = document.getElementById('wmSvg');
+var ZOOM_STEPS = [0.1, 0.15, 0.18, 0.25, 0.35, 0.5, 0.75, 1.0, 1.5, 2.0];
+var zoomIdx = 3;
+var NS = 'http://www.w3.org/2000/svg';
+
+function svgEl(tag, attrs) {
+  var el = document.createElementNS(NS, tag);
+  for (var k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+
+function worldToScreen(wx, wz) {
+  return { x: (wx + WORLD_ORIGIN) * scale + panX, y: (wz + WORLD_ORIGIN) * scale + panY };
+}
+
+function drawSvg() {
+  Array.from(svg.children).forEach(function(c) { if (c.tagName !== 'defs') svg.removeChild(c); });
+  MINING_REGIONS.forEach(function(r) {
+    var p1 = worldToScreen(r.x1, r.z1), p2 = worldToScreen(r.x2, r.z2);
+    var w = p2.x - p1.x, h = p2.y - p1.y;
+    var g = document.createElementNS(NS, 'g');
+    g.appendChild(svgEl('rect', { x:p1.x, y:p1.y, width:w, height:h, fill:'url(#hatch)' }));
+    g.appendChild(svgEl('rect', { x:p1.x, y:p1.y, width:w, height:h, fill:'rgba(251,146,60,0.07)' }));
+    g.appendChild(svgEl('rect', { x:p1.x, y:p1.y, width:w, height:h, fill:'none', stroke:'#fb923c', 'stroke-width':'1.5', 'stroke-dasharray':'6 3' }));
+    if (w > 40) {
+      var lx = p1.x + 6, ly = p1.y + 16;
+      g.appendChild(svgEl('rect', { x:lx-3, y:ly-12, width:r.name.length*7+6, height:16, rx:3, fill:'rgba(10,10,18,.8)' }));
+      var txt = svgEl('text', { x:lx, y:ly, fill:'#fb923c', 'font-family':"'Baloo 2',sans-serif", 'font-weight':'800', 'font-size':'12' });
+      txt.textContent = r.name;
+      g.appendChild(txt);
+    }
+    svg.appendChild(g);
+  });
+}
+
+function applyTransform() {
+  grid.style.transform = 'translate('+panX+'px,'+panY+'px) scale('+scale+')';
+  document.getElementById('zoomLabel').textContent = Math.round(scale*100)+'%';
+  drawSvg();
+}
+
+function zoom(dir) {
+  var vr = viewport.getBoundingClientRect();
+  var cx = vr.width/2, cy = vr.height/2;
+  var ni = Math.max(0, Math.min(ZOOM_STEPS.length-1, zoomIdx+dir));
+  if (ni === zoomIdx) return;
+  var ns = ZOOM_STEPS[ni];
+  panX = cx - (cx-panX)*(ns/scale);
+  panY = cy - (cy-panY)*(ns/scale);
+  scale = ns; zoomIdx = ni;
+  applyTransform();
+}
+
+function flyTo(wx, wz) {
+  var vr = viewport.getBoundingClientRect();
+  // Zoom to 75% for a good view
+  zoomIdx = 6; scale = ZOOM_STEPS[6];
+  panX = vr.width/2  - (wx + WORLD_ORIGIN) * scale;
+  panY = vr.height/2 - (wz + WORLD_ORIGIN) * scale;
+  applyTransform();
+}
+
+viewport.addEventListener('wheel', function(e) { e.preventDefault(); zoom(e.deltaY<0?1:-1); }, { passive:false });
+
+viewport.addEventListener('mousedown', function(e) {
+  if (e.button !== 0 || e.target.closest('.wm-pin, .wm-panel')) return;
+  mousedownOnMap = true; dragging = true; clickMoved = false;
+  lastX = e.clientX; lastY = e.clientY;
+  viewport.classList.add('dragging'); e.preventDefault();
+});
+
+window.addEventListener('mousemove', function(e) {
+  var vr = viewport.getBoundingClientRect();
+  var mx = (e.clientX-vr.left-panX)/scale, mz = (e.clientY-vr.top-panY)/scale;
+  document.getElementById('wmCoords').textContent = 'X '+Math.round(mx-WORLD_ORIGIN)+' · Z '+Math.round(mz-WORLD_ORIGIN);
+  if (!dragging) return;
+  var dx = e.clientX-lastX, dy = e.clientY-lastY;
+  if (Math.abs(dx)>3||Math.abs(dy)>3) clickMoved = true;
+  panX += dx; panY += dy; lastX = e.clientX; lastY = e.clientY;
+  applyTransform();
+});
+
+window.addEventListener('mouseup', function(e) {
+  if (!dragging) return;
+  dragging = false; viewport.classList.remove('dragging');
+  clickMoved = false; mousedownOnMap = false;
+});
+
+// Hide tooltip when clicking away
+window.addEventListener('click', function(e) {
+  if (!e.target.closest('.wm-pin')) document.getElementById('wmTooltip').style.display = 'none';
+});
+
+function showTooltip(e, el) {
+  e.stopPropagation();
+  var tip = document.getElementById('wmTooltip');
+  document.getElementById('wmTipName').textContent = el.dataset.name;
+  document.getElementById('wmTipCoords').textContent = 'X '+el.dataset.x+' · Z '+el.dataset.z;
+  var vr = viewport.getBoundingClientRect();
+  var left = e.clientX - vr.left + 14;
+  var top  = e.clientY - vr.top  - 50;
+  if (left + 200 > vr.width) left = e.clientX - vr.left - 200;
+  tip.style.left = left+'px'; tip.style.top = top+'px'; tip.style.display = '';
+}
+
+window.addEventListener('load', function() {
+  var vr = viewport.getBoundingClientRect();
+  panX = vr.width/2  - WORLD_ORIGIN*scale;
+  panY = vr.height/2 - WORLD_ORIGIN*scale;
+  applyTransform();
+});
+</script>
+
+<%- include('partials/foot') %>

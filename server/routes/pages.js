@@ -508,4 +508,24 @@ router.post('/nation-place/clear', async (req, res) => {
   res.redirect('/nation-place');
 });
 
+// Public nation map — currently admin-only, will open to all players later
+router.get('/map', async (req, res) => {
+  const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(s => s.trim());
+  const uid = req.session.user?.id;
+  if (!uid || !adminIds.includes(uid)) {
+    return res.status(403).render('new/home', {
+      pageTitle: '', error: 'The map is not yet public — check back soon.'
+    });
+  }
+  const allRes = await db.query(
+    `SELECT server_name, map_x, map_z FROM nation_leader_applications
+     WHERE accepted = true ORDER BY server_name ASC`
+  );
+  const regionsRes = await db.query(`SELECT x1,z1,x2,z2,name FROM mining_regions ORDER BY id ASC`);
+  res.render('new/world-map', {
+    nations: allRes.rows,
+    miningRegions: regionsRes.rows
+  });
+});
+
 module.exports = router;
