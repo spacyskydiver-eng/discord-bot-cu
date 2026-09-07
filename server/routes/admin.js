@@ -881,6 +881,28 @@ router.post('/moderation/reports/evidence/:id/delete', async (req, res) => {
   res.redirect(`/admin/moderation#${anchor}-${ev.report_id}`);
 });
 
+// ── Unified report edit ───────────────────────────────────────────────────────
+router.post('/moderation/reports/:type/:id/edit', async (req, res) => {
+  const { type, id } = req.params;
+  const table = type === 'ticket' ? 'ticket_reports' : type === 'general' ? 'general_reports' : type === 'player' ? 'player_reports' : null;
+  if (!table) return res.redirect('/admin/moderation#reports');
+  const { summary, action_taken, severity, notes, staff_involved, incident_type, location } = req.body;
+  if (!summary?.trim()) return res.redirect(`/admin/moderation#${type === 'player' ? 'player-report' : type}-${id}`);
+  if (type === 'player') {
+    await db.query(
+      `UPDATE ${table} SET summary=$1, action_taken=$2, severity=$3, notes=$4, staff_involved=$5, incident_type=$6, location=$7 WHERE id=$8`,
+      [summary.trim(), action_taken||'no_action', severity||'low', (notes||'').trim(), (staff_involved||'').trim()||null, incident_type||'other', (location||'').trim()||null, id]
+    );
+  } else {
+    await db.query(
+      `UPDATE ${table} SET summary=$1, action_taken=$2, severity=$3, notes=$4, staff_involved=$5 WHERE id=$6`,
+      [summary.trim(), action_taken||'warning', severity||'low', (notes||'').trim(), (staff_involved||'').trim()||null, id]
+    );
+  }
+  const anchor = type === 'player' ? 'player-report' : type;
+  res.redirect(`/admin/moderation#${anchor}-${id}`);
+});
+
 // ── Unified report delete (new panel) ────────────────────────────────────────
 router.post('/moderation/reports/:type/:id/delete', async (req, res) => {
   const { type, id } = req.params;
