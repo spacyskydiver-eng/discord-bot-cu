@@ -133,11 +133,13 @@ body { overflow: hidden; }
 </style>
 
 <div class="nm-wrap">
+  <% if (!adminOverview) { %>
   <div class="nm-deadline-bar">
     Location deadline: <span id="nmDeadline">—</span> — choose carefully, you can change it before the deadline.
   </div>
+  <% } %>
   <div class="nm-bar">
-    <span class="nm-bar-title">Choose your nation's location — <em style="color:var(--muted);font-style:normal;font-size:14px"><%= nation.server_name %></em></span>
+    <span class="nm-bar-title"><%= adminOverview ? 'Nation Placement Overview' : 'Choose your nation\'s location' %><% if (!adminOverview) { %> — <em style="color:var(--muted);font-style:normal;font-size:14px"><%= nation.server_name %></em><% } %></span>
     <div class="nm-spacer"></div>
     <div class="nm-zoom">
       <button class="nm-zoom-btn" onclick="zoom(-1)">−</button>
@@ -208,13 +210,12 @@ body { overflow: hidden; }
       </defs>
     </svg>
 
+    <% if (!adminOverview) { %>
     <div class="nm-saved" id="nmSaved" style="display:none">Location saved for <%= nation.server_name %></div>
     <div class="nm-instruct" id="nmInstruct">
       <%= nation.map_x != null ? 'Click the map to move your marker' : 'Click the map to place your nation location' %>
     </div>
-
     <div id="nmError" style="display:none;position:absolute;top:14px;left:50%;transform:translateX(-50%);background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.35);border-radius:10px;padding:9px 16px;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#f87171;pointer-events:none;z-index:30;white-space:nowrap;"></div>
-
     <div class="nm-confirm hidden" id="nmConfirm">
       <div>
         <div class="nm-confirm-text">Place <%= nation.server_name %> at</div>
@@ -223,9 +224,11 @@ body { overflow: hidden; }
       <button class="nm-cancel-btn" onclick="cancelPlace()">Cancel</button>
       <button class="nm-confirm-btn" onclick="submitPlace()">Confirm location</button>
     </div>
+    <% } %>
 
     <!-- Side panel -->
     <div class="nm-panel">
+      <% if (!adminOverview) { %>
       <div class="nm-panel-title">Your nation</div>
       <div class="nm-panel-row">
         <div class="nm-panel-dot"<%= nation.map_x == null ? ' style="opacity:.3"' : '' %>></div>
@@ -236,6 +239,7 @@ body { overflow: hidden; }
         </form>
         <% } %>
       </div>
+      <% } %>
 
       <% if (otherMarkers.length > 0 || waiting.length > 0) { %>
       <hr class="nm-divider">
@@ -263,8 +267,11 @@ body { overflow: hidden; }
 </form>
 
 <script>
-document.getElementById('nmDeadline').textContent =
-  new Date(1788649200000).toLocaleString('en-GB', { weekday:'short', day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+var adminOverview = <%- adminOverview ? 'true' : 'false' %>;
+if (!adminOverview) {
+  document.getElementById('nmDeadline').textContent =
+    new Date(1788649200000).toLocaleString('en-GB', { weekday:'short', day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
 
 
 var MINING_REGIONS = <%- JSON.stringify(miningRegions) %>;
@@ -397,6 +404,7 @@ function showError(msg) {
 }
 
 function handleMapClick(e) {
+  if (adminOverview) return;
   var vr = viewport.getBoundingClientRect();
   var mx = (e.clientX - vr.left - panX) / scale;
   var mz = (e.clientY - vr.top - panY) / scale;
