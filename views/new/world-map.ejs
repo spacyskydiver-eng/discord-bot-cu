@@ -282,6 +282,18 @@ viewport.addEventListener('mousedown', function(e) {
   viewport.classList.add('dragging'); e.preventDefault();
 });
 
+// ── Coordinate display ────────────────────────────────────────────────────────
+var coordsEl = document.getElementById('wmCoords');
+viewport.addEventListener('mousemove', function(e) {
+  var vr = viewport.getBoundingClientRect();
+  var wx = Math.round((e.clientX - vr.left - panX) / scale - WORLD_ORIGIN);
+  var wz = Math.round((e.clientY - vr.top  - panY) / scale - WORLD_ORIGIN);
+  coordsEl.textContent = 'X ' + wx + '  ·  Z ' + wz;
+});
+viewport.addEventListener('mouseleave', function() {
+  coordsEl.textContent = 'X — · Z —';
+});
+
 window.addEventListener('mousemove', function(e) {
   if (!dragging) return;
   var dx = e.clientX-lastX, dy = e.clientY-lastY;
