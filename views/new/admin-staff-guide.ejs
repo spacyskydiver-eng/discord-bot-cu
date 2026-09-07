@@ -1,0 +1,575 @@
+<%- include('partials/head', { pageTitle: 'Staff Guide' }) %>
+<%- include('partials/header') %>
+
+<style>
+/* ── Tokens (match mod panel palette) ── */
+:root {
+  --sg-bg:      #0e0f18;
+  --sg-surface: rgba(255,255,255,.04);
+  --sg-surface2:rgba(255,255,255,.07);
+  --sg-border:  rgba(255,255,255,.09);
+  --sg-text:    #e2e4f0;
+  --sg-muted:   rgba(255,255,255,.45);
+  --sg-accent:  #74c0fc;
+  --sg-purple:  #c084fc;
+  --sg-green:   #5be38f;
+  --sg-amber:   #fbbf24;
+  --sg-red:     #f87171;
+  --sg-radius:  12px;
+}
+
+.sg-wrap {
+  display: flex;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 20px 100px;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+/* ── Sidebar ── */
+.sg-nav {
+  width: 200px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 24px;
+}
+.sg-nav-section {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--sg-muted);
+  padding: 14px 0 4px 12px;
+}
+.sg-nav a {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sg-muted);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  border-radius: 0 6px 6px 0;
+  transition: color .12s, border-color .12s, background .12s;
+  font-family: 'Baloo 2', sans-serif;
+}
+.sg-nav a:hover { color: var(--sg-text); background: var(--sg-surface); }
+.sg-nav a.sg-active { color: var(--sg-accent); border-left-color: var(--sg-accent); background: rgba(116,192,252,.07); }
+.sg-nav .nav-icon { font-size: 14px; opacity: .8; }
+
+/* ── Main content ── */
+.sg-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.sg-page-eyebrow {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--sg-purple);
+  margin-bottom: 8px;
+  font-family: 'Baloo 2', sans-serif;
+}
+.sg-page-title {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 900;
+  font-size: 28px;
+  color: var(--sg-text);
+  background: linear-gradient(135deg, #e2e4f0, #74c0fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 10px;
+}
+.sg-page-intro {
+  font-size: 14px;
+  color: var(--sg-muted);
+  line-height: 1.75;
+  border-bottom: 1px solid var(--sg-border);
+  padding-bottom: 28px;
+  margin-bottom: 36px;
+}
+.sg-page-intro code { font-size: 12px; }
+
+/* ── Sections ── */
+.sg-section {
+  margin-bottom: 48px;
+  scroll-margin-top: 24px;
+}
+.sg-section-title {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: 19px;
+  color: var(--sg-text);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sg-section-icon {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  background: var(--sg-surface);
+  border: 1px solid var(--sg-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0;
+}
+.sg-section p { color: var(--sg-muted); margin-bottom: 12px; font-size: 14px; line-height: 1.75; }
+.sg-section p:last-child { margin-bottom: 0; }
+
+.sg-h3 {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: 13.5px;
+  color: var(--sg-text);
+  margin: 20px 0 8px;
+}
+
+/* ── Steps ── */
+.sg-steps { display: flex; flex-direction: column; gap: 10px; margin: 12px 0; }
+.sg-step { display: flex; gap: 12px; align-items: flex-start; }
+.sg-step-num {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: rgba(116,192,252,.12);
+  border: 1px solid rgba(116,192,252,.25);
+  color: var(--sg-accent);
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800; font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 2px;
+}
+.sg-step-body { color: var(--sg-muted); line-height: 1.65; font-size: 14px; }
+.sg-step-body strong { color: var(--sg-text); font-weight: 600; }
+
+/* ── Callouts ── */
+.sg-callout {
+  border-radius: 10px;
+  padding: 12px 15px;
+  font-size: 13px;
+  line-height: 1.65;
+  margin: 14px 0;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border: 1px solid;
+}
+.sg-callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.sg-callout-body { color: var(--sg-muted); }
+.sg-callout-body strong { color: var(--sg-text); font-weight: 600; }
+.sg-callout.tip  { background: rgba(116,192,252,.06); border-color: rgba(116,192,252,.18); }
+.sg-callout.warn { background: rgba(251,191,36,.06);  border-color: rgba(251,191,36,.2); }
+.sg-callout.info { background: rgba(192,132,252,.06); border-color: rgba(192,132,252,.18); }
+
+/* ── Two-col grid ── */
+.sg-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 12px 0;
+}
+.sg-card {
+  background: var(--sg-surface);
+  border: 1px solid var(--sg-border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.sg-card-title {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800; font-size: 13.5px;
+  color: var(--sg-text); margin-bottom: 5px;
+}
+.sg-card-body { font-size: 12.5px; color: var(--sg-muted); line-height: 1.65; }
+
+/* ── Badges ── */
+.sg-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 4px;
+  font-size: 11px; font-weight: 700;
+  font-family: 'Baloo 2', sans-serif;
+  letter-spacing: .03em; vertical-align: middle; white-space: nowrap;
+}
+.sg-badge-blue   { background: rgba(116,192,252,.14); color: var(--sg-accent);  border: 1px solid rgba(116,192,252,.25); }
+.sg-badge-purple { background: rgba(192,132,252,.14); color: var(--sg-purple);  border: 1px solid rgba(192,132,252,.25); }
+.sg-badge-green  { background: rgba(91,227,143,.12);  color: var(--sg-green);   border: 1px solid rgba(91,227,143,.25); }
+.sg-badge-amber  { background: rgba(251,191,36,.12);  color: var(--sg-amber);   border: 1px solid rgba(251,191,36,.25); }
+.sg-badge-red    { background: rgba(248,113,113,.12); color: var(--sg-red);     border: 1px solid rgba(248,113,113,.25); }
+
+/* ── Table ── */
+.sg-table-wrap { overflow-x: auto; margin: 12px 0; }
+table.sg-table { border-collapse: collapse; width: 100%; min-width: 500px; }
+table.sg-table th {
+  text-align: left; font-size: 10.5px; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--sg-muted); padding: 0 12px 8px;
+  border-bottom: 1px solid var(--sg-border);
+  font-family: 'Baloo 2', sans-serif;
+}
+table.sg-table td {
+  padding: 9px 12px; font-size: 13px;
+  color: var(--sg-muted); vertical-align: top;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+table.sg-table tr:last-child td { border-bottom: none; }
+table.sg-table td:first-child { color: var(--sg-text); font-weight: 600; white-space: nowrap; }
+table.sg-table tr:hover td { background: rgba(255,255,255,.02); }
+
+/* ── Inline code ── */
+code {
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 12px;
+  background: rgba(255,255,255,.07);
+  color: var(--sg-accent);
+  padding: 1px 6px; border-radius: 4px;
+  border: 1px solid rgba(255,255,255,.1);
+}
+
+/* ── Divider ── */
+.sg-divider { border: none; border-top: 1px solid var(--sg-border); margin: 36px 0; }
+
+/* ── List ── */
+ul.sg-list {
+  list-style: none;
+  display: flex; flex-direction: column; gap: 7px;
+  margin: 10px 0; padding: 0;
+}
+ul.sg-list li {
+  padding-left: 18px; position: relative;
+  color: var(--sg-muted); font-size: 13.5px; line-height: 1.65;
+}
+ul.sg-list li::before { content: '–'; position: absolute; left: 0; color: rgba(255,255,255,.2); }
+ul.sg-list li strong { color: var(--sg-text); font-weight: 600; }
+
+/* ── Responsive ── */
+@media (max-width: 720px) {
+  .sg-wrap { flex-direction: column; padding: 20px 16px 60px; }
+  .sg-nav { width: 100%; position: static; display: flex; flex-wrap: wrap; gap: 0; }
+  .sg-nav-section { display: none; }
+  .sg-nav a { padding: 5px 10px; font-size: 12px; border-left: none; border-bottom: 2px solid transparent; border-radius: 6px 6px 0 0; }
+  .sg-nav a.sg-active { border-bottom-color: var(--sg-accent); border-left-color: transparent; }
+  .sg-grid { grid-template-columns: 1fr; }
+  .sg-page-title { font-size: 22px; }
+}
+</style>
+
+<div class="sg-wrap">
+
+  <!-- ── Sidebar nav ── -->
+  <nav class="sg-nav" id="sgNav">
+    <div class="sg-nav-section">Getting started</div>
+    <a href="#overview"  class="sg-nav-link"><span class="nav-icon">🗺️</span> Overview</a>
+    <a href="#access"    class="sg-nav-link"><span class="nav-icon">🔑</span> Getting Access</a>
+    <a href="#tabs"      class="sg-nav-link"><span class="nav-icon">📋</span> The Four Tabs</a>
+
+    <div class="sg-nav-section">Core features</div>
+    <a href="#flagged"  class="sg-nav-link"><span class="nav-icon">🚩</span> Flagged Messages</a>
+    <a href="#reports"  class="sg-nav-link"><span class="nav-icon">📝</span> Creating Reports</a>
+    <a href="#evidence" class="sg-nav-link"><span class="nav-icon">💬</span> Evidence &amp; Logs</a>
+    <a href="#basket"   class="sg-nav-link"><span class="nav-icon">📎</span> Evidence Basket</a>
+    <a href="#viewer"   class="sg-nav-link"><span class="nav-icon">🔍</span> Snippet Viewer</a>
+    <a href="#bans"     class="sg-nav-link"><span class="nav-icon">🔨</span> Bans &amp; Watchlist</a>
+    <a href="#history"  class="sg-nav-link"><span class="nav-icon">🕓</span> Player History</a>
+    <a href="#ai"       class="sg-nav-link"><span class="nav-icon">✦</span> AI Summarize</a>
+
+    <div class="sg-nav-section">Reference</div>
+    <a href="#tips" class="sg-nav-link"><span class="nav-icon">⚡</span> Tips &amp; Best Practices</a>
+  </nav>
+
+  <!-- ── Main ── -->
+  <main class="sg-main">
+
+    <div class="sg-page-eyebrow">Staff Reference</div>
+    <h1 class="sg-page-title">CUE Moderation Panel</h1>
+    <p class="sg-page-intro">
+      Everything you need to handle tickets, reports, bans, and evidence as a CUE staff member.
+      The panel lives at <code>/admin/moderation</code> — bookmark it.
+      All actions are logged with your name and a timestamp.
+    </p>
+
+    <!-- Overview -->
+    <section class="sg-section" id="overview">
+      <div class="sg-section-title"><div class="sg-section-icon">🗺️</div> Overview</div>
+      <p>The moderation panel is a private control centre for managing player behaviour across the CUE Discord server and Minecraft world. From here you can review auto-flagged messages, write and track reports, issue bans, browse raw Discord chat logs, and save labelled evidence snippets that can be attached to any report.</p>
+      <p>Every report records which staff member created it and when. Treat the panel like a paper trail — the more detail you put in, the easier it is for any other staff member to pick up where you left off.</p>
+    </section>
+
+    <!-- Access -->
+    <section class="sg-section" id="access">
+      <div class="sg-section-title"><div class="sg-section-icon">🔑</div> Getting Access</div>
+      <p>Access to the moderation panel is separate from the public site — you need to be added to the <strong style="color:var(--sg-text)">staff access list</strong> by an admin. Once added you can reach <code>/admin/moderation</code> and the Control Centre immediately.</p>
+      <div class="sg-callout info">
+        <span class="sg-callout-icon">📌</span>
+        <div class="sg-callout-body"><strong>Admins:</strong> grant or revoke staff access from the Control Centre under <em>Staff Access</em>. Changes take effect immediately — the staff member doesn't need to log out.</div>
+      </div>
+    </section>
+
+    <!-- Tabs -->
+    <section class="sg-section" id="tabs">
+      <div class="sg-section-title"><div class="sg-section-icon">📋</div> The Four Tabs</div>
+      <p>The panel is split into four tabs. Switch between them using the tab bar at the top of the page.</p>
+      <div class="sg-grid">
+        <div class="sg-card">
+          <div class="sg-card-title">🚩 Flagged Messages</div>
+          <div class="sg-card-body">Messages the bot auto-detected as suspicious. Review, dismiss, or escalate them into a full report.</div>
+        </div>
+        <div class="sg-card">
+          <div class="sg-card-title">📝 Reports</div>
+          <div class="sg-card-body">All moderation reports — ticket disputes, in-game incidents, general cases. Create new ones and track existing ones with attached evidence.</div>
+        </div>
+        <div class="sg-card">
+          <div class="sg-card-title">🔨 Bans &amp; Watchlist</div>
+          <div class="sg-card-body">Active bans and watchlisted players. Issue new bans or flag someone for monitoring from here.</div>
+        </div>
+        <div class="sg-card">
+          <div class="sg-card-title">💬 Evidence &amp; Logs</div>
+          <div class="sg-card-body">Browse raw Discord chat logs from any channel. Select messages and save them as named evidence snippets to attach to reports.</div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="sg-divider">
+
+    <!-- Flagged -->
+    <section class="sg-section" id="flagged">
+      <div class="sg-section-title"><div class="sg-section-icon">🚩</div> Flagged Messages</div>
+      <p>The bot monitors Discord for messages matching moderation patterns — hate speech, slurs, mass mentions, and similar. When it detects one it drops it in the Flagged Messages tab for staff to review.</p>
+      <div class="sg-h3">What to do with a flag</div>
+      <div class="sg-steps">
+        <div class="sg-step"><div class="sg-step-num">1</div><div class="sg-step-body">Read the flagged message in context — look at the channel, time, and who sent it.</div></div>
+        <div class="sg-step"><div class="sg-step-num">2</div><div class="sg-step-body">
+          <strong>Dismiss</strong> — false positive, no action needed. Removes it from the queue.<br>
+          <strong>Escalate → Report</strong> — opens the report panel pre-filled with the player's details.
+        </div></div>
+        <div class="sg-step"><div class="sg-step-num">3</div><div class="sg-step-body">If you escalate, go to Evidence &amp; Logs and capture the surrounding conversation as a snippet to attach to the report.</div></div>
+      </div>
+      <div class="sg-callout warn">
+        <span class="sg-callout-icon">⚠️</span>
+        <div class="sg-callout-body">Don't dismiss a flag just because the player has no prior history. Some first-time offences are serious. Check context, then decide.</div>
+      </div>
+    </section>
+
+    <!-- Reports -->
+    <section class="sg-section" id="reports">
+      <div class="sg-section-title"><div class="sg-section-icon">📝</div> Creating Reports</div>
+      <p>Reports are the core moderation record. Create one any time you take action against a player — or when you're documenting something worth tracking. Click <strong style="color:var(--sg-text)">＋ New Report</strong> in the top-right of the page.</p>
+
+      <div class="sg-h3">Report types</div>
+      <div class="sg-grid">
+        <div class="sg-card">
+          <div class="sg-card-title">🎟️ Ticket</div>
+          <div class="sg-card-body">A report arising from a Discord support ticket. Best when the incident was handled inside a ticket channel.</div>
+        </div>
+        <div class="sg-card">
+          <div class="sg-card-title">🎮 In-Game</div>
+          <div class="sg-card-body">A Minecraft incident — cheating, griefing, harassment in-world. Adds Incident Type and Location fields.</div>
+        </div>
+        <div class="sg-card" style="grid-column:1/-1">
+          <div class="sg-card-title">📝 General</div>
+          <div class="sg-card-body">Anything that doesn't fit the above — cross-platform incidents, DM harassment, pre-event disputes.</div>
+        </div>
+      </div>
+
+      <div class="sg-h3">Finding the player</div>
+      <p>Use the <strong style="color:var(--sg-text)">Search players</strong> box at the top of the Player section. Type a Discord username and accepted players appear in a dropdown — click one to autofill both the Discord ID and Tag fields. If the player isn't in the accepted list, enter their ID and tag manually.</p>
+
+      <div class="sg-h3">All fields</div>
+      <div class="sg-table-wrap">
+        <table class="sg-table">
+          <thead><tr><th>Field</th><th>Notes</th><th>Required</th></tr></thead>
+          <tbody>
+            <tr><td>Report Type</td><td>Ticket / In-Game / General — pick before filling anything else</td><td><span class="sg-badge sg-badge-red">Yes</span></td></tr>
+            <tr><td>Player Discord ID</td><td>18-digit numeric ID. Use player search to autofill.</td><td><span class="sg-badge sg-badge-red">Yes</span></td></tr>
+            <tr><td>Discord Tag</td><td>Their current username (may differ from display name)</td><td><span class="sg-badge sg-badge-red">Yes</span></td></tr>
+            <tr><td>Minecraft IGN</td><td>In-Game mode only. Optional but recommended.</td><td><span class="sg-badge sg-badge-green">No</span></td></tr>
+            <tr><td>Incident Type</td><td>In-Game: Cheating / Griefing / Harassment / Exploit / Inappropriate Build / Other</td><td><span class="sg-badge sg-badge-amber">If in-game</span></td></tr>
+            <tr><td>Location / Server</td><td>In-Game: server and area, e.g. <em>SMP — coords 1240 / -870</em></td><td><span class="sg-badge sg-badge-green">No</span></td></tr>
+            <tr><td>Summary</td><td>What happened. Future staff will read this without context — be specific.</td><td><span class="sg-badge sg-badge-red">Yes</span></td></tr>
+            <tr><td>Action Taken</td><td>Warning / Mute / Kick / Ban / Watchlist / None yet</td><td><span class="sg-badge sg-badge-green">No</span></td></tr>
+            <tr><td>Severity</td><td>🟡 Low · 🟠 Medium · 🔴 High</td><td><span class="sg-badge sg-badge-green">No</span></td></tr>
+            <tr><td>Staff Involved</td><td>Other staff who handled it, comma-separated</td><td><span class="sg-badge sg-badge-green">No</span></td></tr>
+            <tr><td>Internal Notes</td><td>Private context, player's explanation, follow-up reminders. Not shown publicly.</td><td><span class="sg-badge sg-badge-green">No</span></td></tr>
+            <tr><td>Chat Evidence Snippets</td><td>Select saved snippets from your library. Multiple allowed.</td><td><span class="sg-badge sg-badge-green">No</span></td></tr>
+            <tr><td>Screenshots / Video</td><td>Upload image or video files directly</td><td><span class="sg-badge sg-badge-green">No</span></td></tr>
+            <tr><td>Link Evidence</td><td>Paste a URL (Gyazo, Streamable, etc.) with a short label</td><td><span class="sg-badge sg-badge-green">No</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="sg-h3">Adding evidence to an existing report</div>
+      <p>Expand any report card and scroll to <strong style="color:var(--sg-text)">Add Evidence</strong>. You can attach snippets, upload files, or add a link at any time after the report is created. When attaching a snippet, fill in the <strong style="color:var(--sg-text)">Label</strong> field to identify its role — e.g. <em>victim's chat</em>, <em>perpetrator DMs</em>, <em>staff log</em>.</p>
+    </section>
+
+    <!-- Evidence -->
+    <section class="sg-section" id="evidence">
+      <div class="sg-section-title"><div class="sg-section-icon">💬</div> Evidence &amp; Logs</div>
+      <p>The Evidence &amp; Logs tab lets you browse raw Discord message history from any channel the bot has access to, then select and save messages as named <strong style="color:var(--sg-text)">snippets</strong> — a self-contained chat log you can attach to any report and re-read at any time.</p>
+
+      <div class="sg-h3">Browsing messages</div>
+      <div class="sg-steps">
+        <div class="sg-step"><div class="sg-step-num">1</div><div class="sg-step-body">Pick the <strong>Guild</strong> (Discord server) from the first dropdown.</div></div>
+        <div class="sg-step"><div class="sg-step-num">2</div><div class="sg-step-body">Pick the <strong>Channel</strong> from the second dropdown. The most recent 50 messages load automatically.</div></div>
+        <div class="sg-step"><div class="sg-step-num">3</div><div class="sg-step-body">Use <strong>Load More</strong> to go further back in history if needed.</div></div>
+      </div>
+
+      <div class="sg-callout tip">
+        <span class="sg-callout-icon">💡</span>
+        <div class="sg-callout-body">
+          <strong>Deleted and edited messages:</strong> the bot records these in real time.
+          A deleted message shows a <span class="sg-badge sg-badge-red">🗑 Deleted</span> badge with the deletion time.
+          An edited message shows an <span class="sg-badge sg-badge-amber">✏ Edited</span> badge with the original content displayed below.
+          These are captured when you select a range — never exclude them.
+        </div>
+      </div>
+
+      <div class="sg-h3">Selection modes</div>
+      <div class="sg-grid">
+        <div class="sg-card">
+          <div class="sg-card-title"><span class="sg-badge sg-badge-blue" style="margin-right:6px">Section</span> Section Mode</div>
+          <div class="sg-card-body">Click the <strong>first</strong> message in the range, then the <strong>last</strong> message. Everything between is selected automatically — including deleted/edited messages.<br><br><strong>Best for:</strong> capturing a whole conversation or ticket thread end-to-end.</div>
+        </div>
+        <div class="sg-card">
+          <div class="sg-card-title"><span class="sg-badge sg-badge-purple" style="margin-right:6px">Pick</span> Pick Mode</div>
+          <div class="sg-card-body">Click individual messages to toggle them on or off. Hold <code>Shift</code> and click a second message to select the range between them.<br><br><strong>Best for:</strong> cherry-picking specific messages when most of the thread isn't relevant.</div>
+        </div>
+      </div>
+
+      <div class="sg-h3">Saving a snippet</div>
+      <div class="sg-steps">
+        <div class="sg-step"><div class="sg-step-num">1</div><div class="sg-step-body">Select your messages using Section or Pick mode.</div></div>
+        <div class="sg-step"><div class="sg-step-num">2</div><div class="sg-step-body">Click <strong>+ Add to Evidence</strong>. The messages move into the Evidence Basket. You can now switch channels and add more.</div></div>
+        <div class="sg-step"><div class="sg-step-num">3</div><div class="sg-step-body">Give the snippet a descriptive name in the <strong>Label</strong> field — e.g. <em>Ticket #2840 — harassment — 07 Sept 2026</em>.</div></div>
+        <div class="sg-step"><div class="sg-step-num">4</div><div class="sg-step-body">
+          <strong>✅ Save Combined &amp; Open Report</strong> — saves and jumps to the report form with the snippet pre-selected.<br>
+          <strong>💾 Save Combined &amp; Browse More</strong> — saves and stays on the Evidence tab so you can keep building.
+        </div></div>
+      </div>
+    </section>
+
+    <!-- Basket -->
+    <section class="sg-section" id="basket">
+      <div class="sg-section-title"><div class="sg-section-icon">📎</div> Evidence Basket</div>
+      <p>The Evidence Basket is a temporary staging area that accumulates messages from across multiple channels before you save them as a single combined snippet. Use it when an incident spans more than one channel — for example a ticket channel <em>and</em> a general chat.</p>
+      <p>The basket shows a breakdown by channel, e.g. <em>#tickets: 5 msgs · #general: 3 msgs</em>, so you always know what you've collected.</p>
+      <div class="sg-callout tip">
+        <span class="sg-callout-icon">💡</span>
+        <div class="sg-callout-body">When you view a combined snippet, the viewer separates messages by channel with a coloured divider — so messages from <strong>#tickets</strong> and <strong>#general</strong> are always clearly separated, never jumbled together.</div>
+      </div>
+      <div class="sg-callout warn">
+        <span class="sg-callout-icon">⚠️</span>
+        <div class="sg-callout-body">The basket clears when you reload the page. Save your basket before closing the tab.</div>
+      </div>
+    </section>
+
+    <!-- Viewer -->
+    <section class="sg-section" id="viewer">
+      <div class="sg-section-title"><div class="sg-section-icon">🔍</div> Snippet Viewer</div>
+      <p>Any saved snippet can be re-read at any time. Expand a report card and click <strong style="color:var(--sg-text)">View</strong> next to a snippet — a modal opens showing the full message log.</p>
+      <ul class="sg-list">
+        <li>If the snippet spans multiple channels, a coloured <strong>channel divider</strong> appears between sections so you can see exactly where each part came from.</li>
+        <li>Deleted messages appear inline with their badge — even if a player deleted their messages to hide evidence, they're still recorded here.</li>
+        <li>The snippet's label appears as the modal title.</li>
+      </ul>
+      <div class="sg-h3">Labelling snippets on a report</div>
+      <p>When attaching a snippet to an existing report via <em>Add Evidence → Attach snippet</em>, fill in the <strong style="color:var(--sg-text)">Label</strong> field. This label shows on the evidence row so any staff member reviewing the report knows what each piece is without having to open it. Examples: <em>Victim's ticket chat</em> · <em>Perpetrator — deleted messages</em> · <em>Staff-side log</em>.</p>
+    </section>
+
+    <!-- Bans -->
+    <section class="sg-section" id="bans">
+      <div class="sg-section-title"><div class="sg-section-icon">🔨</div> Bans &amp; Watchlist</div>
+      <div class="sg-h3">Issuing a ban</div>
+      <div class="sg-steps">
+        <div class="sg-step"><div class="sg-step-num">1</div><div class="sg-step-body">Go to <strong>Bans &amp; Watchlist</strong> and click <strong>🔨 Ban Player</strong>.</div></div>
+        <div class="sg-step"><div class="sg-step-num">2</div><div class="sg-step-body">Enter the player's Discord ID and tag. Use the player search for accepted players.</div></div>
+        <div class="sg-step"><div class="sg-step-num">3</div><div class="sg-step-body">Write a clear <strong>Reason</strong> — this is what other staff will see. Don't use vague placeholders like "rule breach".</div></div>
+        <div class="sg-step"><div class="sg-step-num">4</div><div class="sg-step-body">Add <strong>Notes</strong> if needed — player's explanation, linked ticket IDs, incident date.</div></div>
+        <div class="sg-step"><div class="sg-step-num">5</div><div class="sg-step-body">Submit. The ban is logged with your name and timestamp. Attach a report or snippet as supporting evidence if you have one.</div></div>
+      </div>
+      <div class="sg-h3">Watchlist</div>
+      <p>Adds a player for passive monitoring — no action is taken, but they appear flagged in future searches. Use it for players with one borderline incident that doesn't warrant a ban yet, or for known alts.</p>
+      <div class="sg-callout warn">
+        <span class="sg-callout-icon">⚠️</span>
+        <div class="sg-callout-body">Bans are visible to all staff. If you're banning on behalf of someone else, name them in the Notes field — accountability matters.</div>
+      </div>
+    </section>
+
+    <!-- History -->
+    <section class="sg-section" id="history">
+      <div class="sg-section-title"><div class="sg-section-icon">🕓</div> Player History</div>
+      <p>Click <strong style="color:var(--sg-text)">View History</strong> on any player row — anywhere in the panel — to open their moderation profile. Shows a summary header then their complete record, newest first.</p>
+      <div class="sg-table-wrap">
+        <table class="sg-table">
+          <thead><tr><th>Entry type</th><th>What it shows</th></tr></thead>
+          <tbody>
+            <tr><td>Flags</td><td>Every message the bot auto-flagged for this player, with channel and timestamp</td></tr>
+            <tr><td>Ticket Reports</td><td>Reports created from Discord tickets, with severity and action taken</td></tr>
+            <tr><td>In-Game Reports</td><td>Minecraft incident reports, with incident type and location</td></tr>
+            <tr><td>General Reports</td><td>All other reports</td></tr>
+            <tr><td>Bans</td><td>Active and historical bans, with reason and the staff member who issued them</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="sg-callout tip">
+        <span class="sg-callout-icon">💡</span>
+        <div class="sg-callout-body">Always check player history before deciding on an action. A player with three prior warnings for the same behaviour should be treated differently from a first-time offence.</div>
+      </div>
+    </section>
+
+    <!-- AI -->
+    <section class="sg-section" id="ai">
+      <div class="sg-section-title"><div class="sg-section-icon">✦</div> AI Summarize</div>
+      <p>When creating a report with snippets selected, an <strong style="color:var(--sg-text)">✦ AI Summarize Selected Snippets</strong> button appears. Click it and the AI reads all selected snippets and writes a 3–5 sentence moderation log entry.</p>
+      <p>The summary appears below the button. Click <strong style="color:var(--sg-text)">Use as Summary ↑</strong> to paste it into the Summary field — edit it as needed before submitting.</p>
+      <div class="sg-callout warn">
+        <span class="sg-callout-icon">⚠️</span>
+        <div class="sg-callout-body"><strong>Always read and edit the AI summary before submitting.</strong> It summarises what's in the snippets but doesn't know the full context — severity calls and final judgement still belong to you.</div>
+      </div>
+    </section>
+
+    <hr class="sg-divider">
+
+    <!-- Tips -->
+    <section class="sg-section" id="tips">
+      <div class="sg-section-title"><div class="sg-section-icon">⚡</div> Tips &amp; Best Practices</div>
+      <ul class="sg-list">
+        <li><strong>Label everything.</strong> A snippet called "evidence" tells the next staff member nothing. Use <em>Ticket #2840 — deleted messages — 07 Sept</em> or similar.</li>
+        <li><strong>Check history first.</strong> Open the Player History modal before deciding on action — prior incidents may change the appropriate response.</li>
+        <li><strong>Capture deleted messages.</strong> The bot records deletions in real time. If a player deletes their messages, go to Evidence &amp; Logs — they'll still be there with a 🗑 badge.</li>
+        <li><strong>Section mode for conversations, Pick mode for specific messages.</strong> Section is faster for capturing a whole thread; Pick gives you precision when most of the thread isn't relevant.</li>
+        <li><strong>Note the other staff involved.</strong> Fill in the Staff Involved field so that if the player disputes the action, there's a clear record of who handled it.</li>
+        <li><strong>Action Taken ≠ resolved.</strong> Setting Action Taken to "Warning" doesn't close the report — use Internal Notes to record follow-up steps.</li>
+        <li><strong>Evidence basket clears on page reload.</strong> Save your basket before navigating away or closing the tab.</li>
+        <li><strong>Reports are permanent.</strong> Only delete a report if it's a genuine duplicate or error. Use Notes to add context instead.</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<script>
+// Active nav highlight on scroll
+const sgSections = document.querySelectorAll('.sg-section[id]');
+const sgLinks = document.querySelectorAll('.sg-nav-link');
+
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      sgLinks.forEach(l => l.classList.toggle('sg-active', l.getAttribute('href') === '#' + e.target.id));
+    }
+  });
+}, { rootMargin: '-15% 0px -70% 0px' });
+
+sgSections.forEach(s => obs.observe(s));
+
+sgLinks.forEach(l => {
+  l.addEventListener('click', e => {
+    e.preventDefault();
+    const t = document.querySelector(l.getAttribute('href'));
+    if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+
+<%- include('partials/foot') %>

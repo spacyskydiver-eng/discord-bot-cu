@@ -270,6 +270,10 @@ router.get('/moderation', async (req, res) => {
   }
 });
 
+router.get('/staff-guide', (req, res) => {
+  res.render('new/admin-staff-guide');
+});
+
 router.post('/moderation/flagged/:id/disregard', async (req, res) => {
   await db.query(`UPDATE flagged_messages SET disregarded=true, disregarded_at=NOW() WHERE id=$1`, [req.params.id]);
   res.redirect('/admin/moderation#flagged');
