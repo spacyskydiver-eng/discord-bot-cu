@@ -101,8 +101,11 @@
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
 /* ---------- HOME ---------- */
-.home{display:grid;grid-template-columns:minmax(0,1fr) 1.45fr auto;gap:28px;align-items:start}
+.home{display:grid;grid-template-columns:minmax(0,1fr) 1.45fr;gap:28px;align-items:start}
 .home-right{display:flex;flex-direction:column;gap:14px;width:220px}
+.tiles-wrap{display:flex;flex-direction:row;gap:24px;align-items:stretch}
+.tiles-main{display:flex;flex-direction:column;gap:24px;flex:1;min-width:0}
+.tiles-side{display:flex;flex-direction:column;gap:24px;width:260px}
 .sidebar{
   background:var(--panel);border:1px solid var(--line);
   border-radius:var(--radius);padding:36px 34px;box-shadow:var(--shadow);
@@ -158,7 +161,7 @@
 .tile.events{background:radial-gradient(120% 160% at 80% 30%,#2b6fb0,#0f2c4d)}
 .tile.apps{background:radial-gradient(120% 160% at 80% 30%,#1f9c54,#0c3a22)}
 .tile.store{background:radial-gradient(120% 160% at 80% 30%,#c79321,#5a3f08)}
-.tile.map{background:radial-gradient(120% 160% at 80% 30%,#7c3aed,#2e1065)}
+.tile.map{background:radial-gradient(120% 160% at 80% 30%,#7c3aed,#2e1065);flex:1}
 /* right-panel tile variant — vertical card */
 .tile-panel{
   position:relative;overflow:hidden;border-radius:var(--radius);
@@ -923,6 +926,8 @@
   .home{grid-template-columns:1fr;gap:20px}
   .home-right{width:100%;flex-direction:row;flex-wrap:wrap}
   .tile-panel{min-width:140px;flex:1}
+  .tiles-wrap{flex-direction:column}
+  .tiles-side{width:100%}
   .brand{font-size:11px}
   .timeline{grid-template-columns:1fr;gap:22px}
   .timeline::before{display:none}
