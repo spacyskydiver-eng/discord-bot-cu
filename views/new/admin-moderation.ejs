@@ -559,6 +559,7 @@
               <option value="<%= s.id %>">#<%= s.id %> <%= s.label||'(untitled)' %> · <%= s.msg_count %> msgs</option>
               <% }); %>
             </select>
+            <input type="text" name="label" class="form-input" placeholder="Label (e.g. victim, perp)" style="flex:1;min-width:120px;padding:7px 10px;font-size:12px">
             <button type="submit" class="btn btn-success btn-sm">Attach</button>
           </form>
         </div>
@@ -784,6 +785,11 @@
       <!-- Player -->
       <div class="pform-group">
         <label class="pform-label">Player</label>
+        <div style="position:relative;margin-bottom:8px">
+          <input type="text" id="playerSearch" class="pform-input" placeholder="Search accepted players…" autocomplete="off"
+            oninput="searchPlayers(this.value)" onfocus="searchPlayers(this.value)" onblur="setTimeout(()=>document.getElementById('playerDropdown').style.display='none',150)">
+          <div id="playerDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:999;background:#1a1c24;border:1px solid var(--mod-border);border-radius:8px;max-height:180px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.5)"></div>
+        </div>
         <div class="pform-row">
           <div><label class="pform-label" style="font-size:10px">Discord ID</label>
             <input type="text" name="player_discord_id" id="panelDiscordId" class="pform-input" placeholder="123456789…" required></div>
@@ -995,6 +1001,31 @@ function prefillPanel(id, tag) {
   openPanel();
   document.getElementById('panelDiscordId').value = id || '';
   document.getElementById('panelDiscordTag').value = tag || '';
+  if (tag) document.getElementById('playerSearch').value = tag;
+}
+
+// ── Player autofill ───────────────────────────────────────────────────────────
+const KNOWN_PLAYERS = <%- JSON.stringify(knownPlayers || []) %>;
+function searchPlayers(q) {
+  const dd = document.getElementById('playerDropdown');
+  q = (q || '').trim().toLowerCase();
+  const matches = q.length < 1 ? [] : KNOWN_PLAYERS.filter(p =>
+    p.discord_tag.toLowerCase().includes(q) || p.discord_id.includes(q)
+  ).slice(0, 12);
+  if (!matches.length) { dd.style.display = 'none'; return; }
+  dd.innerHTML = matches.map(p =>
+    `<div onclick="pickPlayer('${p.discord_id}','${p.discord_tag.replace(/'/g,"\\'")}');document.getElementById('playerDropdown').style.display='none'"
+      style="padding:9px 12px;cursor:pointer;font-size:13px;font-family:'Baloo 2';font-weight:700;color:var(--mod-text);border-bottom:1px solid var(--mod-border)"
+      onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background=''">
+      ${h(p.discord_tag)} <span style="font-size:10px;color:var(--mod-muted);margin-left:6px">${p.discord_id}</span>
+    </div>`
+  ).join('');
+  dd.style.display = '';
+}
+function pickPlayer(id, tag) {
+  document.getElementById('panelDiscordId').value = id;
+  document.getElementById('panelDiscordTag').value = tag;
+  document.getElementById('playerSearch').value = tag;
 }
 
 // ── Report type ───────────────────────────────────────────────────────────────
@@ -1074,7 +1105,15 @@ async function viewSnippet(id) {
     document.getElementById('snippetModalTitle').textContent = d.label || 'Snippet #' + id;
     const msgs = d.messages || [];
     if (!msgs.length) { document.getElementById('snippetModalBody').innerHTML = '<div style="padding:30px;text-align:center;color:var(--mod-muted)">No messages</div>'; return; }
-    document.getElementById('snippetModalBody').innerHTML = msgs.map(m => `
+    // Group by channelName so multi-channel combined snippets show sections
+    const sections = [];
+    let cur = null;
+    for (const m of msgs) {
+      const ch = m.channelName || m.channel_name || '';
+      if (!cur || cur.ch !== ch) { cur = { ch, msgs: [] }; sections.push(cur); }
+      cur.msgs.push(m);
+    }
+    const renderMsg = m => `
       <div class="snip-msg-row">
         <img src="${m.avatar_url||''}" style="width:30px;height:30px;border-radius:50%;flex-shrink:0;background:rgba(255,255,255,.08)" onerror="this.style.visibility='hidden'" alt="">
         <div>
@@ -1083,7 +1122,11 @@ async function viewSnippet(id) {
           <div style="font-size:13px;color:#c9ccdb;line-height:1.6;white-space:pre-wrap;word-break:break-word">${h(m.content||'')}</div>
           ${(m.attachments||[]).map(a=>`<div style="font-size:11px;color:var(--mod-accent)">📎 ${h(a.name||a.url)}</div>`).join('')}
         </div>
-      </div>`).join('');
+      </div>`;
+    const renderSection = s => (sections.length > 1 && s.ch
+      ? `<div style="padding:7px 14px;background:rgba(116,192,252,.08);border-left:3px solid rgba(116,192,252,.4);margin:10px 0 4px;font-family:'Baloo 2';font-size:11px;font-weight:800;color:var(--mod-accent);letter-spacing:.05em">#${h(s.ch)}</div>`
+      : '') + s.msgs.map(renderMsg).join('');
+    document.getElementById('snippetModalBody').innerHTML = sections.map(renderSection).join('');
   } catch(e) {
     document.getElementById('snippetModalBody').innerHTML = `<div style="padding:20px;color:var(--mod-red)">Error: ${h(e.message)}</div>`;
   }

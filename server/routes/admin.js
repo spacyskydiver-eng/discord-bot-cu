@@ -225,7 +225,7 @@ async function discordApi(apiPath) {
 router.get('/moderation', async (req, res) => {
   try {
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  const [flaggedRes, bansRes, ticketsRes, snippetsRes, generalRes, playerRepsRes] = await Promise.all([
+  const [flaggedRes, bansRes, ticketsRes, snippetsRes, generalRes, playerRepsRes, playersRes] = await Promise.all([
     db.query(`SELECT * FROM flagged_messages ORDER BY flagged_at DESC`),
     db.query(`SELECT b.*, COALESCE(json_agg(e ORDER BY e.created_at) FILTER (WHERE e.id IS NOT NULL), '[]') AS evidence
               FROM moderation_bans b LEFT JOIN ban_evidence e ON e.ban_id = b.id
@@ -243,7 +243,8 @@ router.get('/moderation', async (req, res) => {
               COALESCE(json_agg(re ORDER BY re.created_at) FILTER (WHERE re.id IS NOT NULL), '[]') AS evidence
               FROM player_reports pr
               LEFT JOIN report_evidence re ON re.report_type='player' AND re.report_id=pr.id
-              GROUP BY pr.id ORDER BY pr.created_at DESC`)
+              GROUP BY pr.id ORDER BY pr.created_at DESC`),
+    db.query(`SELECT discord_id, discord_tag FROM hundred_applications WHERE status='accepted' ORDER BY discord_tag ASC`)
   ]);
   // Merge all report types into one sorted list for the unified Reports tab
   const allReports = [
@@ -260,7 +261,8 @@ router.get('/moderation', async (req, res) => {
     general: generalRes.rows,
     playerReps: playerRepsRes.rows,
     allReports,
-    todayStr: today.toISOString()
+    todayStr: today.toISOString(),
+    knownPlayers: playersRes.rows
   });
   } catch (err) {
     console.error('[GET /moderation] ERROR:', err);
