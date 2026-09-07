@@ -101,7 +101,8 @@
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
 /* ---------- HOME ---------- */
-.home{display:grid;grid-template-columns:minmax(0,1fr) 1.45fr;gap:28px;align-items:start}
+.home{display:grid;grid-template-columns:minmax(0,1fr) 1.45fr auto;gap:28px;align-items:start}
+.home-right{display:flex;flex-direction:column;gap:14px;width:220px}
 .sidebar{
   background:var(--panel);border:1px solid var(--line);
   border-radius:var(--radius);padding:36px 34px;box-shadow:var(--shadow);
@@ -157,6 +158,24 @@
 .tile.events{background:radial-gradient(120% 160% at 80% 30%,#2b6fb0,#0f2c4d)}
 .tile.apps{background:radial-gradient(120% 160% at 80% 30%,#1f9c54,#0c3a22)}
 .tile.store{background:radial-gradient(120% 160% at 80% 30%,#c79321,#5a3f08)}
+.tile.map{background:radial-gradient(120% 160% at 80% 30%,#7c3aed,#2e1065)}
+/* right-panel tile variant — vertical card */
+.tile-panel{
+  position:relative;overflow:hidden;border-radius:var(--radius);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;padding:24px 16px;text-align:center;width:100%;
+  border:1px solid rgba(255,255,255,.07);box-shadow:var(--shadow);
+  transition:transform .15s,box-shadow .15s,filter .15s;
+  text-decoration:none;cursor:pointer;min-height:150px;
+}
+.tile-panel:hover{transform:translateY(-3px) scale(1.005);filter:brightness(1.08);box-shadow:0 20px 40px rgba(0,0,0,.5)}
+.tile-panel .bgart{position:absolute;inset:0;z-index:1;opacity:.9}
+.tile-panel .ico{position:relative;z-index:2;width:60px;height:60px;flex:0 0 auto;filter:drop-shadow(0 4px 8px rgba(0,0,0,.45))}
+.tile-panel .ico svg{width:60px;height:60px}
+.tile-panel .label{position:relative;z-index:2}
+.tile-panel h3{font-family:"Baloo 2";font-weight:800;font-size:18px;margin:0;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.35)}
+.tile-panel p{margin:4px 0 0;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.75)}
+.tile-panel.map{background:radial-gradient(150% 200% at 60% 20%,#7c3aed,#2e1065)}
 
 /* ---------- GENERIC PAGE HEADER ---------- */
 .page-head{display:flex;align-items:center;gap:16px;margin-bottom:26px}
@@ -902,6 +921,8 @@
 
 @media (max-width:880px){
   .home{grid-template-columns:1fr;gap:20px}
+  .home-right{width:100%;flex-direction:row;flex-wrap:wrap}
+  .tile-panel{min-width:140px;flex:1}
   .brand{font-size:11px}
   .timeline{grid-template-columns:1fr;gap:22px}
   .timeline::before{display:none}
