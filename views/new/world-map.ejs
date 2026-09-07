@@ -109,6 +109,9 @@ body { overflow: hidden; }
       <%= nations.filter(n => n.map_x != null).length %> of <%= nations.length %> nations placed
     </span>
     <div class="wm-spacer"></div>
+    <% if (locals.isAdmin) { %>
+    <a href="/admin/nation-map" style="font-family:'Baloo 2';font-weight:800;font-size:12px;padding:6px 14px;border-radius:8px;background:rgba(251,146,60,.12);border:1px solid rgba(251,146,60,.35);color:#fb923c;text-decoration:none;white-space:nowrap;flex-shrink:0">✏️ Edit Regions</a>
+    <% } %>
     <div class="wm-zoom">
       <button class="wm-zoom-btn" onclick="zoom(-1)">−</button>
       <span class="wm-zoom-label" id="zoomLabel">25%</span>

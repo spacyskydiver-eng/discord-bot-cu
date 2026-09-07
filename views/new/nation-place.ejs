@@ -135,11 +135,14 @@ body { overflow: hidden; }
 <div class="nm-wrap">
   <% if (!adminOverview) { %>
   <div class="nm-deadline-bar">
-    Location deadline: <span id="nmDeadline">—</span> — choose carefully, you can change it before the deadline.
+    Final deadline: <span id="nmDeadline">—</span> — you can move your pin at any time until then.
   </div>
   <% } %>
   <div class="nm-bar">
     <span class="nm-bar-title"><%= adminOverview ? 'Nation Placement Overview' : 'Choose your nation\'s location' %><% if (!adminOverview) { %> — <em style="color:var(--muted);font-style:normal;font-size:14px"><%= nation.server_name %></em><% } %></span>
+    <% if (adminOverview) { %>
+    <a href="/admin/nation-map" style="font-family:'Baloo 2';font-weight:800;font-size:12px;padding:6px 14px;border-radius:8px;background:rgba(251,146,60,.12);border:1px solid rgba(251,146,60,.35);color:#fb923c;text-decoration:none;white-space:nowrap">✏️ Edit Regions</a>
+    <% } %>
     <div class="nm-spacer"></div>
     <div class="nm-zoom">
       <button class="nm-zoom-btn" onclick="zoom(-1)">−</button>
@@ -270,7 +273,7 @@ body { overflow: hidden; }
 var adminOverview = <%- adminOverview ? 'true' : 'false' %>;
 if (!adminOverview) {
   document.getElementById('nmDeadline').textContent =
-    new Date(1788649200000).toLocaleString('en-GB', { weekday:'short', day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    new Date(1788994740000).toLocaleString('en-GB', { weekday:'short', day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
 }
 
 
