@@ -105,7 +105,7 @@
 .home-right{display:flex;flex-direction:column;gap:14px;width:220px}
 .tiles-wrap{display:flex;flex-direction:row;gap:24px;align-items:stretch}
 .tiles-main{display:flex;flex-direction:column;gap:24px;flex:1;min-width:0}
-.tiles-side{display:flex;flex-direction:column;gap:24px;width:260px}
+.tiles-side{display:flex;flex-direction:column;gap:24px;width:220px;flex-shrink:0}
 .sidebar{
   background:var(--panel);border:1px solid var(--line);
   border-radius:var(--radius);padding:36px 34px;box-shadow:var(--shadow);
@@ -161,7 +161,10 @@
 .tile.events{background:radial-gradient(120% 160% at 80% 30%,#2b6fb0,#0f2c4d)}
 .tile.apps{background:radial-gradient(120% 160% at 80% 30%,#1f9c54,#0c3a22)}
 .tile.store{background:radial-gradient(120% 160% at 80% 30%,#c79321,#5a3f08)}
-.tile.map{background:radial-gradient(120% 160% at 80% 30%,#7c3aed,#2e1065);flex:1}
+.tile.map{background:radial-gradient(120% 160% at 80% 30%,#7c3aed,#2e1065)}
+.tile.tile-v{flex-direction:column;justify-content:center;text-align:center;padding:30px 20px;gap:16px}
+.tile.tile-v .ico{width:80px;height:80px}
+.tile.tile-v .ico svg{width:80px;height:80px}
 /* right-panel tile variant — vertical card */
 .tile-panel{
   position:relative;overflow:hidden;border-radius:var(--radius);
