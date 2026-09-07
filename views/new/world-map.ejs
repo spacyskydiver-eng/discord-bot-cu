@@ -19,6 +19,12 @@ body { overflow: hidden; }
 .wm-zoom-btn:hover { background: rgba(255,255,255,.08); }
 .wm-zoom-label { font-family: 'Baloo 2'; font-weight: 800; font-size: 13px; color: var(--muted); min-width: 44px; text-align: center; }
 .wm-coords { font-family: 'Baloo 2'; font-weight: 700; font-size: 12px; color: var(--muted); min-width: 140px; text-align: right; }
+@media (max-width: 640px) {
+  .wm-coords { display: none; }
+  .wm-bar-title { font-size: 14px; }
+  .wm-panel { max-width: 160px; font-size: 11px; }
+  .wm-panel-name { font-size: 11px; }
+}
 
 .wm-viewport { flex: 1; position: relative; overflow: hidden; background: #0c0c12; cursor: grab; }
 .wm-viewport.dragging { cursor: grabbing; }
@@ -27,7 +33,9 @@ body { overflow: hidden; }
 .wm-tile { position: absolute; width: 1024px; height: 1024px; image-rendering: pixelated; display: block; }
 
 /* ── Nation pins — big and bold ── */
-.wm-pin { position: absolute; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; pointer-events: auto; z-index: 10; cursor: pointer; }
+.wm-viewport { -webkit-user-select: none; user-select: none; }
+.wm-pin { position: absolute; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; pointer-events: auto; z-index: 10; cursor: pointer; -webkit-user-select: none; user-select: none; }
+.wm-pin * { -webkit-user-select: none; user-select: none; pointer-events: none; }
 .wm-pin:hover .wm-pin-bubble { transform: scale(1.08); border-color: rgba(192,132,252,.8); }
 .wm-pin:hover .wm-pin-label { opacity: 1; }
 
@@ -139,7 +147,8 @@ body { overflow: hidden; }
         <div class="wm-pin" style="left:<%= px %>px;top:<%= py %>px;"
              data-name="<%= n.server_name.replace(/"/g,'&quot;') %>"
              data-x="<%= n.map_x %>" data-z="<%= n.map_z %>"
-             onclick="showTooltip(event,this)">
+             onclick="showTooltip(event,this)"
+             ontouchend="showTooltip(event,this)">
           <div class="wm-pin-label"><%= n.server_name %></div>
           <div class="wm-pin-stem"></div>
           <div class="wm-pin-bubble"></div>
@@ -260,17 +269,17 @@ function flyTo(wx, wz) {
 
 viewport.addEventListener('wheel', function(e) { e.preventDefault(); zoom(e.deltaY<0?1:-1); }, { passive:false });
 
+// ── Mouse ──
 viewport.addEventListener('mousedown', function(e) {
-  if (e.button !== 0 || e.target.closest('.wm-pin, .wm-panel')) return;
-  mousedownOnMap = true; dragging = true; clickMoved = false;
+  if (e.button !== 0 || e.target.closest('.wm-panel')) return;
+  // Pins handle their own click — don't start drag from them
+  if (e.target.closest('.wm-pin')) return;
+  dragging = true; clickMoved = false;
   lastX = e.clientX; lastY = e.clientY;
   viewport.classList.add('dragging'); e.preventDefault();
 });
 
 window.addEventListener('mousemove', function(e) {
-  var vr = viewport.getBoundingClientRect();
-  var mx = (e.clientX-vr.left-panX)/scale, mz = (e.clientY-vr.top-panY)/scale;
-  document.getElementById('wmCoords').textContent = 'X '+Math.round(mx-WORLD_ORIGIN)+' · Z '+Math.round(mz-WORLD_ORIGIN);
   if (!dragging) return;
   var dx = e.clientX-lastX, dy = e.clientY-lastY;
   if (Math.abs(dx)>3||Math.abs(dy)>3) clickMoved = true;
@@ -278,26 +287,83 @@ window.addEventListener('mousemove', function(e) {
   applyTransform();
 });
 
-window.addEventListener('mouseup', function(e) {
+window.addEventListener('mouseup', function() {
   if (!dragging) return;
   dragging = false; viewport.classList.remove('dragging');
-  clickMoved = false; mousedownOnMap = false;
 });
 
-// Hide tooltip when clicking away
+// ── Touch (pan + pinch-zoom) ──
+var touch1 = null, touch2 = null, pinchDist0 = null, pinchScale0 = null;
+
+function getTouchDist(a, b) {
+  var dx = a.clientX - b.clientX, dy = a.clientY - b.clientY;
+  return Math.sqrt(dx*dx + dy*dy);
+}
+
+viewport.addEventListener('touchstart', function(e) {
+  e.preventDefault();
+  if (e.touches.length === 1) {
+    touch1 = e.touches[0]; touch2 = null;
+    lastX = touch1.clientX; lastY = touch1.clientY;
+    dragging = true; clickMoved = false;
+  } else if (e.touches.length === 2) {
+    touch1 = e.touches[0]; touch2 = e.touches[1];
+    dragging = false;
+    pinchDist0 = getTouchDist(touch1, touch2);
+    pinchScale0 = scale;
+  }
+}, { passive:false });
+
+viewport.addEventListener('touchmove', function(e) {
+  e.preventDefault();
+  if (e.touches.length === 1 && dragging) {
+    var t = e.touches[0];
+    var dx = t.clientX - lastX, dy = t.clientY - lastY;
+    if (Math.abs(dx)>2||Math.abs(dy)>2) clickMoved = true;
+    panX += dx; panY += dy;
+    lastX = t.clientX; lastY = t.clientY;
+    applyTransform();
+  } else if (e.touches.length === 2 && pinchDist0) {
+    var t1 = e.touches[0], t2 = e.touches[1];
+    var dist = getTouchDist(t1, t2);
+    var newScale = Math.min(Math.max(pinchScale0 * (dist / pinchDist0), ZOOM_STEPS[0]), ZOOM_STEPS[ZOOM_STEPS.length-1]);
+    // Zoom around midpoint
+    var vr = viewport.getBoundingClientRect();
+    var mx = (t1.clientX + t2.clientX) / 2 - vr.left;
+    var my = (t1.clientY + t2.clientY) / 2 - vr.top;
+    panX = mx - (mx - panX) * (newScale / scale);
+    panY = my - (my - panY) * (newScale / scale);
+    scale = newScale;
+    // Snap zoomIdx to nearest step
+    var best = 0;
+    for (var i = 0; i < ZOOM_STEPS.length; i++) { if (Math.abs(ZOOM_STEPS[i]-scale) < Math.abs(ZOOM_STEPS[best]-scale)) best = i; }
+    zoomIdx = best;
+    applyTransform();
+  }
+}, { passive:false });
+
+viewport.addEventListener('touchend', function(e) {
+  if (e.touches.length === 0) { dragging = false; pinchDist0 = null; }
+  else if (e.touches.length === 1) { touch1 = e.touches[0]; touch2 = null; pinchDist0 = null; lastX = touch1.clientX; lastY = touch1.clientY; dragging = true; }
+});
+
+// ── Pins ──
 window.addEventListener('click', function(e) {
   if (!e.target.closest('.wm-pin')) document.getElementById('wmTooltip').style.display = 'none';
 });
 
 function showTooltip(e, el) {
-  e.stopPropagation();
+  e.stopPropagation(); e.preventDefault();
+  if (clickMoved) return; // don't show on drag
   var tip = document.getElementById('wmTooltip');
   document.getElementById('wmTipName').textContent = el.dataset.name;
   document.getElementById('wmTipCoords').textContent = 'X '+el.dataset.x+' · Z '+el.dataset.z;
   var vr = viewport.getBoundingClientRect();
-  var left = e.clientX - vr.left + 14;
-  var top  = e.clientY - vr.top  - 50;
-  if (left + 200 > vr.width) left = e.clientX - vr.left - 200;
+  var cx = e.clientX || (e.changedTouches && e.changedTouches[0].clientX) || 0;
+  var cy = e.clientY || (e.changedTouches && e.changedTouches[0].clientY) || 0;
+  var left = cx - vr.left + 14;
+  var top  = cy - vr.top  - 50;
+  if (left + 200 > vr.width) left = cx - vr.left - 200;
   tip.style.left = left+'px'; tip.style.top = top+'px'; tip.style.display = '';
 }
 
