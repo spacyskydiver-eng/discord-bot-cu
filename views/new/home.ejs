@@ -118,16 +118,58 @@
     <div class="tiles-side">
       <a href="<%= lp %>/map" class="tile map tile-v">
         <div class="bgart">
-          <svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 220 600" xmlns="http://www.w3.org/2000/svg">
-            <defs><linearGradient id="mg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c084fc"/><stop offset="1" stop-color="#4c1d95"/></linearGradient></defs>
-            <g opacity="0.18" stroke="#d8b4fe" stroke-width="1" fill="none">
+          <svg width="100%" height="100%" preserveAspectRatio="xMidYMid slice" viewBox="0 0 220 600" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="ph1" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#d8b4fe" stop-opacity=".45"/><stop offset="1" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
+              <radialGradient id="ph2" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#c084fc" stop-opacity=".35"/><stop offset="1" stop-color="#6d28d9" stop-opacity="0"/></radialGradient>
+            </defs>
+            <!-- Terrain blobs -->
+            <path d="M-10,90 C30,70 75,105 120,78 S185,50 230,72 L230,0 L-10,0Z" fill="#5b21b6" opacity=".22"/>
+            <path d="M-10,310 C25,290 65,335 115,305 S175,345 230,320 L230,600 L-10,600Z" fill="#3b0764" opacity=".28"/>
+            <path d="M60,180 C90,165 140,200 185,175 S220,195 230,210 L230,270 C190,250 145,280 100,260 S50,240 -10,265 L-10,210 C20,220 42,192 60,180Z" fill="#4c1d95" opacity=".2"/>
+            <!-- Subtle grid -->
+            <g opacity=".07" stroke="#d8b4fe" stroke-width=".75" fill="none">
               <line x1="0" y1="150" x2="220" y2="150"/><line x1="0" y1="300" x2="220" y2="300"/><line x1="0" y1="450" x2="220" y2="450"/>
               <line x1="73" y1="0" x2="73" y2="600"/><line x1="146" y1="0" x2="146" y2="600"/>
             </g>
-            <g fill="url(#mg)" opacity="0.9">
-              <circle cx="60" cy="120" r="12"/><circle cx="60" cy="120" r="6" fill="#fff" opacity="0.5"/>
-              <circle cx="155" cy="200" r="10"/><circle cx="155" cy="200" r="5" fill="#fff" opacity="0.5"/>
-              <circle cx="100" cy="320" r="8"/><circle cx="100" cy="320" r="4" fill="#fff" opacity="0.5"/>
+            <!-- Contour curves -->
+            <path d="M0,195 C45,180 90,208 138,185 S195,172 220,188" stroke="#a78bfa" stroke-width="1.2" fill="none" opacity=".18"/>
+            <path d="M0,390 C55,372 105,405 158,382 S205,370 220,384" stroke="#a78bfa" stroke-width="1.2" fill="none" opacity=".14"/>
+            <!-- Connection lines between pins -->
+            <g stroke="#c084fc" stroke-width=".9" fill="none" opacity=".38" stroke-dasharray="5,4">
+              <line x1="52" y1="108" x2="155" y2="220"/>
+              <line x1="155" y1="220" x2="88" y2="348"/>
+              <line x1="88" y1="348" x2="168" y2="455"/>
+              <line x1="52" y1="108" x2="88" y2="348"/>
+            </g>
+            <!-- Pin glow halos -->
+            <circle cx="52" cy="108" r="26" fill="url(#ph1)"/>
+            <circle cx="155" cy="220" r="22" fill="url(#ph2)"/>
+            <circle cx="88" cy="348" r="28" fill="url(#ph1)"/>
+            <circle cx="168" cy="455" r="20" fill="url(#ph2)"/>
+            <!-- Nation pins -->
+            <circle cx="52" cy="108" r="11" fill="#c084fc" opacity=".95"/>
+            <circle cx="52" cy="108" r="5.5" fill="#f3e8ff"/>
+            <circle cx="155" cy="220" r="9.5" fill="#a855f7" opacity=".9"/>
+            <circle cx="155" cy="220" r="4.5" fill="#ede9fe"/>
+            <circle cx="88" cy="348" r="12" fill="#c084fc" opacity=".95"/>
+            <circle cx="88" cy="348" r="6" fill="#fff" opacity=".92"/>
+            <circle cx="168" cy="455" r="8.5" fill="#9333ea" opacity=".9"/>
+            <circle cx="168" cy="455" r="4" fill="#ede9fe"/>
+            <!-- Small settlements -->
+            <circle cx="28" cy="255" r="3.5" fill="#a78bfa" opacity=".5"/>
+            <circle cx="188" cy="142" r="3" fill="#a78bfa" opacity=".48"/>
+            <circle cx="112" cy="490" r="3" fill="#a78bfa" opacity=".48"/>
+            <circle cx="42" cy="398" r="2.8" fill="#a78bfa" opacity=".42"/>
+            <circle cx="196" cy="318" r="2.5" fill="#a78bfa" opacity=".42"/>
+            <circle cx="130" cy="158" r="2.5" fill="#a78bfa" opacity=".38"/>
+            <!-- Compass rose -->
+            <g transform="translate(183,555)" opacity=".55">
+              <polygon points="0,-13 2.5,-5 0,-8 -2.5,-5" fill="#e9d5ff"/>
+              <polygon points="0,13 2.5,5 0,8 -2.5,5" fill="#a78bfa"/>
+              <polygon points="-13,0 -5,2.5 -8,0 -5,-2.5" fill="#a78bfa"/>
+              <polygon points="13,0 5,2.5 8,0 5,-2.5" fill="#a78bfa"/>
+              <circle cx="0" cy="0" r="2.5" fill="#f3e8ff" opacity=".8"/>
             </g>
           </svg>
         </div>

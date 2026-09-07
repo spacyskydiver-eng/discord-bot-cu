@@ -161,13 +161,13 @@
 .tile.events{background:radial-gradient(120% 160% at 80% 30%,#2b6fb0,#0f2c4d)}
 .tile.apps{background:radial-gradient(120% 160% at 80% 30%,#1f9c54,#0c3a22)}
 .tile.store{background:radial-gradient(120% 160% at 80% 30%,#c79321,#5a3f08)}
-.tile.map{background:radial-gradient(120% 160% at 80% 30%,#7c3aed,#2e1065);flex:1;min-height:0}
-.tile.tile-v{flex-direction:column;justify-content:center;text-align:center;padding:30px 20px;gap:16px}
+.tile.map{background:radial-gradient(140% 180% at 70% 20%,#8b3cf7,#4c0fbf 45%,#1e0654);flex:1;min-height:0}
+.tile.tile-v{flex-direction:column;justify-content:center;text-align:center;padding:30px 20px;gap:16px;will-change:transform}
 .tile.tile-v .ico{width:80px;height:80px}
 .tile.tile-v .ico svg{width:80px;height:80px}
-/* prevent grid cell from clipping the hover scale */
+/* prevent grid cell from clipping the hover lift */
 .tiles-side{overflow:visible}
-.tile.tile-v:hover{transform:translateY(-3px) scale(1.018)}
+.tile.tile-v:hover{transform:translateY(-5px);filter:brightness(1.12);box-shadow:0 24px 52px rgba(109,40,217,.5)}
 /* right-panel tile variant — vertical card */
 .tile-panel{
   position:relative;overflow:hidden;border-radius:var(--radius);
