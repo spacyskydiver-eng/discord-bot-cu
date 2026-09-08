@@ -480,11 +480,13 @@ router.get('/nation-place', async (req, res) => {
     nation: nation || { server_name: 'Admin Overview', map_x: null, map_z: null, discord_id: uid },
     otherMarkers, waiting,
     miningRegions: regionsRes.rows,
-    adminOverview: !nation && isAdmin
+    adminOverview: !nation && isAdmin,
+    placementOpen: process.env.NATION_PLACE_OPEN !== 'false'
   });
 });
 
 router.post('/nation-place/submit', async (req, res) => {
+  if (process.env.NATION_PLACE_OPEN === 'false') return res.redirect('/nation-place');
   if (!req.session.user) return res.redirect(`${res.locals.lp}/auth/discord`);
   const uid = req.session.user.id;
   const map_x = parseInt(req.body.map_x);
@@ -499,6 +501,7 @@ router.post('/nation-place/submit', async (req, res) => {
 });
 
 router.post('/nation-place/clear', async (req, res) => {
+  if (process.env.NATION_PLACE_OPEN === 'false') return res.redirect('/nation-place');
   if (!req.session.user) return res.redirect(`${res.locals.lp}/auth/discord`);
   const uid = req.session.user.id;
   await db.query(
