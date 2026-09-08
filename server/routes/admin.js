@@ -1362,12 +1362,24 @@ router.get('/hundred-players', async (req, res) => {
 // Nation map (admin view)
 router.get('/nation-map', async (req, res) => {
   const all = (await db.query(
-    `SELECT server_name, map_x, map_z FROM nation_leader_applications WHERE accepted = true ORDER BY server_name ASC`
+    `SELECT server_name, map_x, map_z, discord_id FROM nation_leader_applications WHERE accepted = true ORDER BY server_name ASC`
   )).rows;
   const markers = all.filter(r => r.map_x != null && r.map_z != null);
   const waiting = all.filter(r => r.map_x == null);
   const regions = (await db.query(`SELECT * FROM mining_regions ORDER BY id ASC`)).rows;
   res.render('new/admin-nation-map', { markers, waiting, regions, isFullAdmin: !!res.locals.isFullAdmin });
+});
+
+router.post('/nation-map/place', async (req, res) => {
+  const { discord_id, map_x, map_z } = req.body;
+  const x = parseInt(map_x), z = parseInt(map_z);
+  if (!discord_id || isNaN(x) || isNaN(z)) return res.redirect('/admin/nation-map');
+  if (x < -2560 || x > 2560 || z < -2560 || z > 2560) return res.redirect('/admin/nation-map');
+  await db.query(
+    `UPDATE nation_leader_applications SET map_x = $1, map_z = $2 WHERE discord_id = $3 AND accepted = true`,
+    [x, z, discord_id]
+  );
+  res.redirect('/admin/nation-map');
 });
 
 router.post('/mining-region/add', async (req, res) => {

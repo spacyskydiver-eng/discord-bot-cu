@@ -97,6 +97,17 @@ body { overflow: hidden; }
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
       Draw mining region
     </button>
+    <% if (waiting.length > 0) { %>
+    <button class="nm-mode-btn" id="placeBtn" onclick="togglePlaceMode()" style="background:rgba(116,192,252,.08);border-color:rgba(116,192,252,.3);color:#74c0fc">
+      📍 Place nation
+    </button>
+    <select id="placeSelect" style="display:none;background:var(--panel-2);border:1px solid rgba(116,192,252,.35);border-radius:8px;padding:5px 10px;font-family:'Baloo 2';font-weight:700;font-size:12px;color:var(--text);outline:none;cursor:pointer">
+      <option value="">— select nation —</option>
+      <% waiting.forEach(function(w) { %>
+      <option value="<%= w.discord_id %>"><%= w.server_name %></option>
+      <% }); %>
+    </select>
+    <% } %>
     <% } %>
     <div class="nm-spacer"></div>
     <span class="nm-deadline">Deadline: <strong id="nmDeadline">—</strong></span>
@@ -158,6 +169,17 @@ body { overflow: hidden; }
         <button class="dd-save" onclick="saveRegion()">Save region</button>
       </div>
     </div>
+
+    <!-- Place nation confirm dialog -->
+    <div id="placeDialog" style="display:none;position:absolute;z-index:40;background:rgba(10,10,18,.97);border:1px solid rgba(116,192,252,.4);border-radius:12px;padding:14px 16px;min-width:200px;backdrop-filter:blur(8px)">
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Place nation</div>
+      <div id="placeDialogName" style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#74c0fc;margin-bottom:2px"></div>
+      <div id="placeDialogCoords" style="font-family:'Baloo 2';font-weight:700;font-size:12px;color:var(--muted);margin-bottom:10px"></div>
+      <div class="dd-btns">
+        <button class="dd-cancel" onclick="cancelPlace()">Cancel</button>
+        <button class="dd-save" style="background:rgba(116,192,252,.85)" onclick="confirmPlace()">Place here</button>
+      </div>
+    </div>
     <% } %>
 
     <!-- Legend panel -->
@@ -202,6 +224,13 @@ body { overflow: hidden; }
   <input type="hidden" name="z1" id="fZ1">
   <input type="hidden" name="x2" id="fX2">
   <input type="hidden" name="z2" id="fZ2">
+</form>
+
+<!-- Place nation form (submitted programmatically) -->
+<form id="placeForm" method="POST" action="/admin/nation-map/place" style="display:none">
+  <input type="hidden" name="discord_id" id="pDiscordId">
+  <input type="hidden" name="map_x" id="pMapX">
+  <input type="hidden" name="map_z" id="pMapZ">
 </form>
 
 <script>
@@ -309,7 +338,7 @@ function clientToWorld(cx, cy) {
 
 viewport.addEventListener('mousedown', function(e) {
   if (e.button !== 0) return;
-  if (e.target.closest('#drawDialog, button, .nm-panel')) return;
+  if (e.target.closest('#drawDialog, #placeDialog, button, .nm-panel, select')) return;
   e.preventDefault();
   var w = clientToWorld(e.clientX, e.clientY);
   if (MODE === 'draw') {
@@ -317,6 +346,17 @@ viewport.addEventListener('mousedown', function(e) {
     drawWX1 = drawWX2 = w.wx;
     drawWZ1 = drawWZ2 = w.wz;
     drawSvg();
+  } else if (MODE === 'place') {
+    var sel = document.getElementById('placeSelect');
+    if (!sel || !sel.value) { alert('Select a nation from the dropdown first.'); return; }
+    var selName = sel.options[sel.selectedIndex].text;
+    pendingPlace = { wx: w.wx, wz: w.wz };
+    document.getElementById('placeDialogName').textContent = selName;
+    document.getElementById('placeDialogCoords').textContent = 'X ' + w.wx + ' · Z ' + w.wz;
+    var vr = viewport.getBoundingClientRect();
+    var dleft = Math.min(e.clientX - vr.left + 12, vr.width - 220);
+    var dtop  = Math.max(e.clientY - vr.top  - 80, 10);
+    placeDialog.style.cssText = 'display:block;left:'+dleft+'px;top:'+dtop+'px;';
   } else {
     dragging = true; lastX = e.clientX; lastY = e.clientY;
     viewport.classList.add('dragging');
@@ -381,9 +421,46 @@ function saveRegion() {
 
 // Close dialog on Escape
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') cancelDraw();
+  if (e.key === 'Escape') { cancelDraw(); cancelPlace(); }
   if (e.key === 'Enter' && dialog.style.display !== 'none') { e.preventDefault(); saveRegion(); }
 });
+
+// ── Place nation mode ─────────────────────────────────────────────────────────
+var placeDialog = document.getElementById('placeDialog');
+var pendingPlace = null;
+
+function togglePlaceMode() {
+  if (MODE === 'place') {
+    MODE = 'pan';
+    document.getElementById('placeBtn').classList.remove('active');
+    document.getElementById('placeSelect').style.display = 'none';
+    viewport.classList.remove('draw-mode');
+    cancelPlace();
+  } else {
+    MODE = 'place';
+    drawing = false; dialog.style.display = 'none';
+    document.getElementById('drawBtn').classList.remove('active');
+    document.getElementById('placeBtn').classList.add('active');
+    document.getElementById('placeSelect').style.display = '';
+    viewport.classList.add('draw-mode');
+  }
+}
+
+function cancelPlace() {
+  if (placeDialog) placeDialog.style.display = 'none';
+  pendingPlace = null;
+}
+
+function confirmPlace() {
+  if (!pendingPlace) return;
+  var sel = document.getElementById('placeSelect');
+  var discord_id = sel.value;
+  if (!discord_id) { alert('Select a nation first.'); return; }
+  document.getElementById('pDiscordId').value = discord_id;
+  document.getElementById('pMapX').value = pendingPlace.wx;
+  document.getElementById('pMapZ').value = pendingPlace.wz;
+  document.getElementById('placeForm').submit();
+}
 
 viewport.addEventListener('wheel', function(e) { e.preventDefault(); zoom(e.deltaY<0?1:-1); }, { passive:false });
 
