@@ -92,7 +92,12 @@ router.get('/applications', async (req, res) => {
     userNationApp = nationRes.rows[0] || null;
     userNewsApp = newsRes.rows[0] || null;
   }
-  res.render('new/applications', { events, userApp, userHundredApp, userNationApp, userNewsApp, hasVipAccess, nationAppsOpen: process.env.NATION_APPS_OPEN !== 'false' });
+  // Closed until 12 Sept 2026; env var can override back open if needed
+  const nationReopenDate = new Date('2026-09-12T00:00:00Z');
+  const nationAppsOpen = process.env.NATION_APPS_OPEN === 'true' ? true
+    : process.env.NATION_APPS_OPEN === 'false' ? false
+    : new Date() >= nationReopenDate;
+  res.render('new/applications', { events, userApp, userHundredApp, userNationApp, userNewsApp, hasVipAccess, nationAppsOpen });
 });
 
 router.get('/my-application', async (req, res) => {
