@@ -13,10 +13,41 @@ function formatDesc(text) {
 }
 
 
+db.query(`
+  CREATE TABLE IF NOT EXISTS snake_scores (
+    id SERIAL PRIMARY KEY,
+    discord_id TEXT NOT NULL,
+    discord_tag TEXT,
+    discord_avatar TEXT,
+    score INTEGER NOT NULL,
+    saved_at TIMESTAMPTZ DEFAULT NOW()
+  )
+`).catch(() => {});
+
 router.get('/', async (req, res) => {
   const eventsRes = await db.query(`SELECT * FROM events WHERE is_open = true ORDER BY created_at DESC`);
   const openEventCount = eventsRes.rows.length;
-  res.render('new/home', { openEventCount, openAppCount: openEventCount });
+  res.render('new/home', { openEventCount, openAppCount: openEventCount, isAdmin: res.locals.isAdmin });
+});
+
+router.post('/snake/score', async (req, res) => {
+  if (!req.session.user) return res.json({ ok: false, error: 'Not logged in' });
+  const score = parseInt(req.body.score);
+  if (isNaN(score) || score < 1) return res.json({ ok: false });
+  await db.query(
+    `INSERT INTO snake_scores (discord_id, discord_tag, discord_avatar, score) VALUES ($1,$2,$3,$4)`,
+    [req.session.user.id, req.session.user.username, req.session.user.avatar || null, score]
+  );
+  res.json({ ok: true });
+});
+
+router.get('/snake/leaderboard', async (req, res) => {
+  const rows = (await db.query(`
+    SELECT DISTINCT ON (discord_id) discord_id, discord_tag, discord_avatar, score, saved_at
+    FROM snake_scores ORDER BY discord_id, score DESC
+  `)).rows;
+  rows.sort((a, b) => b.score - a.score);
+  res.json(rows.slice(0, 10));
 });
 
 router.get('/staff', async (req, res) => {

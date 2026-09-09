@@ -194,292 +194,259 @@
 </main>
 
 <% if (locals.isAdmin) { %>
-<!-- ── Snake game (admin only) ─────────────────────────────────────────────── -->
-<section id="snake-section" style="position:relative;z-index:1;padding:48px 20px 60px;max-width:1100px;margin:0 auto">
-  <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
-    <div style="font-family:'Baloo 2';font-weight:900;font-size:20px;color:#e0e2ed">🐍 Slither</div>
-    <div style="font-size:12px;color:var(--muted);font-family:'Baloo 2';font-weight:700;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);color:#f87171;padding:2px 9px;border-radius:99px">Admin only</div>
+<section id="slither-section" style="position:relative;z-index:1;padding:48px 20px 64px;max-width:1100px;margin:0 auto">
+
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+    <span style="font-family:'Baloo 2';font-weight:900;font-size:20px;color:#e0e2ed">Slither</span>
+    <span style="font-family:'Baloo 2';font-weight:700;font-size:11px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);color:#f87171;padding:2px 9px;border-radius:99px">Admin only</span>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 260px;gap:20px;align-items:start">
-    <!-- Game canvas -->
+  <div style="display:grid;grid-template-columns:1fr 256px;gap:20px;align-items:start">
+
     <div style="position:relative">
-      <canvas id="snakeCanvas" width="720" height="460"
-        style="width:100%;max-width:720px;border-radius:12px;border:1px solid var(--line);background:#060810;display:block;cursor:none;touch-action:none"></canvas>
+      <canvas id="slitherCanvas" width="760" height="480"
+        style="width:100%;border-radius:12px;border:1px solid var(--line);display:block;cursor:none;touch-action:none;background:#07090f"></canvas>
 
-      <!-- Overlay: start / game-over -->
-      <div id="snakeOverlay" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:12px;background:rgba(6,8,16,.88);backdrop-filter:blur(4px)">
-        <div id="snakeOverlayTitle" style="font-family:'Baloo 2';font-weight:900;font-size:28px;color:#fff;margin-bottom:6px">🐍 Slither</div>
-        <div id="snakeOverlaySub" style="font-size:14px;color:rgba(255,255,255,.6);margin-bottom:24px;text-align:center;max-width:280px">Move your mouse to steer. Eat the glowing orbs to grow. Avoid yourself.</div>
-        <div id="snakeOverlayScore" style="font-family:'Baloo 2';font-weight:900;font-size:22px;color:#5be38f;margin-bottom:18px;display:none"></div>
-        <button id="snakeStartBtn" onclick="snakeStart()" style="font-family:'Baloo 2';font-weight:800;font-size:15px;padding:12px 32px;border-radius:10px;border:none;background:linear-gradient(135deg,#1f9c54,#5be38f);color:#0a0f0d;cursor:pointer">▶ Play</button>
+      <div id="slitherOverlay" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:12px;background:rgba(7,9,15,.9);backdrop-filter:blur(6px)">
+        <div id="slitherOverlayTitle" style="font-family:'Baloo 2';font-weight:900;font-size:30px;color:#fff;margin-bottom:8px;letter-spacing:-.5px">Slither</div>
+        <div id="slitherOverlaySub" style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px;text-align:center;max-width:260px;line-height:1.6">Steer with your mouse. Hold click to boost. Eat the orbs to grow.</div>
+        <div id="slitherOverlayScore" style="font-family:'Baloo 2';font-weight:900;font-size:24px;color:#5be38f;margin:14px 0 4px;display:none"></div>
+        <div id="slitherOverlayLen" style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:20px;display:none"></div>
+        <button onclick="slitherStart()" id="slitherPlayBtn"
+          style="font-family:'Baloo 2';font-weight:800;font-size:14px;padding:11px 30px;border-radius:9px;border:none;background:#1a7f42;color:#fff;cursor:pointer;letter-spacing:.02em">Play</button>
       </div>
 
-      <!-- HUD -->
-      <div id="snakeHud" style="position:absolute;top:12px;left:12px;right:12px;display:none;justify-content:space-between;pointer-events:none">
-        <div style="font-family:'Baloo 2';font-weight:800;font-size:14px;color:#fff;background:rgba(0,0,0,.55);padding:4px 12px;border-radius:8px">
-          Score: <span id="snakeScore" style="color:#5be38f">0</span>
+      <div id="slitherHud" style="position:absolute;top:12px;left:12px;right:12px;display:none;justify-content:space-between;pointer-events:none">
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#fff;background:rgba(0,0,0,.5);padding:3px 11px;border-radius:7px">
+          Score <span id="slitherScore" style="color:#5be38f;margin-left:4px">0</span>
         </div>
-        <div style="font-family:'Baloo 2';font-weight:800;font-size:14px;color:#fff;background:rgba(0,0,0,.55);padding:4px 12px;border-radius:8px">
-          Best: <span id="snakeBest" style="color:#fbbf24">0</span>
+        <div id="slitherBoostHud" style="font-family:'Baloo 2';font-weight:700;font-size:12px;color:#93c5fd;background:rgba(0,0,0,.5);padding:3px 11px;border-radius:7px;display:none">BOOST</div>
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#fff;background:rgba(0,0,0,.5);padding:3px 11px;border-radius:7px">
+          Best <span id="slitherBest" style="color:#fbbf24;margin-left:4px">0</span>
         </div>
       </div>
     </div>
 
-    <!-- Leaderboard -->
     <div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden">
-      <div style="padding:14px 16px;border-bottom:1px solid var(--line);font-family:'Baloo 2';font-weight:800;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Top 10</div>
-      <div id="snakeLb" style="padding:0">
-        <div style="padding:20px;color:var(--muted);font-size:13px;text-align:center">Loading...</div>
-      </div>
+      <div style="padding:13px 15px;border-bottom:1px solid var(--line);font-family:'Baloo 2';font-weight:800;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Top 10</div>
+      <div id="slitherLb"><div style="padding:20px;color:var(--muted);font-size:13px;text-align:center">Loading...</div></div>
     </div>
+
   </div>
 </section>
 
-<style>
-#snakeCanvas { image-rendering: pixelated; }
-</style>
-
 <script>
 (function() {
-  // ── Constants ──────────────────────────────────────────────────────────────
-  const CANVAS = document.getElementById('snakeCanvas');
-  const CTX = CANVAS.getContext('2d');
-  const CW = 720, CH = 460;
-  const SPEED = 2.8;          // px per frame
-  const SEG_DIST = 7;         // distance between body segments
-  const SEG_RAD = 8;          // body segment radius
-  const HEAD_RAD = 10;        // head radius
-  const FOOD_RAD = 7;         // food radius
-  const NUM_FOOD = 12;        // max food on screen
+  const C = document.getElementById('slitherCanvas');
+  const X = C.getContext('2d');
+  const W = 760, H = 480;
+  const FOOD_PALETTE = ['#f472b6','#fb923c','#38bdf8','#a78bfa','#fbbf24','#34d399','#f87171','#c084fc'];
 
-  let state = 'idle';         // idle | running | dead
-  let snake, food, score, sessionBest, animId, mouseX, mouseY;
+  let running = false, raf;
+  let mx = W / 2, my = H / 2 - 80;
+  let boost = false;
+  let score = 0, best = 0;
+  let angle = 0;
+  let trail = [];
+  let targetLen = 120;
+  let food = [];
 
-  // Track mouse position in canvas coordinates
-  CANVAS.addEventListener('mousemove', e => {
-    const r = CANVAS.getBoundingClientRect();
-    const sx = CW / r.width, sy = CH / r.height;
-    mouseX = (e.clientX - r.left) * sx;
-    mouseY = (e.clientY - r.top) * sy;
-  });
-  CANVAS.addEventListener('touchmove', e => {
-    e.preventDefault();
-    const r = CANVAS.getBoundingClientRect();
-    const sx = CW / r.width, sy = CH / r.height;
-    mouseX = (e.touches[0].clientX - r.left) * sx;
-    mouseY = (e.touches[0].clientY - r.top) * sy;
-  }, { passive: false });
-
-  // ── Colour palette ──────────────────────────────────────────────────────────
-  const BODY_COLORS = ['#22c55e','#16a34a','#15803d','#166534'];
-
-  // ── Food generation ─────────────────────────────────────────────────────────
-  const FOOD_COLORS = ['#f472b6','#fb923c','#38bdf8','#a78bfa','#fbbf24','#34d399'];
-  function randFood() {
-    return {
-      x: FOOD_RAD + Math.random() * (CW - FOOD_RAD * 2),
-      y: FOOD_RAD + Math.random() * (CH - FOOD_RAD * 2),
-      color: FOOD_COLORS[Math.floor(Math.random() * FOOD_COLORS.length)],
-      phase: Math.random() * Math.PI * 2
-    };
+  function scalePos(e) {
+    const r = C.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * (W / r.width), y: (e.clientY - r.top) * (H / r.height) };
   }
 
-  // ── Start ──────────────────────────────────────────────────────────────────
-  window.snakeStart = function() {
-    if (animId) cancelAnimationFrame(animId);
+  C.addEventListener('mousemove', e => { const p = scalePos(e); mx = p.x; my = p.y; });
+  C.addEventListener('mousedown', e => { if (e.button === 0) boost = true; });
+  C.addEventListener('mouseup', () => { boost = false; });
+  C.addEventListener('mouseleave', () => { boost = false; });
+  C.addEventListener('touchmove', e => { e.preventDefault(); const t = e.touches[0]; const r = C.getBoundingClientRect(); mx = (t.clientX - r.left) * (W / r.width); my = (t.clientY - r.top) * (H / r.height); }, { passive: false });
+  C.addEventListener('touchstart', e => { boost = true; e.preventDefault(); }, { passive: false });
+  C.addEventListener('touchend', () => { boost = false; });
+
+  function spawnFood(n) {
+    for (let i = 0; i < n; i++) {
+      const r = 3 + Math.random() * 4;
+      food.push({ x: 20 + Math.random() * (W - 40), y: 20 + Math.random() * (H - 40), r, color: FOOD_PALETTE[Math.floor(Math.random() * FOOD_PALETTE.length)], phase: Math.random() * Math.PI * 2, value: Math.floor(r) });
+    }
+  }
+
+  function reset() {
+    trail = [];
+    const cx = W / 2, cy = H / 2;
+    for (let i = 0; i < 120; i++) trail.push({ x: cx - i * 2, y: cy });
+    angle = 0;
+    targetLen = 120;
     score = 0;
-    sessionBest = parseInt(document.getElementById('snakeBest').textContent) || 0;
-    document.getElementById('snakeScore').textContent = '0';
-
-    // Build initial snake segments (trail-based)
-    const cx = CW / 2, cy = CH / 2;
-    snake = { head: { x: cx, y: cy, angle: 0 }, trail: [] };
-    for (let i = 0; i < 60; i++) snake.trail.push({ x: cx - i * (SEG_DIST / 3), y: cy });
-
     food = [];
-    for (let i = 0; i < NUM_FOOD; i++) food.push(randFood());
-    mouseX = cx; mouseY = cy - 40;
+    spawnFood(24);
+    mx = W / 2; my = H / 2 - 100;
+  }
 
-    state = 'running';
-    document.getElementById('snakeOverlay').style.display = 'none';
-    document.getElementById('snakeHud').style.display = 'flex';
+  window.slitherStart = function() {
+    reset();
+    running = true;
+    document.getElementById('slitherOverlay').style.display = 'none';
+    document.getElementById('slitherHud').style.display = 'flex';
+    document.getElementById('slitherScore').textContent = '0';
+    if (raf) cancelAnimationFrame(raf);
+    function loop() { if (!running) return; update(); draw(); raf = requestAnimationFrame(loop); }
     loop();
   };
 
-  // ── Main loop ──────────────────────────────────────────────────────────────
-  function loop() {
-    update();
-    draw();
-    if (state === 'running') animId = requestAnimationFrame(loop);
-  }
-
   function update() {
-    // Steer head toward mouse
-    const dx = mouseX - snake.head.x, dy = mouseY - snake.head.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist > 2) {
-      const targetAngle = Math.atan2(dy, dx);
-      let diff = targetAngle - snake.head.angle;
-      while (diff > Math.PI) diff -= 2 * Math.PI;
-      while (diff < -Math.PI) diff += 2 * Math.PI;
-      const maxTurn = 0.10;
-      snake.head.angle += Math.max(-maxTurn, Math.min(maxTurn, diff));
+    const speed = boost ? 5.5 : 3.2;
+
+    const dx = mx - trail[0].x, dy = my - trail[0].y;
+    const d = Math.sqrt(dx * dx + dy * dy);
+    if (d > 2) {
+      let target = Math.atan2(dy, dx);
+      let diff = target - angle;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      angle += Math.sign(diff) * Math.min(Math.abs(diff), 0.11);
     }
 
-    const newX = snake.head.x + Math.cos(snake.head.angle) * SPEED;
-    const newY = snake.head.y + Math.sin(snake.head.angle) * SPEED;
+    const nx = trail[0].x + Math.cos(angle) * speed;
+    const ny = trail[0].y + Math.sin(angle) * speed;
 
-    // Wall collision (bounce off edges)
-    if (newX < HEAD_RAD || newX > CW - HEAD_RAD || newY < HEAD_RAD || newY > CH - HEAD_RAD) {
-      die(); return;
+    if (nx < 8 || nx > W - 8 || ny < 8 || ny > H - 8) { die(); return; }
+
+    trail.unshift({ x: nx, y: ny });
+
+    if (boost && targetLen > 80) {
+      targetLen -= 0.3;
+      score = Math.max(0, score - 0.01);
     }
+    while (trail.length > targetLen) trail.pop();
 
-    snake.head.x = newX;
-    snake.head.y = newY;
-
-    // Add head position to trail
-    snake.trail.unshift({ x: snake.head.x, y: snake.head.y });
-    // Max trail length = score * segs + base
-    const maxLen = (60 + score * 4) * (SEG_DIST / SEG_DIST);
-    const numSegs = 8 + score * 2;
-    const maxTrail = numSegs * SEG_DIST + 60;
-    while (snake.trail.length > maxTrail) snake.trail.pop();
-
-    // Food collision
     for (let i = food.length - 1; i >= 0; i--) {
       const f = food[i];
-      const fdx = snake.head.x - f.x, fdy = snake.head.y - f.y;
-      if (Math.sqrt(fdx * fdx + fdy * fdy) < HEAD_RAD + FOOD_RAD - 2) {
+      if (Math.sqrt((nx - f.x) ** 2 + (ny - f.y) ** 2) < 12 + f.r) {
         food.splice(i, 1);
-        food.push(randFood());
-        score++;
-        document.getElementById('snakeScore').textContent = score;
-        if (score > sessionBest) {
-          sessionBest = score;
-          document.getElementById('snakeBest').textContent = score;
-        }
+        targetLen += f.value * 12;
+        score += f.value;
+        if (score > best) best = Math.floor(score);
+        document.getElementById('slitherScore').textContent = Math.floor(score);
+        document.getElementById('slitherBest').textContent = best;
+        spawnFood(1);
       }
     }
 
-    // Self collision (skip first ~40 trail points)
-    const skipPts = Math.floor(HEAD_RAD * 3 / SPEED);
-    for (let i = skipPts * 3; i < snake.trail.length; i += 3) {
-      const s = snake.trail[i];
-      const sdx = snake.head.x - s.x, sdy = snake.head.y - s.y;
-      if (Math.sqrt(sdx * sdx + sdy * sdy) < SEG_RAD + HEAD_RAD - 4) {
-        die(); return;
-      }
+    const skip = 28;
+    for (let i = skip; i < trail.length; i += 2) {
+      if (Math.sqrt((nx - trail[i].x) ** 2 + (ny - trail[i].y) ** 2) < 7) { die(); return; }
     }
+
+    document.getElementById('slitherBoostHud').style.display = boost ? '' : 'none';
   }
 
   function draw() {
-    CTX.clearRect(0, 0, CW, CH);
+    X.clearRect(0, 0, W, H);
 
-    // Background grid
-    CTX.strokeStyle = 'rgba(255,255,255,.03)';
-    CTX.lineWidth = 1;
-    for (let x = 0; x < CW; x += 40) { CTX.beginPath(); CTX.moveTo(x, 0); CTX.lineTo(x, CH); CTX.stroke(); }
-    for (let y = 0; y < CH; y += 40) { CTX.beginPath(); CTX.moveTo(0, y); CTX.lineTo(CW, y); CTX.stroke(); }
+    X.fillStyle = 'rgba(255,255,255,0.018)';
+    for (let gx = 30; gx < W; gx += 40) for (let gy = 30; gy < H; gy += 40) {
+      X.beginPath(); X.arc(gx, gy, 1.2, 0, Math.PI * 2); X.fill();
+    }
 
-    // Food
     const t = performance.now() / 1000;
+
     for (const f of food) {
-      const pulse = 0.85 + 0.15 * Math.sin(t * 2.5 + f.phase);
-      const r = FOOD_RAD * pulse;
-      // Glow
-      const grd = CTX.createRadialGradient(f.x, f.y, 0, f.x, f.y, r * 3);
-      grd.addColorStop(0, f.color + 'aa');
-      grd.addColorStop(1, f.color + '00');
-      CTX.beginPath(); CTX.arc(f.x, f.y, r * 3, 0, Math.PI * 2);
-      CTX.fillStyle = grd; CTX.fill();
-      // Core
-      CTX.beginPath(); CTX.arc(f.x, f.y, r, 0, Math.PI * 2);
-      CTX.fillStyle = f.color; CTX.fill();
-      // Shine
-      CTX.beginPath(); CTX.arc(f.x - r * 0.3, f.y - r * 0.3, r * 0.3, 0, Math.PI * 2);
-      CTX.fillStyle = 'rgba(255,255,255,.5)'; CTX.fill();
+      const pulse = 1 + 0.2 * Math.sin(t * 2.8 + f.phase);
+      const gr = X.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r * 3.5);
+      gr.addColorStop(0, f.color + '99');
+      gr.addColorStop(1, f.color + '00');
+      X.beginPath(); X.arc(f.x, f.y, f.r * 3.5, 0, Math.PI * 2);
+      X.fillStyle = gr; X.fill();
+      X.beginPath(); X.arc(f.x, f.y, f.r * pulse, 0, Math.PI * 2);
+      X.fillStyle = f.color; X.fill();
+      X.beginPath(); X.arc(f.x - f.r * 0.28, f.y - f.r * 0.28, f.r * 0.32, 0, Math.PI * 2);
+      X.fillStyle = 'rgba(255,255,255,0.55)'; X.fill();
     }
 
-    // Body (sample trail at SEG_DIST intervals)
-    const numSegs = 8 + score * 2;
-    for (let s = Math.min(numSegs, Math.floor(snake.trail.length / SEG_DIST)); s >= 0; s--) {
-      const idx = Math.min(s * SEG_DIST, snake.trail.length - 1);
-      const pt = snake.trail[idx];
-      const prog = s / numSegs;
-      const r = SEG_RAD * (1 - prog * 0.35);
-      const colorIdx = Math.floor(prog * (BODY_COLORS.length - 1));
-      CTX.beginPath();
-      CTX.arc(pt.x, pt.y, r, 0, Math.PI * 2);
-      CTX.fillStyle = BODY_COLORS[Math.min(colorIdx, BODY_COLORS.length - 1)];
-      CTX.fill();
+    const tLen = trail.length;
+    if (!tLen) return;
+
+    for (let i = tLen - 1; i >= 0; i--) {
+      const p = trail[i];
+      const prog = 1 - i / tLen;
+      let r;
+      if (prog < 0.08) r = 9 * (prog / 0.08);
+      else if (prog > 0.92) r = 9 * (0.78 + 0.22 * (1 - (prog - 0.92) / 0.08));
+      else r = 9;
+
+      let h, s, l;
+      if (boost) { h = 210 + prog * 30; s = 80; l = 45 + prog * 18; }
+      else { h = 128 + prog * 16; s = 65; l = 30 + prog * 22; }
+
+      X.beginPath(); X.arc(p.x, p.y, r, 0, Math.PI * 2);
+      X.fillStyle = `hsl(${h},${s}%,${l}%)`;
+      X.fill();
     }
 
-    // Head
-    CTX.beginPath();
-    CTX.arc(snake.head.x, snake.head.y, HEAD_RAD, 0, Math.PI * 2);
-    const hg = CTX.createRadialGradient(snake.head.x - 2, snake.head.y - 2, 1, snake.head.x, snake.head.y, HEAD_RAD);
-    hg.addColorStop(0, '#86efac');
-    hg.addColorStop(1, '#16a34a');
-    CTX.fillStyle = hg; CTX.fill();
+    const hd = trail[0];
 
-    // Eyes
-    const ex = Math.cos(snake.head.angle - 0.45) * 5;
-    const ey = Math.sin(snake.head.angle - 0.45) * 5;
-    const ex2 = Math.cos(snake.head.angle + 0.45) * 5;
-    const ey2 = Math.sin(snake.head.angle + 0.45) * 5;
-    CTX.fillStyle = '#fff';
-    CTX.beginPath(); CTX.arc(snake.head.x + ex, snake.head.y + ey, 2.5, 0, Math.PI * 2); CTX.fill();
-    CTX.beginPath(); CTX.arc(snake.head.x + ex2, snake.head.y + ey2, 2.5, 0, Math.PI * 2); CTX.fill();
-    CTX.fillStyle = '#111';
-    CTX.beginPath(); CTX.arc(snake.head.x + ex + Math.cos(snake.head.angle) * 0.7, snake.head.y + ey + Math.sin(snake.head.angle) * 0.7, 1.2, 0, Math.PI * 2); CTX.fill();
-    CTX.beginPath(); CTX.arc(snake.head.x + ex2 + Math.cos(snake.head.angle) * 0.7, snake.head.y + ey2 + Math.sin(snake.head.angle) * 0.7, 1.2, 0, Math.PI * 2); CTX.fill();
+    if (boost) {
+      for (let i = 4; i < 22; i += 3) {
+        if (i >= trail.length) break;
+        const bp = trail[i];
+        X.beginPath(); X.arc(bp.x, bp.y, 8 * (1 - i / 22), 0, Math.PI * 2);
+        X.fillStyle = `rgba(147,197,253,${0.35 * (1 - i / 22)})`;
+        X.fill();
+      }
+    }
+
+    const hgr = X.createRadialGradient(hd.x - 2.5, hd.y - 2.5, 0.5, hd.x, hd.y, 10);
+    hgr.addColorStop(0, boost ? '#bfdbfe' : '#86efac');
+    hgr.addColorStop(1, boost ? '#2563eb' : '#15803d');
+    X.beginPath(); X.arc(hd.x, hd.y, 10, 0, Math.PI * 2);
+    X.fillStyle = hgr; X.fill();
+
+    for (const side of [-0.42, 0.42]) {
+      const ex = hd.x + Math.cos(angle + side) * 5.5;
+      const ey = hd.y + Math.sin(angle + side) * 5.5;
+      X.beginPath(); X.arc(ex, ey, 2.8, 0, Math.PI * 2);
+      X.fillStyle = '#fff'; X.fill();
+      X.beginPath(); X.arc(ex + Math.cos(angle) * 0.9, ey + Math.sin(angle) * 0.9, 1.4, 0, Math.PI * 2);
+      X.fillStyle = '#1a1a2e'; X.fill();
+    }
   }
 
   function die() {
-    state = 'dead';
-    cancelAnimationFrame(animId);
-
-    // Save score
-    if (score > 0) {
-      fetch('/snake/score', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ score })
-      }).then(() => loadLeaderboard());
+    running = false;
+    cancelAnimationFrame(raf);
+    const s = Math.floor(score);
+    if (s > 0) {
+      fetch('/snake/score', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ score: s }) })
+        .then(() => loadLeaderboard());
     }
-
-    // Show overlay
-    const overlay = document.getElementById('snakeOverlay');
-    const title = document.getElementById('snakeOverlayTitle');
-    const sub = document.getElementById('snakeOverlaySub');
-    const scoreEl = document.getElementById('snakeOverlayScore');
-    const btn = document.getElementById('snakeStartBtn');
-    title.textContent = '💀 Game Over';
-    sub.textContent = score > 0 ? 'Your score has been saved to the leaderboard.' : 'Better luck next time.';
-    scoreEl.textContent = 'Score: ' + score;
+    document.getElementById('slitherOverlayTitle').textContent = 'Game Over';
+    document.getElementById('slitherOverlaySub').textContent = s > 0 ? 'Score saved.' : 'Better luck next time.';
+    const scoreEl = document.getElementById('slitherOverlayScore');
+    scoreEl.textContent = 'Score: ' + s;
     scoreEl.style.display = '';
-    btn.textContent = '↩ Play Again';
-    overlay.style.display = 'flex';
-    document.getElementById('snakeHud').style.display = 'none';
+    document.getElementById('slitherOverlayLen').textContent = 'Length: ' + trail.length;
+    document.getElementById('slitherOverlayLen').style.display = '';
+    document.getElementById('slitherPlayBtn').textContent = 'Play Again';
+    document.getElementById('slitherOverlay').style.display = 'flex';
+    document.getElementById('slitherHud').style.display = 'none';
   }
 
-  // ── Leaderboard ────────────────────────────────────────────────────────────
   async function loadLeaderboard() {
-    const el = document.getElementById('snakeLb');
+    const el = document.getElementById('slitherLb');
     try {
-      const r = await fetch('/snake/leaderboard');
-      const rows = await r.json();
-      if (!rows.length) { el.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:13px;text-align:center">No scores yet. Play!</div>'; return; }
-      const MEDALS = ['🥇','🥈','🥉'];
+      const res = await fetch('/snake/leaderboard');
+      const rows = await res.json();
+      if (!rows.length) { el.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:13px;text-align:center">No scores yet.</div>'; return; }
+      const ranks = ['1st', '2nd', '3rd'];
       el.innerHTML = rows.map((r, i) => `
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);${i===rows.length-1?'border-bottom:none':''}">
-          <span style="font-size:15px;width:22px;text-align:center">${MEDALS[i] || (i+1)}</span>
-          <img src="${r.discord_avatar||''}" onerror="this.style.display='none'" style="width:28px;height:28px;border-radius:50%;flex-shrink:0">
-          <span style="flex:1;font-family:'Baloo 2';font-weight:700;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.discord_tag||'—'}</span>
-          <span style="font-family:'Baloo 2';font-weight:900;font-size:14px;color:#5be38f">${r.score}</span>
+        <div style="display:flex;align-items:center;gap:9px;padding:9px 14px;${i < rows.length - 1 ? 'border-bottom:1px solid var(--line)' : ''}">
+          <span style="font-family:'Baloo 2';font-weight:900;font-size:10px;color:${i < 3 ? '#fbbf24' : 'var(--muted)'};width:22px;flex-shrink:0">${ranks[i] || (i + 1)}</span>
+          <img src="https://cdn.discordapp.com/avatars/${r.discord_id}/${r.discord_avatar}.png?size=32" onerror="this.style.display='none'" style="width:24px;height:24px;border-radius:50%;flex-shrink:0">
+          <span style="flex:1;font-family:'Baloo 2';font-weight:700;font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.discord_tag || '—'}</span>
+          <span style="font-family:'Baloo 2';font-weight:900;font-size:13px;color:#5be38f">${r.score}</span>
         </div>`).join('');
-    } catch(e) { el.innerHTML = '<div style="padding:20px;color:#f87171;font-size:13px">Failed to load.</div>'; }
+    } catch (e) { el.innerHTML = '<div style="padding:20px;color:#f87171;font-size:12px">Failed to load.</div>'; }
   }
 
   loadLeaderboard();
