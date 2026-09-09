@@ -2147,12 +2147,12 @@ async function fetchAllMembers(guildId, token) {
 }
 
 router.get('/kick-preview', requireAdminOrStaff, (req, res) => {
-  res.render('new/admin-kick-preview', { preview: null, error: null, authed: false });
+  res.render('new/admin-kick-preview', { preview: null, error: null, authed: false, executed: false });
 });
 
 router.post('/kick-preview', requireAdminOrStaff, async (req, res) => {
   if (req.body.password !== KICK_PASSWORD) {
-    return res.render('new/admin-kick-preview', { preview: null, error: 'Wrong password.', authed: false });
+    return res.render('new/admin-kick-preview', { preview: null, error: 'Wrong password.', authed: false, executed: false });
   }
 
   const token = process.env.DISCORD_TOKEN;
@@ -2185,7 +2185,7 @@ router.post('/kick-preview', requireAdminOrStaff, async (req, res) => {
     }
   }
 
-  res.render('new/admin-kick-preview', { preview, error: null, authed: true });
+  res.render('new/admin-kick-preview', { preview, error: null, authed: true, executed: false });
 });
 
 router.post('/kick-execute', requireAdminOrStaff, async (req, res) => {

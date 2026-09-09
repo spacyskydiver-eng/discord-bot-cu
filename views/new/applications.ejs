@@ -64,15 +64,20 @@ function sessionDateRange(times) {
 .sess-dates-label{font-family:'Baloo 2';font-weight:700;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .sess-dates-val{font-family:'Baloo 2';font-weight:700;font-size:12px;color:#c9ccdb;background:rgba(255,255,255,.05);padding:2px 8px;border-radius:99px;border:1px solid var(--line)}
 
-.nl-reopen-tooltip{
-  position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
-  background:rgba(10,10,18,.97);border:1px solid rgba(251,191,36,.35);
-  color:#fbbf24;font-family:'Baloo 2';font-weight:700;font-size:11px;
-  padding:7px 12px;border-radius:8px;white-space:nowrap;
-  pointer-events:none;opacity:0;transition:opacity .18s;z-index:10;
-  box-shadow:0 4px 16px rgba(0,0,0,.5);text-align:center;line-height:1.5;
+.nl-reopen-overlay{
+  position:absolute;inset:0;z-index:20;
+  background:rgba(10,10,14,.92);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .18s;pointer-events:none;
+  border-radius:var(--radius);
 }
-.nl-closed-card:hover .nl-reopen-tooltip{opacity:1;}
+.nl-closed-card:hover .nl-reopen-overlay{opacity:1;}
+.nl-reopen-box{
+  text-align:center;padding:18px 22px;
+  font-family:'Baloo 2';font-weight:700;
+  border:1px solid rgba(251,191,36,.3);border-radius:10px;
+  background:rgba(251,191,36,.06);max-width:200px;
+}
 </style>
 
 <main class="wrap">
@@ -157,6 +162,14 @@ function sessionDateRange(times) {
         <!-- Nation Leader card -->
         <% const nationLocked = !nationAppsOpen || (locals.user && !userHundredApp); %>
         <div class="card<%= nationLocked ? ' locked' : '' %><%= !nationAppsOpen ? ' nl-closed-card' : '' %>">
+          <% if (!nationAppsOpen) { %>
+          <div class="nl-reopen-overlay">
+            <div class="nl-reopen-box">
+              <div style="font-size:13px;font-weight:900;color:#fbbf24;margin-bottom:4px">Reopens 12 Sept 2026</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.7);line-height:1.5">Players can apply to create their own nation during the event.</div>
+            </div>
+          </div>
+          <% } %>
           <div class="cardart" style="background:linear-gradient(135deg,#1a1200,#0c0d10);opacity:<%= nationLocked ? '0.45' : '1' %>">
             <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
               <svg viewBox="0 0 48 48" style="width:68px;height:68px" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -170,7 +183,6 @@ function sessionDateRange(times) {
                 CLOSED
               </div>
             </div>
-            <div class="nl-reopen-tooltip">Reopens <strong>12 Sept 2026</strong> — players can apply to create their own nation during the event.</div>
             <% } %>
           </div>
           <div class="cardbody">
