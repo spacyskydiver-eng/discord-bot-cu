@@ -205,7 +205,7 @@
 
     <div style="position:relative">
       <canvas id="slitherCanvas" width="760" height="480"
-        style="width:100%;border-radius:12px;border:1px solid var(--line);display:block;cursor:none;touch-action:none;background:#07090f"></canvas>
+        style="width:100%;border-radius:12px;border:1px solid var(--line);display:block;cursor:crosshair;touch-action:none;background:#07090f"></canvas>
 
       <div id="slitherOverlay" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:12px;background:rgba(7,9,15,.9);backdrop-filter:blur(6px)">
         <div id="slitherOverlayTitle" style="font-family:'Baloo 2';font-weight:900;font-size:30px;color:#fff;margin-bottom:8px;letter-spacing:-.5px">Slither</div>
@@ -369,10 +369,16 @@
 
     for (let i = tLen - 1; i >= 0; i--) {
       const p = trail[i];
-      const prog = 1 - i / tLen;
+      const prog = 1 - i / tLen; // 0 = tail end, 1 = head
+
+      // Tail fades over the last 25% of body length
+      const tailFade = 0.25;
+      const alpha = prog < tailFade ? Math.pow(prog / tailFade, 1.8) : 1;
+
+      // Radius tapers to zero at tail tip, slight pinch at neck
       let r;
-      if (prog < 0.08) r = 9 * (prog / 0.08);
-      else if (prog > 0.92) r = 9 * (0.78 + 0.22 * (1 - (prog - 0.92) / 0.08));
+      if (prog < tailFade) r = 9 * (prog / tailFade);
+      else if (prog > 0.92) r = 9 * (0.8 + 0.2 * (1 - (prog - 0.92) / 0.08));
       else r = 9;
 
       let h, s, l;
@@ -380,7 +386,7 @@
       else { h = 128 + prog * 16; s = 65; l = 30 + prog * 22; }
 
       X.beginPath(); X.arc(p.x, p.y, r, 0, Math.PI * 2);
-      X.fillStyle = `hsl(${h},${s}%,${l}%)`;
+      X.fillStyle = `hsla(${h},${s}%,${l}%,${alpha.toFixed(3)})`;
       X.fill();
     }
 
