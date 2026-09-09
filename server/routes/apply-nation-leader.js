@@ -12,11 +12,9 @@ async function discordFetch(path) {
   return r.json();
 }
 
-const APPS_OPEN = process.env.NATION_APPS_OPEN !== 'false';
-
 router.get('/', async (req, res) => {
   if (!req.session.user) return res.redirect(`${res.locals.lp}/auth/discord`);
-  if (!APPS_OPEN) return res.render('new/apply-nation-leader', { existing: null, closed: true });
+  if (process.env.NATION_APPS_OPEN === 'false') return res.render('new/apply-nation-leader', { existing: null, closed: true });
   const existing = (await db.query(
     `SELECT * FROM nation_leader_applications WHERE discord_id = $1`,
     [req.session.user.id]
@@ -26,7 +24,7 @@ router.get('/', async (req, res) => {
 
 // AJAX — check the server member count via bot, save on pass
 router.post('/check', async (req, res) => {
-  if (!APPS_OPEN) return res.status(403).json({ ok: false, error: 'Nation leader applications are currently closed.' });
+  if (process.env.NATION_APPS_OPEN === 'false') return res.status(403).json({ ok: false, error: 'Nation leader applications are currently closed.' });
   if (!req.session.user) return res.status(401).json({ ok: false, error: 'Not logged in.' });
 
   const guildId = (req.body.guild_id || '').trim();
