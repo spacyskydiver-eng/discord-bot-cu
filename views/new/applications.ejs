@@ -145,14 +145,8 @@ function sessionDateRange(times) {
         <% } %>
 
         <!-- Nation Leader card -->
-        <% const nationLocked = locals.user && !userHundredApp; %>
-        <% if (!locals.user) { %>
-          <a href="<%= lp %>/auth/discord" class="card">
-        <% } else if (userNationApp || nationLocked) { %>
-          <div class="card<%= nationLocked ? ' locked' : '' %>">
-        <% } else { %>
-          <a href="<%= lp %>/apply-nation-leader" class="card">
-        <% } %>
+        <% const nationLocked = !nationAppsOpen || (locals.user && !userHundredApp); %>
+        <div class="card<%= nationLocked ? ' locked' : '' %>">
           <div class="cardart" style="background:linear-gradient(135deg,#1a1200,#0c0d10);opacity:<%= nationLocked ? '0.45' : '1' %>">
             <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
               <svg viewBox="0 0 48 48" style="width:68px;height:68px" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -164,10 +158,13 @@ function sessionDateRange(times) {
           <div class="cardbody">
             <h3>Nation Leader</h3>
             <div class="meta" style="margin-bottom:4px">150 Player Event · Separate application</div>
-            <% if (!locals.user) { %>
+            <% if (!nationAppsOpen) { %>
+              <div class="desc" style="font-size:12px;color:var(--muted);margin-bottom:8px">Nation leader applications are now closed.</div>
+              <span class="pill soon">Closed</span>
+            <% } else if (!locals.user) { %>
               <div class="desc" style="font-size:12px;color:var(--muted);margin-bottom:8px">Log in to apply as a Nation Leader.</div>
               <span class="pill open">Log in to Apply</span>
-            <% } else if (nationLocked) { %>
+            <% } else if (!userHundredApp) { %>
               <div class="desc" style="font-size:12px;color:var(--muted);margin-bottom:8px">You must apply for the 150 Player Event before you can apply as a Nation Leader.</div>
               <span class="pill soon">Apply for the 150 Player Event first</span>
             <% } else { %>
@@ -180,11 +177,7 @@ function sessionDateRange(times) {
               <% } %>
             <% } %>
           </div>
-        <% if (!locals.user || (!userNationApp && !nationLocked)) { %>
-          </a>
-        <% } else { %>
-          </div>
-        <% } %>
+        </div>
 
         <!-- News Reporter card — only for accepted 150 players who are not nation leaders -->
         <% const isAccepted150 = userHundredApp && userHundredApp.status === 'accepted'; %>

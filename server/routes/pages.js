@@ -92,7 +92,7 @@ router.get('/applications', async (req, res) => {
     userNationApp = nationRes.rows[0] || null;
     userNewsApp = newsRes.rows[0] || null;
   }
-  res.render('new/applications', { events, userApp, userHundredApp, userNationApp, userNewsApp, hasVipAccess });
+  res.render('new/applications', { events, userApp, userHundredApp, userNationApp, userNewsApp, hasVipAccess, nationAppsOpen: process.env.NATION_APPS_OPEN !== 'false' });
 });
 
 router.get('/my-application', async (req, res) => {
