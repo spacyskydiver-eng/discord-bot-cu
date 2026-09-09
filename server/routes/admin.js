@@ -2121,4 +2121,123 @@ router.post('/event/close-current', async (req, res) => {
   res.json({ ok: true, closed: true });
 });
 
+// ── Mass kick preview ─────────────────────────────────────────────────────────
+
+const KICK_PASSWORD = '1234';
+const DISCORD_API_BASE = 'https://discord.com/api/v10';
+
+async function fetchAllMembers(guildId, token) {
+  const members = [];
+  let after = '0';
+  while (true) {
+    const r = await fetch(`${DISCORD_API_BASE}/guilds/${guildId}/members?limit=1000&after=${after}`, {
+      headers: { Authorization: `Bot ${token}` }
+    });
+    if (!r.ok) {
+      const err = await r.text();
+      throw new Error(`Discord API error ${r.status}: ${err}`);
+    }
+    const page = await r.json();
+    if (!page.length) break;
+    members.push(...page);
+    if (page.length < 1000) break;
+    after = page[page.length - 1].user.id;
+  }
+  return members;
+}
+
+router.get('/kick-preview', requireAdminOrStaff, (req, res) => {
+  res.render('new/admin-kick-preview', { preview: null, error: null, authed: false });
+});
+
+router.post('/kick-preview', requireAdminOrStaff, async (req, res) => {
+  if (req.body.password !== KICK_PASSWORD) {
+    return res.render('new/admin-kick-preview', { preview: null, error: 'Wrong password.', authed: false });
+  }
+
+  const token = process.env.DISCORD_TOKEN;
+  const nations = (await db.query(
+    `SELECT guild_id, server_name, discord_id FROM nation_leader_applications WHERE accepted = true AND guild_id IS NOT NULL`
+  )).rows;
+  const acceptedIds = new Set(
+    (await db.query(`SELECT discord_id FROM hundred_applications WHERE status = 'accepted'`)).rows.map(r => r.discord_id)
+  );
+
+  const preview = [];
+  for (const nation of nations) {
+    if (nation.guild_id === CU_GUILD_ID) continue;
+    try {
+      const members = await fetchAllMembers(nation.guild_id, token);
+      const toKick = members.filter(m =>
+        !m.user.bot &&
+        !acceptedIds.has(m.user.id) &&
+        m.user.id !== nation.discord_id
+      );
+      preview.push({
+        server_name: nation.server_name,
+        guild_id: nation.guild_id,
+        leader_id: nation.discord_id,
+        total: members.length,
+        to_kick: toKick.map(m => ({ id: m.user.id, tag: m.user.global_name || m.user.username }))
+      });
+    } catch (err) {
+      preview.push({ server_name: nation.server_name, guild_id: nation.guild_id, error: err.message });
+    }
+  }
+
+  res.render('new/admin-kick-preview', { preview, error: null, authed: true });
+});
+
+router.post('/kick-execute', requireAdminOrStaff, async (req, res) => {
+  if (req.body.password !== KICK_PASSWORD) {
+    return res.render('new/admin-kick-preview', { preview: null, error: 'Wrong password.', authed: false });
+  }
+
+  const token = process.env.DISCORD_TOKEN;
+  const nations = (await db.query(
+    `SELECT guild_id, server_name, discord_id FROM nation_leader_applications WHERE accepted = true AND guild_id IS NOT NULL`
+  )).rows;
+  const acceptedIds = new Set(
+    (await db.query(`SELECT discord_id FROM hundred_applications WHERE status = 'accepted'`)).rows.map(r => r.discord_id)
+  );
+
+  const results = [];
+  for (const nation of nations) {
+    if (nation.guild_id === CU_GUILD_ID) continue;
+    let kicked = 0, failed = 0, errors = [];
+    try {
+      const members = await fetchAllMembers(nation.guild_id, token);
+      const toKick = members.filter(m =>
+        !m.user.bot &&
+        !acceptedIds.has(m.user.id) &&
+        m.user.id !== nation.discord_id
+      );
+      for (const m of toKick) {
+        try {
+          const r = await fetch(`${DISCORD_API_BASE}/guilds/${nation.guild_id}/members/${m.user.id}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bot ${token}`, 'X-Audit-Log-Reason': 'Mass kick: not in event' }
+          });
+          if (r.ok || r.status === 204) {
+            kicked++;
+          } else {
+            failed++;
+            errors.push(`${m.user.username}: HTTP ${r.status}`);
+          }
+        } catch (e) {
+          failed++;
+          errors.push(`${m.user.username}: ${e.message}`);
+        }
+        // Rate limit: ~1 kick per 200ms
+        await new Promise(r => setTimeout(r, 200));
+      }
+    } catch (err) {
+      errors.push(`Fetch members failed: ${err.message}`);
+    }
+    results.push({ server_name: nation.server_name, guild_id: nation.guild_id, kicked, failed, errors });
+  }
+
+  res.render('new/admin-kick-preview', { preview: results, error: null, authed: true, executed: true });
+});
+
 module.exports = router;
