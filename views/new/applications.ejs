@@ -154,6 +154,13 @@ function sessionDateRange(times) {
                 <text x="24" y="29" text-anchor="middle" font-size="20" fill="#fbbf24">👑</text>
               </svg>
             </div>
+            <% if (!nationAppsOpen) { %>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;pointer-events:none">
+              <div style="background:rgba(239,68,68,.85);color:#fff;font-family:'Baloo 2';font-weight:900;font-size:13px;letter-spacing:.12em;text-transform:uppercase;padding:6px 0;width:160%;text-align:center;transform:rotate(-30deg);box-shadow:0 2px 8px rgba(0,0,0,.4)">
+                CLOSED
+              </div>
+            </div>
+            <% } %>
           </div>
           <div class="cardbody">
             <h3>Nation Leader</h3>
