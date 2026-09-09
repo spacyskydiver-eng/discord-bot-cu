@@ -37,10 +37,10 @@ const SESSION_TIMES = [1789142400,1789228800,1789315200,1789401600,1789488000,17
         <img src="<%= app.discord_avatar %>" style="width:42px;height:42px;border-radius:50%" onerror="this.style.display='none'">
         <% } %>
         <span style="font-family:'Baloo 2';font-weight:800;font-size:14px;padding:5px 14px;border-radius:99px;
-          background:<%= app.status==='accepted'?'rgba(91,227,143,.12)':app.status==='declined'?'rgba(248,113,113,.1)':'rgba(251,191,36,.1)' %>;
-          color:<%= app.status==='accepted'?'#5be38f':app.status==='declined'?'#f87171':'#fbbf24' %>;
-          border:1px solid <%= app.status==='accepted'?'rgba(91,227,143,.25)':app.status==='declined'?'rgba(248,113,113,.25)':'rgba(251,191,36,.25)' %>">
-          <%= app.status %>
+          background:<%= app.status==='accepted'?'rgba(91,227,143,.12)':app.status==='declined'?'rgba(248,113,113,.1)':app.status==='maybe'?'rgba(168,85,247,.12)':'rgba(251,191,36,.1)' %>;
+          color:<%= app.status==='accepted'?'#5be38f':app.status==='declined'?'#f87171':app.status==='maybe'?'#c084fc':'#fbbf24' %>;
+          border:1px solid <%= app.status==='accepted'?'rgba(91,227,143,.25)':app.status==='declined'?'rgba(248,113,113,.25)':app.status==='maybe'?'rgba(168,85,247,.25)':'rgba(251,191,36,.25)' %>">
+          <%= app.status === 'maybe' ? '⭐ Maybe' : app.status %>
         </span>
       </div>
     </div>
@@ -54,12 +54,17 @@ const SESSION_TIMES = [1789142400,1789228800,1789315200,1789401600,1789488000,17
           <button class="rev-btn" style="background:rgba(91,227,143,.12);color:#5be38f;border:1px solid rgba(91,227,143,.3)">✓ Accept</button>
         </form>
         <% } %>
+        <% if (app.status !== 'maybe') { %>
+        <form method="POST" action="/admin/hundred/<%= app.id %>/maybe" style="display:inline">
+          <button class="rev-btn" style="background:rgba(168,85,247,.12);color:#c084fc;border:1px solid rgba(168,85,247,.3)">⭐ Maybe</button>
+        </form>
+        <% } %>
         <% if (app.status !== 'declined') { %>
         <form method="POST" action="/admin/hundred/<%= app.id %>/decline" style="display:inline">
           <button class="rev-btn" style="background:rgba(248,113,113,.1);color:#f87171;border:1px solid rgba(248,113,113,.25)">✕ Decline</button>
         </form>
         <% } %>
-        <% if (app.status === 'accepted' || app.status === 'declined') { %>
+        <% if (app.status !== 'pending') { %>
         <form method="POST" action="/admin/hundred/<%= app.id %>/reset" style="display:inline">
           <button class="rev-btn" style="background:var(--panel-2);color:var(--muted);border:1px solid var(--line)">Reset to Pending</button>
         </form>

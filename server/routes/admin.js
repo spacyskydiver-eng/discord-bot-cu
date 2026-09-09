@@ -1270,6 +1270,14 @@ router.post('/hundred/:id/decline', async (req, res) => {
   res.redirect(next ? `/admin/hundred/${next}` : `/admin#tab-hundred`);
 });
 
+router.post('/hundred/:id/maybe', async (req, res) => {
+  await db.query(
+    `UPDATE hundred_applications SET status='maybe' WHERE id=$1`, [req.params.id]
+  );
+  const next = await nextPendingHundred(req.params.id);
+  res.redirect(next ? `/admin/hundred/${next}` : `/admin#tab-hundred`);
+});
+
 router.post('/hundred/:id/reset', async (req, res) => {
   await db.query(
     `UPDATE hundred_applications SET status='pending', accepted_at=NULL, declined_at=NULL WHERE id=$1`, [req.params.id]

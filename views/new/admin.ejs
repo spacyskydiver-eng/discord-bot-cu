@@ -73,6 +73,7 @@
 .nd-status-pending{background:rgba(251,191,36,.15);color:#fbbf24}
 .nd-status-accepted{background:rgba(78,201,148,.15);color:#4ec994}
 .nd-status-declined{background:rgba(248,113,113,.15);color:#f87171}
+.nd-status-maybe{background:rgba(168,85,247,.15);color:#c084fc}
 .nd-status-disqualified{background:rgba(255,255,255,.07);color:var(--muted)}
 .nd-stage-chip{font-family:"Press Start 2P";font-size:8px;background:rgba(151,117,250,.2);color:#b3a0ff;border-radius:4px;padding:2px 5px;margin-left:5px}
 .nd-roster{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
@@ -284,7 +285,7 @@
       Applications<% const pendingCount = applications.filter(a=>a.status==='pending').length; const editReqCount = applications.filter(a=>a.edit_requested&&!a.edit_approved).length; const totalBadge = pendingCount + editReqCount; if(totalBadge>0){ %><span class="nd-tab-badge"><%= totalBadge %></span><% } %>
     </button>
     <button class="nd-tab" data-tab="hundred">
-      150 Player<% const hPending = hundredApplications.filter(a=>a.status==='pending').length; const hEditReq = hundredApplications.filter(a=>a.edit_requested&&!a.edit_approved).length; const hBadge = hPending + hEditReq; if(hBadge>0){ %><span class="nd-tab-badge"><%= hBadge %></span><% } %>
+      150 Player<% const hPending = hundredApplications.filter(a=>a.status==='pending').length; const hEditReq = hundredApplications.filter(a=>a.edit_requested&&!a.edit_approved).length; const hMaybeTab = hundredApplications.filter(a=>a.status==='maybe').length; const hBadge = hPending + hEditReq + hMaybeTab; if(hBadge>0){ %><span class="nd-tab-badge"><%= hBadge %></span><% } %>
     </button>
     <% if (locals.isFullAdmin) { %>
     <button class="nd-tab" data-tab="bot">Bot</button>
@@ -694,10 +695,12 @@
     <% const hPendingCount = hundredApplications.filter(a=>a.status==='pending').length; %>
     <% const hAccepted = hundredApplications.filter(a=>a.status==='accepted').length; %>
     <% const hDeclined = hundredApplications.filter(a=>a.status==='declined').length; %>
+    <% const hMaybe = hundredApplications.filter(a=>a.status==='maybe').length; %>
     <div class="nd-app-stats">
       <div class="nd-app-stat"><span><%= hTotal %></span><span>Applied</span></div>
       <div class="nd-app-stat pending"><span><%= hPendingCount %></span><span>Pending</span></div>
       <div class="nd-app-stat accepted"><span><%= hAccepted %></span><span>Accepted</span></div>
+      <div class="nd-app-stat" style="<% if(hMaybe>0){ %>cursor:default<% } %>"><span style="color:#c084fc"><%= hMaybe %></span><span>Maybe</span></div>
       <div class="nd-app-stat declined"><span><%= hDeclined %></span><span>Declined</span></div>
     </div>
 
@@ -705,6 +708,7 @@
       <button class="nd-filter-btn active" onclick="filterHundred('all',this)">All (<%= hTotal %>)</button>
       <button class="nd-filter-btn" onclick="filterHundred('pending',this)">Pending (<%= hPendingCount %>)</button>
       <button class="nd-filter-btn" onclick="filterHundred('accepted',this)">Accepted (<%= hAccepted %>)</button>
+      <% if (hMaybe > 0) { %><button class="nd-filter-btn" style="color:#c084fc;border-color:rgba(168,85,247,.3)" onclick="filterHundred('maybe',this)">⭐ Maybe (<%= hMaybe %>)</button><% } %>
       <button class="nd-filter-btn" onclick="filterHundred('declined',this)">Declined (<%= hDeclined %>)</button>
       <input type="text" class="nd-input nd-search" id="hSearch" placeholder="Search IGN or Discord..." oninput="filterHundred(null,null)" style="width:200px;margin-left:auto">
     </div>
@@ -724,7 +728,7 @@
               <span style="font-size:13px;color:var(--muted)"><%= a.country||'—' %></span>
               <span style="font-size:13px;color:var(--muted)"><%= a.submitted_at ? new Date(a.submitted_at).toLocaleDateString('en-GB') : '—' %></span>
               <span>
-                <span class="nd-status nd-status-<%= a.status %>"><%= a.status %></span>
+                <span class="nd-status nd-status-<%= a.status %>"><%= a.status === 'maybe' ? '⭐ maybe' : a.status %></span>
                 <% if(a.edit_requested&&!a.edit_approved){ %><span style="font-size:10px;font-family:'Baloo 2';font-weight:800;color:#fbbf24;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.25);border-radius:99px;padding:1px 7px;margin-left:4px">EDIT REQ</span><% } %>
               </span>
               <span><a href="/admin/hundred/<%= a.id %>" class="nd-btn nd-btn-ghost nd-btn-sm">Review</a></span>
