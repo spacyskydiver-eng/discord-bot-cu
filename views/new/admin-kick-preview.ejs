@@ -80,6 +80,9 @@
           <span class="kp-server-name"><%= s.server_name || s.guild_id %></span>
           <% if (!s.error) { %>
             <span class="kp-server-meta"><%= s.total %> members total</span>
+            <% if (s.protected_count > 0) { %>
+              <span class="kp-badge" style="background:rgba(116,192,252,.1);border-color:rgba(116,192,252,.3);color:#74c0fc">🛡 <%= s.protected_count %> protected</span>
+            <% } %>
             <% if (s.to_kick.length > 0) { %>
               <span class="kp-badge kp-badge-kick">kick <%= s.to_kick.length %></span>
             <% } else { %>

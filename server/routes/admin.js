@@ -2126,6 +2126,31 @@ router.post('/event/close-current', async (req, res) => {
 const KICK_PASSWORD = '1234';
 const DISCORD_API_BASE = 'https://discord.com/api/v10';
 
+const PROTECTED_ROLE_KEYWORDS = ['staff', 'mod', 'manager', 'owner', 'admin', '150', 'event', 'player'];
+const ADMIN_PERMS = BigInt('0x8');       // ADMINISTRATOR
+const MANAGE_PERMS = BigInt('0x20');     // MANAGE_GUILD
+
+async function fetchProtectedRoleIds(guildId, token) {
+  const r = await fetch(`${DISCORD_API_BASE}/guilds/${guildId}/roles`, {
+    headers: { Authorization: `Bot ${token}` }
+  });
+  if (!r.ok) return new Set();
+  const roles = await r.json();
+  const protected_ = new Set();
+  for (const role of roles) {
+    const nameLower = role.name.toLowerCase();
+    if (PROTECTED_ROLE_KEYWORDS.some(kw => nameLower.includes(kw))) {
+      protected_.add(role.id);
+      continue;
+    }
+    try {
+      const perms = BigInt(role.permissions || '0');
+      if ((perms & ADMIN_PERMS) || (perms & MANAGE_PERMS)) protected_.add(role.id);
+    } catch (_) {}
+  }
+  return protected_;
+}
+
 async function fetchAllMembers(guildId, token) {
   const members = [];
   let after = '0';
@@ -2167,18 +2192,29 @@ router.post('/kick-preview', requireAdminOrStaff, async (req, res) => {
   for (const nation of nations) {
     if (nation.guild_id === CU_GUILD_ID) continue;
     try {
-      const members = await fetchAllMembers(nation.guild_id, token);
+      const [members, protectedRoleIds] = await Promise.all([
+        fetchAllMembers(nation.guild_id, token),
+        fetchProtectedRoleIds(nation.guild_id, token)
+      ]);
       const toKick = members.filter(m =>
         !m.user.bot &&
         !acceptedIds.has(m.user.id) &&
-        m.user.id !== nation.discord_id
+        m.user.id !== nation.discord_id &&
+        !m.roles.some(rid => protectedRoleIds.has(rid))
+      );
+      const protected_ = members.filter(m =>
+        !m.user.bot &&
+        !acceptedIds.has(m.user.id) &&
+        m.user.id !== nation.discord_id &&
+        m.roles.some(rid => protectedRoleIds.has(rid))
       );
       preview.push({
         server_name: nation.server_name,
         guild_id: nation.guild_id,
         leader_id: nation.discord_id,
         total: members.length,
-        to_kick: toKick.map(m => ({ id: m.user.id, tag: m.user.global_name || m.user.username }))
+        to_kick: toKick.map(m => ({ id: m.user.id, tag: m.user.global_name || m.user.username })),
+        protected_count: protected_.length
       });
     } catch (err) {
       preview.push({ server_name: nation.server_name, guild_id: nation.guild_id, error: err.message });
@@ -2206,11 +2242,15 @@ router.post('/kick-execute', requireAdminOrStaff, async (req, res) => {
     if (nation.guild_id === CU_GUILD_ID) continue;
     let kicked = 0, failed = 0, errors = [];
     try {
-      const members = await fetchAllMembers(nation.guild_id, token);
+      const [members, protectedRoleIds] = await Promise.all([
+        fetchAllMembers(nation.guild_id, token),
+        fetchProtectedRoleIds(nation.guild_id, token)
+      ]);
       const toKick = members.filter(m =>
         !m.user.bot &&
         !acceptedIds.has(m.user.id) &&
-        m.user.id !== nation.discord_id
+        m.user.id !== nation.discord_id &&
+        !m.roles.some(rid => protectedRoleIds.has(rid))
       );
       for (const m of toKick) {
         try {
