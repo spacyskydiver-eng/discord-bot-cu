@@ -202,6 +202,91 @@ client.on('interactionCreate', async interaction => {
       return;
     }
 
+    // Kill ticket — open
+    if (interaction.customId.startsWith('kill_ticket_open:')) {
+      const configId = interaction.customId.split(':')[1];
+      await interaction.deferReply({ ephemeral: true });
+      try {
+        const cfgRes = await db.query(`SELECT * FROM kill_ticket_config WHERE id=$1`, [configId]);
+        const cfg = cfgRes.rows[0];
+        if (!cfg) return interaction.editReply({ content: 'Ticket system not configured. Contact staff.' });
+
+        const guild = interaction.guild;
+        const member = interaction.member;
+        const staffRoleIds = (cfg.staff_role_ids || '').split(',').map(s => s.trim()).filter(Boolean);
+
+        const permOverwrites = [
+          { id: guild.id, deny: ['ViewChannel'] },
+          { id: member.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
+          { id: client.user.id, allow: ['ViewChannel', 'SendMessages', 'ManageChannels', 'ReadMessageHistory'] }
+        ];
+        for (const roleId of staffRoleIds) {
+          permOverwrites.push({ id: roleId, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] });
+        }
+
+        const safeName = member.user.username.replace(/[^a-z0-9]/gi, '').toLowerCase() || 'player';
+        const channel = await guild.channels.create({
+          name: `kill-${safeName}`,
+          type: 0,
+          parent: cfg.category_id || null,
+          topic: `kill-ticket:${configId}:${member.id}`,
+          permissionOverwrites: permOverwrites
+        });
+
+        const introText = cfg.ticket_intro ||
+          `**Kill Request**\n\nHello <@${member.id}>! Please explain **who you want to kill** and **why**. Staff will review your request here.\n\n_Use this channel to provide evidence, context, or screenshots._`;
+
+        await channel.send({
+          content: introText,
+          components: [{
+            type: 1,
+            components: [{
+              type: 2,
+              style: 4,
+              label: '🔒 Close Ticket',
+              custom_id: 'kill_ticket_close'
+            }]
+          }]
+        });
+
+        await interaction.editReply({ content: `Your kill request ticket has been created: <#${channel.id}>` });
+      } catch (err) {
+        console.error('Kill ticket open error:', err);
+        await interaction.editReply({ content: 'Could not create ticket. Please contact staff.' });
+      }
+      return;
+    }
+
+    // Kill ticket — close
+    if (interaction.customId === 'kill_ticket_close') {
+      try {
+        const topic = interaction.channel.topic || '';
+        const cfgMatch = topic.match(/kill-ticket:(\d+):(\d+)/);
+        if (!cfgMatch) {
+          await interaction.reply({ content: '⚠️ Could not identify ticket config. Staff: delete this channel manually.', ephemeral: true });
+          return;
+        }
+        const configId = cfgMatch[1];
+        const cfgRes = await db.query(`SELECT staff_role_ids FROM kill_ticket_config WHERE id=$1`, [configId]);
+        const cfg = cfgRes.rows[0];
+        const staffRoleIds = cfg ? (cfg.staff_role_ids || '').split(',').map(s => s.trim()).filter(Boolean) : [];
+        const isStaff = staffRoleIds.length === 0 ||
+          staffRoleIds.some(rid => interaction.member.roles.cache.has(rid)) ||
+          interaction.member.permissions.has('ManageChannels');
+
+        if (!isStaff) {
+          return interaction.reply({ content: '❌ Only staff can close tickets.', ephemeral: true });
+        }
+
+        await interaction.reply({ content: `Ticket closed by <@${interaction.user.id}>. Deleting channel in 5 seconds...` });
+        setTimeout(() => interaction.channel.delete('Kill ticket closed').catch(() => {}), 5000);
+      } catch (err) {
+        console.error('Kill ticket close error:', err);
+        await interaction.reply({ content: 'Could not close ticket.', ephemeral: true }).catch(() => {});
+      }
+      return;
+    }
+
     try {
       const row = await db.query('SELECT response_text, response_payload FROM button_responses WHERE custom_id = $1', [interaction.customId]);
       if (row.rows.length) {

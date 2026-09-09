@@ -2121,6 +2121,88 @@ router.post('/send-availability-dms-all', async (req, res) => {
   res.json({ ok: true, sent });
 });
 
+// ── Kill ticket system ────────────────────────────────────────────────────────
+
+db.query(`
+  CREATE TABLE IF NOT EXISTS kill_ticket_config (
+    id SERIAL PRIMARY KEY,
+    guild_id TEXT NOT NULL,
+    guild_name TEXT,
+    post_channel_id TEXT,
+    category_id TEXT,
+    staff_role_ids TEXT DEFAULT '',
+    panel_payload JSONB,
+    ticket_intro TEXT DEFAULT '',
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+  )
+`).catch(console.error);
+
+router.get('/kill-tickets', requireAdminOrStaff, async (req, res) => {
+  const configs = (await db.query(`SELECT * FROM kill_ticket_config ORDER BY updated_at DESC`)).rows;
+  res.render('new/admin-kill-tickets', { configs });
+});
+
+router.post('/kill-tickets/save', requireAdminOrStaff, async (req, res) => {
+  const { id, guild_id, guild_name, post_channel_id, category_id, staff_role_ids, ticket_intro, panel_payload } = req.body;
+  if (!guild_id) return res.json({ ok: false, error: 'Guild ID required' });
+  let payload;
+  try { payload = typeof panel_payload === 'string' ? JSON.parse(panel_payload) : panel_payload; }
+  catch (e) { return res.json({ ok: false, error: 'Invalid panel payload JSON' }); }
+
+  if (id) {
+    await db.query(
+      `UPDATE kill_ticket_config SET guild_id=$1, guild_name=$2, post_channel_id=$3, category_id=$4, staff_role_ids=$5, ticket_intro=$6, panel_payload=$7, updated_at=NOW() WHERE id=$8`,
+      [guild_id, guild_name || '', post_channel_id || '', category_id || '', staff_role_ids || '', ticket_intro || '', JSON.stringify(payload), id]
+    );
+    res.json({ ok: true, id: parseInt(id) });
+  } else {
+    const r = await db.query(
+      `INSERT INTO kill_ticket_config (guild_id, guild_name, post_channel_id, category_id, staff_role_ids, ticket_intro, panel_payload) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
+      [guild_id, guild_name || '', post_channel_id || '', category_id || '', staff_role_ids || '', ticket_intro || '', JSON.stringify(payload)]
+    );
+    res.json({ ok: true, id: r.rows[0].id });
+  }
+});
+
+router.delete('/kill-tickets/:id', requireAdminOrStaff, async (req, res) => {
+  await db.query(`DELETE FROM kill_ticket_config WHERE id=$1`, [req.params.id]);
+  res.json({ ok: true });
+});
+
+router.post('/kill-tickets/:id/post', requireAdminOrStaff, async (req, res) => {
+  const cfg = (await db.query(`SELECT * FROM kill_ticket_config WHERE id=$1`, [req.params.id])).rows[0];
+  if (!cfg) return res.json({ ok: false, error: 'Config not found' });
+  if (!cfg.post_channel_id) return res.json({ ok: false, error: 'No channel configured' });
+
+  const payload = cfg.panel_payload || {};
+  const token = process.env.DISCORD_TOKEN;
+
+  const r = await fetch(`${DISCORD_API}/channels/${cfg.post_channel_id}/messages`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bot ${token}` },
+    body: JSON.stringify({
+      content: payload.content || undefined,
+      embeds: payload.embeds?.length ? payload.embeds : undefined,
+      components: [{
+        type: 1,
+        components: [{
+          type: 2,
+          style: payload.button_style || 4,
+          label: payload.button_label || '☠️ Submit Kill Request',
+          custom_id: `kill_ticket_open:${cfg.id}`
+        }]
+      }]
+    })
+  });
+
+  if (!r.ok) {
+    let msg = 'Discord API error';
+    try { msg = (await r.json()).message || msg; } catch (_) {}
+    return res.json({ ok: false, error: msg });
+  }
+  res.json({ ok: true });
+});
+
 // Close the most recent event (500-player applications)
 router.post('/event/close-current', async (req, res) => {
   await db.query(

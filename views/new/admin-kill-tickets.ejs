@@ -1,0 +1,330 @@
+<%- include('partials/head', { pageTitle: 'Kill Tickets — Admin' }) %>
+<%- include('partials/header') %>
+
+<style>
+.kt-wrap { max-width: 1060px; margin: 0 auto; padding: 32px 20px 80px; display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start; }
+@media (max-width: 860px) { .kt-wrap { grid-template-columns: 1fr; } }
+
+.kt-title { font-family: 'Baloo 2'; font-weight: 900; font-size: 22px; color: var(--text); margin-bottom: 4px; }
+.kt-sub { font-size: 13px; color: var(--muted); margin-bottom: 0; }
+
+.kt-card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px; margin-bottom: 18px; }
+.kt-card-title { font-family: 'Baloo 2'; font-weight: 800; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 16px; }
+
+.kt-label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px; }
+.kt-input, .kt-textarea, .kt-select {
+  width: 100%; padding: 9px 12px; background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 8px; color: var(--text); font-size: 13px; outline: none; box-sizing: border-box;
+  font-family: inherit;
+}
+.kt-input:focus, .kt-textarea:focus, .kt-select:focus { border-color: rgba(116,192,252,.5); }
+.kt-textarea { min-height: 90px; resize: vertical; line-height: 1.5; }
+.kt-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.kt-field { margin-bottom: 14px; }
+
+.kt-btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 18px; border-radius: 9px; border: none; font-family: 'Baloo 2'; font-weight: 800; font-size: 13px; cursor: pointer; transition: opacity .15s; }
+.kt-btn:hover { opacity: .85; }
+.kt-btn-primary { background: rgba(116,192,252,.15); border: 1px solid rgba(116,192,252,.35); color: #74c0fc; }
+.kt-btn-danger { background: rgba(248,113,113,.12); border: 1px solid rgba(248,113,113,.3); color: #f87171; }
+.kt-btn-success { background: rgba(74,222,128,.12); border: 1px solid rgba(74,222,128,.3); color: #4ade80; }
+.kt-btn-ghost { background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); }
+.kt-btn-sm { padding: 6px 12px; font-size: 12px; }
+
+.kt-status { font-size: 13px; font-weight: 700; margin-top: 10px; min-height: 20px; }
+.kt-status.ok { color: #4ade80; }
+.kt-status.err { color: #f87171; }
+
+/* Preview */
+.kt-preview-wrap { position: sticky; top: 16px; }
+.kt-discord-preview { background: #313338; border-radius: 10px; overflow: hidden; font-family: Whitney, 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+.kt-preview-bar { background: #2b2d31; padding: 10px 14px; font-size: 12px; font-weight: 700; color: #b5bac1; border-bottom: 1px solid rgba(255,255,255,.06); }
+.kt-preview-body { padding: 14px 16px; }
+.kt-preview-msg { display: flex; gap: 12px; margin-bottom: 4px; }
+.kt-preview-avatar { width: 38px; height: 38px; border-radius: 50%; background: #5865f2; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.kt-preview-content { flex: 1; min-width: 0; }
+.kt-preview-name { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.kt-preview-embed { border-left: 4px solid #5865f2; background: #2b2d31; border-radius: 4px; padding: 10px 14px; margin-top: 8px; max-width: 420px; }
+.kt-preview-embed-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.kt-preview-embed-desc { font-size: 13px; color: #dbdee1; line-height: 1.5; white-space: pre-wrap; }
+.kt-preview-btn { display: inline-block; margin-top: 10px; padding: 7px 14px; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+/* Saved configs list */
+.kt-config-item { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.kt-config-item:last-child { border-bottom: none; padding-bottom: 0; }
+.kt-config-name { font-family: 'Baloo 2'; font-weight: 800; font-size: 14px; color: var(--text); flex: 1; }
+.kt-config-meta { font-size: 11px; color: var(--muted); }
+</style>
+
+<div style="max-width:1060px;margin:0 auto;padding:32px 20px 8px">
+  <div class="kt-title">☠️ Kill Ticket System</div>
+  <div class="kt-sub">Configure and post kill request panels. Players click a button to open a private ticket with staff.</div>
+</div>
+
+<div class="kt-wrap">
+  <!-- Left: builder -->
+  <div>
+    <!-- Saved configs -->
+    <% if (configs.length > 0) { %>
+    <div class="kt-card">
+      <div class="kt-card-title">Saved Configurations</div>
+      <% for (const c of configs) { %>
+      <div class="kt-config-item">
+        <div>
+          <div class="kt-config-name"><%= c.guild_name || c.guild_id %></div>
+          <div class="kt-config-meta">Channel: <%= c.post_channel_id || '—' %> · Updated <%= new Date(c.updated_at).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}) %></div>
+        </div>
+        <button class="kt-btn kt-btn-ghost kt-btn-sm" onclick="loadConfig(<%= JSON.stringify(c).replace(/</g,'\\u003c') %>)">Load</button>
+        <button class="kt-btn kt-btn-success kt-btn-sm" onclick="postPanel(<%= c.id %>)">Post Panel</button>
+        <button class="kt-btn kt-btn-danger kt-btn-sm" onclick="deleteConfig(<%= c.id %>)">✕</button>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+
+    <!-- Panel embed config -->
+    <div class="kt-card">
+      <div class="kt-card-title">Panel Embed</div>
+      <div class="kt-field">
+        <label class="kt-label">Embed Title</label>
+        <input id="kt-title" class="kt-input" type="text" value="⚔️ Kill Request System" oninput="updatePreview()">
+      </div>
+      <div class="kt-field">
+        <label class="kt-label">Description / Rules</label>
+        <textarea id="kt-desc" class="kt-textarea" oninput="updatePreview()">Click the button below to open a kill request ticket. Staff will review your request privately.
+
+**Rules:**
+• You must provide a reason for the kill
+• Evidence is strongly encouraged
+• False or spam requests may result in punishment</textarea>
+      </div>
+      <div class="kt-row">
+        <div class="kt-field">
+          <label class="kt-label">Embed Colour</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="kt-color" class="kt-input" type="color" value="#e53535" style="width:48px;height:38px;padding:3px 4px;cursor:pointer" oninput="syncHex(this.value);updatePreview()">
+            <input id="kt-color-hex" class="kt-input" type="text" value="#e53535" maxlength="7" placeholder="#e53535" oninput="syncColor(this.value);updatePreview()" style="flex:1">
+          </div>
+        </div>
+        <div class="kt-field">
+          <label class="kt-label">Button Style</label>
+          <select id="kt-btn-style" class="kt-select" onchange="updatePreview()">
+            <option value="4">🔴 Danger (Red)</option>
+            <option value="1">🔵 Primary (Blue)</option>
+            <option value="2">⚫ Secondary (Grey)</option>
+            <option value="3">🟢 Success (Green)</option>
+          </select>
+        </div>
+      </div>
+      <div class="kt-field">
+        <label class="kt-label">Button Label</label>
+        <input id="kt-btn-label" class="kt-input" type="text" value="☠️ Submit Kill Request" oninput="updatePreview()">
+      </div>
+    </div>
+
+    <!-- Ticket settings -->
+    <div class="kt-card">
+      <div class="kt-card-title">Ticket Settings</div>
+      <div class="kt-field">
+        <label class="kt-label">Intro Message (shown when ticket opens)</label>
+        <textarea id="kt-intro" class="kt-textarea" placeholder="Leave blank for default message. Use {user} for the player mention.">Hello {user}! Please explain **who you want to kill** and **why**. Staff will review your request here.
+
+Provide any evidence, context, or screenshots below.</textarea>
+      </div>
+      <div class="kt-field">
+        <label class="kt-label">Staff Role IDs (comma-separated — these roles can see & close tickets)</label>
+        <input id="kt-staff-roles" class="kt-input" type="text" placeholder="1234567890,0987654321">
+      </div>
+      <div class="kt-field">
+        <label class="kt-label">Ticket Category ID (channels created here)</label>
+        <input id="kt-category" class="kt-input" type="text" placeholder="Category channel ID">
+      </div>
+    </div>
+
+    <!-- Server / channel -->
+    <div class="kt-card">
+      <div class="kt-card-title">Where to Post</div>
+      <div class="kt-row">
+        <div class="kt-field">
+          <label class="kt-label">Server (Guild) ID</label>
+          <input id="kt-guild-id" class="kt-input" type="text" placeholder="Server ID">
+        </div>
+        <div class="kt-field">
+          <label class="kt-label">Server Name (label only)</label>
+          <input id="kt-guild-name" class="kt-input" type="text" placeholder="e.g. Collective Union">
+        </div>
+      </div>
+      <div class="kt-field">
+        <label class="kt-label">Channel ID (where the panel goes)</label>
+        <input id="kt-channel-id" class="kt-input" type="text" placeholder="Channel ID">
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="kt-btn kt-btn-primary" onclick="saveConfig()">💾 Save Config</button>
+      <button class="kt-btn kt-btn-success" id="kt-post-btn" onclick="postCurrent()" style="display:none">📨 Post Panel</button>
+      <button class="kt-btn kt-btn-ghost" onclick="resetForm()">New</button>
+    </div>
+    <div class="kt-status" id="kt-status"></div>
+  </div>
+
+  <!-- Right: preview -->
+  <div class="kt-preview-wrap">
+    <div class="kt-card" style="padding:0;overflow:hidden">
+      <div class="kt-discord-preview">
+        <div class="kt-preview-bar">☠️ kill-requests</div>
+        <div class="kt-preview-body">
+          <div class="kt-preview-msg">
+            <div class="kt-preview-avatar">🤖</div>
+            <div class="kt-preview-content">
+              <div class="kt-preview-name">CUE Bot <span style="font-size:11px;background:#5865f2;color:#fff;padding:1px 5px;border-radius:3px;font-weight:600">BOT</span></div>
+              <div class="kt-preview-embed" id="kt-embed-preview">
+                <div class="kt-preview-embed-title" id="kt-prev-title">⚔️ Kill Request System</div>
+                <div class="kt-preview-embed-desc" id="kt-prev-desc">Click the button below...</div>
+              </div>
+              <div style="margin-top:8px">
+                <span class="kt-preview-btn" id="kt-prev-btn" style="background:#da3c3c;color:#fff">☠️ Submit Kill Request</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="kt-card" style="margin-top:0">
+      <div class="kt-card-title">What players see in the ticket</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6">
+        A private channel is created (<code style="background:rgba(255,255,255,.07);padding:1px 5px;border-radius:4px">kill-{username}</code>) only visible to the player + staff roles.<br><br>
+        Your intro message is sent, with a <strong style="color:#f87171">🔒 Close Ticket</strong> button that only staff can use.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentConfigId = null;
+
+const BTN_COLORS = { 1: '#5865f2', 2: '#4e5058', 3: '#248046', 4: '#da3c3c' };
+
+function updatePreview() {
+  document.getElementById('kt-prev-title').textContent = document.getElementById('kt-title').value || 'Kill Request System';
+  document.getElementById('kt-prev-desc').textContent = document.getElementById('kt-desc').value || '';
+  const color = document.getElementById('kt-color').value || '#e53535';
+  document.getElementById('kt-embed-preview').style.borderLeftColor = color;
+  const style = parseInt(document.getElementById('kt-btn-style').value) || 4;
+  const btn = document.getElementById('kt-prev-btn');
+  btn.style.background = BTN_COLORS[style] || '#da3c3c';
+  btn.textContent = document.getElementById('kt-btn-label').value || '☠️ Submit Kill Request';
+}
+
+function syncHex(v) { document.getElementById('kt-color-hex').value = v; }
+function syncColor(v) { if (/^#[0-9a-f]{6}$/i.test(v)) document.getElementById('kt-color').value = v; }
+
+function collectPayload() {
+  const hex = document.getElementById('kt-color').value.replace('#','');
+  return {
+    embeds: [{
+      title: document.getElementById('kt-title').value.trim() || undefined,
+      description: document.getElementById('kt-desc').value.trim() || undefined,
+      color: parseInt(hex, 16) || undefined
+    }],
+    button_label: document.getElementById('kt-btn-label').value.trim() || '☠️ Submit Kill Request',
+    button_style: parseInt(document.getElementById('kt-btn-style').value) || 4
+  };
+}
+
+function showStatus(type, msg) {
+  const el = document.getElementById('kt-status');
+  el.className = 'kt-status ' + type;
+  el.textContent = msg;
+}
+
+async function saveConfig() {
+  const guild_id = document.getElementById('kt-guild-id').value.trim();
+  if (!guild_id) { showStatus('err', 'Server ID is required.'); return; }
+  const body = {
+    id: currentConfigId,
+    guild_id,
+    guild_name: document.getElementById('kt-guild-name').value.trim(),
+    post_channel_id: document.getElementById('kt-channel-id').value.trim(),
+    category_id: document.getElementById('kt-category').value.trim(),
+    staff_role_ids: document.getElementById('kt-staff-roles').value.trim(),
+    ticket_intro: document.getElementById('kt-intro').value.trim(),
+    panel_payload: collectPayload()
+  };
+  try {
+    const r = await fetch('/admin/kill-tickets/save', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const d = await r.json();
+    if (d.ok) {
+      currentConfigId = d.id;
+      document.getElementById('kt-post-btn').style.display = '';
+      showStatus('ok', 'Saved! Use "Post Panel" to send it to Discord.');
+      setTimeout(() => location.reload(), 1500);
+    } else { showStatus('err', 'Save failed: ' + (d.error || 'unknown')); }
+  } catch(e) { showStatus('err', 'Network error: ' + e.message); }
+}
+
+async function postCurrent() {
+  if (!currentConfigId) { showStatus('err', 'Save first.'); return; }
+  await postPanel(currentConfigId);
+}
+
+async function postPanel(id) {
+  if (!confirm('Post the kill request panel to Discord now?')) return;
+  try {
+    const r = await fetch(`/admin/kill-tickets/${id}/post`, { method:'POST' });
+    const d = await r.json();
+    if (d.ok) { showStatus('ok', '✓ Panel posted to Discord!'); }
+    else { showStatus('err', 'Failed: ' + (d.error || 'unknown')); }
+  } catch(e) { showStatus('err', 'Network error: ' + e.message); }
+}
+
+async function deleteConfig(id) {
+  if (!confirm('Delete this kill ticket config?')) return;
+  await fetch(`/admin/kill-tickets/${id}`, { method:'DELETE' });
+  location.reload();
+}
+
+function loadConfig(c) {
+  currentConfigId = c.id;
+  const p = c.panel_payload || {};
+  const emb = (p.embeds && p.embeds[0]) || {};
+  document.getElementById('kt-title').value = emb.title || '';
+  document.getElementById('kt-desc').value = emb.description || '';
+  const hex = emb.color ? '#' + emb.color.toString(16).padStart(6,'0') : '#e53535';
+  document.getElementById('kt-color').value = hex;
+  document.getElementById('kt-color-hex').value = hex;
+  document.getElementById('kt-btn-label').value = p.button_label || '☠️ Submit Kill Request';
+  document.getElementById('kt-btn-style').value = p.button_style || 4;
+  document.getElementById('kt-intro').value = c.ticket_intro || '';
+  document.getElementById('kt-staff-roles').value = c.staff_role_ids || '';
+  document.getElementById('kt-category').value = c.category_id || '';
+  document.getElementById('kt-guild-id').value = c.guild_id || '';
+  document.getElementById('kt-guild-name').value = c.guild_name || '';
+  document.getElementById('kt-channel-id').value = c.post_channel_id || '';
+  document.getElementById('kt-post-btn').style.display = '';
+  updatePreview();
+  showStatus('ok', 'Config loaded.');
+}
+
+function resetForm() {
+  currentConfigId = null;
+  document.getElementById('kt-title').value = '⚔️ Kill Request System';
+  document.getElementById('kt-desc').value = '';
+  document.getElementById('kt-color').value = '#e53535';
+  document.getElementById('kt-color-hex').value = '#e53535';
+  document.getElementById('kt-btn-label').value = '☠️ Submit Kill Request';
+  document.getElementById('kt-btn-style').value = '4';
+  document.getElementById('kt-intro').value = '';
+  document.getElementById('kt-staff-roles').value = '';
+  document.getElementById('kt-category').value = '';
+  document.getElementById('kt-guild-id').value = '';
+  document.getElementById('kt-guild-name').value = '';
+  document.getElementById('kt-channel-id').value = '';
+  document.getElementById('kt-post-btn').style.display = 'none';
+  updatePreview();
+  showStatus('', '');
+}
+
+updatePreview();
+</script>
+
+<%- include('partials/foot') %>
