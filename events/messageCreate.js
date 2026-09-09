@@ -235,10 +235,8 @@ async function alertStaff(message, flag) {
     ]
   ).catch(() => {});
 
-  // Collect staff Discord IDs: DB staff_access + ADMIN_DISCORD_IDS env
-  const staffRows = (await db.query(`SELECT discord_id FROM staff_access`)).rows;
+  // Only DM the admin(s), not staff
   const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(s => s.trim()).filter(Boolean);
-  const allIds = [...new Set([...staffRows.map(r => r.discord_id), ...adminIds])];
 
   const typeLabel = flag.type === 'slur' ? 'Racist slur' : 'Extremist content';
   const dmContent = [
@@ -255,7 +253,7 @@ async function alertStaff(message, flag) {
     `View in staff portal: https://cuevents.xyz/admin/moderation`,
   ].join('\n');
 
-  for (const id of allIds) {
+  for (const id of adminIds) {
     try {
       const user = await message.client.users.fetch(id);
       await user.send(dmContent);
