@@ -194,293 +194,451 @@
 </main>
 
 <% if (locals.isAdmin) { %>
-<section id="slither-section" style="position:relative;z-index:1;padding:48px 20px 64px;max-width:1100px;margin:0 auto">
+<section id="pm-section" style="position:relative;z-index:1;padding:48px 20px 64px;max-width:1100px;margin:0 auto">
 
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
-    <span style="font-family:'Baloo 2';font-weight:900;font-size:20px;color:#e0e2ed">Slither</span>
+    <span style="font-family:'Baloo 2';font-weight:900;font-size:20px;color:#e0e2ed">Pac-Man</span>
     <span style="font-family:'Baloo 2';font-weight:700;font-size:11px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);color:#f87171;padding:2px 9px;border-radius:99px">Admin only</span>
   </div>
 
   <div style="display:grid;grid-template-columns:1fr 256px;gap:20px;align-items:start">
     <div style="position:relative">
-      <canvas id="slitherCanvas" width="760" height="480"
-        style="width:100%;border-radius:12px;border:1px solid var(--line);display:block;cursor:none;background:#07090f"></canvas>
+      <canvas id="pmCanvas" width="580" height="510"
+        style="width:100%;border-radius:12px;border:1px solid var(--line);display:block;background:#000"></canvas>
 
-      <div id="slitherOverlay" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:12px;background:rgba(7,9,15,.92);backdrop-filter:blur(6px)">
-        <div id="slitherOverlayTitle" style="font-family:'Baloo 2';font-weight:900;font-size:30px;color:#fff;margin-bottom:10px;letter-spacing:-.5px">Slither</div>
+      <div id="pmOverlay" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:12px;background:rgba(0,0,8,.92);backdrop-filter:blur(6px)">
+        <div id="pmOverlayTitle" style="font-family:'Baloo 2';font-weight:900;font-size:30px;color:#ffd700;margin-bottom:10px;letter-spacing:-.5px">Pac-Man</div>
         <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:20px;text-align:center;line-height:1.8">
-          Move your <span style="color:rgba(255,255,255,.8);font-weight:600">mouse</span> to steer &nbsp;·&nbsp; hold <span style="color:rgba(255,255,255,.8);font-weight:600">Space</span> to boost
+          Arrow keys or <span style="color:rgba(255,255,255,.8);font-weight:600">WASD</span> to move &nbsp;·&nbsp; eat all dots to win
         </div>
-        <div id="slitherOverlayScore" style="font-family:'Baloo 2';font-weight:900;font-size:24px;color:#5be38f;margin-bottom:4px;display:none"></div>
-        <div id="slitherOverlaySub" style="font-size:12px;color:rgba(255,255,255,.35);margin-bottom:20px"></div>
-        <button onclick="slitherStart()" id="slitherPlayBtn"
-          style="font-family:'Baloo 2';font-weight:800;font-size:14px;padding:11px 30px;border-radius:9px;border:none;background:#1a7f42;color:#fff;cursor:pointer">Play</button>
+        <div id="pmOverlaySub" style="font-size:13px;color:#ffd700;font-family:'Baloo 2';font-weight:800;margin-bottom:4px"></div>
+        <div id="pmOverlayMsg" style="font-size:12px;color:rgba(255,255,255,.35);margin-bottom:20px"></div>
+        <button onclick="pmStart()" id="pmPlayBtn"
+          style="font-family:'Baloo 2';font-weight:800;font-size:14px;padding:11px 30px;border-radius:9px;border:none;background:#1a4f8a;color:#fff;cursor:pointer">Play</button>
       </div>
 
-      <div id="slitherHud" style="position:absolute;top:12px;left:12px;right:12px;display:none;justify-content:space-between;pointer-events:none">
-        <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#fff;background:rgba(0,0,0,.5);padding:3px 11px;border-radius:7px">
-          Score <span id="slitherScore" style="color:#5be38f;margin-left:4px">0</span>
+      <div id="pmHud" style="position:absolute;top:10px;left:10px;right:10px;display:none;justify-content:space-between;pointer-events:none">
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#fff;background:rgba(0,0,0,.6);padding:3px 11px;border-radius:7px">
+          Score <span id="pmScore" style="color:#ffd700;margin-left:4px">0</span>
         </div>
-        <div id="slitherBoostHud" style="font-family:'Baloo 2';font-weight:700;font-size:12px;color:#93c5fd;background:rgba(0,0,0,.5);padding:3px 11px;border-radius:7px;opacity:0;transition:opacity .1s">BOOST</div>
-        <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#fff;background:rgba(0,0,0,.5);padding:3px 11px;border-radius:7px">
-          Best <span id="slitherBest" style="color:#fbbf24;margin-left:4px">0</span>
+        <div id="pmLives" style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#ffd700;background:rgba(0,0,0,.6);padding:3px 11px;border-radius:7px">3 lives</div>
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#fff;background:rgba(0,0,0,.6);padding:3px 11px;border-radius:7px">
+          Best <span id="pmBest" style="color:#fbbf24;margin-left:4px">0</span>
         </div>
       </div>
     </div>
 
     <div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden">
       <div style="padding:13px 15px;border-bottom:1px solid var(--line);font-family:'Baloo 2';font-weight:800;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Top 10</div>
-      <div id="slitherLb"><div style="padding:20px;color:var(--muted);font-size:13px;text-align:center">Loading...</div></div>
+      <div id="pmLb"><div style="padding:20px;color:var(--muted);font-size:13px;text-align:center">Loading...</div></div>
     </div>
   </div>
 </section>
 
 <script>
 (function () {
-  var C = document.getElementById('slitherCanvas');
+  var C = document.getElementById('pmCanvas');
   var X = C.getContext('2d');
-  var W = 760, H = 480;
+  var CW = 580, CH = 510;
 
-  // ── Tuning (ported from knagaitsev/slither.io-clone) ──────────────────────
-  var SCALE        = 0.9;
-  var SLOW_SPD     = 2.2;               // px per frame
-  var FAST_SPD     = 4.0;
-  var ROT_SPD      = 0.040;             // rad per frame toward cursor
-  var PREF_DIST    = 17 * SCALE;        // px between drawn body circles
-  var BODY_R       = 10 * SCALE;        // body circle radius
-  var TAPER        = 5;                 // last N sections shrink to a point
-  var FOOD_CLR     = ['#f472b6','#fb923c','#38bdf8','#a78bfa','#fbbf24','#34d399','#f87171','#c084fc'];
+  // Maze from pacgo-master/maze01.txt (28 cols x 24 rows)
+  var M = [
+    '############################',
+    '#............##............#',
+    '#.####.#####.##.#####.####.#',
+    '#X####.#####.##.#####.####X#',
+    '#..........................#',
+    '#.####.##.########.##.####.#',
+    '#......##....##....##......#',
+    '######.##### ## #####.######',
+    '     #.##          ##.#     ',
+    '     #.## ###--### ##.#     ',
+    '######.## # GGGG # ##.######',
+    '      .   # GGGG #   .      ',
+    '######.## # GGGG # ##.######',
+    '     #.## ######## ##.#     ',
+    '     #.##    P     ##.#     ',
+    '######.## ######## ##.######',
+    '#............##............#',
+    '#.####.#####.##.#####.####.#',
+    '#X..##................##..X#',
+    '###.##.##.########.##.##.###',
+    '#......##....##....##......#',
+    '#.##########.##.##########.#',
+    '#..........................#',
+    '############################'
+  ];
 
+  var ROWS = 24, COLS = 28, CS = 20;
+  var OX = Math.floor((CW - COLS * CS) / 2);  // 10
+  var OY = 28;
+
+  function cell(r, c) {
+    if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return '#';
+    return M[r][c] || ' ';
+  }
+  function isWall(r, c) { return cell(r, c) === '#'; }
+  function passable(r, c, forGhost) {
+    var v = cell(r, c);
+    if (v === '#') return false;
+    if (v === '-' && !forGhost) return false;
+    return true;
+  }
+
+  // State
+  var dots = [], totalDots = 0, eatenDots = 0;
+  var score = 0, best = 0, lives = 3;
+  var frightenTimer = 0;
+  var gameState = 'idle';
   var running = false, raf;
-  var mx = W / 2, my = H / 2 - 120;   // mouse in canvas coords
-  var boosting = false;
-  var angle = 0;
-  var headPath = [];                    // every position the head has visited, newest first
-  var numSections = 30;                 // how many body circles to draw
-  var score = 0, best = 0;
-  var food = [];
 
-  // mouse
-  C.addEventListener('mousemove', function (e) {
-    var r = C.getBoundingClientRect();
-    mx = (e.clientX - r.left) * (W / r.width);
-    my = (e.clientY - r.top)  * (H / r.height);
-  });
+  // Pac-Man
+  var PAC_SR = 14, PAC_SC = 13;
+  var pacR, pacC, pacPx, pacPy;
+  var pacDir = {r:0, c:0};
+  var pacNext = {r:0, c:0};
+  var pacProg = 1.0;
+  var pacTR, pacTC;
+  var mAngle = 0.22, mVel = 1;
+  var PSPD = 0.14;
 
-  // boost: space bar
-  document.addEventListener('keydown', function (e) { if (e.code === 'Space') { boosting = true;  if (running) e.preventDefault(); } });
-  document.addEventListener('keyup',   function (e) { if (e.code === 'Space')   boosting = false; });
+  // Ghosts
+  var GCOLORS = ['#ff0000','#ffb8ff','#00ffff','#ffb852'];
+  var GHOST_SPAWNS = [{r:11,c:13},{r:11,c:14},{r:10,c:13},{r:10,c:14}];
+  var GHOST_SPDS = [0.10, 0.095, 0.09, 0.085];
+  var ghosts = [];
 
-  // ── Food ──────────────────────────────────────────────────────────────────
-  function spawnFood(n) {
-    for (var i = 0; i < n; i++) {
-      var r = 3.5 + Math.random() * 3.5;
-      food.push({ x: 20 + Math.random() * (W - 40), y: 20 + Math.random() * (H - 40),
-                  r: r, color: FOOD_CLR[Math.floor(Math.random() * FOOD_CLR.length)],
-                  phase: Math.random() * Math.PI * 2, value: Math.round(r) });
-    }
-  }
+  function cctr(r, c) { return { x: OX + c * CS + CS / 2, y: OY + r * CS + CS / 2 }; }
 
-  // ── Reset ─────────────────────────────────────────────────────────────────
-  function reset() {
-    headPath = [];
-    // Pre-fill so the snake starts fully formed
-    var cx = W / 2, cy = H / 2;
-    var needed = (numSections + 6) * PREF_DIST;
-    for (var i = 0; i <= needed; i++) headPath.push({ x: cx - i * 0.5, y: cy });
-    angle = 0;
-    numSections = 30;
-    score = 0;
-    food = [];
-    spawnFood(26);
-    mx = W / 2; my = H / 2 - 120;
-  }
-
-  // ── Section positions from headPath (core mechanic from reference) ─────────
-  // Walk headPath accumulating actual arc-length; place a section every PREF_DIST.
-  function getSections() {
-    var out = [{ x: headPath[0].x, y: headPath[0].y }];  // head
-    var accum = 0;
-    for (var i = 1; i < headPath.length && out.length < numSections; i++) {
-      var dx = headPath[i].x - headPath[i - 1].x;
-      var dy = headPath[i].y - headPath[i - 1].y;
-      accum += Math.sqrt(dx * dx + dy * dy);
-      if (accum >= PREF_DIST) {
-        out.push({ x: headPath[i].x, y: headPath[i].y });
-        accum -= PREF_DIST;
+  function initDots() {
+    dots = []; totalDots = 0; eatenDots = 0;
+    for (var r = 0; r < ROWS; r++) {
+      dots.push([]);
+      for (var c = 0; c < COLS; c++) {
+        var v = cell(r, c);
+        if (v === '.' || v === 'X') { dots[r].push(v); totalDots++; }
+        else dots[r].push(null);
       }
     }
-    return out;
   }
 
-  // ── Start ────────────────────────────────────────────────────────────────
-  window.slitherStart = function () {
+  function reset() {
+    initDots();
+    score = 0; lives = 3; frightenTimer = 0;
+    var p0 = cctr(PAC_SR, PAC_SC);
+    pacR = PAC_SR; pacC = PAC_SC;
+    pacPx = p0.x; pacPy = p0.y;
+    pacDir = {r:0, c:0}; pacNext = {r:0, c:1};
+    pacProg = 1.0; pacTR = PAC_SR; pacTC = PAC_SC;
+    ghosts = [];
+    for (var i = 0; i < 4; i++) {
+      var sp = GHOST_SPAWNS[i];
+      var gp = cctr(sp.r, sp.c);
+      ghosts.push({
+        r: sp.r, c: sp.c, tR: sp.r, tC: sp.c,
+        px: gp.x, py: gp.y, prog: 1.0,
+        dir: {r: i < 2 ? 0 : (i===2?1:-1), c: i===0?-1:(i===1?1:0)},
+        color: GCOLORS[i], spd: GHOST_SPDS[i],
+        fright: false, eaten: false
+      });
+    }
+    gameState = 'playing';
+  }
+
+  // Input
+  var dirKeys = {
+    'ArrowUp':{r:-1,c:0}, 'w':{r:-1,c:0}, 'W':{r:-1,c:0},
+    'ArrowDown':{r:1,c:0}, 's':{r:1,c:0}, 'S':{r:1,c:0},
+    'ArrowLeft':{r:0,c:-1}, 'a':{r:0,c:-1}, 'A':{r:0,c:-1},
+    'ArrowRight':{r:0,c:1}, 'd':{r:0,c:1}, 'D':{r:0,c:1}
+  };
+  document.addEventListener('keydown', function(e) {
+    if (dirKeys[e.key]) { pacNext = dirKeys[e.key]; if (running) e.preventDefault(); }
+  });
+
+  window.pmStart = function() {
     reset();
     running = true;
-    document.getElementById('slitherOverlay').style.display = 'none';
-    document.getElementById('slitherHud').style.display = 'flex';
-    document.getElementById('slitherScore').textContent = '0';
+    document.getElementById('pmOverlay').style.display = 'none';
+    document.getElementById('pmHud').style.display = 'flex';
+    document.getElementById('pmScore').textContent = '0';
+    document.getElementById('pmLives').textContent = '3 lives';
     if (raf) cancelAnimationFrame(raf);
     (function loop() { if (!running) return; update(); draw(); raf = requestAnimationFrame(loop); })();
   };
 
   // ── Update ───────────────────────────────────────────────────────────────
   function update() {
-    var spd = boosting ? FAST_SPD : SLOW_SPD;
+    if (gameState !== 'playing') return;
 
-    // Rotate toward mouse at fixed rate (mirrors reference rotateLeft/rotateRight logic)
-    var hx = headPath[0].x, hy = headPath[0].y;
-    var target = Math.atan2(my - hy, mx - hx);
-    var diff = target - angle;
-    while (diff >  Math.PI) diff -= 2 * Math.PI;
-    while (diff < -Math.PI) diff += 2 * Math.PI;
-    angle += (diff > 0 ? 1 : -1) * Math.min(Math.abs(diff), ROT_SPD);
+    mAngle += 0.055 * mVel;
+    if (mAngle > 0.22) mVel = -1;
+    if (mAngle < 0.01) mVel = 1;
 
-    var nx = hx + Math.cos(angle) * spd;
-    var ny = hy + Math.sin(angle) * spd;
+    if (frightenTimer > 0) {
+      frightenTimer--;
+      if (frightenTimer === 0) ghosts.forEach(function(g) { if (!g.eaten) g.fright = false; });
+    }
 
-    if (nx < BODY_R || nx > W - BODY_R || ny < BODY_R || ny > H - BODY_R) { die(); return; }
+    updatePac();
+    ghosts.forEach(updateGhost);
 
-    headPath.unshift({ x: nx, y: ny });
+    ghosts.forEach(function(g) {
+      if (g.eaten) return;
+      var dx = g.px - pacPx, dy = g.py - pacPy;
+      if (dx*dx + dy*dy < (CS*0.72)*(CS*0.72)) {
+        if (g.fright) {
+          g.eaten = true; g.fright = false;
+          score += 200;
+          var sp = GHOST_SPAWNS[ghosts.indexOf(g)];
+          var gp = cctr(sp.r, sp.c);
+          g.r = sp.r; g.c = sp.c; g.tR = sp.r; g.tC = sp.c;
+          g.px = gp.x; g.py = gp.y; g.prog = 1.0;
+          setTimeout(function() { g.eaten = false; }, 3000);
+        } else {
+          pacDie();
+        }
+      }
+    });
 
-    // Trim path — only need enough history to fit all sections at PREF_DIST each
-    var maxPts = Math.ceil(((numSections + 8) * PREF_DIST) / Math.min(SLOW_SPD, spd)) + 20;
-    if (headPath.length > maxPts) headPath.length = maxPts;
+    document.getElementById('pmScore').textContent = score;
+    if (score > best) { best = score; document.getElementById('pmBest').textContent = best; }
+  }
 
-    // Boost slowly shrinks snake (mirrors reference scale decrement)
-    if (boosting && numSections > 20) numSections -= 0.015;
-
-    // Food
-    for (var i = food.length - 1; i >= 0; i--) {
-      var f = food[i];
-      if ((nx - f.x) * (nx - f.x) + (ny - f.y) * (ny - f.y) < (BODY_R + f.r) * (BODY_R + f.r)) {
-        food.splice(i, 1);
-        numSections += f.value * 2;
-        score += f.value;
-        if (score > best) best = score;
-        document.getElementById('slitherScore').textContent = score;
-        document.getElementById('slitherBest').textContent = best;
-        spawnFood(1);
+  function updatePac() {
+    if (pacProg >= 1.0) {
+      pacR = pacTR; pacC = pacTC;
+      // Try queued direction
+      if ((pacNext.r !== 0 || pacNext.c !== 0) && passable(pacR + pacNext.r, pacC + pacNext.c, false)) {
+        pacDir = {r: pacNext.r, c: pacNext.c};
+      }
+      // Move in current direction
+      if ((pacDir.r !== 0 || pacDir.c !== 0) && passable(pacR + pacDir.r, pacC + pacDir.c, false)) {
+        pacTR = pacR + pacDir.r; pacTC = pacC + pacDir.c;
+        pacProg = 0;
       }
     }
-
-    // Self-collision: skip the head-adjacent sections
-    var secs = getSections();
-    var skip = 7;
-    for (var j = skip; j < secs.length; j++) {
-      var s = secs[j];
-      var d2 = (nx - s.x) * (nx - s.x) + (ny - s.y) * (ny - s.y);
-      if (d2 < BODY_R * BODY_R * 1.2) { die(); return; }
+    if (pacProg < 1.0) {
+      pacProg = Math.min(1.0, pacProg + PSPD);
+      var fr = cctr(pacR, pacC), to = cctr(pacTR, pacTC);
+      pacPx = fr.x + (to.x - fr.x) * pacProg;
+      pacPy = fr.y + (to.y - fr.y) * pacProg;
+      if (pacProg >= 1.0) {
+        pacR = pacTR; pacC = pacTC;
+        var cp = cctr(pacR, pacC); pacPx = cp.x; pacPy = cp.y;
+        if (dots[pacR][pacC] === '.') {
+          dots[pacR][pacC] = null; score += 10; eatenDots++;
+        } else if (dots[pacR][pacC] === 'X') {
+          dots[pacR][pacC] = null; score += 50; eatenDots++;
+          frightenTimer = 360;
+          ghosts.forEach(function(g) { if (!g.eaten) { g.fright = true; g.dir = {r:-g.dir.r,c:-g.dir.c}; } });
+        }
+        if (eatenDots >= totalDots) { gameState = 'win'; endGame('You Win!', score); }
+      }
     }
+  }
 
-    document.getElementById('slitherBoostHud').style.opacity = boosting ? '1' : '0';
+  function updateGhost(g) {
+    if (g.eaten) return;
+    var spd = g.fright ? g.spd * 0.5 : g.spd;
+    if (g.prog >= 1.0) {
+      g.r = g.tR; g.c = g.tC;
+      var nd = ghostDir(g);
+      g.dir = nd;
+      g.tR = g.r + nd.r; g.tC = g.c + nd.c;
+      g.prog = 0;
+    }
+    g.prog = Math.min(1.0, g.prog + spd);
+    var fr = cctr(g.r, g.c), to = cctr(g.tR, g.tC);
+    g.px = fr.x + (to.x - fr.x) * g.prog;
+    g.py = fr.y + (to.y - fr.y) * g.prog;
+  }
+
+  // Ghost AI ported from Pacman-Flutter-master/lib/HomePage.dart:
+  // try current direction, fall back to alternatives based on ghost index
+  function ghostDir(g) {
+    var all = [{r:0,c:-1},{r:0,c:1},{r:-1,c:0},{r:1,c:0}];
+    var rev = {r:-g.dir.r, c:-g.dir.c};
+    var valid = all.filter(function(d) {
+      return passable(g.r+d.r, g.c+d.c, true) && !(d.r===rev.r && d.c===rev.c);
+    });
+    if (!valid.length) return rev;
+    if (g.fright) return valid[Math.floor(Math.random() * valid.length)];
+    // Continue in same direction if possible
+    var cont = null;
+    for (var i = 0; i < valid.length; i++) {
+      if (valid[i].r === g.dir.r && valid[i].c === g.dir.c) { cont = valid[i]; break; }
+    }
+    // At a junction with choices: 65% chase Pac-Man, 35% continue or random
+    if (valid.length > 1 && Math.random() < 0.65) {
+      var best = null, bd = Infinity;
+      valid.forEach(function(d) {
+        var dist = Math.abs(g.r+d.r - pacR) + Math.abs(g.c+d.c - pacC);
+        if (dist < bd) { bd = dist; best = d; }
+      });
+      return best || cont || valid[0];
+    }
+    return cont || valid[Math.floor(Math.random() * valid.length)];
+  }
+
+  function pacDie() {
+    lives--;
+    document.getElementById('pmLives').textContent = lives + ' ' + (lives === 1 ? 'life' : 'lives');
+    if (lives <= 0) { gameState = 'dead'; endGame('Game Over', score); return; }
+    var p0 = cctr(PAC_SR, PAC_SC);
+    pacR = PAC_SR; pacC = PAC_SC;
+    pacPx = p0.x; pacPy = p0.y;
+    pacDir = {r:0,c:0}; pacNext = {r:0,c:1};
+    pacProg = 1.0; pacTR = PAC_SR; pacTC = PAC_SC;
+  }
+
+  function endGame(title, finalScore) {
+    running = false;
+    if (raf) cancelAnimationFrame(raf);
+    if (finalScore > 0) {
+      fetch('/snake/score', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({score:finalScore})})
+        .then(function() { loadLeaderboard(); });
+    }
+    document.getElementById('pmOverlayTitle').textContent = title;
+    document.getElementById('pmOverlaySub').textContent = 'Score: ' + finalScore;
+    document.getElementById('pmOverlayMsg').textContent = finalScore > 0 ? 'Score saved.' : 'Better luck next time.';
+    document.getElementById('pmPlayBtn').textContent = 'Play Again';
+    document.getElementById('pmOverlay').style.display = 'flex';
+    document.getElementById('pmHud').style.display = 'none';
   }
 
   // ── Draw ─────────────────────────────────────────────────────────────────
   function draw() {
-    X.clearRect(0, 0, W, H);
-
-    // Dot grid background
-    X.fillStyle = 'rgba(255,255,255,0.022)';
-    for (var gx = 30; gx < W; gx += 40)
-      for (var gy = 30; gy < H; gy += 40) {
-        X.beginPath(); X.arc(gx, gy, 1.2, 0, Math.PI * 2); X.fill();
-      }
-
-    var t = performance.now() / 1000;
-
-    // Food
-    for (var i = 0; i < food.length; i++) {
-      var f = food[i];
-      var pulse = 1 + 0.18 * Math.sin(t * 2.8 + f.phase);
-      var gr = X.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r * 3.5);
-      gr.addColorStop(0, f.color + 'aa'); gr.addColorStop(1, f.color + '00');
-      X.beginPath(); X.arc(f.x, f.y, f.r * 3.5, 0, Math.PI * 2); X.fillStyle = gr; X.fill();
-      X.beginPath(); X.arc(f.x, f.y, f.r * pulse, 0, Math.PI * 2); X.fillStyle = f.color; X.fill();
-      X.beginPath(); X.arc(f.x - f.r * 0.28, f.y - f.r * 0.28, f.r * 0.3, 0, Math.PI * 2);
-      X.fillStyle = 'rgba(255,255,255,0.5)'; X.fill();
-    }
-
-    var secs = getSections();
-    var n = secs.length;
-    if (!n) return;
-
-    // Draw body tail→head so head is on top.
-    // Body is uniform BODY_R circles. Last TAPER sections shrink to a point.
-    for (var i = n - 1; i >= 0; i--) {
-      var p = secs[i];
-      var fromTail = n - 1 - i;   // 0 = tail tip
-      var r = fromTail < TAPER ? BODY_R * (fromTail / TAPER) : BODY_R;
-      var prog = i / (n - 1);     // 1 = tail, 0 = head — for colour
-      var hue = boosting ? 215 : 136;
-      var lit = 32 + (1 - prog) * 22;  // head brighter than tail
-      X.beginPath(); X.arc(p.x, p.y, r, 0, Math.PI * 2);
-      X.fillStyle = 'hsl(' + hue + ',' + (boosting ? 78 : 62) + '%,' + lit + '%)';
-      X.fill();
-    }
-
-    // Boost afterglow on first few sections
-    if (boosting) {
-      for (var i = 2; i < Math.min(12, secs.length); i++) {
-        var s = secs[i];
-        var a = 0.28 * (1 - i / 12);
-        X.beginPath(); X.arc(s.x, s.y, BODY_R * 0.6, 0, Math.PI * 2);
-        X.fillStyle = 'rgba(147,197,253,' + a + ')'; X.fill();
-      }
-    }
-
-    // Head highlight
-    var hd = secs[0];
-    var hgr = X.createRadialGradient(hd.x - 2, hd.y - 2, 0, hd.x, hd.y, BODY_R);
-    hgr.addColorStop(0, boosting ? '#bfdbfe' : '#86efac');
-    hgr.addColorStop(1, boosting ? '#1e40af' : '#14532d');
-    X.beginPath(); X.arc(hd.x, hd.y, BODY_R, 0, Math.PI * 2); X.fillStyle = hgr; X.fill();
-
-    // Eyes
-    var sides = [-0.42, 0.42];
-    for (var s = 0; s < 2; s++) {
-      var ex = hd.x + Math.cos(angle + sides[s]) * 5.5;
-      var ey = hd.y + Math.sin(angle + sides[s]) * 5.5;
-      X.beginPath(); X.arc(ex, ey, 2.6, 0, Math.PI * 2); X.fillStyle = '#fff'; X.fill();
-      X.beginPath(); X.arc(ex + Math.cos(angle) * 0.9, ey + Math.sin(angle) * 0.9, 1.3, 0, Math.PI * 2);
-      X.fillStyle = '#111'; X.fill();
-    }
-
-    // Cursor dot
-    X.beginPath(); X.arc(mx, my, 3, 0, Math.PI * 2);
-    X.fillStyle = 'rgba(255,255,255,0.35)'; X.fill();
+    X.fillStyle = '#000';
+    X.fillRect(0, 0, CW, CH);
+    drawWalls();
+    drawDots();
+    drawGhosts();
+    drawPac();
   }
 
-  // ── Die ──────────────────────────────────────────────────────────────────
-  function die() {
-    running = false;
-    cancelAnimationFrame(raf);
-    if (score > 0) {
-      fetch('/snake/score', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ score: score }) }).then(function () { loadLeaderboard(); });
+  function drawWalls() {
+    // Fill all wall cells dark blue
+    for (var r = 0; r < ROWS; r++) {
+      for (var c = 0; c < COLS; c++) {
+        if (!isWall(r, c)) continue;
+        X.fillStyle = '#1111aa';
+        X.fillRect(OX + c*CS, OY + r*CS, CS, CS);
+      }
     }
-    document.getElementById('slitherOverlayTitle').textContent = 'Game Over';
-    var scoreEl = document.getElementById('slitherOverlayScore');
-    scoreEl.textContent = 'Score: ' + score; scoreEl.style.display = '';
-    document.getElementById('slitherOverlaySub').textContent = score > 0 ? 'Score saved.' : 'Better luck next time.';
-    document.getElementById('slitherPlayBtn').textContent = 'Play Again';
-    document.getElementById('slitherOverlay').style.display = 'flex';
-    document.getElementById('slitherHud').style.display = 'none';
+    // Draw lighter blue edge lines where wall meets open space
+    X.strokeStyle = '#4444ff';
+    X.lineWidth = 2;
+    for (var r = 0; r < ROWS; r++) {
+      for (var c = 0; c < COLS; c++) {
+        if (!isWall(r, c)) continue;
+        var x = OX + c*CS, y = OY + r*CS;
+        if (!isWall(r-1, c)) { X.beginPath(); X.moveTo(x+1,y+1); X.lineTo(x+CS-1,y+1); X.stroke(); }
+        if (!isWall(r+1, c)) { X.beginPath(); X.moveTo(x+1,y+CS-1); X.lineTo(x+CS-1,y+CS-1); X.stroke(); }
+        if (!isWall(r, c-1)) { X.beginPath(); X.moveTo(x+1,y+1); X.lineTo(x+1,y+CS-1); X.stroke(); }
+        if (!isWall(r, c+1)) { X.beginPath(); X.moveTo(x+CS-1,y+1); X.lineTo(x+CS-1,y+CS-1); X.stroke(); }
+      }
+    }
+    // Ghost door
+    for (var r = 0; r < ROWS; r++) {
+      for (var c = 0; c < COLS; c++) {
+        if (cell(r,c) === '-') {
+          X.fillStyle = '#ff69b4';
+          X.fillRect(OX + c*CS, OY + r*CS + CS/2 - 1, CS, 2);
+        }
+      }
+    }
+  }
+
+  function drawDots() {
+    var t = performance.now() / 1000;
+    for (var r = 0; r < ROWS; r++) {
+      for (var c = 0; c < COLS; c++) {
+        if (!dots[r][c]) continue;
+        var ct = cctr(r, c);
+        if (dots[r][c] === '.') {
+          X.beginPath(); X.arc(ct.x, ct.y, 2.5, 0, Math.PI*2);
+          X.fillStyle = '#ffd700'; X.fill();
+        } else {
+          var pulse = 1 + 0.28 * Math.sin(t * 5);
+          X.beginPath(); X.arc(ct.x, ct.y, 5.5 * pulse, 0, Math.PI*2);
+          X.fillStyle = '#ffd700'; X.fill();
+        }
+      }
+    }
+  }
+
+  function drawPac() {
+    if (gameState !== 'playing') return;
+    X.save();
+    X.translate(pacPx, pacPy);
+    var angle = 0;
+    if (pacDir.c === 1) angle = 0;
+    else if (pacDir.c === -1) angle = Math.PI;
+    else if (pacDir.r === -1) angle = -Math.PI/2;
+    else if (pacDir.r === 1) angle = Math.PI/2;
+    X.rotate(angle);
+    var open = mAngle * Math.PI;
+    X.beginPath();
+    X.moveTo(0, 0);
+    X.arc(0, 0, CS/2 - 1, open, Math.PI*2 - open);
+    X.closePath();
+    X.fillStyle = '#ffd700';
+    X.fill();
+    X.restore();
+  }
+
+  function drawGhosts() {
+    var t = performance.now() / 1000;
+    ghosts.forEach(function(g) {
+      if (g.eaten) return;
+      var r = CS/2 - 1;
+      var gx = g.px, gy = g.py;
+      var color = g.color;
+      if (g.fright) {
+        color = (frightenTimer < 100 && Math.floor(t * 5) % 2) ? '#ffffff' : '#0000cc';
+      }
+      // Ghost body: semicircle top + wavy skirt
+      X.beginPath();
+      X.arc(gx, gy, r, Math.PI, 0);
+      var bY = gy + r;
+      X.lineTo(gx + r, bY);
+      // 3 wave bumps from right to left
+      X.quadraticCurveTo(gx + r*0.67, bY + r*0.45, gx + r*0.33, bY);
+      X.quadraticCurveTo(gx,           bY + r*0.45, gx - r*0.33, bY);
+      X.quadraticCurveTo(gx - r*0.67,  bY + r*0.45, gx - r,      bY);
+      X.lineTo(gx - r, gy);
+      X.closePath();
+      X.fillStyle = color;
+      X.fill();
+      // Eyes
+      if (!g.fright) {
+        var ey = gy - r*0.2;
+        X.fillStyle = '#fff';
+        X.beginPath(); X.arc(gx - r*0.35, ey, r*0.27, 0, Math.PI*2); X.fill();
+        X.beginPath(); X.arc(gx + r*0.35, ey, r*0.27, 0, Math.PI*2); X.fill();
+        var pa = Math.atan2(pacPy - gy, pacPx - gx);
+        var po = r * 0.1;
+        X.fillStyle = '#0000cc';
+        X.beginPath(); X.arc(gx - r*0.35 + Math.cos(pa)*po, ey + Math.sin(pa)*po, r*0.13, 0, Math.PI*2); X.fill();
+        X.beginPath(); X.arc(gx + r*0.35 + Math.cos(pa)*po, ey + Math.sin(pa)*po, r*0.13, 0, Math.PI*2); X.fill();
+      }
+    });
   }
 
   // ── Leaderboard ──────────────────────────────────────────────────────────
   async function loadLeaderboard() {
-    var el = document.getElementById('slitherLb');
+    var el = document.getElementById('pmLb');
     try {
       var res = await fetch('/snake/leaderboard');
       var rows = await res.json();
       if (!rows.length) { el.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:13px;text-align:center">No scores yet.</div>'; return; }
       var ranks = ['1st','2nd','3rd'];
       el.innerHTML = rows.map(function(r, i) { return '<div style="display:flex;align-items:center;gap:9px;padding:9px 14px;' + (i < rows.length-1 ? 'border-bottom:1px solid var(--line)' : '') + '">'
-        + '<span style="font-family:\'Baloo 2\';font-weight:900;font-size:10px;color:' + (i<3?'#fbbf24':'var(--muted)') + ';width:22px;flex-shrink:0">' + (ranks[i]||(i+1)) + '</span>'
+        + '<span style="font-family:\'Baloo 2\';font-weight:900;font-size:10px;color:' + (i<3?'#ffd700':'var(--muted)') + ';width:22px;flex-shrink:0">' + (ranks[i]||(i+1)) + '</span>'
         + '<img src="https://cdn.discordapp.com/avatars/' + r.discord_id + '/' + r.discord_avatar + '.png?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;border-radius:50%;flex-shrink:0">'
         + '<span style="flex:1;font-family:\'Baloo 2\';font-weight:700;font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (r.discord_tag||'—') + '</span>'
-        + '<span style="font-family:\'Baloo 2\';font-weight:900;font-size:13px;color:#5be38f">' + r.score + '</span>'
+        + '<span style="font-family:\'Baloo 2\';font-weight:900;font-size:13px;color:#ffd700">' + r.score + '</span>'
         + '</div>'; }).join('');
     } catch(e) { el.innerHTML = '<div style="padding:20px;color:#f87171;font-size:12px">Failed to load.</div>'; }
   }
