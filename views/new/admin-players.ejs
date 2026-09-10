@@ -72,6 +72,7 @@
     <div class="pl-filter" onclick="setFilter('verified', this)">Verified ✓</div>
     <div class="pl-filter" onclick="setFilter('pending', this)">Pending ready-check</div>
     <div class="pl-filter" onclick="setFilter('leaders', this)">Nation leaders 👑</div>
+    <div class="pl-filter" onclick="openMcTab(this)" id="mcTabBtn">MC Usernames</div>
   </div>
 
   <% if (players.length === 0) { %>
@@ -139,6 +140,20 @@
   <div class="pl-empty" id="noResults" style="display:none">No players match your search.</div>
   <% } %>
 
+  <!-- MC Usernames panel (hidden until tab clicked) -->
+  <div id="mcPanel" style="display:none">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+      <span style="font-family:'Baloo 2';font-weight:700;font-size:13px;color:var(--muted)">
+        Verified players + unverified players with a confirmed Mojang account
+      </span>
+      <button id="checkIgnBtn" onclick="runIgnCheck()"
+        style="font-family:'Baloo 2';font-weight:800;font-size:12px;padding:7px 14px;border-radius:8px;border:1px solid rgba(116,192,252,.3);background:rgba(116,192,252,.08);color:#74c0fc;cursor:pointer">
+        Check unverified IGNs
+      </button>
+    </div>
+    <div id="mcList"><div style="padding:40px;text-align:center;color:var(--muted);font-family:'Baloo 2';font-weight:700">Loading...</div></div>
+  </div>
+
 </div>
 </main>
 
@@ -195,6 +210,97 @@ function exportWhitelist() {
   }).catch(function() {
     prompt('Copy whitelist:', text);
   });
+}
+
+var mainView = document.getElementById('playerBody') ? document.getElementById('playerBody').closest('table') : null;
+var mainTable = document.querySelector('.pl-table');
+var noResults = document.getElementById('noResults');
+var mcPanel = document.getElementById('mcPanel');
+var mcTabActive = false;
+
+function openMcTab(el) {
+  document.querySelectorAll('.pl-filter').forEach(function(b) { b.classList.remove('active'); });
+  el.classList.add('active');
+  mcTabActive = true;
+  if (mainTable) mainTable.style.display = 'none';
+  if (noResults) noResults.style.display = 'none';
+  mcPanel.style.display = '';
+  loadMcUsernames();
+}
+
+function setFilter(f, el) {
+  currentFilter = f;
+  mcTabActive = false;
+  if (mainTable) mainTable.style.display = '';
+  mcPanel.style.display = 'none';
+  document.querySelectorAll('.pl-filter').forEach(function(b) { b.classList.remove('active'); });
+  el.classList.add('active');
+  applyFilters();
+}
+
+function loadMcUsernames() {
+  fetch('/admin/mc-usernames')
+    .then(function(r) { return r.json(); })
+    .then(function(rows) { renderMcList(rows); })
+    .catch(function() {
+      document.getElementById('mcList').innerHTML = '<div style="padding:40px;text-align:center;color:#f87171;font-family:\'Baloo 2\';font-weight:700">Failed to load.</div>';
+    });
+}
+
+function renderMcList(rows) {
+  var el = document.getElementById('mcList');
+  if (!rows.length) {
+    el.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);font-family:\'Baloo 2\';font-weight:700">No confirmed MC accounts yet. Click "Check unverified IGNs" to run a Mojang lookup.</div>';
+    return;
+  }
+  var html = '<table class="pl-table"><thead><tr>'
+    + '<th>Minecraft Account</th>'
+    + '<th>Discord</th>'
+    + '<th class="center">Status</th>'
+    + '</tr></thead><tbody>';
+  rows.forEach(function(p) {
+    var verified = p.ign_verified;
+    var badge = verified
+      ? '<span style="font-family:\'Baloo 2\';font-weight:800;font-size:11px;padding:2px 8px;border-radius:99px;background:rgba(91,227,143,.12);border:1px solid rgba(91,227,143,.3);color:#5be38f">Verified</span>'
+      : '<span style="font-family:\'Baloo 2\';font-weight:800;font-size:11px;padding:2px 8px;border-radius:99px;background:rgba(255,213,107,.1);border:1px solid rgba(255,213,107,.3);color:#ffd56b">Valid account</span>';
+    var crown = p.is_nation_leader ? ' <span class="pl-crown" title="Nation Leader">&#x1F451;</span>' : '';
+    html += '<tr class="pl-row">'
+      + '<td class="pl-cell"><div class="pl-ign">'
+      + '<img class="pl-head" src="https://mc-heads.net/avatar/' + encodeURIComponent(p.ign) + '/28" onerror="this.src=\'https://mc-heads.net/avatar/Steve/28\'" alt="">'
+      + '<span class="pl-ign-name">' + escHtml(p.ign) + crown + '</span>'
+      + '</div></td>'
+      + '<td class="pl-cell"><span class="pl-dtag">' + escHtml(p.discord_tag || '—') + '</span></td>'
+      + '<td class="pl-cell" style="text-align:center">' + badge + '</td>'
+      + '</tr>';
+  });
+  html += '</tbody></table>';
+  html += '<div style="padding:10px 0 0;font-family:\'Baloo 2\';font-size:12px;color:var(--muted)">'
+    + rows.length + ' accounts shown</div>';
+  el.innerHTML = html;
+}
+
+function runIgnCheck() {
+  var btn = document.getElementById('checkIgnBtn');
+  btn.textContent = 'Running...';
+  btn.disabled = true;
+  fetch('/admin/check-ign-validity', { method: 'POST' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      btn.textContent = 'Checking ' + data.queued + ' IGNs (background)';
+      setTimeout(function() {
+        btn.textContent = 'Check unverified IGNs';
+        btn.disabled = false;
+        loadMcUsernames();
+      }, Math.max(data.queued * 350 + 2000, 3000));
+    })
+    .catch(function() {
+      btn.textContent = 'Failed';
+      btn.disabled = false;
+    });
+}
+
+function escHtml(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 

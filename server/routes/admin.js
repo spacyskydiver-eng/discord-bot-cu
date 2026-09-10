@@ -49,10 +49,15 @@ function requireFullAdmin(req, res, next) {
 
 router.use(requireAdminOrStaff);
 
+// Ensure tracking columns exist
+db.query(`ALTER TABLE hundred_applications ADD COLUMN IF NOT EXISTS dm_wave INT`).catch(() => {});
+db.query(`ALTER TABLE hundred_applications ADD COLUMN IF NOT EXISTS ign_mojang_valid BOOLEAN`).catch(() => {});
+db.query(`ALTER TABLE nation_leader_applications ADD COLUMN IF NOT EXISTS ign_mojang_valid BOOLEAN`).catch(() => {});
+
 // Staff can only access application review paths; everything else needs full admin
 router.use((req, res, next) => {
   if (res.locals.isFullAdmin) return next();
-  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader') || req.path.startsWith('/nations') || req.path === '/hundred-players' || req.path === '/nation-map' || req.path.startsWith('/news-reporter') || req.path.startsWith('/moderation');
+  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader') || req.path.startsWith('/nations') || req.path === '/hundred-players' || req.path === '/mc-usernames' || req.path === '/check-ign-validity' || req.path === '/nation-map' || req.path.startsWith('/news-reporter') || req.path.startsWith('/moderation');
   if (!allowed) return res.status(403).render('403');
   next();
 });
@@ -1365,6 +1370,59 @@ router.get('/hundred-players', async (req, res) => {
   ].sort((a, b) => (a.ign || '').localeCompare(b.ign || ''));
 
   res.render('new/admin-players', { players });
+});
+
+// MC Usernames tab — verified players + unverified players with a valid Mojang account
+router.get('/mc-usernames', async (req, res) => {
+  const rows = (await db.query(`
+    SELECT discord_id, discord_tag, discord_avatar, ign, ign_verified, ign_mojang_valid,
+           (SELECT true FROM nation_leader_applications n WHERE n.discord_id = h.discord_id AND n.accepted = true LIMIT 1) AS is_nation_leader
+    FROM hundred_applications h
+    WHERE status = 'accepted'
+      AND ign IS NOT NULL AND ign != ''
+      AND (ign_verified = true OR ign_mojang_valid = true)
+    UNION
+    SELECT n.discord_id, n.discord_tag, n.discord_avatar, n.ign, n.ign_verified, n.ign_mojang_valid, true AS is_nation_leader
+    FROM nation_leader_applications n
+    WHERE n.accepted = true
+      AND n.ign IS NOT NULL AND n.ign != ''
+      AND (n.ign_verified = true OR n.ign_mojang_valid = true)
+      AND NOT EXISTS (SELECT 1 FROM hundred_applications h WHERE h.discord_id = n.discord_id AND h.status = 'accepted')
+    ORDER BY ign ASC
+  `)).rows;
+  res.json(rows);
+});
+
+// Trigger Mojang validity check for all unverified players that haven't been checked yet
+router.post('/check-ign-validity', async (req, res) => {
+  const unverified = (await db.query(`
+    SELECT discord_id, ign FROM hundred_applications
+    WHERE status = 'accepted'
+      AND ign IS NOT NULL AND ign != ''
+      AND ign_verified = false
+      AND ign_mojang_valid IS NULL
+    UNION
+    SELECT discord_id, ign FROM nation_leader_applications
+    WHERE accepted = true
+      AND ign IS NOT NULL AND ign != ''
+      AND ign_verified = false
+      AND ign_mojang_valid IS NULL
+  `)).rows;
+
+  res.json({ queued: unverified.length });
+
+  // Run checks asynchronously after responding so the request doesn't time out
+  (async () => {
+    for (const p of unverified) {
+      try {
+        const r = await fetch(`https://api.mojang.com/users/profiles/minecraft/${encodeURIComponent(p.ign)}`);
+        const valid = r.ok && r.status === 200;
+        await db.query(`UPDATE hundred_applications SET ign_mojang_valid = $1 WHERE discord_id = $2`, [valid, p.discord_id]);
+        await db.query(`UPDATE nation_leader_applications SET ign_mojang_valid = $1 WHERE discord_id = $2`, [valid, p.discord_id]);
+      } catch (_) {}
+      await new Promise(r => setTimeout(r, 300)); // stay under Mojang rate limit
+    }
+  })();
 });
 
 // Nation map (admin view)
