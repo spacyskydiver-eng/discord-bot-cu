@@ -202,28 +202,26 @@
   </div>
 
   <div style="display:grid;grid-template-columns:1fr 256px;gap:20px;align-items:start">
-
     <div style="position:relative">
       <canvas id="slitherCanvas" width="760" height="480"
-        style="width:100%;border-radius:12px;border:1px solid var(--line);display:block;background:#07090f"></canvas>
+        style="width:100%;border-radius:12px;border:1px solid var(--line);display:block;cursor:none;background:#07090f"></canvas>
 
-      <div id="slitherOverlay" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:12px;background:rgba(7,9,15,.9);backdrop-filter:blur(6px)">
+      <div id="slitherOverlay" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:12px;background:rgba(7,9,15,.92);backdrop-filter:blur(6px)">
         <div id="slitherOverlayTitle" style="font-family:'Baloo 2';font-weight:900;font-size:30px;color:#fff;margin-bottom:10px;letter-spacing:-.5px">Slither</div>
-        <div style="font-size:13px;color:rgba(255,255,255,.45);margin-bottom:4px;text-align:center;line-height:1.9">
-          <span style="color:rgba(255,255,255,.75);font-weight:600">A / D</span> &nbsp;steer &nbsp;&nbsp; <span style="color:rgba(255,255,255,.75);font-weight:600">W</span> &nbsp;boost
+        <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:20px;text-align:center;line-height:1.8">
+          Move your <span style="color:rgba(255,255,255,.8);font-weight:600">mouse</span> to steer &nbsp;·&nbsp; hold <span style="color:rgba(255,255,255,.8);font-weight:600">Space</span> to boost
         </div>
-        <div id="slitherOverlaySub" style="font-size:12px;color:rgba(255,255,255,.35);margin-bottom:8px;text-align:center">Eat the orbs to grow. Avoid yourself.</div>
-        <div id="slitherOverlayScore" style="font-family:'Baloo 2';font-weight:900;font-size:24px;color:#5be38f;margin:14px 0 2px;display:none"></div>
-        <div id="slitherOverlayLen" style="font-size:12px;color:rgba(255,255,255,.35);margin-bottom:18px;display:none"></div>
+        <div id="slitherOverlayScore" style="font-family:'Baloo 2';font-weight:900;font-size:24px;color:#5be38f;margin-bottom:4px;display:none"></div>
+        <div id="slitherOverlaySub" style="font-size:12px;color:rgba(255,255,255,.35);margin-bottom:20px"></div>
         <button onclick="slitherStart()" id="slitherPlayBtn"
-          style="font-family:'Baloo 2';font-weight:800;font-size:14px;padding:11px 30px;border-radius:9px;border:none;background:#1a7f42;color:#fff;cursor:pointer;letter-spacing:.02em">Play</button>
+          style="font-family:'Baloo 2';font-weight:800;font-size:14px;padding:11px 30px;border-radius:9px;border:none;background:#1a7f42;color:#fff;cursor:pointer">Play</button>
       </div>
 
       <div id="slitherHud" style="position:absolute;top:12px;left:12px;right:12px;display:none;justify-content:space-between;pointer-events:none">
         <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#fff;background:rgba(0,0,0,.5);padding:3px 11px;border-radius:7px">
           Score <span id="slitherScore" style="color:#5be38f;margin-left:4px">0</span>
         </div>
-        <div id="slitherBoostHud" style="font-family:'Baloo 2';font-weight:700;font-size:12px;color:#93c5fd;background:rgba(0,0,0,.5);padding:3px 11px;border-radius:7px;display:none">BOOST</div>
+        <div id="slitherBoostHud" style="font-family:'Baloo 2';font-weight:700;font-size:12px;color:#93c5fd;background:rgba(0,0,0,.5);padding:3px 11px;border-radius:7px;opacity:0;transition:opacity .1s">BOOST</div>
         <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#fff;background:rgba(0,0,0,.5);padding:3px 11px;border-radius:7px">
           Best <span id="slitherBest" style="color:#fbbf24;margin-left:4px">0</span>
         </div>
@@ -234,99 +232,130 @@
       <div style="padding:13px 15px;border-bottom:1px solid var(--line);font-family:'Baloo 2';font-weight:800;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Top 10</div>
       <div id="slitherLb"><div style="padding:20px;color:var(--muted);font-size:13px;text-align:center">Loading...</div></div>
     </div>
-
   </div>
 </section>
 
 <script>
-(function() {
-  const C = document.getElementById('slitherCanvas');
-  const X = C.getContext('2d');
-  const W = 760, H = 480;
-  const BODY_R = 9;
-  const TAPER_PTS = 8;    // last 8 trail points taper to a sharp point
-  const TURN_SPEED = 0.07;
-  const FOOD_PALETTE = ['#f472b6','#fb923c','#38bdf8','#a78bfa','#fbbf24','#34d399','#f87171','#c084fc'];
+(function () {
+  var C = document.getElementById('slitherCanvas');
+  var X = C.getContext('2d');
+  var W = 760, H = 480;
 
-  const keys = {};
-  let keyHandler;
+  // ── Tuning (ported from knagaitsev/slither.io-clone) ──────────────────────
+  var SCALE        = 0.9;
+  var SLOW_SPD     = 2.2;               // px per frame
+  var FAST_SPD     = 4.0;
+  var ROT_SPD      = 0.040;             // rad per frame toward cursor
+  var PREF_DIST    = 17 * SCALE;        // px between drawn body circles
+  var BODY_R       = 10 * SCALE;        // body circle radius
+  var TAPER        = 5;                 // last N sections shrink to a point
+  var FOOD_CLR     = ['#f472b6','#fb923c','#38bdf8','#a78bfa','#fbbf24','#34d399','#f87171','#c084fc'];
 
-  let running = false, raf;
-  let score = 0, best = 0;
-  let angle = 0;
-  let trail = [];
-  let targetLen = 0;
-  let food = [];
+  var running = false, raf;
+  var mx = W / 2, my = H / 2 - 120;   // mouse in canvas coords
+  var boosting = false;
+  var angle = 0;
+  var headPath = [];                    // every position the head has visited, newest first
+  var numSections = 30;                 // how many body circles to draw
+  var score = 0, best = 0;
+  var food = [];
 
-  function onKey(e) {
-    const k = e.key.toLowerCase();
-    if (k === 'a' || k === 'd' || k === 'w' || k === 's' || k === 'arrowleft' || k === 'arrowright' || k === 'arrowup') {
-      keys[k] = e.type === 'keydown';
-      if (running) e.preventDefault();
-    }
-  }
+  // mouse
+  C.addEventListener('mousemove', function (e) {
+    var r = C.getBoundingClientRect();
+    mx = (e.clientX - r.left) * (W / r.width);
+    my = (e.clientY - r.top)  * (H / r.height);
+  });
 
+  // boost: space bar
+  document.addEventListener('keydown', function (e) { if (e.code === 'Space') { boosting = true;  if (running) e.preventDefault(); } });
+  document.addEventListener('keyup',   function (e) { if (e.code === 'Space')   boosting = false; });
+
+  // ── Food ──────────────────────────────────────────────────────────────────
   function spawnFood(n) {
-    for (let i = 0; i < n; i++) {
-      const r = 3.5 + Math.random() * 3.5;
-      food.push({
-        x: 24 + Math.random() * (W - 48),
-        y: 24 + Math.random() * (H - 48),
-        r,
-        color: FOOD_PALETTE[Math.floor(Math.random() * FOOD_PALETTE.length)],
-        phase: Math.random() * Math.PI * 2,
-        value: Math.round(r)
-      });
+    for (var i = 0; i < n; i++) {
+      var r = 3.5 + Math.random() * 3.5;
+      food.push({ x: 20 + Math.random() * (W - 40), y: 20 + Math.random() * (H - 40),
+                  r: r, color: FOOD_CLR[Math.floor(Math.random() * FOOD_CLR.length)],
+                  phase: Math.random() * Math.PI * 2, value: Math.round(r) });
     }
   }
 
+  // ── Reset ─────────────────────────────────────────────────────────────────
   function reset() {
-    trail = [];
-    const cx = W / 2, cy = H / 2;
-    for (let i = 0; i < 140; i++) trail.push({ x: cx - i * 2, y: cy });
+    headPath = [];
+    // Pre-fill so the snake starts fully formed
+    var cx = W / 2, cy = H / 2;
+    var needed = (numSections + 6) * PREF_DIST;
+    for (var i = 0; i <= needed; i++) headPath.push({ x: cx - i * 0.5, y: cy });
     angle = 0;
-    targetLen = 140;
+    numSections = 30;
     score = 0;
     food = [];
     spawnFood(26);
-    for (const k in keys) keys[k] = false;
+    mx = W / 2; my = H / 2 - 120;
   }
 
-  window.slitherStart = function() {
+  // ── Section positions from headPath (core mechanic from reference) ─────────
+  // Walk headPath accumulating actual arc-length; place a section every PREF_DIST.
+  function getSections() {
+    var out = [{ x: headPath[0].x, y: headPath[0].y }];  // head
+    var accum = 0;
+    for (var i = 1; i < headPath.length && out.length < numSections; i++) {
+      var dx = headPath[i].x - headPath[i - 1].x;
+      var dy = headPath[i].y - headPath[i - 1].y;
+      accum += Math.sqrt(dx * dx + dy * dy);
+      if (accum >= PREF_DIST) {
+        out.push({ x: headPath[i].x, y: headPath[i].y });
+        accum -= PREF_DIST;
+      }
+    }
+    return out;
+  }
+
+  // ── Start ────────────────────────────────────────────────────────────────
+  window.slitherStart = function () {
     reset();
     running = true;
     document.getElementById('slitherOverlay').style.display = 'none';
     document.getElementById('slitherHud').style.display = 'flex';
     document.getElementById('slitherScore').textContent = '0';
-    if (!keyHandler) { keyHandler = onKey; document.addEventListener('keydown', keyHandler); document.addEventListener('keyup', keyHandler); }
     if (raf) cancelAnimationFrame(raf);
-    function loop() { if (!running) return; update(); draw(); raf = requestAnimationFrame(loop); }
-    loop();
+    (function loop() { if (!running) return; update(); draw(); raf = requestAnimationFrame(loop); })();
   };
 
+  // ── Update ───────────────────────────────────────────────────────────────
   function update() {
-    const boosting = keys.w || keys.arrowup;
-    const speed = boosting ? 3.2 : 1.8;
+    var spd = boosting ? FAST_SPD : SLOW_SPD;
 
-    // A/D (or arrow keys) rotate the snake
-    if (keys.a || keys.arrowleft) angle -= TURN_SPEED;
-    if (keys.d || keys.arrowright) angle += TURN_SPEED;
+    // Rotate toward mouse at fixed rate (mirrors reference rotateLeft/rotateRight logic)
+    var hx = headPath[0].x, hy = headPath[0].y;
+    var target = Math.atan2(my - hy, mx - hx);
+    var diff = target - angle;
+    while (diff >  Math.PI) diff -= 2 * Math.PI;
+    while (diff < -Math.PI) diff += 2 * Math.PI;
+    angle += (diff > 0 ? 1 : -1) * Math.min(Math.abs(diff), ROT_SPD);
 
-    const nx = trail[0].x + Math.cos(angle) * speed;
-    const ny = trail[0].y + Math.sin(angle) * speed;
+    var nx = hx + Math.cos(angle) * spd;
+    var ny = hy + Math.sin(angle) * spd;
 
     if (nx < BODY_R || nx > W - BODY_R || ny < BODY_R || ny > H - BODY_R) { die(); return; }
 
-    trail.unshift({ x: nx, y: ny });
+    headPath.unshift({ x: nx, y: ny });
 
-    if (boosting && targetLen > 90) targetLen -= 0.35;
-    while (trail.length > Math.floor(targetLen)) trail.pop();
+    // Trim path — only need enough history to fit all sections at PREF_DIST each
+    var maxPts = Math.ceil(((numSections + 8) * PREF_DIST) / Math.min(SLOW_SPD, spd)) + 20;
+    if (headPath.length > maxPts) headPath.length = maxPts;
 
-    for (let i = food.length - 1; i >= 0; i--) {
-      const f = food[i];
-      if ((nx - f.x) ** 2 + (ny - f.y) ** 2 < (BODY_R + f.r) ** 2) {
+    // Boost slowly shrinks snake (mirrors reference scale decrement)
+    if (boosting && numSections > 20) numSections -= 0.015;
+
+    // Food
+    for (var i = food.length - 1; i >= 0; i--) {
+      var f = food[i];
+      if ((nx - f.x) * (nx - f.x) + (ny - f.y) * (ny - f.y) < (BODY_R + f.r) * (BODY_R + f.r)) {
         food.splice(i, 1);
-        targetLen += f.value * 14;
+        numSections += f.value * 2;
         score += f.value;
         if (score > best) best = score;
         document.getElementById('slitherScore').textContent = score;
@@ -335,125 +364,124 @@
       }
     }
 
-    // Self collision — skip the first segment worth of points
-    const skip = Math.ceil(BODY_R * 4);
-    for (let i = skip; i < trail.length; i += 2) {
-      if ((nx - trail[i].x) ** 2 + (ny - trail[i].y) ** 2 < (BODY_R - 1) ** 2) { die(); return; }
+    // Self-collision: skip the head-adjacent sections
+    var secs = getSections();
+    var skip = 7;
+    for (var j = skip; j < secs.length; j++) {
+      var s = secs[j];
+      var d2 = (nx - s.x) * (nx - s.x) + (ny - s.y) * (ny - s.y);
+      if (d2 < BODY_R * BODY_R * 1.2) { die(); return; }
     }
 
-    document.getElementById('slitherBoostHud').style.display = boosting ? '' : 'none';
+    document.getElementById('slitherBoostHud').style.opacity = boosting ? '1' : '0';
   }
 
+  // ── Draw ─────────────────────────────────────────────────────────────────
   function draw() {
     X.clearRect(0, 0, W, H);
 
-    // Subtle dot grid
-    X.fillStyle = 'rgba(255,255,255,0.02)';
-    for (let gx = 30; gx < W; gx += 40) for (let gy = 30; gy < H; gy += 40) {
-      X.beginPath(); X.arc(gx, gy, 1.2, 0, Math.PI * 2); X.fill();
-    }
+    // Dot grid background
+    X.fillStyle = 'rgba(255,255,255,0.022)';
+    for (var gx = 30; gx < W; gx += 40)
+      for (var gy = 30; gy < H; gy += 40) {
+        X.beginPath(); X.arc(gx, gy, 1.2, 0, Math.PI * 2); X.fill();
+      }
 
-    const t = performance.now() / 1000;
-    const boosting = keys.w || keys.arrowup;
+    var t = performance.now() / 1000;
 
     // Food
-    for (const f of food) {
-      const pulse = 1 + 0.18 * Math.sin(t * 2.8 + f.phase);
-      const gr = X.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r * 3.5);
+    for (var i = 0; i < food.length; i++) {
+      var f = food[i];
+      var pulse = 1 + 0.18 * Math.sin(t * 2.8 + f.phase);
+      var gr = X.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r * 3.5);
       gr.addColorStop(0, f.color + 'aa'); gr.addColorStop(1, f.color + '00');
       X.beginPath(); X.arc(f.x, f.y, f.r * 3.5, 0, Math.PI * 2); X.fillStyle = gr; X.fill();
       X.beginPath(); X.arc(f.x, f.y, f.r * pulse, 0, Math.PI * 2); X.fillStyle = f.color; X.fill();
-      X.beginPath(); X.arc(f.x - f.r * 0.3, f.y - f.r * 0.3, f.r * 0.3, 0, Math.PI * 2);
-      X.fillStyle = 'rgba(255,255,255,.5)'; X.fill();
+      X.beginPath(); X.arc(f.x - f.r * 0.28, f.y - f.r * 0.28, f.r * 0.3, 0, Math.PI * 2);
+      X.fillStyle = 'rgba(255,255,255,0.5)'; X.fill();
     }
 
-    const tLen = trail.length;
-    if (!tLen) return;
+    var secs = getSections();
+    var n = secs.length;
+    if (!n) return;
 
-    // Body: draw tail to head so head renders on top.
-    // - Last TAPER_PTS points taper in radius to a point (fully opaque throughout).
-    // - Rest of body is constant BODY_R.
-    // - Color shifts slightly head to tail for depth.
-    for (let i = tLen - 1; i >= 0; i--) {
-      const p = trail[i];
-      const fromTail = tLen - 1 - i; // 0 at tail tip, grows toward head
-
-      const r = fromTail < TAPER_PTS
-        ? BODY_R * (fromTail / TAPER_PTS)
-        : BODY_R;
-
-      // Slight colour gradient: tail is a bit darker
-      const bright = fromTail < TAPER_PTS ? 28 + (fromTail / TAPER_PTS) * 24 : 52;
-      const hue = boosting ? 215 : 136;
-      const sat = boosting ? 78 : 62;
-
+    // Draw body tail→head so head is on top.
+    // Body is uniform BODY_R circles. Last TAPER sections shrink to a point.
+    for (var i = n - 1; i >= 0; i--) {
+      var p = secs[i];
+      var fromTail = n - 1 - i;   // 0 = tail tip
+      var r = fromTail < TAPER ? BODY_R * (fromTail / TAPER) : BODY_R;
+      var prog = i / (n - 1);     // 1 = tail, 0 = head — for colour
+      var hue = boosting ? 215 : 136;
+      var lit = 32 + (1 - prog) * 22;  // head brighter than tail
       X.beginPath(); X.arc(p.x, p.y, r, 0, Math.PI * 2);
-      X.fillStyle = `hsl(${hue},${sat}%,${bright}%)`;
+      X.fillStyle = 'hsl(' + hue + ',' + (boosting ? 78 : 62) + '%,' + lit + '%)';
       X.fill();
     }
 
-    // Boost trail
+    // Boost afterglow on first few sections
     if (boosting) {
-      for (let i = 5; i < 24; i += 3) {
-        if (i >= trail.length) break;
-        const bp = trail[i];
-        const a = 0.3 * (1 - i / 24);
-        X.beginPath(); X.arc(bp.x, bp.y, BODY_R * 0.55 * (1 - i / 24), 0, Math.PI * 2);
-        X.fillStyle = `rgba(147,197,253,${a})`; X.fill();
+      for (var i = 2; i < Math.min(12, secs.length); i++) {
+        var s = secs[i];
+        var a = 0.28 * (1 - i / 12);
+        X.beginPath(); X.arc(s.x, s.y, BODY_R * 0.6, 0, Math.PI * 2);
+        X.fillStyle = 'rgba(147,197,253,' + a + ')'; X.fill();
       }
     }
 
-    // Head
-    const hd = trail[0];
-    const hgr = X.createRadialGradient(hd.x - 2, hd.y - 2, 0, hd.x, hd.y, BODY_R);
+    // Head highlight
+    var hd = secs[0];
+    var hgr = X.createRadialGradient(hd.x - 2, hd.y - 2, 0, hd.x, hd.y, BODY_R);
     hgr.addColorStop(0, boosting ? '#bfdbfe' : '#86efac');
-    hgr.addColorStop(1, boosting ? '#1d4ed8' : '#166534');
-    X.beginPath(); X.arc(hd.x, hd.y, BODY_R, 0, Math.PI * 2);
-    X.fillStyle = hgr; X.fill();
+    hgr.addColorStop(1, boosting ? '#1e40af' : '#14532d');
+    X.beginPath(); X.arc(hd.x, hd.y, BODY_R, 0, Math.PI * 2); X.fillStyle = hgr; X.fill();
 
     // Eyes
-    for (const side of [-0.42, 0.42]) {
-      const ex = hd.x + Math.cos(angle + side) * 5.5;
-      const ey = hd.y + Math.sin(angle + side) * 5.5;
-      X.beginPath(); X.arc(ex, ey, 2.8, 0, Math.PI * 2); X.fillStyle = '#fff'; X.fill();
-      X.beginPath(); X.arc(ex + Math.cos(angle) * 0.9, ey + Math.sin(angle) * 0.9, 1.4, 0, Math.PI * 2);
+    var sides = [-0.42, 0.42];
+    for (var s = 0; s < 2; s++) {
+      var ex = hd.x + Math.cos(angle + sides[s]) * 5.5;
+      var ey = hd.y + Math.sin(angle + sides[s]) * 5.5;
+      X.beginPath(); X.arc(ex, ey, 2.6, 0, Math.PI * 2); X.fillStyle = '#fff'; X.fill();
+      X.beginPath(); X.arc(ex + Math.cos(angle) * 0.9, ey + Math.sin(angle) * 0.9, 1.3, 0, Math.PI * 2);
       X.fillStyle = '#111'; X.fill();
     }
+
+    // Cursor dot
+    X.beginPath(); X.arc(mx, my, 3, 0, Math.PI * 2);
+    X.fillStyle = 'rgba(255,255,255,0.35)'; X.fill();
   }
 
+  // ── Die ──────────────────────────────────────────────────────────────────
   function die() {
     running = false;
     cancelAnimationFrame(raf);
-    if (keyHandler) { document.removeEventListener('keydown', keyHandler); document.removeEventListener('keyup', keyHandler); keyHandler = null; }
     if (score > 0) {
-      fetch('/snake/score', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ score }) })
-        .then(() => loadLeaderboard());
+      fetch('/snake/score', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ score: score }) }).then(function () { loadLeaderboard(); });
     }
     document.getElementById('slitherOverlayTitle').textContent = 'Game Over';
-    document.getElementById('slitherOverlaySub').textContent = score > 0 ? 'Score saved.' : 'Better luck next time.';
-    const scoreEl = document.getElementById('slitherOverlayScore');
+    var scoreEl = document.getElementById('slitherOverlayScore');
     scoreEl.textContent = 'Score: ' + score; scoreEl.style.display = '';
-    const lenEl = document.getElementById('slitherOverlayLen');
-    lenEl.textContent = 'Length: ' + trail.length; lenEl.style.display = '';
+    document.getElementById('slitherOverlaySub').textContent = score > 0 ? 'Score saved.' : 'Better luck next time.';
     document.getElementById('slitherPlayBtn').textContent = 'Play Again';
     document.getElementById('slitherOverlay').style.display = 'flex';
     document.getElementById('slitherHud').style.display = 'none';
   }
 
+  // ── Leaderboard ──────────────────────────────────────────────────────────
   async function loadLeaderboard() {
-    const el = document.getElementById('slitherLb');
+    var el = document.getElementById('slitherLb');
     try {
-      const res = await fetch('/snake/leaderboard');
-      const rows = await res.json();
+      var res = await fetch('/snake/leaderboard');
+      var rows = await res.json();
       if (!rows.length) { el.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:13px;text-align:center">No scores yet.</div>'; return; }
-      const ranks = ['1st','2nd','3rd'];
-      el.innerHTML = rows.map((r, i) => `
-        <div style="display:flex;align-items:center;gap:9px;padding:9px 14px;${i < rows.length-1 ? 'border-bottom:1px solid var(--line)' : ''}">
-          <span style="font-family:'Baloo 2';font-weight:900;font-size:10px;color:${i<3?'#fbbf24':'var(--muted)'};width:22px;flex-shrink:0">${ranks[i] || (i+1)}</span>
-          <img src="https://cdn.discordapp.com/avatars/${r.discord_id}/${r.discord_avatar}.png?size=32" onerror="this.style.display='none'" style="width:24px;height:24px;border-radius:50%;flex-shrink:0">
-          <span style="flex:1;font-family:'Baloo 2';font-weight:700;font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.discord_tag || '—'}</span>
-          <span style="font-family:'Baloo 2';font-weight:900;font-size:13px;color:#5be38f">${r.score}</span>
-        </div>`).join('');
+      var ranks = ['1st','2nd','3rd'];
+      el.innerHTML = rows.map(function(r, i) { return '<div style="display:flex;align-items:center;gap:9px;padding:9px 14px;' + (i < rows.length-1 ? 'border-bottom:1px solid var(--line)' : '') + '">'
+        + '<span style="font-family:\'Baloo 2\';font-weight:900;font-size:10px;color:' + (i<3?'#fbbf24':'var(--muted)') + ';width:22px;flex-shrink:0">' + (ranks[i]||(i+1)) + '</span>'
+        + '<img src="https://cdn.discordapp.com/avatars/' + r.discord_id + '/' + r.discord_avatar + '.png?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;border-radius:50%;flex-shrink:0">'
+        + '<span style="flex:1;font-family:\'Baloo 2\';font-weight:700;font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (r.discord_tag||'—') + '</span>'
+        + '<span style="font-family:\'Baloo 2\';font-weight:900;font-size:13px;color:#5be38f">' + r.score + '</span>'
+        + '</div>'; }).join('');
     } catch(e) { el.innerHTML = '<div style="padding:20px;color:#f87171;font-size:12px">Failed to load.</div>'; }
   }
 
