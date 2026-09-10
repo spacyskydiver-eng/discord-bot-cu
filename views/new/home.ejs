@@ -244,8 +244,8 @@
   const X = C.getContext('2d');
   const W = 760, H = 480;
   const BODY_R = 9;
-  const TAPER_PTS = 22;   // fixed number of tail points that taper — rest of body is full width
-  const TURN_SPEED = 0.08; // radians per frame when A or D held
+  const TAPER_PTS = 8;    // last 8 trail points taper to a sharp point
+  const TURN_SPEED = 0.07;
   const FOOD_PALETTE = ['#f472b6','#fb923c','#38bdf8','#a78bfa','#fbbf24','#34d399','#f87171','#c084fc'];
 
   const keys = {};
@@ -306,7 +306,7 @@
 
   function update() {
     const boosting = keys.w || keys.arrowup;
-    const speed = boosting ? 5.5 : 3.2;
+    const speed = boosting ? 3.2 : 1.8;
 
     // A/D (or arrow keys) rotate the snake
     if (keys.a || keys.arrowleft) angle -= TURN_SPEED;
@@ -320,7 +320,7 @@
     trail.unshift({ x: nx, y: ny });
 
     if (boosting && targetLen > 90) targetLen -= 0.35;
-    while (trail.length > Math.ceil(targetLen)) trail.pop();
+    while (trail.length > Math.floor(targetLen)) trail.pop();
 
     for (let i = food.length - 1; i >= 0; i--) {
       const f = food[i];
