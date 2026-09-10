@@ -113,6 +113,36 @@
         </div>
       </a>
 
+    <% if (locals.isAdmin) { %>
+      <a href="#pm-section" class="tile" onclick="document.getElementById('pm-section').scrollIntoView({behavior:'smooth'});return false;"
+        style="background:linear-gradient(135deg,#1a120a 0%,#0d0a00 100%);border-color:rgba(255,215,0,.18)">
+        <div class="bgart">
+          <svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 600 160" xmlns="http://www.w3.org/2000/svg">
+            <g fill="#ffd700" opacity="0.12">
+              <rect x="0" y="0" width="20" height="20"/><rect x="40" y="0" width="20" height="20"/><rect x="80" y="0" width="20" height="20"/>
+              <rect x="0" y="40" width="20" height="20"/><rect x="0" y="80" width="20" height="20"/>
+              <rect x="40" y="80" width="20" height="20"/><rect x="80" y="80" width="20" height="20"/>
+              <rect x="80" y="40" width="20" height="20"/>
+            </g>
+            <circle cx="340" cy="80" r="42" fill="#ffd700" opacity="0.13"/>
+            <circle cx="420" cy="50" r="28" fill="#ffd700" opacity="0.10"/>
+            <circle cx="490" cy="100" r="18" fill="#ffd700" opacity="0.09"/>
+          </svg>
+        </div>
+        <div class="ico">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 10 A40 40 0 1 1 50 90 A40 40 0 1 1 50 10 Z" fill="#ffd700"/>
+            <path d="M50 50 L90 30 A40 40 0 0 0 90 70 Z" fill="#000"/>
+            <circle cx="50" cy="24" r="5" fill="#fff"/>
+          </svg>
+        </div>
+        <div class="label">
+          <h3 style="color:#ffd700">Pac-Man</h3>
+          <p style="color:rgba(255,215,0,.55)">Admin mini-game</p>
+        </div>
+      </a>
+    <% } %>
+
     </div><!-- /.tiles-main -->
 
     <div class="tiles-side">
