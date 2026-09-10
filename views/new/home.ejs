@@ -300,9 +300,10 @@
   var OX = Math.floor((CW - COLS * CS) / 2);  // 10
   var OY = 28;
 
+  function wrapC(c) { return ((c % COLS) + COLS) % COLS; }
   function cell(r, c) {
-    if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return '#';
-    return M[r][c] || ' ';
+    if (r < 0 || r >= ROWS) return '#';
+    return M[r][wrapC(c)] || ' ';
   }
   function isWall(r, c) { return cell(r, c) === '#'; }
   function passable(r, c, forGhost) {
@@ -436,13 +437,24 @@
     if (pacProg >= 1.0) {
       pacR = pacTR; pacC = pacTC;
       // Try queued direction
-      if ((pacNext.r !== 0 || pacNext.c !== 0) && passable(pacR + pacNext.r, pacC + pacNext.c, false)) {
-        pacDir = {r: pacNext.r, c: pacNext.c};
+      if (pacNext.r !== 0 || pacNext.c !== 0) {
+        var qnc = wrapC(pacC + pacNext.c);
+        if (passable(pacR + pacNext.r, qnc, false)) pacDir = {r: pacNext.r, c: pacNext.c};
       }
       // Move in current direction
-      if ((pacDir.r !== 0 || pacDir.c !== 0) && passable(pacR + pacDir.r, pacC + pacDir.c, false)) {
-        pacTR = pacR + pacDir.r; pacTC = pacC + pacDir.c;
-        pacProg = 0;
+      if (pacDir.r !== 0 || pacDir.c !== 0) {
+        var mnc = wrapC(pacC + pacDir.c);
+        if (passable(pacR + pacDir.r, mnc, false)) {
+          pacTR = pacR + pacDir.r; pacTC = mnc;
+          if (mnc !== pacC + pacDir.c) {
+            // Tunnel wrap — snap Pac-Man to the other side immediately
+            var snap = cctr(pacTR, pacTC);
+            pacR = pacTR; pacC = pacTC; pacPx = snap.x; pacPy = snap.y;
+            pacProg = 1.0;
+          } else {
+            pacProg = 0;
+          }
+        }
       }
     }
     if (pacProg < 1.0) {
@@ -472,13 +484,22 @@
       g.r = g.tR; g.c = g.tC;
       var nd = ghostDir(g);
       g.dir = nd;
-      g.tR = g.r + nd.r; g.tC = g.c + nd.c;
-      g.prog = 0;
+      var gnc = wrapC(g.c + nd.c);
+      g.tR = g.r + nd.r; g.tC = gnc;
+      if (gnc !== g.c + nd.c) {
+        var gsnap = cctr(g.tR, g.tC);
+        g.r = g.tR; g.c = g.tC; g.px = gsnap.x; g.py = gsnap.y;
+        g.prog = 1.0;
+      } else {
+        g.prog = 0;
+      }
     }
-    g.prog = Math.min(1.0, g.prog + spd);
-    var fr = cctr(g.r, g.c), to = cctr(g.tR, g.tC);
-    g.px = fr.x + (to.x - fr.x) * g.prog;
-    g.py = fr.y + (to.y - fr.y) * g.prog;
+    if (g.prog < 1.0) {
+      g.prog = Math.min(1.0, g.prog + spd);
+      var fr = cctr(g.r, g.c), to = cctr(g.tR, g.tC);
+      g.px = fr.x + (to.x - fr.x) * g.prog;
+      g.py = fr.y + (to.y - fr.y) * g.prog;
+    }
   }
 
   // Ghost AI ported from Pacman-Flutter-master/lib/HomePage.dart:
@@ -487,7 +508,7 @@
     var all = [{r:0,c:-1},{r:0,c:1},{r:-1,c:0},{r:1,c:0}];
     var rev = {r:-g.dir.r, c:-g.dir.c};
     var valid = all.filter(function(d) {
-      return passable(g.r+d.r, g.c+d.c, true) && !(d.r===rev.r && d.c===rev.c);
+      return passable(g.r+d.r, wrapC(g.c+d.c), true) && !(d.r===rev.r && d.c===rev.c);
     });
     if (!valid.length) return rev;
     if (g.fright) return valid[Math.floor(Math.random() * valid.length)];
