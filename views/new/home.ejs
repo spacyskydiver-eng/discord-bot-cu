@@ -113,7 +113,6 @@
         </div>
       </a>
 
-    <% if (locals.isAdmin) { %>
       <a href="#pm-section" class="tile" onclick="document.getElementById('pm-section').scrollIntoView({behavior:'smooth'});return false;"
         style="background:linear-gradient(135deg,#1a120a 0%,#0d0a00 100%);border-color:rgba(255,215,0,.18)">
         <div class="bgart">
@@ -141,7 +140,6 @@
           <p style="color:rgba(255,215,0,.55)">Admin mini-game</p>
         </div>
       </a>
-    <% } %>
 
     </div><!-- /.tiles-main -->
 
@@ -223,12 +221,11 @@
 
 </main>
 
-<% if (locals.isAdmin) { %>
 <section id="pm-section" style="position:relative;z-index:1;padding:48px 20px 64px;max-width:1100px;margin:0 auto">
 
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
     <span style="font-family:'Baloo 2';font-weight:900;font-size:20px;color:#e0e2ed">Pac-Man</span>
-    <span style="font-family:'Baloo 2';font-weight:700;font-size:11px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);color:#f87171;padding:2px 9px;border-radius:99px">Admin only</span>
+    <span style="font-family:'Baloo 2';font-weight:700;font-size:11px;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.2);color:#ffd700;padding:2px 9px;border-radius:99px">Mini game</span>
   </div>
 
   <div style="display:grid;grid-template-columns:1fr 256px;gap:20px;align-items:start">
@@ -676,7 +673,6 @@
   loadLeaderboard();
 })();
 </script>
-<% } %>
 
 <script>
 // ── Interactive repel starfield ───────────────────────────────────────────

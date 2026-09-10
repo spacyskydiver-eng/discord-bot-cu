@@ -31,12 +31,14 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/snake/score', async (req, res) => {
-  if (!req.session.user) return res.json({ ok: false, error: 'Not logged in' });
   const score = parseInt(req.body.score);
   if (isNaN(score) || score < 1) return res.json({ ok: false });
+  const id  = req.session.user ? req.session.user.id       : 'guest';
+  const tag = req.session.user ? req.session.user.username : 'Guest';
+  const av  = req.session.user ? (req.session.user.avatar || null) : null;
   await db.query(
     `INSERT INTO snake_scores (discord_id, discord_tag, discord_avatar, score) VALUES ($1,$2,$3,$4)`,
-    [req.session.user.id, req.session.user.username, req.session.user.avatar || null, score]
+    [id, tag, av, score]
   );
   res.json({ ok: true });
 });
