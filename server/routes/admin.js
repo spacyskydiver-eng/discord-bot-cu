@@ -2231,7 +2231,7 @@ router.delete('/kill-tickets/:id', requireAdminOrStaff, async (req, res) => {
 
 router.post('/kill-tickets/:id/toggle', requireAdminOrStaff, async (req, res) => {
   const r = await db.query(
-    `UPDATE kill_ticket_config SET enabled = NOT enabled, updated_at = NOW() WHERE id = $1 RETURNING enabled`,
+    `UPDATE kill_ticket_config SET enabled = NOT COALESCE(enabled, true), updated_at = NOW() WHERE id = $1 RETURNING enabled`,
     [req.params.id]
   );
   if (!r.rows[0]) return res.json({ ok: false, error: 'Not found' });
