@@ -27,6 +27,7 @@
 .kt-btn-primary { background: rgba(116,192,252,.15); border: 1px solid rgba(116,192,252,.35); color: #74c0fc; }
 .kt-btn-danger { background: rgba(248,113,113,.12); border: 1px solid rgba(248,113,113,.3); color: #f87171; }
 .kt-btn-success { background: rgba(74,222,128,.12); border: 1px solid rgba(74,222,128,.3); color: #4ade80; }
+.kt-btn-warning { background: rgba(251,191,36,.12); border: 1px solid rgba(251,191,36,.3); color: #fbbf24; }
 .kt-btn-ghost { background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); }
 .kt-btn-sm { padding: 6px 12px; font-size: 12px; }
 
@@ -75,6 +76,7 @@
         </div>
         <button class="kt-btn kt-btn-ghost kt-btn-sm" onclick="loadConfig(<%= JSON.stringify(c).replace(/</g,'\\u003c') %>)">Load</button>
         <button class="kt-btn kt-btn-success kt-btn-sm" onclick="postPanel(<%= c.id %>)">Post Panel</button>
+        <button class="kt-btn kt-btn-sm <%= c.enabled !== false ? 'kt-btn-warning' : 'kt-btn-success' %>" id="toggle-<%= c.id %>" onclick="toggleConfig(<%= c.id %>, this)"><%= c.enabled !== false ? 'Disable' : 'Enable' %></button>
         <button class="kt-btn kt-btn-danger kt-btn-sm" onclick="deleteConfig(<%= c.id %>)">✕</button>
       </div>
       <% } %>
@@ -281,6 +283,19 @@ async function deleteConfig(id) {
   if (!confirm('Delete this kill ticket config?')) return;
   await fetch(`/admin/kill-tickets/${id}`, { method:'DELETE' });
   location.reload();
+}
+
+async function toggleConfig(id, btn) {
+  const r = await fetch(`/admin/kill-tickets/${id}/toggle`, { method:'POST' });
+  const data = await r.json();
+  if (!data.ok) return;
+  if (data.enabled) {
+    btn.textContent = 'Disable';
+    btn.className = 'kt-btn kt-btn-sm kt-btn-warning';
+  } else {
+    btn.textContent = 'Enable';
+    btn.className = 'kt-btn kt-btn-sm kt-btn-success';
+  }
 }
 
 function loadConfig(c) {

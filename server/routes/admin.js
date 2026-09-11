@@ -2191,9 +2191,11 @@ db.query(`
     staff_role_ids TEXT DEFAULT '',
     panel_payload JSONB,
     ticket_intro TEXT DEFAULT '',
+    enabled BOOLEAN DEFAULT TRUE,
     updated_at TIMESTAMPTZ DEFAULT NOW()
   )
 `).catch(console.error);
+db.query(`ALTER TABLE kill_ticket_config ADD COLUMN IF NOT EXISTS enabled BOOLEAN DEFAULT TRUE`).catch(() => {});
 
 router.get('/kill-tickets', requireAdminOrStaff, async (req, res) => {
   const configs = (await db.query(`SELECT * FROM kill_ticket_config ORDER BY updated_at DESC`)).rows;
@@ -2225,6 +2227,15 @@ router.post('/kill-tickets/save', requireAdminOrStaff, async (req, res) => {
 router.delete('/kill-tickets/:id', requireAdminOrStaff, async (req, res) => {
   await db.query(`DELETE FROM kill_ticket_config WHERE id=$1`, [req.params.id]);
   res.json({ ok: true });
+});
+
+router.post('/kill-tickets/:id/toggle', requireAdminOrStaff, async (req, res) => {
+  const r = await db.query(
+    `UPDATE kill_ticket_config SET enabled = NOT enabled, updated_at = NOW() WHERE id = $1 RETURNING enabled`,
+    [req.params.id]
+  );
+  if (!r.rows[0]) return res.json({ ok: false, error: 'Not found' });
+  res.json({ ok: true, enabled: r.rows[0].enabled });
 });
 
 router.post('/kill-tickets/:id/post', requireAdminOrStaff, async (req, res) => {

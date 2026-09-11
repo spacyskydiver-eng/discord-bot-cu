@@ -210,6 +210,7 @@ client.on('interactionCreate', async interaction => {
         const cfgRes = await db.query(`SELECT * FROM kill_ticket_config WHERE id=$1`, [configId]);
         const cfg = cfgRes.rows[0];
         if (!cfg) return interaction.editReply({ content: 'Ticket system not configured. Contact staff.' });
+        if (cfg.enabled === false) return interaction.editReply({ content: 'Kill tickets are currently disabled. Please check back later.' });
 
         const guild = interaction.guild;
         const member = interaction.member;
