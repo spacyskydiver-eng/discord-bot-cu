@@ -2348,6 +2348,15 @@ router.post('/kick-preview', requireAdminOrStaff, async (req, res) => {
   );
   const nationLeaderIds = new Set(nations.map(n => n.discord_id));
 
+  // Build set of CUE main server staff so they are never kicked from nation servers
+  const [cueStaffRoleIds, cueMembersAll] = await Promise.all([
+    fetchProtectedRoleIds(CU_GUILD_ID, token),
+    fetchAllMembers(CU_GUILD_ID, token)
+  ]);
+  const cueStaffIds = new Set(
+    cueMembersAll.filter(m => m.roles.some(rid => cueStaffRoleIds.has(rid))).map(m => m.user.id)
+  );
+
   const preview = [];
   for (const nation of nations) {
     if (nation.guild_id === CU_GUILD_ID) continue;
@@ -2360,12 +2369,14 @@ router.post('/kick-preview', requireAdminOrStaff, async (req, res) => {
         !m.user.bot &&
         !acceptedIds.has(m.user.id) &&
         !nationLeaderIds.has(m.user.id) &&
+        !cueStaffIds.has(m.user.id) &&
         !m.roles.some(rid => protectedRoleIds.has(rid))
       );
       const protected_ = members.filter(m =>
         !m.user.bot &&
         !acceptedIds.has(m.user.id) &&
         !nationLeaderIds.has(m.user.id) &&
+        !cueStaffIds.has(m.user.id) &&
         m.roles.some(rid => protectedRoleIds.has(rid))
       );
       preview.push({
@@ -2398,6 +2409,14 @@ router.post('/kick-execute', requireAdminOrStaff, async (req, res) => {
   );
   const nationLeaderIds = new Set(nations.map(n => n.discord_id));
 
+  const [cueStaffRoleIds, cueMembersAll] = await Promise.all([
+    fetchProtectedRoleIds(CU_GUILD_ID, token),
+    fetchAllMembers(CU_GUILD_ID, token)
+  ]);
+  const cueStaffIds = new Set(
+    cueMembersAll.filter(m => m.roles.some(rid => cueStaffRoleIds.has(rid))).map(m => m.user.id)
+  );
+
   const results = [];
   for (const nation of nations) {
     if (nation.guild_id === CU_GUILD_ID) continue;
@@ -2411,6 +2430,7 @@ router.post('/kick-execute', requireAdminOrStaff, async (req, res) => {
         !m.user.bot &&
         !acceptedIds.has(m.user.id) &&
         !nationLeaderIds.has(m.user.id) &&
+        !cueStaffIds.has(m.user.id) &&
         !m.roles.some(rid => protectedRoleIds.has(rid))
       );
       for (const m of toKick) {
