@@ -54,10 +54,29 @@ db.query(`ALTER TABLE hundred_applications ADD COLUMN IF NOT EXISTS dm_wave INT`
 db.query(`ALTER TABLE hundred_applications ADD COLUMN IF NOT EXISTS ign_mojang_valid BOOLEAN`).catch(() => {});
 db.query(`ALTER TABLE nation_leader_applications ADD COLUMN IF NOT EXISTS ign_mojang_valid BOOLEAN`).catch(() => {});
 
+// Recording submissions table
+db.query(`CREATE TABLE IF NOT EXISTS recording_submissions (
+  id SERIAL PRIMARY KEY,
+  message_id TEXT UNIQUE NOT NULL,
+  channel_id TEXT NOT NULL,
+  day INT NOT NULL,
+  discord_id TEXT NOT NULL,
+  discord_tag TEXT,
+  discord_avatar TEXT,
+  content_type TEXT NOT NULL,
+  message_text TEXT,
+  attachment_url TEXT,
+  attachment_filename TEXT,
+  attachment_mime TEXT,
+  attachment_size INT,
+  submitted_at TIMESTAMPTZ,
+  collected_at TIMESTAMPTZ DEFAULT NOW()
+)`).catch(() => {});
+
 // Staff can only access application review paths; everything else needs full admin
 router.use((req, res, next) => {
   if (res.locals.isFullAdmin) return next();
-  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader') || req.path.startsWith('/nations') || req.path === '/hundred-players' || req.path === '/mc-usernames' || req.path === '/check-ign-validity' || req.path === '/nation-map' || req.path.startsWith('/news-reporter') || req.path.startsWith('/moderation') || req.path === '/rival-check';
+  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader') || req.path.startsWith('/nations') || req.path === '/hundred-players' || req.path === '/mc-usernames' || req.path === '/check-ign-validity' || req.path === '/nation-map' || req.path.startsWith('/news-reporter') || req.path.startsWith('/moderation') || req.path === '/rival-check' || req.path === '/recordings' || req.path.startsWith('/recording/');
   if (!allowed) return res.status(403).render('403');
   next();
 });
@@ -2498,6 +2517,105 @@ router.post('/kick-execute', requireAdminOrStaff, async (req, res) => {
   }
 
   res.render('new/admin-kick-preview', { preview: results, error: null, authed: true, executed: true });
+});
+
+// ── Recording timeline ───────────────────────────────────────────────────────
+
+router.get('/recordings', async (req, res) => {
+  const rows = (await db.query(
+    `SELECT * FROM recording_submissions ORDER BY day ASC, submitted_at ASC`
+  )).rows;
+  const byDay = {};
+  for (let d = 1; d <= 6; d++) byDay[d] = [];
+  for (const r of rows) {
+    if (byDay[r.day]) byDay[r.day].push(r);
+  }
+  res.render('new/admin-recordings', { byDay });
+});
+
+// Post the open-ticket panel into a channel
+router.post('/recording/post-panel', async (req, res) => {
+  const { channel_id } = req.body;
+  if (!channel_id) return res.json({ ok: false, error: 'channel_id required' });
+  const token = process.env.DISCORD_TOKEN;
+  const payload = {
+    content: '**Recording Submissions**\n\nDid you capture any footage, screenshots, or moments from the event?\n\nClick the button below to open a private ticket and submit your content. You will be asked to select which day it\'s from (Day 1–6).',
+    components: [{
+      type: 1,
+      components: [{ type: 2, style: 1, label: 'Submit a Recording', custom_id: 'recording_open' }]
+    }]
+  };
+  const r = await fetch(`https://discord.com/api/v10/channels/${channel_id}/messages`, {
+    method: 'POST',
+    headers: { Authorization: `Bot ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!r.ok) {
+    const err = await r.text();
+    return res.json({ ok: false, error: err });
+  }
+  res.json({ ok: true });
+});
+
+// Collect all recordings from ticket channels via Discord REST (alternative to slash command)
+router.post('/recording/collect', async (req, res) => {
+  const token = process.env.DISCORD_TOKEN;
+  const guild_id = req.body.guild_id || CU_GUILD_ID;
+
+  const chRes = await fetch(`https://discord.com/api/v10/guilds/${guild_id}/channels`, {
+    headers: { Authorization: `Bot ${token}` }
+  });
+  if (!chRes.ok) return res.json({ ok: false, error: 'Could not fetch channels' });
+  const channels = await chRes.json();
+  const ticketChannels = channels.filter(c => c.topic && c.topic.startsWith('recording-ticket:'));
+
+  let collected = 0;
+  for (const ch of ticketChannels) {
+    const [, dayStr, userId] = ch.topic.split(':');
+    const day = parseInt(dayStr);
+    if (!day || day < 1 || day > 6 || !userId) continue;
+
+    let lastId = null;
+    while (true) {
+      let url = `https://discord.com/api/v10/channels/${ch.id}/messages?limit=100`;
+      if (lastId) url += `&before=${lastId}`;
+      const msgRes = await fetch(url, { headers: { Authorization: `Bot ${token}` } });
+      if (!msgRes.ok) break;
+      const msgs = await msgRes.json();
+      if (!msgs.length) break;
+
+      for (const msg of msgs) {
+        if (msg.author.bot || msg.author.id !== userId) continue;
+        if (msg.content.trim()) {
+          await db.query(`
+            INSERT INTO recording_submissions
+              (message_id, channel_id, day, discord_id, discord_tag, discord_avatar, content_type, message_text, submitted_at)
+            VALUES ($1,$2,$3,$4,$5,$6,'text',$7,$8)
+            ON CONFLICT (message_id) DO NOTHING
+          `, [msg.id + '_text', ch.id, day, userId, msg.author.username,
+              msg.author.avatar ? `https://cdn.discordapp.com/avatars/${msg.author.id}/${msg.author.avatar}.png` : null,
+              msg.content.trim(), msg.timestamp]);
+          collected++;
+        }
+        for (const att of (msg.attachments || [])) {
+          await db.query(`
+            INSERT INTO recording_submissions
+              (message_id, channel_id, day, discord_id, discord_tag, discord_avatar, content_type, attachment_url, attachment_filename, attachment_mime, attachment_size, submitted_at)
+            VALUES ($1,$2,$3,$4,$5,$6,'attachment',$7,$8,$9,$10,$11)
+            ON CONFLICT (message_id) DO NOTHING
+          `, [msg.id + '_' + att.id, ch.id, day, userId, msg.author.username,
+              msg.author.avatar ? `https://cdn.discordapp.com/avatars/${msg.author.id}/${msg.author.avatar}.png` : null,
+              att.url, att.filename, att.content_type || null, att.size, msg.timestamp]);
+          collected++;
+        }
+      }
+
+      lastId = msgs[msgs.length - 1].id;
+      if (msgs.length < 100) break;
+    }
+  }
+
+  res.json({ ok: true, collected, channels: ticketChannels.length });
 });
 
 module.exports = router;

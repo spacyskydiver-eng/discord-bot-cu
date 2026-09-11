@@ -1,0 +1,177 @@
+<%- include('partials/head', { pageTitle: 'Recording Timeline — Admin' }) %>
+<%- include('partials/header') %>
+
+<style>
+.rec-wrap { max-width: 1000px; margin: 0 auto; padding: 32px 20px 80px; }
+.rec-title { font-family: 'Baloo 2'; font-weight: 900; font-size: 24px; color: var(--text); margin-bottom: 4px; }
+.rec-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+
+.rec-actions { display: flex; gap: 12px; margin-bottom: 32px; flex-wrap: wrap; align-items: center; }
+.rec-input { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; color: var(--text); padding: 8px 12px; font-size: 13px; width: 260px; }
+.rec-input::placeholder { color: var(--muted); }
+.rec-btn { padding: 9px 18px; border-radius: 8px; border: 1px solid var(--line); font-size: 13px; font-weight: 600; cursor: pointer; background: var(--panel); color: var(--text); transition: .15s; }
+.rec-btn:hover { border-color: var(--accent); color: var(--accent); }
+.rec-btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.rec-btn-primary:hover { opacity: .85; color: #fff; }
+
+.day-tabs { display: flex; gap: 0; margin-bottom: 28px; border-bottom: 1px solid var(--line); }
+.day-tab { padding: 10px 20px; font-size: 13px; font-weight: 700; cursor: pointer; border-bottom: 3px solid transparent; color: var(--muted); margin-bottom: -1px; transition: .15s; white-space: nowrap; }
+.day-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.day-tab:hover:not(.active) { color: var(--text); }
+.day-tab .badge { display: inline-block; background: var(--line); border-radius: 20px; font-size: 10px; padding: 1px 7px; margin-left: 6px; }
+.day-tab.active .badge { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); }
+
+.day-panel { display: none; }
+.day-panel.active { display: block; }
+
+.timeline { display: flex; flex-direction: column; gap: 16px; }
+.entry { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: flex; gap: 14px; align-items: flex-start; }
+.entry-avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; background: var(--line); object-fit: cover; }
+.entry-avatar-fallback { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; color: #fff; }
+.entry-body { flex: 1; min-width: 0; }
+.entry-meta { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.entry-meta strong { color: var(--text); font-weight: 700; }
+.entry-text { font-size: 14px; color: var(--text); line-height: 1.6; word-break: break-word; white-space: pre-wrap; }
+.entry-attachment { margin-top: 10px; }
+.entry-attachment a { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); font-size: 13px; color: var(--accent); text-decoration: none; transition: .15s; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.entry-attachment a:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.entry-attachment .att-size { color: var(--muted); font-size: 11px; }
+.entry-img { max-width: 100%; max-height: 400px; border-radius: 8px; margin-top: 10px; cursor: pointer; border: 1px solid var(--line); }
+.entry-video { max-width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid var(--line); }
+
+.empty-day { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
+.empty-day strong { display: block; font-size: 18px; color: var(--text); margin-bottom: 8px; }
+
+.lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 9999; align-items: center; justify-content: center; }
+.lightbox.open { display: flex; }
+.lightbox img { max-width: 92vw; max-height: 92vh; border-radius: 8px; box-shadow: 0 8px 40px rgba(0,0,0,.5); }
+.lightbox-close { position: absolute; top: 20px; right: 24px; color: #fff; font-size: 28px; cursor: pointer; opacity: .7; }
+.lightbox-close:hover { opacity: 1; }
+</style>
+
+<div class="rec-wrap">
+  <div class="rec-title">Recording Timeline</div>
+  <div class="rec-sub">Event content submitted by players — Day 1 through Day 6.</div>
+
+  <div class="rec-actions">
+    <input class="rec-input" id="channelInput" placeholder="Channel ID (for panel post)" />
+    <button class="rec-btn rec-btn-primary" onclick="postPanel()">Post Submit Panel</button>
+    <button class="rec-btn" onclick="collectNow()">Collect Now</button>
+    <span id="collectStatus" style="font-size:13px;color:var(--muted)"></span>
+  </div>
+
+  <div class="day-tabs">
+    <% for (let d = 1; d <= 6; d++) { %>
+    <div class="day-tab <%= d === 1 ? 'active' : '' %>" onclick="showDay(<%= d %>)" id="tab-<%= d %>">
+      Day <%= d %>
+      <span class="badge"><%= byDay[d].length %></span>
+    </div>
+    <% } %>
+  </div>
+
+  <% for (let d = 1; d <= 6; d++) { %>
+  <div class="day-panel <%= d === 1 ? 'active' : '' %>" id="panel-<%= d %>">
+    <% if (!byDay[d].length) { %>
+    <div class="empty-day">
+      <strong>No submissions yet</strong>
+      Players can submit content using the recording ticket panel.
+    </div>
+    <% } else { %>
+    <div class="timeline">
+      <% for (const entry of byDay[d]) { %>
+      <div class="entry">
+        <% if (entry.discord_avatar) { %>
+        <img class="entry-avatar" src="<%= entry.discord_avatar %>" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="entry-avatar-fallback" style="display:none"><%= (entry.discord_tag || '?')[0].toUpperCase() %></div>
+        <% } else { %>
+        <div class="entry-avatar-fallback"><%= (entry.discord_tag || '?')[0].toUpperCase() %></div>
+        <% } %>
+        <div class="entry-body">
+          <div class="entry-meta">
+            <strong><%= entry.discord_tag || entry.discord_id %></strong>
+            &nbsp;&middot;&nbsp;
+            <%= entry.submitted_at ? new Date(entry.submitted_at).toLocaleString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '' %>
+          </div>
+          <% if (entry.content_type === 'text') { %>
+          <div class="entry-text"><%= entry.message_text %></div>
+          <% } else if (entry.content_type === 'attachment') { %>
+          <div class="entry-attachment">
+            <% const mime = entry.attachment_mime || ''; %>
+            <% if (mime.startsWith('image/')) { %>
+            <img class="entry-img" src="<%= entry.attachment_url %>" alt="<%= entry.attachment_filename %>" onclick="openLightbox(this.src)" loading="lazy">
+            <% } else if (mime.startsWith('video/')) { %>
+            <video class="entry-video" controls preload="metadata">
+              <source src="<%= entry.attachment_url %>" type="<%= mime %>">
+              <a href="<%= entry.attachment_url %>" target="_blank">Download video</a>
+            </video>
+            <% } else { %>
+            <a href="<%= entry.attachment_url %>" target="_blank" rel="noopener">
+              <span><%= entry.attachment_filename || 'Download file' %></span>
+              <% if (entry.attachment_size) { %>
+              <span class="att-size">(<%= (entry.attachment_size / 1024 / 1024).toFixed(1) %> MB)</span>
+              <% } %>
+            </a>
+            <% } %>
+          </div>
+          <% } %>
+        </div>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+  </div>
+  <% } %>
+</div>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<script>
+function showDay(d) {
+  document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + d).classList.add('active');
+  document.getElementById('panel-' + d).classList.add('active');
+}
+
+function openLightbox(src) {
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+
+async function postPanel() {
+  const ch = document.getElementById('channelInput').value.trim();
+  if (!ch) { alert('Enter a channel ID first.'); return; }
+  const r = await fetch('/admin/recording/post-panel', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ channel_id: ch })
+  });
+  const data = await r.json();
+  if (data.ok) { alert('Panel posted successfully!'); }
+  else { alert('Error: ' + data.error); }
+}
+
+async function collectNow() {
+  const status = document.getElementById('collectStatus');
+  status.textContent = 'Collecting...';
+  const r = await fetch('/admin/recording/collect', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({})
+  });
+  const data = await r.json();
+  if (data.ok) {
+    status.textContent = `Collected ${data.collected} items from ${data.channels} channels. Reload to see.`;
+  } else {
+    status.textContent = 'Error: ' + data.error;
+  }
+}
+</script>
+
+<%- include('partials/foot') %>

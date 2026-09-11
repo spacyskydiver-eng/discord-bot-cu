@@ -288,6 +288,34 @@ client.on('interactionCreate', async interaction => {
       return;
     }
 
+    // Recording ticket — open (show day select)
+    if (interaction.customId === 'recording_open') {
+      await interaction.reply({
+        content: 'Which day are you submitting content for?',
+        ephemeral: true,
+        components: [{
+          type: 1,
+          components: [{
+            type: 3,
+            custom_id: 'recording_day_select',
+            placeholder: 'Select a day...',
+            options: [1,2,3,4,5,6].map(d => ({ label: 'Day ' + d, value: String(d), description: 'Submit content from Day ' + d }))
+          }]
+        }]
+      });
+      return;
+    }
+
+    // Recording ticket — close
+    if (interaction.customId === 'recording_close') {
+      if (!interaction.member.permissions.has('ManageChannels')) {
+        return interaction.reply({ content: 'Only staff can close recording tickets.', ephemeral: true });
+      }
+      await interaction.reply({ content: `Ticket closed by <@${interaction.user.id}>. Deleting in 5 seconds...` });
+      setTimeout(() => interaction.channel.delete('Recording ticket closed').catch(() => {}), 5000);
+      return;
+    }
+
     try {
       const row = await db.query('SELECT response_text, response_payload FROM button_responses WHERE custom_id = $1', [interaction.customId]);
       if (row.rows.length) {
@@ -300,6 +328,50 @@ client.on('interactionCreate', async interaction => {
       }
     } catch (err) {
       console.error('Button interaction error:', err);
+    }
+    return;
+  }
+
+  // Recording day select menu
+  if (interaction.isStringSelectMenu() && interaction.customId === 'recording_day_select') {
+    const day = interaction.values[0];
+    await interaction.deferUpdate();
+    try {
+      const guild = interaction.guild;
+      const member = interaction.member;
+      const safeName = member.user.username.replace(/[^a-z0-9]/gi, '').toLowerCase() || 'player';
+
+      // Check if player already has a recording ticket for this day
+      const existing = guild.channels.cache.find(c =>
+        c.topic && c.topic === `recording-ticket:${day}:${member.id}`
+      );
+      if (existing) {
+        return interaction.editReply({ content: `You already have a Day ${day} recording ticket: <#${existing.id}>`, components: [] });
+      }
+
+      const channel = await guild.channels.create({
+        name: `recording-day${day}-${safeName}`,
+        type: 0,
+        topic: `recording-ticket:${day}:${member.id}`,
+        permissionOverwrites: [
+          { id: guild.id, deny: ['ViewChannel'] },
+          { id: member.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'AttachFiles', 'EmbedLinks'] },
+          { id: client.user.id, allow: ['ViewChannel', 'SendMessages', 'ManageChannels', 'ReadMessageHistory'] }
+        ]
+      });
+
+      await channel.send({
+        content: `Hey <@${member.id}>! This is your **Day ${day}** recording submission channel.\n\n**Upload your recordings, clips, and screenshots here** — you can also type a description of what happened.\n\nStaff will collect everything after the event to put together the timeline. Thanks for contributing!`,
+        components: [{
+          type: 1,
+          components: [{ type: 2, style: 4, label: 'Close Ticket', custom_id: 'recording_close' }]
+        }]
+      });
+
+      await interaction.editReply({ content: `Your Day ${day} recording channel has been created: <#${channel.id}>`, components: [] });
+    } catch (err) {
+      console.error('Recording ticket create error:', err);
+      await interaction.editReply({ content: 'Could not create ticket. Please contact staff.', components: [] });
     }
     return;
   }
