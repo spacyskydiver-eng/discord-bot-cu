@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../../db');
 const { sendDiscordDM, giveDiscordRole } = require('../discord-dm');
+const botClient = require('../../utils/botClient');
 const CU_GUILD_ID = '1449004906068312189';
 const ROLE_150_PLAYER = '1544302037158731878';
 const ROLE_NEWS_REPORTER = '1545849393352155338';
@@ -2560,66 +2561,66 @@ router.post('/recording/post-panel', async (req, res) => {
 // Collect all recordings from ticket channels via Discord REST (alternative to slash command)
 router.post('/recording/collect', async (req, res) => {
   try {
-  const token = process.env.DISCORD_TOKEN;
-  const guild_id = (req.body && req.body.guild_id) || CU_GUILD_ID;
+    const client = botClient.get();
+    if (!client) return res.json({ ok: false, error: 'Bot not ready' });
 
-  const chRes = await fetch(`https://discord.com/api/v10/guilds/${guild_id}/channels`, {
-    headers: { Authorization: `Bot ${token}` }
-  });
-  if (!chRes.ok) {
-    const errText = await chRes.text();
-    return res.json({ ok: false, error: `Discord channels fetch failed (${chRes.status}): ${errText.slice(0, 200)}` });
-  }
-  const channels = await chRes.json();
-  const ticketChannels = channels.filter(c => c.topic && c.topic.startsWith('recording-ticket:'));
-
-  let collected = 0;
-  for (const ch of ticketChannels) {
-    const [, dayStr, userId] = ch.topic.split(':');
-    const day = parseInt(dayStr);
-    if (!day || day < 1 || day > 6 || !userId) continue;
-
-    let lastId = null;
-    while (true) {
-      let url = `https://discord.com/api/v10/channels/${ch.id}/messages?limit=100`;
-      if (lastId) url += `&before=${lastId}`;
-      const msgRes = await fetch(url, { headers: { Authorization: `Bot ${token}` } });
-      if (!msgRes.ok) break;
-      const msgs = await msgRes.json();
-      if (!msgs.length) break;
-
-      for (const msg of msgs) {
-        if (msg.author.bot || msg.author.id !== userId) continue;
-        if (msg.content && msg.content.trim()) {
-          await db.query(`
-            INSERT INTO recording_submissions
-              (message_id, channel_id, day, discord_id, discord_tag, discord_avatar, content_type, message_text, submitted_at)
-            VALUES ($1,$2,$3,$4,$5,$6,'text',$7,$8)
-            ON CONFLICT (message_id) DO NOTHING
-          `, [msg.id + '_text', ch.id, day, userId, msg.author.username,
-              msg.author.avatar ? `https://cdn.discordapp.com/avatars/${msg.author.id}/${msg.author.avatar}.png` : null,
-              msg.content.trim(), msg.timestamp]);
-          collected++;
-        }
-        for (const att of (msg.attachments || [])) {
-          await db.query(`
-            INSERT INTO recording_submissions
-              (message_id, channel_id, day, discord_id, discord_tag, discord_avatar, content_type, attachment_url, attachment_filename, attachment_mime, attachment_size, submitted_at)
-            VALUES ($1,$2,$3,$4,$5,$6,'attachment',$7,$8,$9,$10,$11)
-            ON CONFLICT (message_id) DO NOTHING
-          `, [msg.id + '_' + att.id, ch.id, day, userId, msg.author.username,
-              msg.author.avatar ? `https://cdn.discordapp.com/avatars/${msg.author.id}/${msg.author.avatar}.png` : null,
-              att.url, att.filename, att.content_type || null, att.size, msg.timestamp]);
-          collected++;
+    // Scan every guild the bot is in for recording ticket channels
+    await client.guilds.fetch();
+    const ticketChannels = [];
+    for (const [, guild] of client.guilds.cache) {
+      await guild.channels.fetch();
+      for (const [, ch] of guild.channels.cache) {
+        if (ch.topic && ch.topic.startsWith('recording-ticket:')) {
+          ticketChannels.push(ch);
         }
       }
-
-      lastId = msgs[msgs.length - 1].id;
-      if (msgs.length < 100) break;
     }
-  }
 
-  res.json({ ok: true, collected, channels: ticketChannels.length });
+    let collected = 0;
+    for (const ch of ticketChannels) {
+      const [, dayStr, userId] = ch.topic.split(':');
+      const day = parseInt(dayStr);
+      if (!day || day < 1 || day > 6 || !userId) continue;
+
+      let lastId = null;
+      while (true) {
+        const opts = { limit: 100 };
+        if (lastId) opts.before = lastId;
+        const msgs = await ch.messages.fetch(opts);
+        if (!msgs.size) break;
+
+        for (const msg of msgs.values()) {
+          if (msg.author.bot || msg.author.id !== userId) continue;
+          if (msg.content && msg.content.trim()) {
+            await db.query(`
+              INSERT INTO recording_submissions
+                (message_id, channel_id, day, discord_id, discord_tag, discord_avatar, content_type, message_text, submitted_at)
+              VALUES ($1,$2,$3,$4,$5,$6,'text',$7,$8)
+              ON CONFLICT (message_id) DO NOTHING
+            `, [msg.id + '_text', ch.id, day, userId, msg.author.username,
+                msg.author.displayAvatarURL({ extension: 'png' }),
+                msg.content.trim(), msg.createdAt]);
+            collected++;
+          }
+          for (const att of msg.attachments.values()) {
+            await db.query(`
+              INSERT INTO recording_submissions
+                (message_id, channel_id, day, discord_id, discord_tag, discord_avatar, content_type, attachment_url, attachment_filename, attachment_mime, attachment_size, submitted_at)
+              VALUES ($1,$2,$3,$4,$5,$6,'attachment',$7,$8,$9,$10,$11)
+              ON CONFLICT (message_id) DO NOTHING
+            `, [msg.id + '_' + att.id, ch.id, day, userId, msg.author.username,
+                msg.author.displayAvatarURL({ extension: 'png' }),
+                att.url, att.name, att.contentType || null, att.size, msg.createdAt]);
+            collected++;
+          }
+        }
+
+        lastId = msgs.last().id;
+        if (msgs.size < 100) break;
+      }
+    }
+
+    res.json({ ok: true, collected, channels: ticketChannels.length });
   } catch (err) {
     console.error('recording/collect error:', err);
     res.json({ ok: false, error: err.message });

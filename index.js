@@ -9,6 +9,7 @@ const { setupNationTracking } = require('./events/nationTracking');
 const { syncNationServer } = require('./utils/nationSync');
 const { invalidate: invalidateNationCache } = require('./utils/nationGuilds');
 const { sendDiscordDM } = require('./server/discord-dm');
+const botClient = require('./utils/botClient');
 
 const client = new Client({
   intents: [
@@ -27,6 +28,8 @@ for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
   client.commands.set(command.data.name, command);
 }
+
+botClient.set(client);
 
 client.once('ready', async () => {
   console.log(`Bot online: ${client.user.tag}`);
