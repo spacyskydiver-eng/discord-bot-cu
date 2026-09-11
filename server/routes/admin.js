@@ -2346,6 +2346,7 @@ router.post('/kick-preview', requireAdminOrStaff, async (req, res) => {
   const acceptedIds = new Set(
     (await db.query(`SELECT discord_id FROM hundred_applications WHERE status = 'accepted'`)).rows.map(r => r.discord_id)
   );
+  const nationLeaderIds = new Set(nations.map(n => n.discord_id));
 
   const preview = [];
   for (const nation of nations) {
@@ -2358,13 +2359,13 @@ router.post('/kick-preview', requireAdminOrStaff, async (req, res) => {
       const toKick = members.filter(m =>
         !m.user.bot &&
         !acceptedIds.has(m.user.id) &&
-        m.user.id !== nation.discord_id &&
+        !nationLeaderIds.has(m.user.id) &&
         !m.roles.some(rid => protectedRoleIds.has(rid))
       );
       const protected_ = members.filter(m =>
         !m.user.bot &&
         !acceptedIds.has(m.user.id) &&
-        m.user.id !== nation.discord_id &&
+        !nationLeaderIds.has(m.user.id) &&
         m.roles.some(rid => protectedRoleIds.has(rid))
       );
       preview.push({
@@ -2395,6 +2396,7 @@ router.post('/kick-execute', requireAdminOrStaff, async (req, res) => {
   const acceptedIds = new Set(
     (await db.query(`SELECT discord_id FROM hundred_applications WHERE status = 'accepted'`)).rows.map(r => r.discord_id)
   );
+  const nationLeaderIds = new Set(nations.map(n => n.discord_id));
 
   const results = [];
   for (const nation of nations) {
@@ -2408,7 +2410,7 @@ router.post('/kick-execute', requireAdminOrStaff, async (req, res) => {
       const toKick = members.filter(m =>
         !m.user.bot &&
         !acceptedIds.has(m.user.id) &&
-        m.user.id !== nation.discord_id &&
+        !nationLeaderIds.has(m.user.id) &&
         !m.roles.some(rid => protectedRoleIds.has(rid))
       );
       for (const m of toKick) {
