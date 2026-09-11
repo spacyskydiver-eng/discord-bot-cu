@@ -13,9 +13,8 @@ async function discordFetch(path) {
 }
 
 function isNationAppsOpen() {
-  if (process.env.NATION_APPS_OPEN === 'true') return true;
   if (process.env.NATION_APPS_OPEN === 'false') return false;
-  return new Date() >= new Date('2026-09-12T00:00:00Z');
+  return true;
 }
 
 router.get('/', async (req, res) => {

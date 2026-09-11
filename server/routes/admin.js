@@ -2559,13 +2559,17 @@ router.post('/recording/post-panel', async (req, res) => {
 
 // Collect all recordings from ticket channels via Discord REST (alternative to slash command)
 router.post('/recording/collect', async (req, res) => {
+  try {
   const token = process.env.DISCORD_TOKEN;
-  const guild_id = req.body.guild_id || CU_GUILD_ID;
+  const guild_id = (req.body && req.body.guild_id) || CU_GUILD_ID;
 
   const chRes = await fetch(`https://discord.com/api/v10/guilds/${guild_id}/channels`, {
     headers: { Authorization: `Bot ${token}` }
   });
-  if (!chRes.ok) return res.json({ ok: false, error: 'Could not fetch channels' });
+  if (!chRes.ok) {
+    const errText = await chRes.text();
+    return res.json({ ok: false, error: `Discord channels fetch failed (${chRes.status}): ${errText.slice(0, 200)}` });
+  }
   const channels = await chRes.json();
   const ticketChannels = channels.filter(c => c.topic && c.topic.startsWith('recording-ticket:'));
 
@@ -2586,7 +2590,7 @@ router.post('/recording/collect', async (req, res) => {
 
       for (const msg of msgs) {
         if (msg.author.bot || msg.author.id !== userId) continue;
-        if (msg.content.trim()) {
+        if (msg.content && msg.content.trim()) {
           await db.query(`
             INSERT INTO recording_submissions
               (message_id, channel_id, day, discord_id, discord_tag, discord_avatar, content_type, message_text, submitted_at)
@@ -2616,6 +2620,10 @@ router.post('/recording/collect', async (req, res) => {
   }
 
   res.json({ ok: true, collected, channels: ticketChannels.length });
+  } catch (err) {
+    console.error('recording/collect error:', err);
+    res.json({ ok: false, error: err.message });
+  }
 });
 
 module.exports = router;
