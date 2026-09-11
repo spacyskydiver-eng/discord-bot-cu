@@ -147,10 +147,12 @@ router.get('/', async (req, res) => {
   const agreementItems = (await db.query(`SELECT * FROM agreement_items ORDER BY display_order ASC, id ASC`)).rows;
   const playstyleOptions = (await db.query(`SELECT * FROM playstyle_options ORDER BY display_order ASC, id ASC`)).rows;
 
+  const killTicketConfigs = (await db.query(`SELECT id, guild_name, post_channel_id, enabled FROM kill_ticket_config ORDER BY updated_at DESC`)).rows;
+
   res.render('new/admin', {
     event, eligibilityQuestions, applications, hundredApplications, nationLeaderApplications,
     guilds: guildRes.rows, levels, levelRoles, staffRoles, staffAccess,
-    stageSettings, stageBlocks, agreementItems, playstyleOptions
+    stageSettings, stageBlocks, agreementItems, playstyleOptions, killTicketConfigs
   });
 });
 
