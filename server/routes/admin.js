@@ -57,7 +57,7 @@ db.query(`ALTER TABLE nation_leader_applications ADD COLUMN IF NOT EXISTS ign_mo
 // Staff can only access application review paths; everything else needs full admin
 router.use((req, res, next) => {
   if (res.locals.isFullAdmin) return next();
-  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader') || req.path.startsWith('/nations') || req.path === '/hundred-players' || req.path === '/mc-usernames' || req.path === '/check-ign-validity' || req.path === '/nation-map' || req.path.startsWith('/news-reporter') || req.path.startsWith('/moderation');
+  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader') || req.path.startsWith('/nations') || req.path === '/hundred-players' || req.path === '/mc-usernames' || req.path === '/check-ign-validity' || req.path === '/nation-map' || req.path.startsWith('/news-reporter') || req.path.startsWith('/moderation') || req.path === '/rival-check';
   if (!allowed) return res.status(403).render('403');
   next();
 });
@@ -2278,6 +2278,45 @@ router.post('/event/close-current', async (req, res) => {
     `UPDATE events SET is_open=false WHERE id=(SELECT id FROM events ORDER BY created_at DESC LIMIT 1)`
   );
   res.json({ ok: true, closed: true });
+});
+
+// ── Rival server cross-reference ──────────────────────────────────────────────
+
+router.get('/rival-check', requireAdminOrStaff, (req, res) => {
+  res.render('new/admin-rival-check', { results: null, pastedInput: '' });
+});
+
+router.post('/rival-check', requireAdminOrStaff, async (req, res) => {
+  const raw = (req.body.ids || '').trim();
+  const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const seen = new Set();
+  const ids = [];
+  let skipped = 0;
+  for (const l of lines) {
+    if (!/^\d{17,19}$/.test(l)) { skipped++; continue; }
+    if (seen.has(l)) { skipped++; continue; }
+    seen.add(l);
+    ids.push(l);
+  }
+
+  const nlIds = new Set(
+    (await db.query(`SELECT discord_id FROM nation_leader_applications WHERE accepted = true`)).rows.map(r => r.discord_id)
+  );
+
+  let hits = [];
+  if (ids.length) {
+    const res2 = await db.query(
+      `SELECT discord_id, discord_tag, ign, ign_verified FROM hundred_applications
+       WHERE status = 'accepted' AND discord_id = ANY($1)`,
+      [ids]
+    );
+    hits = res2.rows.map(r => ({ ...r, is_nation_leader: nlIds.has(r.discord_id) }));
+  }
+
+  res.render('new/admin-rival-check', {
+    results: { checkedCount: ids.length, hits, skipped },
+    pastedInput: raw
+  });
 });
 
 // ── Mass kick preview ─────────────────────────────────────────────────────────

@@ -1,0 +1,111 @@
+<%- include('partials/head', { pageTitle: 'Rival Check — Admin' }) %>
+<%- include('partials/header') %>
+
+<style>
+.rc-wrap { max-width: 860px; margin: 0 auto; padding: 32px 20px 60px; }
+.rc-title { font-family: 'Baloo 2'; font-weight: 900; font-size: 22px; color: var(--text); margin-bottom: 4px; }
+.rc-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+
+.rc-card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+.rc-label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+.rc-textarea { width: 100%; min-height: 160px; padding: 12px 14px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; color: var(--text); font-size: 12px; font-family: monospace; outline: none; resize: vertical; box-sizing: border-box; }
+.rc-textarea:focus { border-color: rgba(248,113,113,.4); }
+.rc-hint { font-size: 12px; color: var(--muted); margin-top: 8px; }
+.rc-btn { margin-top: 16px; padding: 10px 24px; border-radius: 9px; border: 1px solid rgba(248,113,113,.4); font-family: 'Baloo 2'; font-weight: 800; font-size: 13px; cursor: pointer; background: rgba(248,113,113,.15); color: #f87171; }
+.rc-btn:hover { background: rgba(248,113,113,.22); }
+
+.rc-stats { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+.rc-stats b { color: var(--text); }
+
+.rc-table-wrap { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.rc-table-head { padding: 14px 20px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 12px; }
+.rc-table-title { font-family: 'Baloo 2'; font-weight: 800; font-size: 15px; color: var(--text); flex: 1; }
+.rc-badge { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; }
+.rc-badge-hit { background: rgba(248,113,113,.12); border: 1px solid rgba(248,113,113,.3); color: #f87171; }
+.rc-badge-ok { background: rgba(74,222,128,.1); border: 1px solid rgba(74,222,128,.25); color: #4ade80; }
+.rc-badge-warn { background: rgba(251,191,36,.1); border: 1px solid rgba(251,191,36,.25); color: #fbbf24; }
+
+.rc-table { width: 100%; border-collapse: collapse; }
+.rc-table th { text-align: left; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; padding: 10px 20px 8px; border-bottom: 1px solid var(--line); }
+.rc-table td { padding: 10px 20px; font-size: 13px; color: var(--text); border-bottom: 1px solid var(--line); }
+.rc-table tr:last-child td { border-bottom: none; }
+.rc-table tr:hover td { background: var(--panel-2); }
+.rc-empty { padding: 28px 20px; text-align: center; color: var(--muted); font-size: 13px; }
+</style>
+
+<div class="rc-wrap">
+  <div class="rc-title">Rival Server Check</div>
+  <div class="rc-sub">Paste Discord user IDs from a rival server to cross-reference against your accepted event players.</div>
+
+  <div class="rc-card">
+    <form method="POST" action="/admin/rival-check">
+      <label class="rc-label">Discord user IDs — one per line</label>
+      <textarea class="rc-textarea" name="ids" placeholder="123456789012345678&#10;987654321098765432&#10;..."><%= pastedInput || '' %></textarea>
+      <div class="rc-hint">Paste the output from the browser console script. Each line should be a 17–19 digit Discord user ID.</div>
+      <button type="submit" class="rc-btn">Check</button>
+    </form>
+  </div>
+
+  <% if (results) { %>
+  <div class="rc-stats">
+    Checked <b><%= results.checkedCount %></b> IDs &mdash;
+    <% if (results.hits.length > 0) { %>
+      <b style="color:#f87171"><%= results.hits.length %> match<%= results.hits.length !== 1 ? 'es' : '' %></b> found in accepted players.
+    <% } else { %>
+      <b style="color:#4ade80">No matches</b> found.
+    <% } %>
+    <% if (results.skipped > 0) { %> (<%= results.skipped %> invalid/duplicate lines skipped)<% } %>
+  </div>
+
+  <div class="rc-table-wrap">
+    <div class="rc-table-head">
+      <div class="rc-table-title"><%= results.hits.length > 0 ? 'Matched Players' : 'No matches' %></div>
+      <% if (results.hits.length > 0) { %>
+        <span class="rc-badge rc-badge-hit"><%= results.hits.length %> hit<%= results.hits.length !== 1 ? 's' : '' %></span>
+      <% } else { %>
+        <span class="rc-badge rc-badge-ok">Clean</span>
+      <% } %>
+    </div>
+    <% if (results.hits.length > 0) { %>
+    <table class="rc-table">
+      <thead>
+        <tr>
+          <th>Discord Tag</th>
+          <th>Discord ID</th>
+          <th>MC IGN</th>
+          <th>IGN Verified</th>
+          <th>Nation Leader</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const h of results.hits) { %>
+        <tr>
+          <td><%= h.discord_tag %></td>
+          <td style="font-family:monospace;font-size:12px;color:var(--muted)"><%= h.discord_id %></td>
+          <td><%= h.ign || '—' %></td>
+          <td>
+            <% if (h.ign_verified) { %>
+              <span class="rc-badge rc-badge-hit">Verified</span>
+            <% } else { %>
+              <span class="rc-badge rc-badge-warn">Not verified</span>
+            <% } %>
+          </td>
+          <td>
+            <% if (h.is_nation_leader) { %>
+              <span class="rc-badge rc-badge-hit">Yes</span>
+            <% } else { %>
+              <span style="color:var(--muted);font-size:12px">No</span>
+            <% } %>
+          </td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+    <% } else { %>
+    <div class="rc-empty">None of the pasted IDs matched an accepted player in the event.</div>
+    <% } %>
+  </div>
+  <% } %>
+</div>
+
+<%- include('partials/foot') %>
