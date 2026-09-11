@@ -311,7 +311,11 @@ client.on('interactionCreate', async interaction => {
 
     // Recording ticket — close (staff only)
     if (interaction.customId === 'recording_close') {
-      const recStaffRoles = (process.env.RECORDING_STAFF_ROLE_IDS || '').split(',').map(s => s.trim()).filter(Boolean);
+      const recStaffRoles = [
+        '1449004906483814442','1449004906467033117','1532850180246867968',
+        '1512577183875469624','1449004906483814441','1449004906467033116','1451190210842071070',
+        ...(process.env.RECORDING_STAFF_ROLE_IDS || '').split(',').map(s => s.trim()).filter(Boolean)
+      ];
       const isRecStaff = interaction.member.permissions.has('ManageChannels') ||
         recStaffRoles.some(rid => interaction.member.roles.cache.has(rid));
       if (!isRecStaff) {
@@ -355,7 +359,17 @@ client.on('interactionCreate', async interaction => {
         return interaction.editReply({ content: `You already have a Day ${day} recording ticket: <#${existing.id}>`, components: [] });
       }
 
-      const recStaffRoles = (process.env.RECORDING_STAFF_ROLE_IDS || '').split(',').map(s => s.trim()).filter(Boolean);
+      const RECORDING_STAFF_ROLES = [
+        '1449004906483814442', // Owner
+        '1449004906467033117', // Owner
+        '1532850180246867968', // Dev
+        '1512577183875469624', // Manager
+        '1449004906483814441', // Staff
+        '1449004906467033116', // Staff
+        '1451190210842071070'  // Event Staff
+      ];
+      const recEnvRoles = (process.env.RECORDING_STAFF_ROLE_IDS || '').split(',').map(s => s.trim()).filter(Boolean);
+      const recStaffRoles = [...new Set([...RECORDING_STAFF_ROLES, ...recEnvRoles])];
       const recOverwrites = [
         { id: guild.id, deny: ['ViewChannel'] },
         { id: member.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'AttachFiles', 'EmbedLinks'] },
