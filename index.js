@@ -306,9 +306,12 @@ client.on('interactionCreate', async interaction => {
       return;
     }
 
-    // Recording ticket — close
+    // Recording ticket — close (staff only)
     if (interaction.customId === 'recording_close') {
-      if (!interaction.member.permissions.has('ManageChannels')) {
+      const recStaffRoles = (process.env.RECORDING_STAFF_ROLE_IDS || '').split(',').map(s => s.trim()).filter(Boolean);
+      const isRecStaff = interaction.member.permissions.has('ManageChannels') ||
+        recStaffRoles.some(rid => interaction.member.roles.cache.has(rid));
+      if (!isRecStaff) {
         return interaction.reply({ content: 'Only staff can close recording tickets.', ephemeral: true });
       }
       await interaction.reply({ content: `Ticket closed by <@${interaction.user.id}>. Deleting in 5 seconds...` });
@@ -349,15 +352,21 @@ client.on('interactionCreate', async interaction => {
         return interaction.editReply({ content: `You already have a Day ${day} recording ticket: <#${existing.id}>`, components: [] });
       }
 
+      const recStaffRoles = (process.env.RECORDING_STAFF_ROLE_IDS || '').split(',').map(s => s.trim()).filter(Boolean);
+      const recOverwrites = [
+        { id: guild.id, deny: ['ViewChannel'] },
+        { id: member.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'AttachFiles', 'EmbedLinks'] },
+        { id: client.user.id, allow: ['ViewChannel', 'SendMessages', 'ManageChannels', 'ReadMessageHistory'] }
+      ];
+      for (const rid of recStaffRoles) {
+        recOverwrites.push({ id: rid, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages'] });
+      }
+
       const channel = await guild.channels.create({
         name: `recording-day${day}-${safeName}`,
         type: 0,
         topic: `recording-ticket:${day}:${member.id}`,
-        permissionOverwrites: [
-          { id: guild.id, deny: ['ViewChannel'] },
-          { id: member.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'AttachFiles', 'EmbedLinks'] },
-          { id: client.user.id, allow: ['ViewChannel', 'SendMessages', 'ManageChannels', 'ReadMessageHistory'] }
-        ]
+        permissionOverwrites: recOverwrites
       });
 
       await channel.send({
