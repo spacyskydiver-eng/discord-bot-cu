@@ -1,7 +1,14 @@
 <%- include('partials/head', { pageTitle: '150 Player Event — Apply' }) %>
 <%- include('partials/header') %>
 
-<% if (submitted) { %>
+<% if (closed) { %>
+<main class="wrap" style="max-width:640px;text-align:center;padding-top:60px">
+  <h1 style="font-family:'Baloo 2';font-weight:800;font-size:28px;margin:0 0 12px">Applications are closed</h1>
+  <p style="color:var(--muted);font-size:15px;margin:0 0 28px">The application period for the 150 Player Event has ended. If you have already applied, you can still check your application status below.</p>
+  <a href="<%= lp %>/my-application-hundred" style="display:inline-flex;align-items:center;gap:8px;background:var(--panel-2);border:1px solid var(--line);color:#e0e2ed;font-family:'Baloo 2';font-weight:800;font-size:14px;padding:12px 24px;border-radius:10px;text-decoration:none">View your application →</a>
+</main>
+<%- include('partials/foot') %>
+<% } else if (submitted) { %>
 <main class="wrap" style="max-width:640px;text-align:center;padding-top:60px">
   <div style="font-size:48px;margin-bottom:16px">🎮</div>
   <h1 style="font-family:'Baloo 2';font-weight:800;font-size:28px;margin:0 0 12px">Application submitted!</h1>

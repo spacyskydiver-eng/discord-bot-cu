@@ -3,8 +3,11 @@ const router = express.Router();
 const db = require('../../db');
 const { sendDiscordDM } = require('../discord-dm');
 
+const APPLICATIONS_CLOSED = true;
+
 // GET — show the application wizard
 router.get('/', async (req, res) => {
+  if (APPLICATIONS_CLOSED) return res.render('new/apply-hundred', { closed: true, existing: null, submitted: false, error: null });
   if (!req.session.user) return res.redirect(`${res.locals.lp}/auth/discord`);
 
   const existing = (await db.query(
@@ -25,6 +28,7 @@ router.get('/', async (req, res) => {
 
 // POST — submit application
 router.post('/submit', async (req, res) => {
+  if (APPLICATIONS_CLOSED) return res.status(403).send('Applications are closed.');
   if (!req.session.user) return res.redirect(`${res.locals.lp}/auth/discord`);
 
   const existing = (await db.query(
