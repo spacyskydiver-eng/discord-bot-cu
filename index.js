@@ -221,7 +221,7 @@ client.on('interactionCreate', async interaction => {
 
         const permOverwrites = [
           { id: guild.id, deny: ['ViewChannel'] },
-          { id: member.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
+          { id: member.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'AttachFiles', 'EmbedLinks'] },
           { id: client.user.id, allow: ['ViewChannel', 'SendMessages', 'ManageChannels', 'ReadMessageHistory'] }
         ];
         for (const roleId of staffRoleIds) {
