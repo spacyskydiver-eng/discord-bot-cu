@@ -12,10 +12,8 @@ async function discordFetch(path) {
   return r.json();
 }
 
-function isNationAppsOpen() {
-  if (process.env.NATION_APPS_OPEN === 'false') return false;
-  return true;
-}
+const NATION_APPS_OPEN = true;
+function isNationAppsOpen() { return NATION_APPS_OPEN; }
 
 router.get('/', async (req, res) => {
   if (!req.session.user) return res.redirect(`${res.locals.lp}/auth/discord`);
