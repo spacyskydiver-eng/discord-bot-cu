@@ -1,0 +1,103 @@
+<%- include('partials/head', { pageTitle: 'Kill Ticket Logs — Admin' }) %>
+<%- include('partials/header') %>
+
+<style>
+.ktl-wrap { max-width: 960px; margin: 0 auto; padding: 32px 20px 80px; }
+.ktl-title { font-family: 'Baloo 2'; font-weight: 900; font-size: 24px; color: var(--text); margin-bottom: 4px; }
+.ktl-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+
+.ktl-toolbar { display: flex; gap: 10px; margin-bottom: 28px; flex-wrap: wrap; align-items: center; }
+.ktl-input { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; color: var(--text); padding: 9px 13px; font-size: 13px; width: 220px; }
+.ktl-input::placeholder { color: var(--muted); }
+.ktl-btn { padding: 9px 16px; border-radius: 8px; border: 1px solid var(--line); font-size: 13px; font-weight: 600; cursor: pointer; background: var(--panel); color: var(--text); transition: .15s; white-space: nowrap; }
+.ktl-btn:hover { border-color: var(--accent); color: var(--accent); }
+.ktl-btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.ktl-btn-primary:hover { opacity: .85; color: #fff; }
+.ktl-status { font-size: 13px; color: var(--muted); }
+
+.ktl-table-wrap { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.ktl-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ktl-table th { text-align: left; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; padding: 14px 16px 12px; border-bottom: 1px solid var(--line); }
+.ktl-table td { padding: 12px 16px; border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent); color: var(--text); vertical-align: middle; }
+.ktl-table tr:last-child td { border-bottom: none; }
+.ktl-table tr:hover td { background: color-mix(in srgb, var(--accent) 4%, transparent); }
+.ktl-link { color: var(--accent); text-decoration: none; font-weight: 700; }
+.ktl-link:hover { text-decoration: underline; }
+.ktl-muted { color: var(--muted); }
+.ktl-count { display: inline-block; background: var(--line); border-radius: 20px; font-size: 11px; padding: 2px 8px; color: var(--muted); }
+
+.ktl-empty { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
+.ktl-empty strong { display: block; font-size: 18px; color: var(--text); margin-bottom: 8px; }
+</style>
+
+<div class="ktl-wrap">
+  <div class="ktl-title">Kill Ticket Logs</div>
+  <div class="ktl-sub">Collected transcripts of all kill request tickets.</div>
+
+  <div class="ktl-toolbar">
+    <input class="ktl-input" id="searchInput" placeholder="Search player or channel..." oninput="filterRows()" />
+    <button class="ktl-btn ktl-btn-primary" onclick="collectNow()">Collect Now</button>
+    <span class="ktl-status" id="collectStatus"></span>
+  </div>
+
+  <% if (!logs.length) { %>
+  <div class="ktl-table-wrap">
+    <div class="ktl-empty">
+      <strong>No logs yet</strong>
+      Hit Collect Now to pull all kill ticket transcripts from Discord.
+    </div>
+  </div>
+  <% } else { %>
+  <div class="ktl-table-wrap">
+    <table class="ktl-table" id="kt-log-table">
+      <thead>
+        <tr>
+          <th>Channel</th>
+          <th>Opened By</th>
+          <th>Messages</th>
+          <th>Collected</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const log of logs) { %>
+        <tr data-search="<%= (log.channel_name + ' ' + (log.opener_tag || log.opener_discord_id || '')).toLowerCase() %>">
+          <td><strong>#<%= log.channel_name || log.channel_id %></strong></td>
+          <td class="ktl-muted"><%= log.opener_tag || log.opener_discord_id || '—' %></td>
+          <td><span class="ktl-count"><%= log.message_count %></span></td>
+          <td class="ktl-muted"><%= log.collected_at ? new Date(log.collected_at).toLocaleString('en-GB', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—' %></td>
+          <td><a class="ktl-link" href="/admin/kill-ticket-logs/<%= log.channel_id %>">View →</a></td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<script>
+function filterRows() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  document.querySelectorAll('#kt-log-table tbody tr').forEach(row => {
+    row.style.display = (!q || row.dataset.search.includes(q)) ? '' : 'none';
+  });
+}
+
+async function collectNow() {
+  const s = document.getElementById('collectStatus');
+  s.textContent = 'Collecting...';
+  try {
+    const r = await fetch('/admin/kill-ticket-logs/collect', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: '{}'
+    });
+    const text = await r.text();
+    let d;
+    try { d = JSON.parse(text); } catch(e) { s.textContent = 'Server error: ' + text.slice(0,200); return; }
+    s.textContent = d.ok
+      ? `Collected ${d.messages} messages from ${d.tickets} tickets. Reload to see.`
+      : 'Error: ' + d.error;
+  } catch(e) { s.textContent = 'Error: ' + e.message; }
+}
+</script>
+
+<%- include('partials/foot') %>

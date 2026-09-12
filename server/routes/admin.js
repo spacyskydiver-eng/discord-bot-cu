@@ -55,6 +55,33 @@ db.query(`ALTER TABLE hundred_applications ADD COLUMN IF NOT EXISTS dm_wave INT`
 db.query(`ALTER TABLE hundred_applications ADD COLUMN IF NOT EXISTS ign_mojang_valid BOOLEAN`).catch(() => {});
 db.query(`ALTER TABLE nation_leader_applications ADD COLUMN IF NOT EXISTS ign_mojang_valid BOOLEAN`).catch(() => {});
 
+// Kill ticket log tables
+db.query(`CREATE TABLE IF NOT EXISTS kill_ticket_logs (
+  channel_id TEXT PRIMARY KEY,
+  channel_name TEXT,
+  config_id TEXT,
+  guild_id TEXT,
+  opener_discord_id TEXT,
+  opener_tag TEXT,
+  opener_avatar TEXT,
+  collected_at TIMESTAMPTZ DEFAULT NOW()
+)`).catch(() => {});
+db.query(`CREATE TABLE IF NOT EXISTS kill_ticket_messages (
+  message_id TEXT PRIMARY KEY,
+  channel_id TEXT NOT NULL,
+  author_id TEXT,
+  author_tag TEXT,
+  author_avatar TEXT,
+  content TEXT,
+  content_type TEXT NOT NULL DEFAULT 'text',
+  attachment_url TEXT,
+  attachment_filename TEXT,
+  attachment_mime TEXT,
+  attachment_size INT,
+  sent_at TIMESTAMPTZ,
+  collected_at TIMESTAMPTZ DEFAULT NOW()
+)`).catch(() => {});
+
 // General ticket system tables
 db.query(`CREATE TABLE IF NOT EXISTS general_ticket_config (
   id INT PRIMARY KEY DEFAULT 1,
@@ -99,7 +126,7 @@ db.query(`CREATE TABLE IF NOT EXISTS recording_submissions (
 // Staff can only access application review paths; everything else needs full admin
 router.use((req, res, next) => {
   if (res.locals.isFullAdmin) return next();
-  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader') || req.path.startsWith('/nations') || req.path === '/hundred-players' || req.path === '/mc-usernames' || req.path === '/check-ign-validity' || req.path === '/nation-map' || req.path.startsWith('/news-reporter') || req.path.startsWith('/moderation') || req.path === '/rival-check' || req.path === '/recordings' || req.path.startsWith('/recording/') || req.path === '/general-tickets' || req.path.startsWith('/general-tickets/');
+  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader') || req.path.startsWith('/nations') || req.path === '/hundred-players' || req.path === '/mc-usernames' || req.path === '/check-ign-validity' || req.path === '/nation-map' || req.path.startsWith('/news-reporter') || req.path.startsWith('/moderation') || req.path === '/rival-check' || req.path === '/recordings' || req.path.startsWith('/recording/') || req.path === '/general-tickets' || req.path.startsWith('/general-tickets/') || req.path === '/kill-ticket-logs' || req.path.startsWith('/kill-ticket-logs/');
   if (!allowed) return res.status(403).render('403');
   next();
 });
@@ -2542,6 +2569,117 @@ router.post('/kick-execute', requireAdminOrStaff, async (req, res) => {
   }
 
   res.render('new/admin-kick-preview', { preview: results, error: null, authed: true, executed: true });
+});
+
+// ── Kill ticket logs ─────────────────────────────────────────────────────────
+
+router.get('/kill-ticket-logs', async (req, res) => {
+  const logs = (await db.query(
+    `SELECT l.*, COUNT(m.message_id) AS message_count
+     FROM kill_ticket_logs l
+     LEFT JOIN kill_ticket_messages m ON m.channel_id = l.channel_id
+     GROUP BY l.channel_id
+     ORDER BY l.collected_at DESC`
+  )).rows;
+  res.render('new/admin-kill-ticket-logs', { logs });
+});
+
+router.get('/kill-ticket-logs/:channelId', async (req, res) => {
+  const log = (await db.query(`SELECT * FROM kill_ticket_logs WHERE channel_id = $1`, [req.params.channelId])).rows[0];
+  if (!log) return res.status(404).render('404');
+  const messages = (await db.query(
+    `SELECT * FROM kill_ticket_messages WHERE channel_id = $1 ORDER BY sent_at ASC`,
+    [req.params.channelId]
+  )).rows;
+  res.render('new/admin-kill-ticket-thread', { log, messages });
+});
+
+router.post('/kill-ticket-logs/collect', async (req, res) => {
+  try {
+    const client = botClient.get();
+    if (!client) return res.json({ ok: false, error: 'Bot not ready' });
+
+    await client.guilds.fetch();
+    let tickets = 0;
+    let messages = 0;
+
+    for (const [, guild] of client.guilds.cache) {
+      await guild.channels.fetch();
+      for (const [, ch] of guild.channels.cache) {
+        if (!ch.topic || !ch.topic.startsWith('kill-ticket:')) continue;
+        const [, configId, userId] = ch.topic.split(':');
+
+        // Upsert ticket log row
+        await db.query(
+          `INSERT INTO kill_ticket_logs (channel_id, channel_name, config_id, guild_id, opener_discord_id, collected_at)
+           VALUES ($1,$2,$3,$4,$5,NOW())
+           ON CONFLICT (channel_id) DO UPDATE SET channel_name=$2, collected_at=NOW()`,
+          [ch.id, ch.name, configId || null, guild.id, userId || null]
+        );
+        tickets++;
+
+        // Fetch all messages
+        let lastId = null;
+        while (true) {
+          const opts = { limit: 100 };
+          if (lastId) opts.before = lastId;
+          const msgs = await ch.messages.fetch(opts);
+          if (!msgs.size) break;
+
+          for (const msg of msgs.values()) {
+            if (msg.author.bot && !msg.content.trim() && !msg.attachments.size) continue;
+            const avatar = msg.author.avatar
+              ? `https://cdn.discordapp.com/avatars/${msg.author.id}/${msg.author.avatar}.png`
+              : null;
+
+            if (msg.content.trim()) {
+              await db.query(
+                `INSERT INTO kill_ticket_messages
+                   (message_id, channel_id, author_id, author_tag, author_avatar, content, content_type, sent_at)
+                 VALUES ($1,$2,$3,$4,$5,$6,'text',$7)
+                 ON CONFLICT (message_id) DO NOTHING`,
+                [msg.id + '_text', ch.id, msg.author.id, msg.author.username, avatar, msg.content.trim(), msg.createdAt]
+              );
+              messages++;
+            }
+
+            for (const att of msg.attachments.values()) {
+              await db.query(
+                `INSERT INTO kill_ticket_messages
+                   (message_id, channel_id, author_id, author_tag, author_avatar, content_type, attachment_url, attachment_filename, attachment_mime, attachment_size, sent_at)
+                 VALUES ($1,$2,$3,$4,$5,'attachment',$6,$7,$8,$9,$10)
+                 ON CONFLICT (message_id) DO NOTHING`,
+                [msg.id + '_' + att.id, ch.id, msg.author.id, msg.author.username, avatar,
+                 att.url, att.name, att.contentType || null, att.size, msg.createdAt]
+              );
+              messages++;
+            }
+          }
+
+          lastId = msgs.last().id;
+          if (msgs.size < 100) break;
+        }
+
+        // Try to fill in opener tag from first message or members
+        if (userId) {
+          const opener = await guild.members.fetch(userId).catch(() => null);
+          if (opener) {
+            await db.query(
+              `UPDATE kill_ticket_logs SET opener_tag=$1, opener_avatar=$2 WHERE channel_id=$3`,
+              [opener.user.username,
+               opener.user.avatar ? `https://cdn.discordapp.com/avatars/${opener.user.id}/${opener.user.avatar}.png` : null,
+               ch.id]
+            );
+          }
+        }
+      }
+    }
+
+    res.json({ ok: true, tickets, messages });
+  } catch (err) {
+    console.error('kill-ticket-logs collect error:', err);
+    res.json({ ok: false, error: err.message });
+  }
 });
 
 // ── General ticket system ────────────────────────────────────────────────────

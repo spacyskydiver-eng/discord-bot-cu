@@ -294,6 +294,7 @@
     <button class="nd-tab" data-tab="panels">Panels</button>
     <% } %>
     <a href="/admin/general-tickets" class="nd-tab" style="text-decoration:none">Tickets</a>
+    <a href="/admin/kill-ticket-logs" class="nd-tab" style="text-decoration:none">Kill Logs</a>
     <a href="/admin/moderation" class="nd-tab" style="text-decoration:none;color:#f87171">Moderation</a>
     <a href="/admin/chest-analysis" class="nd-tab" style="text-decoration:none">Chest Analysis</a>
     <a href="/admin/hundred-chest" class="nd-tab" style="text-decoration:none">150 Event Chests</a>
@@ -1119,6 +1120,14 @@
         <span id="rec-panel-status" style="font-size:13px;color:var(--muted);align-self:center"></span>
       </div>
       <p style="font-size:12px;color:var(--muted);margin-top:14px;margin-bottom:0">View and collect submissions: <a href="/admin/recordings" style="color:var(--accent)">Recording Timeline →</a></p>
+    </div>
+
+    <div class="nd-card">
+      <h2>Kill Ticket Logs</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:18px">Collect and archive every kill ticket conversation — messages, images, and files — searchable on the website.</p>
+      <button class="nd-btn nd-btn-primary" onclick="collectKillLogs()">Collect Now</button>
+      <span id="kill-log-status" style="font-size:13px;color:var(--muted);margin-left:10px"></span>
+      <p style="font-size:12px;color:var(--muted);margin-top:12px;margin-bottom:0"><a href="/admin/kill-ticket-logs" style="color:var(--accent)">View all kill ticket logs →</a></p>
     </div>
 
     <div class="nd-card">
@@ -2139,6 +2148,22 @@ function clearAll(){
 // Init preview time
 updatePreview();
 setInterval(()=>{document.getElementById('wh-prev-time').textContent=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});},30000);
+
+async function collectKillLogs() {
+  const s = document.getElementById('kill-log-status');
+  s.textContent = 'Collecting...';
+  try {
+    const r = await fetch('/admin/kill-ticket-logs/collect', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: '{}'
+    });
+    const text = await r.text();
+    let d;
+    try { d = JSON.parse(text); } catch(e) { s.textContent = 'Server error: ' + text.slice(0,200); return; }
+    s.textContent = d.ok
+      ? `Collected ${d.messages} messages from ${d.tickets} tickets.`
+      : 'Error: ' + d.error;
+  } catch(e) { s.textContent = 'Error: ' + e.message; }
+}
 
 async function postGtPanel() {
   const ch = document.getElementById('gt-panel-channel').value.trim();
