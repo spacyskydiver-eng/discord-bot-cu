@@ -324,7 +324,8 @@ client.on('interactionCreate', async interaction => {
           return interaction.editReply({ content: 'Ticket system not configured. Contact staff.', components: [] });
         }
         const num = String(cfg.ticket_counter).padStart(4, '0');
-        const channelName = `ticket-${num}`;
+        const safeName = member.user.username.replace(/[^a-z0-9]/gi, '').toLowerCase() || 'player';
+        const channelName = `ticket-${num}-${safeName}`;
         const categoryId = isUrgent ? cfg.urgent_category_id : cfg.normal_category_id;
 
         const TICKET_STAFF_ROLES = [
