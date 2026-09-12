@@ -293,6 +293,7 @@
     <button class="nd-tab" data-tab="webhook">Webhook Builder</button>
     <button class="nd-tab" data-tab="panels">Panels</button>
     <% } %>
+    <a href="/admin/general-tickets" class="nd-tab" style="text-decoration:none">Tickets</a>
     <a href="/admin/moderation" class="nd-tab" style="text-decoration:none;color:#f87171">Moderation</a>
     <a href="/admin/chest-analysis" class="nd-tab" style="text-decoration:none">Chest Analysis</a>
     <a href="/admin/hundred-chest" class="nd-tab" style="text-decoration:none">150 Event Chests</a>
@@ -1093,6 +1094,19 @@
 
   <!-- ═══ PANELS TAB ═══ -->
   <div class="nd-panel" id="tab-panels">
+    <div class="nd-card">
+      <h2>Support Tickets Panel</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:18px">Posts a Create Ticket button. Players choose Urgent or Not Urgent — each goes into its own category. Configure categories first at <a href="/admin/general-tickets" style="color:var(--accent)">Tickets →</a></p>
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+        <div class="nd-form-field" style="margin:0;flex:1;min-width:200px;max-width:340px">
+          <label class="nd-label">Channel ID</label>
+          <input type="text" id="gt-panel-channel" class="nd-input" placeholder="Right-click channel → Copy ID" />
+        </div>
+        <button class="nd-btn nd-btn-primary" onclick="postGtPanel()" style="flex-shrink:0">Post Panel</button>
+        <span id="gt-panel-status" style="font-size:13px;color:var(--muted);align-self:center"></span>
+      </div>
+    </div>
+
     <div class="nd-card">
       <h2>Recording Submissions Panel</h2>
       <p style="font-size:13px;color:var(--muted);margin-bottom:18px">Posts a button to a channel so players can open a private recording ticket and choose Day 1–6. Players cannot close their own tickets — staff only.</p>
@@ -2125,6 +2139,20 @@ function clearAll(){
 // Init preview time
 updatePreview();
 setInterval(()=>{document.getElementById('wh-prev-time').textContent=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});},30000);
+
+async function postGtPanel() {
+  const ch = document.getElementById('gt-panel-channel').value.trim();
+  const s = document.getElementById('gt-panel-status');
+  if (!ch) { s.textContent = 'Enter a channel ID first.'; return; }
+  s.textContent = 'Posting...';
+  try {
+    const r = await fetch('/admin/general-tickets/post-panel', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ channel_id: ch })
+    });
+    const d = await r.json();
+    s.textContent = d.ok ? 'Panel posted!' : 'Error: ' + d.error;
+  } catch(e) { s.textContent = 'Error: ' + e.message; }
+}
 
 async function postRecordingPanel() {
   const ch = document.getElementById('rec-panel-channel').value.trim();

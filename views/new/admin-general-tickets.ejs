@@ -1,0 +1,149 @@
+<%- include('partials/head', { pageTitle: 'Tickets — Admin' }) %>
+<%- include('partials/header') %>
+
+<style>
+.gt-wrap { max-width: 900px; margin: 0 auto; padding: 32px 20px 80px; }
+.gt-title { font-family: 'Baloo 2'; font-weight: 900; font-size: 24px; color: var(--text); margin-bottom: 4px; }
+.gt-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
+
+.gt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 32px; }
+@media(max-width:640px){ .gt-grid { grid-template-columns: 1fr; } }
+
+.gt-card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
+.gt-card h2 { font-family: 'Baloo 2'; font-weight: 800; font-size: 17px; color: var(--text); margin: 0 0 16px; }
+.gt-label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; margin-top: 14px; }
+.gt-label:first-of-type { margin-top: 0; }
+.gt-input { width: 100%; padding: 9px 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; color: var(--text); font-size: 13px; box-sizing: border-box; }
+.gt-input::placeholder { color: var(--muted); }
+.gt-btn { display: inline-block; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; transition: .15s; }
+.gt-btn-primary { background: var(--accent); color: #fff; }
+.gt-btn-primary:hover { opacity: .85; }
+.gt-btn-ghost { background: var(--panel); border: 1px solid var(--line); color: var(--text); }
+.gt-btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.gt-status { font-size: 13px; color: var(--muted); margin-left: 10px; }
+
+.gt-section-title { font-family: 'Baloo 2'; font-weight: 800; font-size: 17px; color: var(--text); margin: 0 0 14px; }
+
+.gt-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.gt-table th { text-align: left; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; padding: 0 12px 10px; border-bottom: 1px solid var(--line); }
+.gt-table td { padding: 12px; border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent); color: var(--text); vertical-align: middle; }
+.gt-table tr:last-child td { border-bottom: none; }
+.badge-urgent { display: inline-block; background: rgba(248,113,113,.15); border: 1px solid rgba(248,113,113,.3); color: #f87171; border-radius: 6px; font-size: 11px; font-weight: 700; padding: 2px 8px; }
+.badge-normal { display: inline-block; background: rgba(148,163,184,.1); border: 1px solid var(--line); color: var(--muted); border-radius: 6px; font-size: 11px; font-weight: 700; padding: 2px 8px; }
+.badge-open { display: inline-block; background: rgba(74,222,128,.12); border: 1px solid rgba(74,222,128,.3); color: #4ade80; border-radius: 6px; font-size: 11px; font-weight: 700; padding: 2px 8px; }
+.badge-closed { display: inline-block; background: rgba(148,163,184,.1); border: 1px solid var(--line); color: var(--muted); border-radius: 6px; font-size: 11px; font-weight: 700; padding: 2px 8px; }
+.gt-empty { text-align: center; padding: 48px 20px; color: var(--muted); font-size: 14px; }
+</style>
+
+<div class="gt-wrap">
+  <div class="gt-title">Ticket System</div>
+  <div class="gt-sub">Configure categories, post the panel, and view all tickets.</div>
+
+  <div class="gt-grid">
+    <!-- Config -->
+    <div class="gt-card">
+      <h2>Configuration</h2>
+      <form action="/admin/general-tickets/config" method="POST">
+        <label class="gt-label">Normal Tickets Category ID</label>
+        <input class="gt-input" name="normal_category_id" value="<%= cfg.normal_category_id || '' %>" placeholder="Right-click category → Copy ID" />
+        <label class="gt-label">Urgent Tickets Category ID</label>
+        <input class="gt-input" name="urgent_category_id" value="<%= cfg.urgent_category_id || '' %>" placeholder="Right-click category → Copy ID" />
+        <label class="gt-label">Extra Staff Role IDs (comma-separated, optional)</label>
+        <input class="gt-input" name="staff_role_ids" value="<%= cfg.staff_role_ids || '' %>" placeholder="Role IDs that can see tickets" />
+        <br><br>
+        <button type="submit" class="gt-btn gt-btn-primary">Save Config</button>
+      </form>
+    </div>
+
+    <!-- Post panel -->
+    <div class="gt-card">
+      <h2>Post Panel</h2>
+      <label class="gt-label">Channel ID</label>
+      <input class="gt-input" id="gt-channel" placeholder="Right-click channel → Copy ID" />
+      <label class="gt-label">Title (optional)</label>
+      <input class="gt-input" id="gt-title" placeholder="Support Tickets" />
+      <label class="gt-label">Description (optional)</label>
+      <input class="gt-input" id="gt-desc" placeholder="Need help? Click below to open a ticket." />
+      <br><br>
+      <button class="gt-btn gt-btn-primary" onclick="postPanel()">Post Panel</button>
+      <span class="gt-status" id="gt-post-status"></span>
+      <p style="font-size:12px;color:var(--muted);margin-top:12px;margin-bottom:0">Current counter: ticket-<strong style="color:var(--text)"><%= String(cfg.ticket_counter || 233).padStart(4,'0') %></strong></p>
+    </div>
+  </div>
+
+  <!-- Ticket list -->
+  <div class="gt-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div class="gt-section-title" style="margin:0">Recent Tickets</div>
+      <div style="display:flex;gap:8px">
+        <button class="gt-btn gt-btn-ghost" style="font-size:12px;padding:6px 12px" onclick="filterTickets('all')" id="f-all">All</button>
+        <button class="gt-btn gt-btn-ghost" style="font-size:12px;padding:6px 12px" onclick="filterTickets('open')" id="f-open">Open</button>
+        <button class="gt-btn gt-btn-ghost" style="font-size:12px;padding:6px 12px" onclick="filterTickets('urgent')" id="f-urgent">Urgent</button>
+        <button class="gt-btn gt-btn-ghost" style="font-size:12px;padding:6px 12px" onclick="filterTickets('closed')" id="f-closed">Closed</button>
+      </div>
+    </div>
+    <% if (!tickets.length) { %>
+    <div class="gt-empty">No tickets yet. Post the panel and players can start creating tickets.</div>
+    <% } else { %>
+    <table class="gt-table" id="gt-table">
+      <thead>
+        <tr>
+          <th>Ticket</th>
+          <th>Player</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const t of tickets) { %>
+        <tr data-urgent="<%= t.urgent %>" data-closed="<%= !!t.closed_at %>">
+          <td><strong>ticket-<%= String(t.ticket_number).padStart(4,'0') %></strong></td>
+          <td style="color:var(--muted)"><%= t.discord_tag || t.discord_id %></td>
+          <td><% if (t.urgent) { %><span class="badge-urgent">Urgent</span><% } else { %><span class="badge-normal">Normal</span><% } %></td>
+          <td><% if (t.closed_at) { %><span class="badge-closed">Closed</span><% } else { %><span class="badge-open">Open</span><% } %></td>
+          <td style="color:var(--muted)"><%= t.created_at ? new Date(t.created_at).toLocaleString('en-GB', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—' %></td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+    <% } %>
+  </div>
+</div>
+
+<script>
+async function postPanel() {
+  const ch = document.getElementById('gt-channel').value.trim();
+  const s = document.getElementById('gt-post-status');
+  if (!ch) { s.textContent = 'Enter a channel ID first.'; return; }
+  s.textContent = 'Posting...';
+  try {
+    const r = await fetch('/admin/general-tickets/post-panel', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        channel_id: ch,
+        title: document.getElementById('gt-title').value.trim() || null,
+        description: document.getElementById('gt-desc').value.trim() || null
+      })
+    });
+    const d = await r.json();
+    s.textContent = d.ok ? 'Panel posted!' : 'Error: ' + d.error;
+  } catch(e) { s.textContent = 'Error: ' + e.message; }
+}
+
+function filterTickets(mode) {
+  document.querySelectorAll('[id^="f-"]').forEach(b => b.style.borderColor = '');
+  document.getElementById('f-' + mode).style.borderColor = 'var(--accent)';
+  document.querySelectorAll('#gt-table tbody tr').forEach(row => {
+    const urgent = row.dataset.urgent === 'true';
+    const closed = row.dataset.closed === 'true';
+    let show = true;
+    if (mode === 'open') show = !closed;
+    else if (mode === 'urgent') show = urgent && !closed;
+    else if (mode === 'closed') show = closed;
+    row.style.display = show ? '' : 'none';
+  });
+}
+</script>
+
+<%- include('partials/foot') %>

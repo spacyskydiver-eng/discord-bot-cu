@@ -291,6 +291,107 @@ client.on('interactionCreate', async interaction => {
       return;
     }
 
+    // General support ticket — create (show urgency choice)
+    if (interaction.customId === 'ticket_create') {
+      await interaction.reply({
+        content: '**Create a Ticket**\n\nIs your issue urgent?',
+        ephemeral: true,
+        components: [{
+          type: 1,
+          components: [
+            { type: 2, style: 2, label: 'Not Urgent', custom_id: 'ticket_normal', emoji: { name: '📋' } },
+            { type: 2, style: 4, label: 'Urgent', custom_id: 'ticket_urgent', emoji: { name: '🚨' } }
+          ]
+        }]
+      });
+      return;
+    }
+
+    // General support ticket — open normal or urgent
+    if (interaction.customId === 'ticket_normal' || interaction.customId === 'ticket_urgent') {
+      const isUrgent = interaction.customId === 'ticket_urgent';
+      await interaction.deferUpdate();
+      try {
+        const guild = interaction.guild;
+        const member = interaction.member;
+
+        // Atomically increment ticket counter
+        const cfgRes = await db.query(
+          `UPDATE general_ticket_config SET ticket_counter = ticket_counter + 1 WHERE id = 1 RETURNING ticket_counter, urgent_category_id, normal_category_id, staff_role_ids`
+        );
+        const cfg = cfgRes.rows[0];
+        if (!cfg) {
+          return interaction.editReply({ content: 'Ticket system not configured. Contact staff.', components: [] });
+        }
+        const num = String(cfg.ticket_counter).padStart(4, '0');
+        const channelName = `ticket-${num}`;
+        const categoryId = isUrgent ? cfg.urgent_category_id : cfg.normal_category_id;
+
+        const TICKET_STAFF_ROLES = [
+          '1449004906483814442','1449004906467033117','1532850180246867968',
+          '1512577183875469624','1449004906483814441','1449004906467033116','1451190210842071070',
+          ...(cfg.staff_role_ids || '').split(',').map(s => s.trim()).filter(Boolean)
+        ];
+
+        const overwrites = [
+          { id: guild.id, deny: ['ViewChannel'] },
+          { id: member.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'AttachFiles', 'EmbedLinks'] },
+          { id: client.user.id, allow: ['ViewChannel', 'SendMessages', 'ManageChannels', 'ReadMessageHistory'] }
+        ];
+        for (const rid of [...new Set(TICKET_STAFF_ROLES)]) {
+          overwrites.push({ id: rid, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages'] });
+        }
+
+        const channel = await guild.channels.create({
+          name: channelName,
+          type: 0,
+          parent: categoryId || null,
+          topic: `support-ticket:${member.id}:${isUrgent ? 'urgent' : 'normal'}`,
+          permissionOverwrites: overwrites
+        });
+
+        await db.query(
+          `INSERT INTO general_tickets (ticket_number, discord_id, discord_tag, channel_id, urgent) VALUES ($1,$2,$3,$4,$5)`,
+          [cfg.ticket_counter, member.id, member.user.username, channel.id, isUrgent]
+        );
+
+        const urgencyLabel = isUrgent ? '🚨 **URGENT**' : '📋 **Support Ticket**';
+        await channel.send({
+          content: `${urgencyLabel} — ${channelName}\n\nHey <@${member.id}>! Staff will be with you shortly. Please describe your issue below.\n\n_Provide as much detail as possible — screenshots and videos are welcome._`,
+          components: [{
+            type: 1,
+            components: [{ type: 2, style: 4, label: 'Close Ticket', custom_id: 'ticket_close' }]
+          }]
+        });
+
+        await interaction.editReply({
+          content: `Your ticket has been created: <#${channel.id}>`,
+          components: []
+        });
+      } catch (err) {
+        console.error('Ticket create error:', err);
+        await interaction.editReply({ content: 'Could not create ticket. Please contact staff.', components: [] });
+      }
+      return;
+    }
+
+    // General support ticket — close
+    if (interaction.customId === 'ticket_close') {
+      const TICKET_STAFF_ROLES = [
+        '1449004906483814442','1449004906467033117','1532850180246867968',
+        '1512577183875469624','1449004906483814441','1449004906467033116','1451190210842071070'
+      ];
+      const isStaff = interaction.member.permissions.has('ManageChannels') ||
+        TICKET_STAFF_ROLES.some(rid => interaction.member.roles.cache.has(rid));
+      if (!isStaff) {
+        return interaction.reply({ content: 'Only staff can close tickets.', ephemeral: true });
+      }
+      await interaction.reply({ content: `Ticket closed by <@${interaction.user.id}>. Deleting in 5 seconds...` });
+      await db.query(`UPDATE general_tickets SET closed_at = NOW() WHERE channel_id = $1`, [interaction.channel.id]);
+      setTimeout(() => interaction.channel.delete('Ticket closed').catch(() => {}), 5000);
+      return;
+    }
+
     // Recording ticket — open (show day select)
     if (interaction.customId === 'recording_open') {
       await interaction.reply({

@@ -55,6 +55,28 @@ db.query(`ALTER TABLE hundred_applications ADD COLUMN IF NOT EXISTS dm_wave INT`
 db.query(`ALTER TABLE hundred_applications ADD COLUMN IF NOT EXISTS ign_mojang_valid BOOLEAN`).catch(() => {});
 db.query(`ALTER TABLE nation_leader_applications ADD COLUMN IF NOT EXISTS ign_mojang_valid BOOLEAN`).catch(() => {});
 
+// General ticket system tables
+db.query(`CREATE TABLE IF NOT EXISTS general_ticket_config (
+  id INT PRIMARY KEY DEFAULT 1,
+  ticket_counter INT NOT NULL DEFAULT 233,
+  urgent_category_id TEXT,
+  normal_category_id TEXT,
+  staff_role_ids TEXT,
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT single_row CHECK (id = 1)
+)`).catch(() => {});
+db.query(`INSERT INTO general_ticket_config (id) VALUES (1) ON CONFLICT DO NOTHING`).catch(() => {});
+db.query(`CREATE TABLE IF NOT EXISTS general_tickets (
+  id SERIAL PRIMARY KEY,
+  ticket_number INT UNIQUE NOT NULL,
+  discord_id TEXT NOT NULL,
+  discord_tag TEXT,
+  channel_id TEXT,
+  urgent BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  closed_at TIMESTAMPTZ
+)`).catch(() => {});
+
 // Recording submissions table
 db.query(`CREATE TABLE IF NOT EXISTS recording_submissions (
   id SERIAL PRIMARY KEY,
@@ -77,7 +99,7 @@ db.query(`CREATE TABLE IF NOT EXISTS recording_submissions (
 // Staff can only access application review paths; everything else needs full admin
 router.use((req, res, next) => {
   if (res.locals.isFullAdmin) return next();
-  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader') || req.path.startsWith('/nations') || req.path === '/hundred-players' || req.path === '/mc-usernames' || req.path === '/check-ign-validity' || req.path === '/nation-map' || req.path.startsWith('/news-reporter') || req.path.startsWith('/moderation') || req.path === '/rival-check' || req.path === '/recordings' || req.path.startsWith('/recording/');
+  const allowed = req.path === '/' || req.path === '/preview-apply' || req.path.startsWith('/application') || req.path.startsWith('/edit-request') || req.path === '/chest-analysis' || req.path.startsWith('/hundred') || req.path.startsWith('/nation-leader') || req.path.startsWith('/nations') || req.path === '/hundred-players' || req.path === '/mc-usernames' || req.path === '/check-ign-validity' || req.path === '/nation-map' || req.path.startsWith('/news-reporter') || req.path.startsWith('/moderation') || req.path === '/rival-check' || req.path === '/recordings' || req.path.startsWith('/recording/') || req.path === '/general-tickets' || req.path.startsWith('/general-tickets/');
   if (!allowed) return res.status(403).render('403');
   next();
 });
@@ -2520,6 +2542,45 @@ router.post('/kick-execute', requireAdminOrStaff, async (req, res) => {
   }
 
   res.render('new/admin-kick-preview', { preview: results, error: null, authed: true, executed: true });
+});
+
+// ── General ticket system ────────────────────────────────────────────────────
+
+router.get('/general-tickets', async (req, res) => {
+  const cfg = (await db.query(`SELECT * FROM general_ticket_config WHERE id = 1`)).rows[0] || {};
+  const tickets = (await db.query(
+    `SELECT * FROM general_tickets ORDER BY ticket_number DESC LIMIT 200`
+  )).rows;
+  res.render('new/admin-general-tickets', { cfg, tickets });
+});
+
+router.post('/general-tickets/config', async (req, res) => {
+  const { urgent_category_id, normal_category_id, staff_role_ids } = req.body;
+  await db.query(
+    `UPDATE general_ticket_config SET urgent_category_id=$1, normal_category_id=$2, staff_role_ids=$3, updated_at=NOW() WHERE id=1`,
+    [urgent_category_id || null, normal_category_id || null, staff_role_ids || null]
+  );
+  res.redirect('/admin/general-tickets');
+});
+
+router.post('/general-tickets/post-panel', async (req, res) => {
+  const { channel_id, title, description } = req.body;
+  if (!channel_id) return res.json({ ok: false, error: 'channel_id required' });
+  const token = process.env.DISCORD_TOKEN;
+  const payload = {
+    content: `**${title || 'Support Tickets'}**\n\n${description || 'Need help from staff? Click the button below to open a private support ticket.'}`,
+    components: [{
+      type: 1,
+      components: [{ type: 2, style: 1, label: 'Create Ticket', custom_id: 'ticket_create', emoji: { name: '🎫' } }]
+    }]
+  };
+  const r = await fetch(`https://discord.com/api/v10/channels/${channel_id}/messages`, {
+    method: 'POST',
+    headers: { Authorization: `Bot ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!r.ok) return res.json({ ok: false, error: await r.text() });
+  res.json({ ok: true });
 });
 
 // ── Recording timeline ───────────────────────────────────────────────────────
