@@ -33,6 +33,14 @@ async function requireAdminOrStaff(req, res, next) {
     res.locals.isFullAdmin = true;
     return next();
   }
+  // Check DB-managed full admins
+  const fullAdminRow = (await db.query(
+    `SELECT 1 FROM full_admin_access WHERE discord_id = $1`, [req.session.user.id]
+  )).rows[0];
+  if (fullAdminRow) {
+    res.locals.isFullAdmin = true;
+    return next();
+  }
   const row = (await db.query(
     `SELECT 1 FROM staff_access WHERE discord_id = $1`, [req.session.user.id]
   )).rows[0];
@@ -49,6 +57,9 @@ function requireFullAdmin(req, res, next) {
 }
 
 router.use(requireAdminOrStaff);
+
+// Full admin access table (DB-managed, supplements env var ADMIN_DISCORD_IDS)
+db.query(`CREATE TABLE IF NOT EXISTS full_admin_access (discord_id TEXT PRIMARY KEY, granted_at TIMESTAMPTZ DEFAULT NOW())`).catch(() => {});
 
 // Ensure tracking columns exist
 db.query(`ALTER TABLE hundred_applications ADD COLUMN IF NOT EXISTS dm_wave INT`).catch(() => {});
