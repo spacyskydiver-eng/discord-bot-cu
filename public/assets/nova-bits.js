@@ -169,15 +169,13 @@ function mountDock() {
   if (N.dock || !B.isNova()) return;
   const items = [
     { id: B.V && B.V.home, label: 'Home', ic: 'home' },
-    { id: 'applications', label: 'Applications', ic: 'clipboard-list' },
-    { id: 'events', label: 'Upcoming events', ic: 'calendar' },
-    { sep: true },
-    { id: '01 Events/The Great War/The Great War', label: 'Event wiki', ic: 'book-open' },
-    { id: 'glossary', label: 'Key terms', ic: 'key' },
+    { id: 'applications', label: 'Apply', ic: 'clipboard-list' },
+    { id: 'events', label: 'Events', ic: 'calendar' },
+    { id: '01 Events/The Great War/The Great War', label: 'Wiki', ic: 'book-open' },
     { id: 'store', label: 'Store', ic: 'cart' },
-    { id: 'team', label: 'The Team', ic: 'users' },
-    { map: true, label: 'Neural map', ic: 'graph' },
-  ].filter(it => it.sep || it.map || (it.id && B.exists(it.id)));
+    { id: 'team', label: 'Team', ic: 'users' },
+    ...(window.CUE && window.CUE.isAdmin ? [{ sep: true }, { href: '/admin', label: 'Admin panel', ic: 'shield' }] : []),
+  ].filter(it => it.sep || it.href || (it.id && B.exists(it.id)));
   const root = h(`<nav class="nb-dock" aria-label="Dock">${items.map((it, i) => it.sep ? '<span class="nb-dock-sep" aria-hidden="true"></span>' : `<button class="nb-dock-item" data-i="${i}" aria-label="${esc(it.label)}">${icon(it.ic)}<span class="nb-dock-badge" hidden></span><span class="nb-dock-label">${esc(it.label)}</span></button>`).join('')}</nav>`);
   document.body.appendChild(root);
   const btns = $$('.nb-dock-item', root);
@@ -185,6 +183,7 @@ function mountDock() {
     const b = e.target.closest('.nb-dock-item'); if (!b) return;
     const it = items[+b.dataset.i];
     if (it.map) { N.map && N.map.open(B.currentId()); return; }
+    if (it.href) { location.href = it.href; return; }
     N.go(it.id);
   });
   let lastId = null;

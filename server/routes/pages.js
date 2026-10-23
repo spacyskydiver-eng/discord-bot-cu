@@ -34,12 +34,17 @@ router.get('/', async (req, res) => {
   try {
     team = (await db.query(`SELECT title, pay, description FROM staff_roles ORDER BY display_order ASC, id ASC`)).rows;
   } catch (e) { console.error('[home] staff roles', e.message); }
+  let applications = [];
+  try {
+    const ev = (await db.query(`SELECT title, is_open FROM events ORDER BY created_at DESC LIMIT 1`)).rows[0];
+    if (ev && ev.is_open) applications = [{ title: ev.title, href: '/apply' }];
+  } catch (e) { console.error('[home] events', e.message); }
   const cue = {
     user: req.session.user ? { name: req.session.user.username } : null,
     isAdmin: !!res.locals.isAdmin,
     discord: 'https://discord.gg/x832cqAdu',
     events: upcomingEvents(),
-    applications: [],
+    applications,
     team,
     store: [
       { name: 'VIP', price: '$4.99', status: t('store_coming_soon'), features: [1, 2, 3, 4].map(i => t('store_vip_feat' + i)) },

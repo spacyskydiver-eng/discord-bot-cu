@@ -1207,3 +1207,5 @@ body.nova-map-on .nmap-mark:not(.is-target):not(.is-here):not(.is-main) i { widt
 
 /* CUE: no side panels, the dock and the home page cards do the navigating */
 #left, #right, .resize-handle { display: none !important; }
+/* CUE: one way round the site, the dock. No ribbon, tabs, header bar or map buttons. */
+.workspace-ribbon, #tabbar, .view-header, .mobile-header, .nv-mapbtn, .nv-lens-hint { display: none !important; }

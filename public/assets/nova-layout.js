@@ -216,10 +216,7 @@ function showHome(view) {
           <div class="nv-ms-list">${sections.length ? sections.map(hb => `<button class="nv-ms-item" data-go="${esc(hb.id)}"><span class="nv-ms-when">${plainNum(hb.number)}</span><b>${esc(hb.title)}</b><small>${esc(summaryOf(hb.id))}</small></button>`).join('') : '<div class="nv-empty">Nothing written yet.</div>'}</div></div>
       </div>
     </section>
-    <section class="nv-sec"><div class="nv-sec-head"><h2>Pages</h2></div><div class="nv-acc"></div></section>
   </div>`;
-  const pages = PAGES();
-  $('.nv-acc', view).appendChild(accordion(pages.map(p => ({ id: p.id, label: p.label, color: p.color, tagline: p.tagline, meta: p.meta() })), { defaultIndex: 0, expandRatio: 0.46 }));
   view.onclick = e => { const g = e.target.closest('[data-go]'); if (g) goFrom(g); };
   mountGL($('.nv-laser', view), 'laserFlow', { surfaceRef: { current: $('#nv-today', view) }, beamPosition: 0.72, color: '#8B5CF6', intensity: 1.3, fog: 0, dust: 0.8, speed: 0.9, spread: 1, spill: 0.6 }, bag);
   return destroyAll(bag);
@@ -230,7 +227,7 @@ function pageView(view, o) {
   view.innerHTML = `<div class="nv-page nv-module" style="--mod:${o.color}">
     <header class="nv-mod-head">
       <div class="nv-mod-text">
-        <div class="nv-mod-bar"><button class="nv-back" data-go="${esc(B.V.home)}">${icon('arrow-left')} Home</button><button class="nv-mapbtn" data-map title="Neural map">${icon('graph')}<span>Map</span></button></div>
+        <div class="nv-mod-bar"><button class="nv-back" data-go="${esc(B.V.home)}">${icon('arrow-left')} Home</button></div>
         <div class="nv-kicker">${esc(o.kicker)}</div>
         <h1>${esc(o.title)}</h1>
         ${o.lede ? `<p class="nv-lede">${esc(o.lede)}</p>` : ''}
@@ -252,12 +249,14 @@ const discordCard = (n, label) => card(n, esc(label), 'discord.gg/x832cqAdu', ic
 B.registerView('applications', {
   title: () => 'Applications', icon: 'clipboard-list', cls: 'nv-view',
   show(view) {
-    const C = CUE(), apps = C.applications || [], events = C.events || [];
+    const C = CUE(), apps = C.applications || [], next = (C.events || [])[0];
+    // one open application: go straight to its form, like the old Apply button
+    if (apps.length === 1 && apps[0].href) { location.replace(apps[0].href); return; }
     pageView(view, {
-      color: '#34D399', kicker: 'Apply', title: 'Applications', lede: 'Apply for upcoming CUE events. Applications open ahead of each event.',
-      body: sec('Open now', apps.length ? `<div class="nv-timeline">${apps.map((a, i) => card(plainNum(i + 1), esc(a.title), esc(a.detail || ''), pill('Open'), a.href ? `href="${esc(a.href)}"` : '')).join('')}</div>` : '<div class="nv-empty">No applications are open right now.</div>')
-        + sec('Coming up', events.length ? `<div class="nv-timeline">${events.map((e, i) => card(plainNum(i + 1), esc(e.title), esc(fmtDate(e.date, true)) + ' · ' + esc(e.status), pill('Soon'), `href="${esc(B.hashFor('events'))}" data-go="events"`)).join('')}</div>` : '<div class="nv-empty">Nothing announced yet.</div>')
-        + sec('Get notified', `<div class="nv-timeline">${discordCard('·', 'Join the CUE Discord')}</div>`),
+      color: '#34D399', kicker: 'Apply', title: 'Applications',
+      lede: apps.length ? 'Pick the application you want to fill in.' : (next ? `Applications for ${next.title} open soon. They will be announced in the Discord.` : 'No applications are open right now.'),
+      body: apps.length ? sec('Open now', `<div class="nv-timeline">${apps.map((a, i) => card(plainNum(i + 1), esc(a.title), 'Start your application', pill('Apply'), `href="${esc(a.href)}"`)).join('')}</div>`)
+        : `<section class="nv-sec"><div class="nv-timeline">${discordCard('·', 'Join the CUE Discord')}</div></section>`,
     });
   },
 });
@@ -267,12 +266,11 @@ B.registerView('events', {
   show(view) {
     const events = CUE().events || [];
     pageView(view, {
-      color: '#A78BFA', kicker: 'Calendar', title: 'Upcoming events', lede: 'What is next for Collective Union Events.',
-      body: events.length ? events.map((e, i) => sec(e.title, `<div class="nv-timeline">
-          ${card(plainNum(i + 1), esc(fmtDate(e.date, true)), esc(e.setting) + ' · ' + esc(e.type), pill(daysTo(e.date) + ' days'))}
-          ${card('·', 'Up to ' + esc(e.players) + ' players', esc(e.status), '')}
-          ${e.wiki && B.exists(e.wiki) ? card('·', 'Read the event wiki', 'Setting, nations, warfare and rules', icon('arrow-right'), `href="${esc(B.hashFor(e.wiki))}" data-go="${esc(e.wiki)}"`) : ''}
-        </div>`)).join('') : sec('Events', '<div class="nv-empty">No events announced yet.</div>'),
+      color: '#A78BFA', kicker: 'Events', title: 'Upcoming events', lede: '',
+      body: `<section class="nv-sec">${events.length ? `<div class="nv-timeline">${events.map((e, i) => {
+        const to = e.wiki && B.exists(e.wiki) ? `href="${esc(B.hashFor(e.wiki))}" data-go="${esc(e.wiki)}"` : '';
+        return card(plainNum(i + 1), esc(e.title), esc(fmtDate(e.date, true)) + ' · ' + esc(e.setting) + ' · up to ' + esc(e.players) + ' players', pill(daysTo(e.date) + ' days'), to);
+      }).join('')}</div>` : '<div class="nv-empty">No events announced yet.</div>'}</section>`,
     });
   },
 });
