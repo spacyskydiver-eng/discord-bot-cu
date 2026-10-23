@@ -6,32 +6,27 @@
 
 <main class="wrap" style="position:relative;z-index:1">
 
-  <!-- ── Hero ── -->
-  <section class="cue-hero">
-    <div class="cue-hero-kicker">COLLECTIVE UNION EVENTS</div>
-    <h1 class="cue-hero-title">CUE</h1>
-    <p class="cue-hero-desc"><%- t('home_lede') %></p>
-    <div class="more" id="moreText">
-      <p><%- t('home_more_p1') %></p>
-      <p><%- t('home_more_p2') %></p>
-    </div>
-    <button class="showmore" id="showMore" aria-expanded="false">
-      <span class="t"><%= t('show_more') %></span>
-      <span class="chev">▾</span>
-    </button>
+  <!-- ── Great War Hero ── -->
+  <section class="cue-hero gw-hero">
+    <div class="cue-hero-kicker gw-kicker">17 &middot; XII &middot; 2026 &ensp;&mdash;&ensp; 1914 EUROPE</div>
+    <h1 class="cue-hero-title gw-title">THE GREAT WAR</h1>
+    <p class="cue-hero-desc gw-desc">A modded Minecraft event for up to 300 players &mdash; two alliances, one European theatre, and a conflict built from the ground up.</p>
     <div class="cue-hero-actions">
       <a class="cue-btn-primary" href="https://discord.gg/x832cqAdu" target="_blank" rel="noopener">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4.4A19 19 0 0 0 15.3 3l-.3.5a14 14 0 0 1 4 2 16 16 0 0 0-13.4 0 14 14 0 0 1 4-2L9.3 3A19 19 0 0 0 4.6 4.4 20 20 0 0 0 1 18.6 19 19 0 0 0 6.8 21l.6-1a13 13 0 0 1-2-1l.5-.3a13 13 0 0 0 11.2 0l.5.3a13 13 0 0 1-2 1l.6 1A19 19 0 0 0 23 18.6 20 20 0 0 0 20 4.4ZM8.6 15.3c-.9 0-1.7-.9-1.7-2s.8-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Zm6.8 0c-.9 0-1.7-.9-1.7-2s.8-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Z"/></svg>
-        <%= t('join_discord') %>
+        Join Discord
       </a>
-      <a class="cue-btn-ghost" href="<%= lp %>/events">
-        <%= t('tile_events') %> →
-      </a>
+      <a class="cue-btn-ghost" href="<%= lp %>/events">View Events &rarr;</a>
+      <a class="cue-btn-ghost gw-wiki-btn" href="<%= lp %>/wiki">Event Wiki &rarr;</a>
+    </div>
+    <div class="gw-date-badge">
+      <span class="gw-date-label">Event Date</span>
+      <span class="gw-date-val">17 December 2026</span>
     </div>
   </section>
 
   <!-- ── Feature cards ── -->
-  <div class="cue-feat-grid">
+  <div class="cue-feat-grid cue-feat-grid-3">
 
     <a href="<%= lp %>/events" class="cue-feat-card holo-card" style="--card:#4dabf7">
       <span class="holo-shine"></span>
@@ -44,9 +39,33 @@
         </svg>
       </div>
       <div class="cue-feat-body">
-        <h3><%= t('tile_events') %></h3>
-        <p><%= t('tile_events_sub') %></p>
-        <span class="cue-feat-arrow"><%= t('event_view_details') %> →</span>
+        <h3>Events</h3>
+        <p>Browse upcoming and past CUE events. Apply and track your registration status.</p>
+        <span class="cue-feat-arrow">View Events &rarr;</span>
+      </div>
+    </a>
+
+    <a href="<%= lp %>/wiki" class="cue-feat-card holo-card" style="--card:#D4A84B">
+      <span class="holo-shine"></span>
+      <div class="cue-feat-icon">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="56" height="56">
+          <polygon points="50,8 78,30 64,86 36,86 22,30" fill="#f5e4b5"/>
+          <polygon points="50,8 78,30 50,44 22,30" fill="#e8c87a"/>
+          <polygon points="22,30 50,44 36,86" fill="#D4A84B"/>
+          <polygon points="78,30 50,44 64,86" fill="#a07a28"/>
+          <!-- Network lines to suggest knowledge graph -->
+          <circle cx="50" cy="44" r="4" fill="#fff" opacity=".7"/>
+          <circle cx="36" cy="62" r="3" fill="#fff" opacity=".5"/>
+          <circle cx="64" cy="62" r="3" fill="#fff" opacity=".5"/>
+          <line x1="50" y1="44" x2="36" y2="62" stroke="#fff" stroke-width="1.5" opacity=".4"/>
+          <line x1="50" y1="44" x2="64" y2="62" stroke="#fff" stroke-width="1.5" opacity=".4"/>
+          <line x1="36" y1="62" x2="64" y2="62" stroke="#fff" stroke-width="1.5" opacity=".3"/>
+        </svg>
+      </div>
+      <div class="cue-feat-body">
+        <h3>Event Wiki</h3>
+        <p>Documentation for The Great War — nations, warfare systems, and rules.</p>
+        <span class="cue-feat-arrow">Explore Wiki &rarr;</span>
       </div>
     </a>
 
@@ -61,9 +80,9 @@
         </svg>
       </div>
       <div class="cue-feat-body">
-        <h3><%= t('tile_store') %></h3>
-        <p><%= t('tile_store_sub') %></p>
-        <span class="cue-feat-arrow"><%= t('store_title') %> →</span>
+        <h3>Store</h3>
+        <p>Support CUE and unlock cosmetic ranks for use across our events.</p>
+        <span class="cue-feat-arrow">View Store &rarr;</span>
       </div>
     </a>
 
@@ -105,20 +124,6 @@
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
-
-  // ── Show more ──────────────────────────────────────────────
-  var _sm = document.getElementById('showMore');
-  var _st = _sm ? _sm.querySelector('.t') : null;
-  var _sl = '<%= t("show_less").replace(/'/g, "\\'") %>';
-  var _sml = '<%= t("show_more").replace(/'/g, "\\'") %>';
-  if (_sm) {
-    _sm.addEventListener('click', function() {
-      var m=document.getElementById('moreText'), open=m.classList.toggle('open');
-      this.classList.toggle('open',open);
-      _st.textContent=open?_sl:_sml;
-      this.setAttribute('aria-expanded',open);
-    });
-  }
 })();
 </script>
 

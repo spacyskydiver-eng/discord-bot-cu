@@ -1,0 +1,705 @@
+<%- include('partials/head', { pageTitle: 'Event Wiki' }) %>
+<link rel="stylesheet" href="/css/wiki.css">
+<%- include('partials/header') %>
+
+<div class="wiki-app theme-dark" id="wikiApp">
+  <div class="app-container">
+
+    <!-- Ribbon -->
+    <div class="workspace-ribbon">
+      <button class="clickable-icon is-active" data-ribbon="files" title="Files">
+        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      </button>
+      <button class="clickable-icon" data-ribbon="search" title="Search">
+        <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      </button>
+      <button class="clickable-icon" data-ribbon="graph" title="Graph view">
+        <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><circle cx="4" cy="6" r="2"/><circle cx="20" cy="6" r="2"/><circle cx="4" cy="18" r="2"/><circle cx="20" cy="18" r="2"/><path d="M12 10 6 7M12 10l6-3M12 14l-6 3M12 14l6 3"/></svg>
+      </button>
+      <div class="spacer"></div>
+      <a href="/" class="clickable-icon" title="Back to home">
+        <svg class="svg-icon" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </a>
+    </div>
+
+    <div class="workspace">
+
+      <!-- Left sidebar -->
+      <div class="workspace-split mod-left-split" id="leftSplit">
+        <div class="sidebar-tabs">
+          <button class="sidebar-tab is-active" data-pane="files" title="Files">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          </button>
+          <button class="sidebar-tab" data-pane="search" title="Search">
+            <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </button>
+        </div>
+
+        <!-- Files pane -->
+        <div class="sidebar-pane is-active" id="paneFiles">
+          <div class="pane-header">THE GREAT WAR</div>
+          <div class="nav-files-container">
+            <div class="nav-folder is-open">
+              <div class="nav-folder-title" onclick="this.closest('.nav-folder').classList.toggle('is-collapsed')">
+                <span class="nav-folder-collapse-indicator">
+                  <svg class="svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                </span>
+                <span class="nav-folder-title-content">December 2026</span>
+              </div>
+              <div class="nav-folder-children">
+                <div class="nav-file-title is-active" data-page="overview" onclick="navigate('overview')">
+                  <svg class="svg-icon" style="width:13px;height:13px;flex:none;color:var(--wiki-amber)" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="10"/></svg>
+                  <span class="nav-file-title-content">Overview</span>
+                </div>
+                <div class="nav-file-title" data-page="nations" onclick="navigate('nations')">
+                  <svg class="svg-icon" style="width:13px;height:13px;flex:none" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                  <span class="nav-file-title-content">Nations</span>
+                </div>
+                <div class="nav-file-title" data-page="warfare" onclick="navigate('warfare')">
+                  <svg class="svg-icon" style="width:13px;height:13px;flex:none" viewBox="0 0 24 24"><path d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z"/><path d="M20.5 10H19V8.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/><path d="M9.5 14c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5S8 21.33 8 20.5v-5c0-.83.67-1.5 1.5-1.5z"/><path d="M3.5 14H5v1.5c0 .83-.67 1.5-1.5 1.5S2 16.33 2 15.5 2.67 14 3.5 14z"/><path d="M14 14.5c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-5c-.83 0-1.5-.67-1.5-1.5z"/><path d="M15.5 19H14v1.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z"/><path d="M10 9.5C10 8.67 9.33 8 8.5 8h-5C2.67 8 2 8.67 2 9.5S2.67 11 3.5 11h5c.83 0 1.5-.67 1.5-1.5z"/><path d="M8.5 5H10V3.5C10 2.67 9.33 2 8.5 2S7 2.67 7 3.5 7.67 5 8.5 5z"/></svg>
+                  <span class="nav-file-title-content">Warfare</span>
+                </div>
+                <div class="nav-file-title" data-page="rules" onclick="navigate('rules')">
+                  <svg class="svg-icon" style="width:13px;height:13px;flex:none" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                  <span class="nav-file-title-content">Rules</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="nav-folder" style="margin-top:8px">
+              <div class="nav-folder-title" onclick="this.closest('.nav-folder').classList.toggle('is-collapsed')">
+                <span class="nav-folder-collapse-indicator">
+                  <svg class="svg-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                </span>
+                <span class="nav-folder-title-content">Views</span>
+              </div>
+              <div class="nav-folder-children">
+                <div class="nav-file-title" data-page="graph" onclick="navigate('graph')">
+                  <svg class="svg-icon" style="width:13px;height:13px;flex:none;color:var(--wiki-violet)" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><circle cx="4" cy="6" r="2"/><circle cx="20" cy="6" r="2"/><path d="M12 10 6 7M12 10l6-3"/></svg>
+                  <span class="nav-file-title-content">Graph View</span>
+                  <span class="nav-file-tag">MAP</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search pane -->
+        <div class="sidebar-pane" id="paneSearch">
+          <div class="search-input-wrap" style="position:relative">
+            <svg class="svg-icon" style="position:absolute;left:22px;top:19px;width:15px;height:15px;color:var(--text-faint)" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" class="search-input" placeholder="Search wiki..." id="wikiSearch" oninput="doSearch(this.value)">
+          </div>
+          <div class="search-summary" id="searchSummary"></div>
+          <div id="searchResults"></div>
+        </div>
+      </div>
+
+      <div class="resize-handle" id="resizeHandle"></div>
+
+      <!-- Main content -->
+      <div class="workspace-split mod-root">
+        <div class="workspace-tab-header-container" id="tabBar">
+          <div class="workspace-tab-header is-active" id="activeTab" onclick="navigate(currentPage)">
+            <span class="workspace-tab-header-inner-title" id="activeTabTitle">Overview</span>
+          </div>
+        </div>
+
+        <div class="view-header">
+          <button class="clickable-icon" id="btnToggleLeft" title="Toggle left panel" onclick="toggleLeft()">
+            <svg class="svg-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+          </button>
+          <div class="view-header-title-container">
+            <span class="view-header-breadcrumb">The Great War</span>
+            <span class="view-header-breadcrumb"> &rsaquo; </span>
+            <span class="view-header-title" id="viewTitle">Overview</span>
+          </div>
+          <button class="clickable-icon" id="btnToggleRight" title="Toggle right panel" onclick="toggleRight()">
+            <svg class="svg-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/></svg>
+          </button>
+        </div>
+
+        <div class="view-content" id="viewContent">
+          <!-- Reading view -->
+          <div class="markdown-preview-view subject-event" id="readingView">
+            <div class="markdown-preview-sizer markdown-rendered" id="pageContent">
+              <!-- content injected by JS -->
+            </div>
+          </div>
+
+          <!-- Graph container -->
+          <div id="graphContainer" style="display:none;position:absolute;inset:0;background:#05070F;overflow:hidden">
+            <canvas id="wikiGraphCanvas" style="display:block;width:100%;height:100%;cursor:grab;touch-action:none"></canvas>
+            <div style="position:absolute;bottom:12px;right:12px;display:flex;gap:6px">
+              <button onclick="graphFit()" style="background:rgba(13,17,32,.86);border:1px solid rgba(140,155,255,.2);color:#a7afd2;padding:4px 10px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit">Fit</button>
+            </div>
+            <div id="graphTooltip" style="position:absolute;pointer-events:none;padding:4px 9px;border-radius:7px;background:rgba(8,11,22,.92);border:1px solid rgba(140,155,255,.2);color:#E8EBF8;font-size:12px;white-space:nowrap;display:none;transform:translate(-50%,-140%)"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right sidebar -->
+      <div class="workspace-split mod-right-split is-collapsed" id="rightSplit">
+        <div class="sidebar-tabs">
+          <button class="sidebar-tab is-active" title="Outline">
+            <svg class="svg-icon" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="sidebar-pane is-active">
+          <div class="pane-header">Outline</div>
+          <div id="outlineList"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+
+// ─── Wiki page data ───────────────────────────────────────────────────────────
+const PAGES = {
+  overview: {
+    title: 'Overview',
+    subject: 'subject-event',
+    links: ['nations', 'warfare', 'rules'],
+    html: `
+<div class="inline-title">The Great War</div>
+<div class="metadata-container">
+  <div class="metadata-properties-heading" onclick="this.closest('.metadata-container').classList.toggle('is-collapsed')">
+    <svg class="svg-icon" style="width:14px;height:14px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+    Properties
+  </div>
+  <div class="metadata-content">
+    <div class="metadata-property"><span class="metadata-property-key">Date</span><span class="metadata-property-value">17 December 2026</span></div>
+    <div class="metadata-property"><span class="metadata-property-key">Setting</span><span class="metadata-property-value">1914 Europe</span></div>
+    <div class="metadata-property"><span class="metadata-property-key">Players</span><span class="metadata-property-value">Up to 300</span></div>
+    <div class="metadata-property"><span class="metadata-property-key">Type</span><span class="metadata-property-value"><span class="pill">Modded Event</span></span></div>
+    <div class="metadata-property"><span class="metadata-property-key">Status</span><span class="metadata-property-value"><span class="pill">Upcoming</span></span></div>
+  </div>
+</div>
+<h2>Event Overview</h2>
+<p>The Great War is CUE's upcoming modded Minecraft event, taking place on <strong>17 December 2026</strong>. Set in the opening years of the First World War across 1914 Europe, players join one of two opposing factions and take part in an immersive, historically-themed conflict built within Minecraft through custom mods and bespoke systems.</p>
+<p>The event is designed around realism, immersion, and large-scale coordination. Two alliances face off across a faithful recreation of the European theatre, with deeply-developed military systems, period-accurate equipment, and a fully custom ruleset governing every aspect of the battle.</p>
+<div class="callout" data-callout="info">
+  <div class="callout-title">
+    <div class="callout-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+    <div class="callout-title-inner"><p>Applications will open ahead of the event. Join the CUE Discord to be notified when registration goes live.</p></div>
+  </div>
+</div>
+<h2>Key Details</h2>
+<ul>
+  <li>Two opposing alliances: the <strong>Entente Powers</strong> and the <strong>Central Powers</strong></li>
+  <li>Up to <strong>300 players</strong> per session</li>
+  <li>Heavily modded environment with custom guns, vehicles, and trench systems</li>
+  <li>Complex rulesets governing warfare, diplomacy, and player conduct</li>
+</ul>
+<h2>See Also</h2>
+<ul>
+  <li><span class="internal-link" onclick="navigate('nations')">Nations</span> — Factions and alliance structures</li>
+  <li><span class="internal-link" onclick="navigate('warfare')">Warfare</span> — Military systems overview</li>
+  <li><span class="internal-link" onclick="navigate('rules')">Rules</span> — Event rules and code of conduct</li>
+</ul>
+`
+  },
+
+  nations: {
+    title: 'Nations',
+    subject: 'subject-nations',
+    links: ['overview', 'warfare'],
+    html: `
+<div class="inline-title">Nations</div>
+<p>The Great War divides players into two opposing alliances, each with distinct command structures, territories, and strategic objectives across 1914 Europe.</p>
+<h2>The Entente Powers</h2>
+<div class="callout" data-callout="tip" style="--callout-color:56,189,248">
+  <div class="callout-title">
+    <div class="callout-icon"><svg class="svg-icon" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+    <div class="callout-title-inner"><p>The Triple Entente — France, the United Kingdom, Russia, and their allied nations</p></div>
+  </div>
+</div>
+<p>Entente players represent the allied defensive coalition. Operating across both the Western and Eastern Fronts, they must coordinate to hold ground, supply their forces, and ultimately turn the tide of the war in their favour.</p>
+<h2>The Central Powers</h2>
+<div class="callout" data-callout="warning" style="--callout-color:212,168,75">
+  <div class="callout-title">
+    <div class="callout-icon"><svg class="svg-icon" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+    <div class="callout-title-inner"><p>The German Empire, Austria-Hungary, and their allied nations</p></div>
+  </div>
+</div>
+<p>Central Powers players command an ambitious multi-front campaign. Operating from a position of central geography, they must move quickly and decisively, applying pressure across multiple theatres simultaneously to achieve their objectives before the Entente can consolidate.</p>
+<h2>Faction Selection</h2>
+<p>Faction assignment details will be confirmed ahead of the event. Players will have the opportunity to indicate a preference during the application process.</p>
+<div class="callout" data-callout="abstract">
+  <div class="callout-title">
+    <div class="callout-icon"><svg class="svg-icon" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/></svg></div>
+    <div class="callout-title-inner"><p>Specific nation roles and command positions will be published closer to the event date.</p></div>
+  </div>
+</div>
+`
+  },
+
+  warfare: {
+    title: 'Warfare',
+    subject: 'subject-warfare',
+    links: ['overview', 'nations', 'rules'],
+    html: `
+<div class="inline-title">Warfare</div>
+<p>The Great War features a comprehensive set of military systems developed specifically for this event. Full player documentation will be distributed to registered participants ahead of December 17th.</p>
+<h2>Systems Overview</h2>
+<ul>
+  <li><strong>Infantry Weapons</strong> — Period-accurate bolt-action rifles, machine guns, pistols, and grenades custom-built for the 1914 setting</li>
+  <li><strong>Artillery &amp; Bombardment</strong> — Indirect fire systems, mortar positions, and siege mechanics for coordinated support</li>
+  <li><strong>Vehicles</strong> — Early-war vehicles including cavalry, supply wagons, and prototype armoured machines</li>
+  <li><strong>Trench Systems</strong> — Custom terrain generation and fortification mechanics simulating the Western Front</li>
+  <li><strong>Command &amp; Communication</strong> — Chain of command structures and communication systems for large-scale coordination</li>
+</ul>
+<div class="callout" data-callout="example">
+  <div class="callout-title">
+    <div class="callout-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></div>
+    <div class="callout-title-inner"><p>This event features some of the most heavily-developed systems CUE has ever built. Full technical documentation is restricted to registered players.</p></div>
+  </div>
+</div>
+<h2>Accessing Full Docs</h2>
+<p>Registered players will receive access to comprehensive system guides covering weapon mechanics, vehicle operation, fortification building, and tactical doctrine — all tailored to the 1914 historical context.</p>
+<p><span class="internal-link" onclick="navigate('rules')">See also: Rules</span></p>
+`
+  },
+
+  rules: {
+    title: 'Rules',
+    subject: 'subject-rules',
+    links: ['overview', 'warfare'],
+    html: `
+<div class="inline-title">Rules</div>
+<p>All participants in The Great War are bound by CUE's standard code of conduct, supplemented by event-specific rules. Final rules will be published to all registered players before the event begins.</p>
+<h2>General Principles</h2>
+<ul>
+  <li>Respect all participants regardless of faction alignment</li>
+  <li>Follow all staff and admin instructions immediately and without dispute</li>
+  <li>No exploitation of bugs, unintended mechanics, or out-of-bounds areas</li>
+  <li>Maintain the immersive historical atmosphere — this is a serious, curated event</li>
+  <li>No unsanctioned communication between opposing factions during active gameplay</li>
+</ul>
+<h2>Warfare Rules</h2>
+<p>Specific rules governing combat, weapon use, vehicle operation, and territorial control will be detailed in the full event rules document distributed to registered participants.</p>
+<div class="callout" data-callout="failure">
+  <div class="callout-title">
+    <div class="callout-icon"><svg class="svg-icon" viewBox="0 0 24 24"><octagon/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+    <div class="callout-title-inner"><p>Violations of event rules may result in immediate removal from the event and potential bans from future CUE events.</p></div>
+  </div>
+</div>
+<h2>Staff</h2>
+<p>The event will be overseen by a dedicated staff team. Any disputes, rule questions, or issues should be raised with staff immediately through the designated channels.</p>
+<div class="callout" data-callout="warning">
+  <div class="callout-title">
+    <div class="callout-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <div class="callout-title-inner"><p>Full event rules are pending finalisation. These will be shared with all registered players before the event begins on 17 December 2026.</p></div>
+  </div>
+</div>
+`
+  }
+};
+
+// ─── Navigation ───────────────────────────────────────────────────────────────
+let currentPage = 'overview';
+
+function navigate(pageId) {
+  if (pageId === 'graph') { showGraph(); return; }
+  const page = PAGES[pageId];
+  if (!page) return;
+  currentPage = pageId;
+
+  // Show reading view, hide graph
+  document.getElementById('readingView').style.display = '';
+  document.getElementById('graphContainer').style.display = 'none';
+
+  // Update content
+  const el = document.getElementById('pageContent');
+  el.className = 'markdown-preview-sizer markdown-rendered ' + (page.subject || '');
+  el.innerHTML = page.html;
+  el.scrollTop = 0;
+  document.getElementById('viewContent').scrollTop = 0;
+
+  // Update header + tab
+  document.getElementById('viewTitle').textContent = page.title;
+  document.getElementById('activeTabTitle').textContent = page.title;
+
+  // Update sidebar active state
+  document.querySelectorAll('.nav-file-title').forEach(n => {
+    n.classList.toggle('is-active', n.dataset.page === pageId);
+  });
+
+  // Update URL hash
+  history.replaceState(null, '', '/wiki#' + pageId);
+
+  // Build outline
+  buildOutline();
+}
+
+function buildOutline() {
+  const list = document.getElementById('outlineList');
+  if (!list) return;
+  list.innerHTML = '';
+  document.querySelectorAll('#pageContent h2, #pageContent h3').forEach(h => {
+    const item = document.createElement('div');
+    item.className = 'tree-item' + (h.tagName === 'H3' ? ' outline-h3' : ' outline-h2');
+    item.textContent = h.textContent;
+    item.onclick = () => h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    list.appendChild(item);
+  });
+}
+
+// ─── Search ───────────────────────────────────────────────────────────────────
+function doSearch(q) {
+  const results = document.getElementById('searchResults');
+  const summary = document.getElementById('searchSummary');
+  if (!q.trim()) { results.innerHTML = ''; summary.textContent = ''; return; }
+  const ql = q.toLowerCase();
+  const hits = [];
+  Object.entries(PAGES).forEach(([id, p]) => {
+    const text = p.html.replace(/<[^>]+>/g, ' ');
+    if (p.title.toLowerCase().includes(ql) || text.toLowerCase().includes(ql)) {
+      const idx = text.toLowerCase().indexOf(ql);
+      const snippet = idx >= 0 ? '...' + text.slice(Math.max(0, idx - 30), idx + 60).trim() + '...' : '';
+      hits.push({ id, title: p.title, snippet });
+    }
+  });
+  summary.textContent = hits.length + ' result' + (hits.length !== 1 ? 's' : '');
+  results.innerHTML = hits.map(h => `
+    <div class="search-result" onclick="navigate('${h.id}')">
+      <div class="search-result-title">${h.title}</div>
+      <div class="search-result-match">${h.snippet}</div>
+    </div>
+  `).join('');
+}
+
+// ─── Sidebar toggles ─────────────────────────────────────────────────────────
+function toggleLeft() {
+  document.getElementById('leftSplit').classList.toggle('is-collapsed');
+  document.getElementById('resizeHandle').style.display =
+    document.getElementById('leftSplit').classList.contains('is-collapsed') ? 'none' : '';
+}
+function toggleRight() {
+  document.getElementById('rightSplit').classList.toggle('is-collapsed');
+}
+
+// Ribbon buttons
+document.querySelectorAll('[data-ribbon]').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const panel = this.dataset.ribbon;
+    if (panel === 'graph') { navigate('graph'); return; }
+    if (panel === 'files') {
+      const left = document.getElementById('leftSplit');
+      if (left.classList.contains('is-collapsed')) {
+        left.classList.remove('is-collapsed');
+        document.getElementById('resizeHandle').style.display = '';
+        showSidePane('files');
+      } else if (document.getElementById('paneFiles').classList.contains('is-active')) {
+        left.classList.add('is-collapsed');
+        document.getElementById('resizeHandle').style.display = 'none';
+      } else {
+        showSidePane('files');
+      }
+    } else if (panel === 'search') {
+      const left = document.getElementById('leftSplit');
+      if (left.classList.contains('is-collapsed')) {
+        left.classList.remove('is-collapsed');
+        document.getElementById('resizeHandle').style.display = '';
+      }
+      showSidePane('search');
+    }
+    document.querySelectorAll('[data-ribbon]').forEach(b => b.classList.remove('is-active'));
+    this.classList.add('is-active');
+  });
+});
+
+function showSidePane(id) {
+  document.querySelectorAll('.sidebar-pane').forEach(p => p.classList.remove('is-active'));
+  document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('is-active'));
+  const paneId = id === 'files' ? 'paneFiles' : 'paneSearch';
+  document.getElementById(paneId).classList.add('is-active');
+  document.querySelector('[data-pane="' + id + '"]').classList.add('is-active');
+}
+
+// Sidebar tab clicks
+document.querySelectorAll('[data-pane]').forEach(btn => {
+  btn.addEventListener('click', function() {
+    showSidePane(this.dataset.pane);
+  });
+});
+
+// Resize handle
+(function() {
+  const handle = document.getElementById('resizeHandle');
+  const left = document.getElementById('leftSplit');
+  let dragging = false, startX, startW;
+  handle.addEventListener('mousedown', e => {
+    dragging = true; startX = e.clientX; startW = left.offsetWidth;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    handle.classList.add('is-dragging');
+  });
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const w = Math.max(160, Math.min(500, startW + e.clientX - startX));
+    left.style.width = w + 'px';
+  });
+  document.addEventListener('mouseup', () => {
+    dragging = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    handle.classList.remove('is-dragging');
+  });
+})();
+
+// ─── Graph view ───────────────────────────────────────────────────────────────
+let graphActive = false, graphInit = false;
+let gNodes, gLinks, animId, gHover = null;
+let gW = 0, gH = 0, gDpr = 1;
+let gView = { x: 0, y: 0, k: 1 };
+let gDrag = null, gDragStart = null;
+let gPanStart = null;
+
+const GNODES = [
+  { id: 'hub',       label: 'The Great War',  color: '#D4A84B', url: 'overview', r: 2.2 },
+  { id: 'overview',  label: 'Overview',        color: '#8B9CFF', url: 'overview', r: 1.1 },
+  { id: 'nations',   label: 'Nations',         color: '#8B9CFF', url: 'nations',  r: 1.3 },
+  { id: 'central',   label: 'Central Powers',  color: '#74C0FC', url: 'nations',  r: 1.0 },
+  { id: 'entente',   label: 'Entente Powers',  color: '#74C0FC', url: 'nations',  r: 1.0 },
+  { id: 'warfare',   label: 'Warfare',         color: '#8B9CFF', url: 'warfare',  r: 1.3 },
+  { id: 'infantry',  label: 'Infantry',        color: '#34D399', url: 'warfare',  r: 1.0 },
+  { id: 'artillery', label: 'Artillery',       color: '#34D399', url: 'warfare',  r: 1.0 },
+  { id: 'vehicles',  label: 'Vehicles',        color: '#34D399', url: 'warfare',  r: 1.0 },
+  { id: 'rules',     label: 'Rules',           color: '#8B9CFF', url: 'rules',    r: 1.0 },
+];
+const GLINKS = [
+  [0,1],[0,2],[0,5],[0,9],
+  [2,3],[2,4],
+  [5,6],[5,7],[5,8],
+];
+
+function showGraph() {
+  graphActive = true;
+  document.getElementById('readingView').style.display = 'none';
+  document.getElementById('graphContainer').style.display = 'block';
+  document.getElementById('viewTitle').textContent = 'Graph View';
+  document.getElementById('activeTabTitle').textContent = 'Graph View';
+  document.querySelectorAll('.nav-file-title').forEach(n => {
+    n.classList.toggle('is-active', n.dataset.page === 'graph');
+  });
+  history.replaceState(null, '', '/wiki#graph');
+  if (!graphInit) initGraph();
+  else { resizeGraph(); kick(); }
+}
+
+function initGraph() {
+  graphInit = true;
+  gNodes = GNODES.map((n, i) => ({
+    ...n,
+    x: Math.random() * 400 - 200,
+    y: Math.random() * 400 - 200,
+    vx: 0, vy: 0,
+    ha: 1, la: 0
+  }));
+  gLinks = GLINKS.map(([s, t]) => ({ s: gNodes[s], t: gNodes[t] }));
+  const canvas = document.getElementById('wikiGraphCanvas');
+  canvas.addEventListener('mousemove', onGraphMouseMove);
+  canvas.addEventListener('mouseleave', () => { gHover = null; kick(); });
+  canvas.addEventListener('click', onGraphClick);
+  canvas.addEventListener('wheel', onGraphWheel, { passive: false });
+  canvas.addEventListener('mousedown', onGraphMouseDown);
+  document.addEventListener('mousemove', onGraphDrag);
+  document.addEventListener('mouseup', onGraphMouseUp);
+  new ResizeObserver(resizeGraph).observe(canvas.parentElement);
+  resizeGraph();
+  kick();
+}
+
+function resizeGraph() {
+  const canvas = document.getElementById('wikiGraphCanvas');
+  if (!canvas) return;
+  const p = canvas.parentElement;
+  gDpr = window.devicePixelRatio || 1;
+  gW = p.clientWidth; gH = p.clientHeight;
+  canvas.width = gW * gDpr; canvas.height = gH * gDpr;
+  canvas.style.width = gW + 'px'; canvas.style.height = gH + 'px';
+  graphFit();
+}
+
+function graphFit() {
+  if (!gNodes || !gNodes.length) return;
+  const pad = 60;
+  const xs = gNodes.map(n => n.x), ys = gNodes.map(n => n.y);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs);
+  const y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const k = Math.min(0.9, (gW - pad*2) / Math.max(1, x1-x0), (gH - pad*2) / Math.max(1, y1-y0));
+  gView.k = k;
+  gView.x = -(x0 + x1) / 2 * k;
+  gView.y = -(y0 + y1) / 2 * k;
+  kick();
+}
+
+function kick() { if (!animId) animId = requestAnimationFrame(graphFrame); }
+
+function graphFrame() {
+  animId = 0;
+  if (!graphActive) return;
+  const canvas = document.getElementById('wikiGraphCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  // physics
+  let moving = false;
+  for (let i = 0; i < gNodes.length; i++) {
+    const a = gNodes[i];
+    // repulsion
+    for (let j = i+1; j < gNodes.length; j++) {
+      const b = gNodes[j];
+      const dx = a.x - b.x, dy = a.y - b.y;
+      const d2 = dx*dx + dy*dy + 1;
+      const f = 2800 / d2;
+      a.vx += dx * f; a.vy += dy * f;
+      b.vx -= dx * f; b.vy -= dy * f;
+    }
+    // center
+    a.vx -= a.x * 0.006; a.vy -= a.y * 0.006;
+  }
+  for (const l of gLinks) {
+    const dx = l.t.x - l.s.x, dy = l.t.y - l.s.y;
+    const d = Math.sqrt(dx*dx + dy*dy) || 1;
+    const f = (d - 90) * 0.04;
+    const fx = dx/d * f, fy = dy/d * f;
+    l.s.vx += fx; l.s.vy += fy;
+    l.t.vx -= fx; l.t.vy -= fy;
+  }
+  for (const n of gNodes) {
+    if (n === gDrag) continue;
+    n.vx *= 0.82; n.vy *= 0.82;
+    if (Math.abs(n.vx) + Math.abs(n.vy) > 0.05) moving = true;
+    n.x += n.vx; n.y += n.vy;
+  }
+
+  // hover fades
+  const near = gHover ? new Set(gLinks.filter(l => l.s === gHover || l.t === gHover).flatMap(l => [l.s, l.t])) : null;
+  for (const n of gNodes) {
+    const lit = !gHover || n === gHover || (near && near.has(n));
+    const ta = lit ? 1 : 0.12;
+    if (Math.abs(n.ha - ta) > 0.01) { n.ha += (ta - n.ha) * 0.15; moving = true; }
+    else n.ha = ta;
+    const tl = n === gHover ? 1 : 0;
+    if (Math.abs(n.la - tl) > 0.01) { n.la += (tl - n.la) * 0.15; moving = true; }
+    else n.la = tl;
+  }
+
+  // draw
+  ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.setTransform(gDpr*gView.k, 0, 0, gDpr*gView.k, gDpr*(gView.x+gW/2), gDpr*(gView.y+gH/2));
+
+  // links
+  ctx.lineWidth = 1.2 / gView.k;
+  for (const l of gLinks) {
+    const lit = !gHover || l.s === gHover || l.t === gHover;
+    ctx.strokeStyle = lit ? 'rgba(150,170,255,0.45)' : 'rgba(150,170,255,0.08)';
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.moveTo(l.s.x, l.s.y); ctx.lineTo(l.t.x, l.t.y); ctx.stroke();
+  }
+
+  // nodes
+  for (const n of gNodes) {
+    const r = 7 * n.r;
+    ctx.globalAlpha = n.ha;
+    ctx.fillStyle = n.color;
+    ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, Math.PI*2); ctx.fill();
+    if (n === gHover) {
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5 / gView.k;
+      ctx.stroke();
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // hover label
+  if (gHover) {
+    const fs = 13 / Math.max(gView.k, 0.5);
+    ctx.font = `600 ${fs}px Inter, system-ui, sans-serif`;
+    const w = ctx.measureText(gHover.label).width;
+    const y = gHover.y + 7 * gHover.r + 6 / gView.k;
+    const pad = 6 / gView.k;
+    ctx.fillStyle = 'rgba(8,11,22,0.9)';
+    const rx = gHover.x - w/2 - pad, ry = y - pad*0.6, rw = w + pad*2, rh = fs + pad*1.4, rr = 5/gView.k;
+    ctx.beginPath(); ctx.moveTo(rx+rr,ry); ctx.arcTo(rx+rw,ry,rx+rw,ry+rh,rr); ctx.arcTo(rx+rw,ry+rh,rx,ry+rh,rr); ctx.arcTo(rx,ry+rh,rx,ry,rr); ctx.arcTo(rx,ry,rx+rw,ry,rr); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText(gHover.label, gHover.x, y);
+  }
+  ctx.globalAlpha = 1;
+
+  if (moving) kick();
+}
+
+function toWorld(px, py) {
+  return [(px - gW/2 - gView.x) / gView.k, (py - gH/2 - gView.y) / gView.k];
+}
+function nodeAt(px, py) {
+  const [wx, wy] = toWorld(px, py);
+  let best = null, bd = Infinity;
+  for (const n of gNodes) {
+    const dx = n.x-wx, dy = n.y-wy, d = dx*dx+dy*dy, r = 7*n.r+6/gView.k;
+    if (d < r*r && d < bd) { bd = d; best = n; }
+  }
+  return best;
+}
+function onGraphMouseMove(e) {
+  const r = e.currentTarget.getBoundingClientRect();
+  const n = nodeAt(e.clientX - r.left, e.clientY - r.top);
+  if (n !== gHover) { gHover = n; e.currentTarget.style.cursor = n ? 'pointer' : 'grab'; kick(); }
+}
+function onGraphClick(e) {
+  const r = e.currentTarget.getBoundingClientRect();
+  const n = nodeAt(e.clientX - r.left, e.clientY - r.top);
+  if (n && n.url) navigate(n.url);
+}
+function onGraphWheel(e) {
+  e.preventDefault();
+  const r = e.currentTarget.getBoundingClientRect();
+  const mx = e.clientX - r.left - gW/2, my = e.clientY - r.top - gH/2;
+  const factor = e.deltaY < 0 ? 1.12 : 0.88;
+  gView.x = mx + (gView.x - mx) * factor;
+  gView.y = my + (gView.y - my) * factor;
+  gView.k = Math.max(0.06, Math.min(6, gView.k * factor));
+  kick();
+}
+function onGraphMouseDown(e) {
+  const r = e.currentTarget.getBoundingClientRect();
+  const n = nodeAt(e.clientX - r.left, e.clientY - r.top);
+  if (n) { gDrag = n; }
+  else { gPanStart = { x: e.clientX, y: e.clientY, vx: gView.x, vy: gView.y }; }
+}
+function onGraphDrag(e) {
+  if (gDrag) {
+    const r = document.getElementById('wikiGraphCanvas').getBoundingClientRect();
+    const [wx, wy] = toWorld(e.clientX - r.left, e.clientY - r.top);
+    gDrag.x = wx; gDrag.y = wy; gDrag.vx = 0; gDrag.vy = 0;
+    kick();
+  } else if (gPanStart) {
+    gView.x = gPanStart.vx + (e.clientX - gPanStart.x);
+    gView.y = gPanStart.vy + (e.clientY - gPanStart.y);
+    kick();
+  }
+}
+function onGraphMouseUp() { gDrag = null; gPanStart = null; }
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+const hash = location.hash.replace('#', '') || 'overview';
+navigate(PAGES[hash] ? hash : 'overview');
+
+// expose navigate for inline onclick handlers
+window.navigate = navigate;
+window.doSearch = doSearch;
+window.toggleLeft = toggleLeft;
+window.toggleRight = toggleRight;
+window.graphFit = graphFit;
+
+})();
+</script>
+
+<%- include('partials/foot') %>

@@ -227,6 +227,47 @@
 }
 .cue-feat-card:hover .cue-feat-arrow{gap:8px}
 
+/* ---------- GREAT WAR HOME THEMING ---------- */
+
+/* Override page body glow for Great War theme */
+.gw-hero~*,.gw-hero{--gw-amber:#D4A84B;--gw-amber-rgb:212,168,75}
+.nd-body:has(.gw-hero)::before{
+  background:
+    radial-gradient(900px 340px at 50% -60px, rgba(212,168,75,.18), transparent 72%),
+    radial-gradient(520px 260px at 14% 20%, rgba(139,156,255,.08), transparent 70%),
+    radial-gradient(460px 220px at 88% 10%, rgba(52,211,153,.05), transparent 70%);
+}
+
+.gw-kicker{
+  color:#D4A84B !important;
+  background:rgba(212,168,75,.10) !important;
+  border-color:rgba(212,168,75,.38) !important;
+  box-shadow:0 0 22px -6px rgba(212,168,75,.65) !important;
+  letter-spacing:.22em;
+}
+.gw-title{
+  font-size:clamp(56px,10vw,96px) !important;
+  color:var(--text) !important;
+  text-shadow:0 0 80px rgba(212,168,75,.25);
+}
+.gw-desc{max-width:560px}
+.gw-wiki-btn{
+  background:rgba(212,168,75,.10) !important;
+  border-color:rgba(212,168,75,.35) !important;
+  color:#D4A84B !important;
+}
+.gw-wiki-btn:hover{background:rgba(212,168,75,.2) !important;border-color:rgba(212,168,75,.6) !important}
+
+.gw-date-badge{
+  display:inline-flex;flex-direction:column;align-items:center;
+  margin-top:28px;gap:3px;
+}
+.gw-date-label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:700}
+.gw-date-val{font-family:'Fraunces',Georgia,serif;font-size:15px;font-weight:650;color:rgba(212,168,75,.9);letter-spacing:.02em}
+
+/* 3-column grid for home page */
+.cue-feat-grid-3{max-width:1100px !important}
+
 /* HoloCard shine overlay */
 .holo-shine{
   position:absolute;inset:0;z-index:5;border-radius:inherit;

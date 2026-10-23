@@ -338,6 +338,10 @@ router.post('/my-application-hundred/withdraw', async (req, res) => {
   res.redirect(`${res.locals.lp}/applications`);
 });
 
+router.get('/wiki', (req, res) => {
+  res.render('new/wiki');
+});
+
 router.get('/store', (req, res) => {
   const success = req.query.success === '1';
   res.render('new/store', { success });
