@@ -11,4 +11,4 @@ cssclasses: [subject-greatwar, page-topic]
 > [!abstract] Summary
 > Indirect fire, mortar positions and siege support.
 
-Indirect fire, mortar positions and siege mechanics for coordinated support. A [[Barrage|barrage]] can open the way for an advance across [[No man's land]].
+Indirect fire, mortar positions and siege mechanics for coordinated support. A barrage can open the way for an advance across No man's land.

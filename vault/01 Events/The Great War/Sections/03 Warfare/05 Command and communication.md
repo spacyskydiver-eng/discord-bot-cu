@@ -11,7 +11,7 @@ cssclasses: [subject-greatwar, page-topic]
 > [!abstract] Summary
 > Chains of command for large-scale coordination.
 
-A [[Chain of command|chain of command]] and communication systems let hundreds of players act together.
+A chain of command and communication systems let hundreds of players act together.
 
 > [!example] For registered players
 > Full system guides cover weapons, vehicles, fortification and tactics, all set in the 1914 context.

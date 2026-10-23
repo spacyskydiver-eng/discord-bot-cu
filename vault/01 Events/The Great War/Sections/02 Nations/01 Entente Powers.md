@@ -14,4 +14,4 @@ cssclasses: [subject-greatwar, page-topic]
 > [!tip] The Triple Entente
 > France, the United Kingdom, Russia and their allied nations.
 
-Entente players represent the allied coalition. Operating on both the [[Western Front]] and the [[Eastern Front]], they must coordinate to hold ground, keep their [[Supply line|supply lines]] open and turn the war in their favour.
+Entente players represent the allied coalition. Operating on both the Western Front and the Eastern Front, they must coordinate to hold ground, keep their supply lines open and turn the war in their favour.

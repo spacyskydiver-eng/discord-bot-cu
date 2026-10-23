@@ -11,4 +11,4 @@ cssclasses: [subject-greatwar, page-topic]
 > [!abstract] Summary
 > Custom terrain and fortification on the Western Front.
 
-Custom terrain and [[Fortification|fortification]] mechanics that recreate the [[Western Front]]. Holding the [[Front line|front line]] is the centre of the war.
+Custom terrain and fortification mechanics that recreate the Western Front. Holding the front line is the centre of the war.

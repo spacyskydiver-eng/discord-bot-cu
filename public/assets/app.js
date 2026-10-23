@@ -595,7 +595,7 @@ function wireLinks(root) {
     if (a.dataset.note) { e.preventDefault(); closePopover(); go(a.dataset.note, a.dataset.heading || null, e.ctrlKey || e.metaKey || e.button === 1); }
     else if (a.dataset.heading) { e.preventDefault(); const t = document.getElementById(a.dataset.heading); if (t) t.scrollIntoView({ behavior: 'smooth' }); }
   });
-  if (!canHover()) return;
+  return;   // no hover previews of linked notes on this site
   root.addEventListener('mouseover', e => {
     const a = e.target.closest('a.internal-link[data-note]');
     if (!a || !V.notes[a.dataset.note] || a.dataset.popWired) return;

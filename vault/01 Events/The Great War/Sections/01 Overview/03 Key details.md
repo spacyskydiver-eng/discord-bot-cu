@@ -19,5 +19,5 @@ cssclasses: [subject-greatwar, page-topic]
 | Type | Modded event |
 
 - Two opposing alliances: the [[01 Entente Powers|Entente Powers]] and the [[02 Central Powers|Central Powers]]
-- Custom guns, vehicles and [[Trench|trench]] systems, see [[Warfare]]
+- Custom guns, vehicles and trench systems, see [[Warfare]]
 - A dedicated ruleset, see [[Rules]]
