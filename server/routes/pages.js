@@ -549,17 +549,9 @@ router.post('/nation-place/clear', async (req, res) => {
   res.redirect('/nation-place');
 });
 
-// Public nation map
-router.get('/map', async (req, res) => {
-  const allRes = await db.query(
-    `SELECT server_name, map_x, map_z FROM nation_leader_applications
-     WHERE accepted = true ORDER BY server_name ASC`
-  );
-  const regionsRes = await db.query(`SELECT x1,z1,x2,z2,name FROM mining_regions ORDER BY id ASC`);
-  res.render('new/world-map', {
-    nations: allRes.rows,
-    miningRegions: regionsRes.rows
-  });
+// Nation map archived — redirect to home
+router.get('/map', (req, res) => {
+  res.redirect(`${res.locals.lp}/`);
 });
 
 module.exports = router;

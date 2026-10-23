@@ -101,15 +101,26 @@
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
 /* ---------- HOME ---------- */
-.home{display:grid;grid-template-columns:minmax(0,1fr) 1.45fr 200px;gap:28px;align-items:stretch}
-.home-right{display:flex;flex-direction:column;gap:14px;width:220px}
-.tiles-wrap{display:contents}
+.home{display:grid;grid-template-columns:minmax(0,360px) 1fr;gap:28px;align-items:stretch}
 .tiles-main{display:flex;flex-direction:column;gap:24px}
-.tiles-side{display:flex;flex-direction:column}
 .sidebar{
   background:var(--panel);border:1px solid var(--line);
   border-radius:var(--radius);padding:36px 34px;box-shadow:var(--shadow);
+  position:relative;
 }
+
+/* ElectricBorder: animated gradient edge on sidebar */
+.eb-panel::before{
+  content:'';position:absolute;inset:-1px;border-radius:calc(var(--radius) + 1px);
+  background:conic-gradient(from var(--eb-angle,0deg),
+    transparent 0deg,rgba(77,171,247,.6) 40deg,transparent 80deg,
+    transparent 200deg,rgba(168,85,247,.5) 240deg,transparent 280deg);
+  z-index:-1;opacity:0;transition:opacity .4s;
+  animation:eb-spin 4s linear infinite;animation-play-state:paused;
+}
+.eb-panel:hover::before{opacity:1;animation-play-state:running}
+@keyframes eb-spin{to{--eb-angle:360deg}}
+@property --eb-angle{syntax:'<angle>';inherits:false;initial-value:0deg}
 .logo{
   font-family:"Press Start 2P";font-size:clamp(22px,3.4vw,34px);
   color:var(--logo);line-height:1.25;letter-spacing:1px;margin:4px 0 6px;
@@ -145,10 +156,12 @@
   min-height:192px;display:flex;align-items:center;gap:28px;
   padding:30px 36px;text-align:left;width:100%;
   border:1px solid rgba(255,255,255,.07);box-shadow:var(--shadow);
-  transition:transform .15s, box-shadow .15s, filter .15s;
+  transition:transform .1s ease-out, box-shadow .1s ease-out, filter .15s;
   text-decoration:none;cursor:pointer;
+  transform-style:preserve-3d;
+  will-change:transform;
 }
-.tile:hover{transform:translateY(-3px) scale(1.005);filter:brightness(1.06);box-shadow:0 20px 40px rgba(0,0,0,.5)}
+.tile:hover{filter:brightness(1.07)}
 .tile .ico{position:relative;z-index:2;width:100px;height:100px;flex:0 0 auto;
   filter:drop-shadow(0 6px 10px rgba(0,0,0,.45))}
 .tile .ico svg{width:100px;height:100px}
@@ -159,15 +172,13 @@
   text-transform:uppercase;color:rgba(255,255,255,.82)}
 .tile .bgart{position:absolute;inset:0;z-index:1;opacity:.9}
 .tile.events{background:radial-gradient(120% 160% at 80% 30%,#2b6fb0,#0f2c4d)}
-.tile.apps{background:radial-gradient(120% 160% at 80% 30%,#1f9c54,#0c3a22)}
 .tile.store{background:radial-gradient(120% 160% at 80% 30%,#c79321,#5a3f08)}
-.tile.map{background:radial-gradient(140% 180% at 70% 20%,#8b3cf7,#4c0fbf 45%,#1e0654);flex:1;min-height:0}
-.tile.tile-v{flex-direction:column;justify-content:center;text-align:center;padding:30px 20px;gap:16px;will-change:transform}
-.tile.tile-v .ico{width:80px;height:80px}
-.tile.tile-v .ico svg{width:80px;height:80px}
-/* prevent grid cell from clipping the hover lift */
-.tiles-side{overflow:visible}
-.tile.tile-v:hover{transform:translateY(-5px);filter:brightness(1.12);box-shadow:0 24px 52px rgba(109,40,217,.5)}
+
+/* HoloCard shine overlay */
+.holo-shine{
+  position:absolute;inset:0;z-index:5;border-radius:inherit;
+  pointer-events:none;opacity:0;transition:opacity .25s;
+}
 /* right-panel tile variant — vertical card */
 .tile-panel{
   position:relative;overflow:hidden;border-radius:var(--radius);
@@ -930,10 +941,7 @@
 
 @media (max-width:880px){
   .home{grid-template-columns:1fr;gap:20px}
-  .home-right{width:100%;flex-direction:row;flex-wrap:wrap}
   .tile-panel{min-width:140px;flex:1}
-  .tiles-side{width:100%}
-  .tile.map{min-height:130px}
   .brand{font-size:11px}
   .timeline{grid-template-columns:1fr;gap:22px}
   .timeline::before{display:none}
