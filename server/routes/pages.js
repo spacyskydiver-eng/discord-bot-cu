@@ -24,10 +24,37 @@ db.query(`
   )
 `).catch(() => {});
 
+const upcomingEvents = require('../cue-events');
+const ASSET_V = (process.env.RENDER_GIT_COMMIT || String(Date.now())).slice(0, 10);
+const VAULT_PATH = path.join(__dirname, '../vault/vault.json');
+
 router.get('/', async (req, res) => {
-  const eventsRes = await db.query(`SELECT * FROM events WHERE is_open = true ORDER BY created_at DESC`);
-  const openEventCount = eventsRes.rows.length;
-  res.render('new/home', { openEventCount, openAppCount: openEventCount, isAdmin: res.locals.isAdmin });
+  const t = res.locals.t;
+  let team = [];
+  try {
+    team = (await db.query(`SELECT title, pay, description FROM staff_roles ORDER BY display_order ASC, id ASC`)).rows;
+  } catch (e) { console.error('[home] staff roles', e.message); }
+  const cue = {
+    user: req.session.user ? { name: req.session.user.username } : null,
+    isAdmin: !!res.locals.isAdmin,
+    discord: 'https://discord.gg/x832cqAdu',
+    events: upcomingEvents(),
+    applications: [],
+    team,
+    store: [
+      { name: 'VIP', price: '$4.99', status: t('store_coming_soon'), features: [1, 2, 3, 4].map(i => t('store_vip_feat' + i)) },
+      { name: 'VIP+', price: '$9.99', status: t('store_coming_soon'), features: [1, 2, 3, 4, 5].map(i => t('store_vipp_feat' + i)) },
+    ],
+    storeSub: t('store_sub'),
+    storeNote: t('store_cosmetic_note'),
+  };
+  const cueJson = JSON.stringify(cue).replace(/</g, '\\u003c').replace(/[\u2028\u2029]/g, c => '\\u' + c.charCodeAt(0).toString(16));
+  res.render('app', { cueJson, v: ASSET_V });
+});
+
+router.get('/data/vault.json', (req, res) => {
+  res.set('Cache-Control', 'no-cache');
+  res.sendFile(VAULT_PATH);
 });
 
 router.post('/snake/score', async (req, res) => {
@@ -52,86 +79,17 @@ router.get('/snake/leaderboard', async (req, res) => {
   res.json(rows.slice(0, 10));
 });
 
-router.get('/staff', async (req, res) => {
-  const staffRoles = (await db.query(
-    `SELECT * FROM staff_roles ORDER BY display_order ASC, id ASC`
-  )).rows;
-
-  // Get configured staff Discord role ID
-  const configRes = await db.query(`SELECT staff_role_id FROM guild_config LIMIT 1`);
-  const staffRoleId = configRes.rows[0]?.staff_role_id || null;
-
-  const userRoleIds = req.session.user?.guildRoleIds || [];
-  const userId = req.session.user?.id || null;
-  const isAdmin = res.locals.isAdmin;
-
-  // Check manual staff access grant (by Discord ID entered in admin panel)
-  let hasManualAccess = false;
-  if (userId) {
-    const accessRes = await db.query(`SELECT 1 FROM staff_access WHERE discord_id = $1`, [userId]);
-    hasManualAccess = accessRes.rows.length > 0;
-  }
-
-  const isStaff = isAdmin || hasManualAccess || (staffRoleId && userRoleIds.includes(staffRoleId));
-
-  res.render('new/staff', { staffRoles, isStaff, formatDesc });
-});
+router.get('/staff', (req, res) => res.redirect('/#/team'));
 router.get('/rules', (req, res) => res.render('rules'));
 router.get('/legal', (req, res) => res.render('new/legal'));
 
 // ── New design routes (designPreview only) ──────────────────────────────────
 
-router.get('/events', async (req, res) => {
-  const events = (await db.query(`SELECT * FROM events ORDER BY event_date ASC NULLS LAST, created_at DESC`)).rows;
-  res.render('new/events', { events });
-});
+// Old standalone pages now live inside the app at /
+router.get('/events', (req, res) => res.redirect('/#/events'));
+router.get('/events/:id', (req, res) => res.redirect('/#/events'));
 
-router.get('/events/:id', async (req, res) => {
-  const evRes = await db.query(`SELECT * FROM events WHERE id = $1`, [req.params.id]);
-  if (!evRes.rows.length) return res.redirect('/events');
-  res.render('new/event', { event: evRes.rows[0] });
-});
-
-router.get('/applications', async (req, res) => {
-  const events = (await db.query(`SELECT * FROM events ORDER BY is_open DESC, event_date ASC NULLS LAST`)).rows;
-  let userApp = null;
-  let userHundredApp = null;
-  let userNationApp = null;
-  const VIP_ROLE_IDS = ['1449004906433351881', '1449030965576990720'];
-  const userRoleIds = req.session.user?.guildRoleIds || [];
-  const hasVipAccess = userRoleIds.some(id => VIP_ROLE_IDS.includes(id));
-  let userNewsApp = null;
-  if (req.session.user) {
-    const [appRes, hundredRes, nationRes, newsRes] = await Promise.all([
-      db.query(
-        `SELECT status, review_stage, edit_requested, edit_approved FROM structured_applications WHERE discord_id = $1`,
-        [req.session.user.id]
-      ),
-      db.query(
-        `SELECT status, edit_requested, edit_approved FROM hundred_applications WHERE discord_id = $1`,
-        [req.session.user.id]
-      ),
-      db.query(
-        `SELECT server_name, accepted FROM nation_leader_applications WHERE discord_id = $1`,
-        [req.session.user.id]
-      ),
-      db.query(
-        `SELECT status FROM news_reporter_applications WHERE discord_id = $1`,
-        [req.session.user.id]
-      )
-    ]);
-    userApp = appRes.rows[0] || null;
-    userHundredApp = hundredRes.rows[0] || null;
-    userNationApp = nationRes.rows[0] || null;
-    userNewsApp = newsRes.rows[0] || null;
-  }
-  // Closed until 12 Sept 2026; env var can override back open if needed
-  const nationReopenDate = new Date('2026-09-12T00:00:00Z');
-  const nationAppsOpen = process.env.NATION_APPS_OPEN === 'true' ? true
-    : process.env.NATION_APPS_OPEN === 'false' ? false
-    : new Date() >= nationReopenDate;
-  res.render('new/applications', { events, userApp, userHundredApp, userNationApp, userNewsApp, hasVipAccess, nationAppsOpen });
-});
+router.get('/applications', (req, res) => res.redirect('/#/applications'));
 
 router.get('/my-application', async (req, res) => {
   if (!req.session.user) return res.redirect(`${res.locals.lp}/auth/discord`);
@@ -338,14 +296,8 @@ router.post('/my-application-hundred/withdraw', async (req, res) => {
   res.redirect(`${res.locals.lp}/applications`);
 });
 
-router.get('/wiki', (req, res) => {
-  res.render('new/wiki');
-});
-
-router.get('/store', (req, res) => {
-  const success = req.query.success === '1';
-  res.render('new/store', { success });
-});
+router.get('/wiki', (req, res) => res.redirect('/#/' + encodeURI('01 Events/The Great War/The Great War')));
+router.get('/store', (req, res) => res.redirect('/#/store'));
 
 router.post('/store/checkout', async (req, res) => {
   const { package_id } = req.body;

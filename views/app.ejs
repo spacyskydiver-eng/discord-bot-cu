@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Collective Union Events</title>
+<meta name="description" content="Collective Union Events: The Great War, 17 December 2026.">
+<meta name="theme-color" content="#0D1120">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=<%= v %>">
+<link rel="stylesheet" href="/assets/neural.css?v=<%= v %>">
+<link rel="stylesheet" href="/assets/views.css?v=<%= v %>">
+<link rel="stylesheet" href="/assets/nova.css?v=<%= v %>">
+<script>window.CUE = <%- cueJson %>; window.CUE_ASSET_V = '<%= v %>';</script>
+</head>
+<body class="theme-dark ui-nova">
+<div class="app-container" id="app">
+  <div class="loading-screen" id="loading">
+    <div class="loading-orb"></div>
+    <div class="loading-text">Opening CUE…</div>
+  </div>
+</div>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script defer src="/assets/graph3d.js?v=<%= v %>"></script>
+<script defer src="/assets/app.js?v=<%= v %>"></script>
+</body>
+</html>
