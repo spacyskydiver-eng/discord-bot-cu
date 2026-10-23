@@ -5,243 +5,121 @@
 <canvas id="starfield" aria-hidden="true" style="position:fixed;inset:0;pointer-events:none;z-index:0"></canvas>
 
 <main class="wrap" style="position:relative;z-index:1">
-  <div class="home">
 
-    <!-- ── Sidebar: logo + description + Discord ── -->
-    <aside class="sidebar eb-panel" data-eb>
-      <div class="logo">CUE<span class="sub">COLLECTIVE UNION EVENTS</span></div>
-
-      <p class="lede"><%- t('home_lede') %></p>
-
-      <div class="more" id="moreText">
-        <p><%- t('home_more_p1') %></p>
-        <p><%- t('home_more_p2') %></p>
-      </div>
-
-      <button class="showmore" id="showMore" aria-expanded="false">
-        <span class="t"><%= t('show_more') %></span>
-        <span class="chev">▾</span>
-      </button>
-
-      <a class="discord" href="https://discord.gg/x832cqAdu" target="_blank" rel="noopener" data-tooltip="Join our Discord server">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4.4A19 19 0 0 0 15.3 3l-.3.5a14 14 0 0 1 4 2 16 16 0 0 0-13.4 0 14 14 0 0 1 4-2L9.3 3A19 19 0 0 0 4.6 4.4 20 20 0 0 0 1 18.6 19 19 0 0 0 6.8 21l.6-1a13 13 0 0 1-2-1l.5-.3a13 13 0 0 0 11.2 0l.5.3a13 13 0 0 1-2 1l.6 1A19 19 0 0 0 23 18.6 20 20 0 0 0 20 4.4ZM8.6 15.3c-.9 0-1.7-.9-1.7-2s.8-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Zm6.8 0c-.9 0-1.7-.9-1.7-2s.8-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Z"/></svg>
+  <!-- ── Hero ── -->
+  <section class="cue-hero">
+    <div class="cue-hero-kicker">COLLECTIVE UNION EVENTS</div>
+    <h1 class="cue-hero-title">CUE</h1>
+    <p class="cue-hero-desc"><%- t('home_lede') %></p>
+    <div class="more" id="moreText">
+      <p><%- t('home_more_p1') %></p>
+      <p><%- t('home_more_p2') %></p>
+    </div>
+    <button class="showmore" id="showMore" aria-expanded="false">
+      <span class="t"><%= t('show_more') %></span>
+      <span class="chev">▾</span>
+    </button>
+    <div class="cue-hero-actions">
+      <a class="cue-btn-primary" href="https://discord.gg/x832cqAdu" target="_blank" rel="noopener">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4.4A19 19 0 0 0 15.3 3l-.3.5a14 14 0 0 1 4 2 16 16 0 0 0-13.4 0 14 14 0 0 1 4-2L9.3 3A19 19 0 0 0 4.6 4.4 20 20 0 0 0 1 18.6 19 19 0 0 0 6.8 21l.6-1a13 13 0 0 1-2-1l.5-.3a13 13 0 0 0 11.2 0l.5.3a13 13 0 0 1-2 1l.6 1A19 19 0 0 0 23 18.6 20 20 0 0 0 20 4.4ZM8.6 15.3c-.9 0-1.7-.9-1.7-2s.8-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Zm6.8 0c-.9 0-1.7-.9-1.7-2s.8-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Z"/></svg>
         <%= t('join_discord') %>
       </a>
-
-      <!-- Quick-links: BranchedMenu (effect 9) -->
-      <div class="home-links">
-        <div class="home-links-title">Quick links</div>
-        <div data-branched-menu='[
-          {"label":"Events","children":[
-            {"label":"Upcoming events","value":"events","href":"/events"},
-            {"label":"Store","value":"store","href":"/store"},
-            {"label":"Staff","value":"staff","href":"/staff"}
-          ]},
-          {"label":"Community","children":[
-            {"label":"Discord","value":"discord","href":"https://discord.gg/x832cqAdu"},
-            {"label":"Nation applications","value":"nation","href":"/apply-nation-leader"}
-          ]}
-        ]'></div>
-      </div>
-
-      <!-- Radar decoration (effect 4) -->
-      <div class="home-radar">
-        <div data-radar data-radar-size="140" data-radar-accent="#4dabf7"></div>
-      </div>
-
-      <!-- Discord servers folder (effect 10) -->
-      <div style="margin-top:16px">
-        <div data-folder-float='[
-          {"label":"Main Discord","value":"main","href":"https://discord.gg/x832cqAdu"},
-          {"label":"Events Info","value":"events","href":"https://discord.gg/x832cqAdu"},
-          {"label":"Nation Hub","value":"nations","href":"https://discord.gg/x832cqAdu"}
-        ]' data-folder-label="Discord Servers"></div>
-      </div>
-    </aside>
-
-    <!-- ── Tiles ── -->
-    <div class="tiles-main tiles">
-
-      <a href="<%= lp %>/events" class="tile events holo-card">
-        <span class="holo-shine"></span>
-        <div class="bgart">
-          <svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 600 160" xmlns="http://www.w3.org/2000/svg">
-            <defs><linearGradient id="ev" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5fb0f7"/><stop offset="1" stop-color="#1c4f82"/></linearGradient></defs>
-            <g opacity="0.5" stroke="#bfe1ff" stroke-width="2" fill="none">
-              <path d="M0 40 L60 20 L120 50 L180 18 L240 46 L300 22 L360 48 L420 20 L480 44 L540 22 L600 42"/>
-              <path d="M0 120 L80 138 L160 110 L240 140 L320 112 L400 142 L480 112 L560 138 L600 120"/>
-            </g>
-            <g fill="url(#ev)" opacity="0.85">
-              <polygon points="430,30 470,60 450,110 410,80"/><polygon points="500,55 535,80 520,120 488,95"/>
-            </g>
-          </svg>
-        </div>
-        <div class="ico">
-          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <polygon points="50,8 78,30 64,86 36,86 22,30" fill="#cfe9ff"/>
-            <polygon points="50,8 78,30 50,44 22,30" fill="#9fd0ff"/>
-            <polygon points="22,30 50,44 36,86" fill="#6fb6f5"/>
-            <polygon points="78,30 50,44 64,86" fill="#4d97e0"/>
-          </svg>
-        </div>
-        <div class="label">
-          <h3><%= t('tile_events') %></h3>
-          <p><%= t('tile_events_sub') %></p>
-        </div>
+      <a class="cue-btn-ghost" href="<%= lp %>/events">
+        <%= t('tile_events') %> →
       </a>
+    </div>
+  </section>
 
-      <a href="<%= lp %>/store" class="tile store holo-card">
-        <span class="holo-shine"></span>
-        <div class="bgart">
-          <svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 600 160" xmlns="http://www.w3.org/2000/svg">
-            <g fill="#ffe08a" opacity="0.85">
-              <polygon points="430,30 466,58 450,106 412,80"/><polygon points="500,55 532,80 518,116 486,92"/>
-            </g>
-            <g opacity="0.25" fill="#fff">
-              <circle cx="120" cy="40" r="2.5"/><circle cx="200" cy="90" r="2"/><circle cx="80" cy="110" r="2"/>
-              <circle cx="300" cy="50" r="2"/><circle cx="260" cy="120" r="2.5"/>
-            </g>
-          </svg>
-        </div>
-        <div class="ico">
-          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <polygon points="50,8 78,30 64,86 36,86 22,30" fill="#fff0c0"/>
-            <polygon points="50,8 78,30 50,44 22,30" fill="#ffe08a"/>
-            <polygon points="22,30 50,44 36,86" fill="#ffc63d"/>
-            <polygon points="78,30 50,44 64,86" fill="#d99a16"/>
-          </svg>
-        </div>
-        <div class="label">
-          <h3><%= t('tile_store') %></h3>
-          <p><%= t('tile_store_sub') %></p>
-        </div>
-      </a>
+  <!-- ── Feature cards ── -->
+  <div class="cue-feat-grid">
 
-    </div><!-- /.tiles-main -->
+    <a href="<%= lp %>/events" class="cue-feat-card holo-card" style="--card:#4dabf7">
+      <span class="holo-shine"></span>
+      <div class="cue-feat-icon">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="56" height="56">
+          <polygon points="50,8 78,30 64,86 36,86 22,30" fill="#cfe9ff"/>
+          <polygon points="50,8 78,30 50,44 22,30" fill="#9fd0ff"/>
+          <polygon points="22,30 50,44 36,86" fill="#6fb6f5"/>
+          <polygon points="78,30 50,44 64,86" fill="#4d97e0"/>
+        </svg>
+      </div>
+      <div class="cue-feat-body">
+        <h3><%= t('tile_events') %></h3>
+        <p><%= t('tile_events_sub') %></p>
+        <span class="cue-feat-arrow"><%= t('event_view_details') %> →</span>
+      </div>
+    </a>
+
+    <a href="<%= lp %>/store" class="cue-feat-card holo-card" style="--card:#ffc63d">
+      <span class="holo-shine"></span>
+      <div class="cue-feat-icon">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="56" height="56">
+          <polygon points="50,8 78,30 64,86 36,86 22,30" fill="#fff0c0"/>
+          <polygon points="50,8 78,30 50,44 22,30" fill="#ffe08a"/>
+          <polygon points="22,30 50,44 36,86" fill="#ffc63d"/>
+          <polygon points="78,30 50,44 64,86" fill="#d99a16"/>
+        </svg>
+      </div>
+      <div class="cue-feat-body">
+        <h3><%= t('tile_store') %></h3>
+        <p><%= t('tile_store_sub') %></p>
+        <span class="cue-feat-arrow"><%= t('store_title') %> →</span>
+      </div>
+    </a>
 
   </div>
+
 </main>
 
 <script>
-// ── HoloCard 3-D tilt + moving shine ─────────────────────────────────────────
 (function() {
-  var cards = document.querySelectorAll('.holo-card');
-  var MAX_TILT = 10; // degrees
-  var PERSPECTIVE = 900;
-
-  cards.forEach(function(card) {
-    var shine = card.querySelector('.holo-shine');
-
-    card.addEventListener('mousemove', function(e) {
-      var rect = card.getBoundingClientRect();
-      var x = e.clientX - rect.left;
-      var y = e.clientY - rect.top;
-      var cx = rect.width / 2;
-      var cy = rect.height / 2;
-      var rx = ((y - cy) / cy) * -MAX_TILT;
-      var ry = ((x - cx) / cx) * MAX_TILT;
-      var px = ((x / rect.width) * 100).toFixed(1);
-      var py = ((y / rect.height) * 100).toFixed(1);
-
-      card.style.transform = 'perspective(' + PERSPECTIVE + 'px) rotateX(' + rx + 'deg) rotateY(' + ry + 'deg) translateZ(4px)';
-      card.style.boxShadow = '0 24px 52px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.08)';
-
-      if (shine) {
-        shine.style.opacity = '1';
-        shine.style.background =
-          'radial-gradient(circle at ' + px + '% ' + py + '%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 45%, transparent 70%)';
-      }
-    });
-
-    card.addEventListener('mouseleave', function() {
-      card.style.transform = '';
-      card.style.boxShadow = '';
-      if (shine) {
-        shine.style.opacity = '0';
-      }
-    });
-  });
-})();
-</script>
-
-<script>
-// ── Interactive repel starfield ───────────────────────────────────────────
-(function() {
+  // ── Interactive repel starfield ───────────────────────────
   var canvas = document.getElementById('starfield');
   var ctx = canvas.getContext('2d');
   var W, H;
-
-  function resize() {
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  }
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
   resize();
   window.addEventListener('resize', function() {
     resize();
-    particles.forEach(function(p) {
-      p.ox = Math.random() * W;
-      p.oy = Math.random() * H;
-      p.x = p.ox; p.y = p.oy;
-    });
+    particles.forEach(function(p) { p.ox = Math.random()*W; p.oy = Math.random()*H; p.x=p.ox; p.y=p.oy; });
   });
-
   var particles = [];
-  for (var i = 0; i < 160; i++) {
-    var x = Math.random() * W;
-    var y = Math.random() * H;
-    particles.push({
-      ox: x, oy: y, x: x, y: y,
-      vx: 0, vy: 0,
-      r: Math.random() * 1.3 + 0.4,
-      a: Math.random() * 0.5 + 0.2
-    });
+  for (var i = 0; i < 140; i++) {
+    var x = Math.random()*W, y = Math.random()*H;
+    particles.push({ox:x,oy:y,x:x,y:y,vx:0,vy:0,r:Math.random()*1.2+0.3,a:Math.random()*0.4+0.15});
   }
-
-  var mx = -9999, my = -9999;
-  document.addEventListener('mousemove', function(e) { mx = e.clientX; my = e.clientY; });
-  document.addEventListener('mouseleave', function() { mx = -9999; my = -9999; });
-
-  var REPEL_R = 110, REPEL_F = 6, SPRING = 0.04, DAMP = 0.82;
-
+  var mx=-9999, my=-9999;
+  document.addEventListener('mousemove', function(e){mx=e.clientX;my=e.clientY;});
+  document.addEventListener('mouseleave', function(){mx=-9999;my=-9999;});
+  var REPEL_R=100, REPEL_F=5, SPRING=0.04, DAMP=0.82;
   function tick() {
-    ctx.clearRect(0, 0, W, H);
-    for (var i = 0; i < particles.length; i++) {
-      var p = particles[i];
-      var dx = p.x - mx, dy = p.y - my;
-      var dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < REPEL_R && dist > 0) {
-        var s = (1 - dist / REPEL_R);
-        p.vx += (dx / dist) * s * REPEL_F;
-        p.vy += (dy / dist) * s * REPEL_F;
-      }
-      p.vx += (p.ox - p.x) * SPRING;
-      p.vy += (p.oy - p.y) * SPRING;
-      p.vx *= DAMP; p.vy *= DAMP;
-      p.x += p.vx; p.y += p.vy;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, 6.2832);
-      ctx.fillStyle = 'rgba(255,255,255,' + p.a + ')';
-      ctx.fill();
+    ctx.clearRect(0,0,W,H);
+    for (var i=0;i<particles.length;i++) {
+      var p=particles[i], dx=p.x-mx, dy=p.y-my, dist=Math.sqrt(dx*dx+dy*dy);
+      if (dist<REPEL_R&&dist>0){var s=(1-dist/REPEL_R);p.vx+=(dx/dist)*s*REPEL_F;p.vy+=(dy/dist)*s*REPEL_F;}
+      p.vx+=(p.ox-p.x)*SPRING; p.vy+=(p.oy-p.y)*SPRING;
+      p.vx*=DAMP; p.vy*=DAMP; p.x+=p.vx; p.y+=p.vy;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,6.2832);
+      ctx.fillStyle='rgba(180,190,255,'+p.a+')'; ctx.fill();
     }
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
-})();
 
-// ── Show more ──────────────────────────────────────────────────────────────
-var _showMore = document.getElementById('showMore');
-var _showMoreText = _showMore ? _showMore.querySelector('.t') : null;
-var _showLess = '<%= t("show_less").replace(/'/g, "\\'") %>';
-var _showMoreLabel = '<%= t("show_more").replace(/'/g, "\\'") %>';
-if (_showMore) {
-  _showMore.addEventListener('click', function() {
-    var m = document.getElementById('moreText');
-    var open = m.classList.toggle('open');
-    this.classList.toggle('open', open);
-    _showMoreText.textContent = open ? _showLess : _showMoreLabel;
-    this.setAttribute('aria-expanded', open);
-  });
-}
+  // ── Show more ──────────────────────────────────────────────
+  var _sm = document.getElementById('showMore');
+  var _st = _sm ? _sm.querySelector('.t') : null;
+  var _sl = '<%= t("show_less").replace(/'/g, "\\'") %>';
+  var _sml = '<%= t("show_more").replace(/'/g, "\\'") %>';
+  if (_sm) {
+    _sm.addEventListener('click', function() {
+      var m=document.getElementById('moreText'), open=m.classList.toggle('open');
+      this.classList.toggle('open',open);
+      _st.textContent=open?_sl:_sml;
+      this.setAttribute('aria-expanded',open);
+    });
+  }
+})();
 </script>
 
 <%- include('partials/foot') %>

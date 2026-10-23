@@ -103,16 +103,138 @@
 .wrap{max-width:1200px;margin:0 auto;padding:34px 22px 70px}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-/* ---------- HOME ---------- */
-.home{display:grid;grid-template-columns:minmax(0,360px) 1fr;gap:28px;align-items:stretch}
-.tiles-main{display:flex;flex-direction:column;gap:24px}
-.sidebar{
-  background:var(--panel);border:1px solid var(--line);
-  border-radius:var(--radius);padding:36px 34px;box-shadow:var(--shadow);
-  position:relative;
+/* ---------- HOME — hero + feature grid ---------- */
+
+/* background glow across the whole page */
+.nd-body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(900px 340px at 50% -60px, rgba(139,156,255,.18), transparent 72%),
+    radial-gradient(520px 260px at 88% 10%, rgba(52,211,153,.07), transparent 70%);
 }
 
-/* ElectricBorder: animated gradient edge */
+.cue-hero{
+  text-align:center;
+  padding:90px 20px 60px;
+  position:relative;
+}
+.cue-hero-kicker{
+  display:inline-block;
+  font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--violet);
+  background:rgba(139,156,255,.10);
+  border:1px solid rgba(139,156,255,.38);
+  border-radius:999px;padding:6px 16px 5px;
+  margin-bottom:28px;
+  box-shadow:0 0 22px -6px rgba(139,156,255,.65);
+}
+.cue-hero-title{
+  font-family:'Fraunces',Georgia,serif;
+  font-size:clamp(72px,12vw,110px);
+  font-weight:700;
+  color:var(--logo);
+  line-height:1;
+  margin:0 0 24px;
+  letter-spacing:-.03em;
+}
+.cue-hero-desc{
+  font-size:17px;line-height:1.75;
+  color:var(--muted);
+  max-width:520px;margin:0 auto 14px;
+}
+.more{max-height:0;overflow:hidden;transition:max-height .35s ease;color:var(--muted)}
+.more.open{max-height:520px}
+.more p{margin:14px 0 0;font-size:15px;line-height:1.75;max-width:520px;margin-left:auto;margin-right:auto}
+.showmore{
+  margin-bottom:28px;font-family:'Inter',sans-serif;font-weight:600;color:var(--accent);
+  display:inline-flex;align-items:center;gap:6px;font-size:14px;
+  background:none;border:none;padding:0;cursor:pointer;
+}
+.showmore .chev{transition:transform .3s}
+.showmore.open .chev{transform:rotate(180deg)}
+.cue-hero-actions{
+  display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
+  margin-top:8px;
+}
+.cue-btn-primary{
+  display:inline-flex;align-items:center;gap:9px;
+  background:#5865F2;color:#fff;
+  font-family:'Inter',sans-serif;font-weight:700;font-size:15px;
+  padding:13px 22px;border-radius:11px;
+  box-shadow:0 6px 20px rgba(88,101,242,.35);
+  text-decoration:none;transition:transform .12s,filter .12s;
+}
+.cue-btn-primary:hover{transform:translateY(-2px);filter:brightness(1.08)}
+.cue-btn-ghost{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(139,156,255,.08);color:var(--text);
+  border:1px solid var(--line);
+  font-family:'Inter',sans-serif;font-weight:600;font-size:15px;
+  padding:12px 20px;border-radius:11px;
+  text-decoration:none;transition:background .12s,border-color .12s;
+}
+.cue-btn-ghost:hover{background:rgba(139,156,255,.16);border-color:var(--line-hover)}
+
+/* Feature cards — biomed home-dashboard style */
+.cue-feat-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:20px;
+  max-width:860px;margin:0 auto;
+  padding:0 0 80px;
+}
+.cue-feat-card{
+  position:relative;overflow:hidden;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:linear-gradient(160deg,var(--panel-3),var(--panel-2));
+  text-decoration:none;color:var(--text);
+  display:flex;flex-direction:column;gap:0;
+  box-shadow:var(--shadow);
+  transition:transform .18s,border-color .18s,box-shadow .18s;
+  padding:28px 28px 24px;
+  transform-style:preserve-3d;will-change:transform;
+}
+/* Colored accent line at top — like biomed subject cards */
+.cue-feat-card::before{
+  content:'';
+  position:absolute;inset:0 0 auto 0;height:3px;
+  background:var(--card,var(--violet));
+  box-shadow:0 0 20px var(--card,var(--violet));
+  border-radius:var(--radius) var(--radius) 0 0;
+}
+.cue-feat-card:hover{
+  transform:translateY(-3px);
+  border-color:var(--card,var(--violet));
+  box-shadow:0 16px 40px -18px var(--card,var(--violet));
+}
+.cue-feat-icon{
+  width:56px;height:56px;margin-bottom:18px;
+  filter:drop-shadow(0 4px 10px rgba(0,0,0,.5));
+}
+.cue-feat-body h3{
+  font-family:'Fraunces',Georgia,serif;font-weight:650;font-size:22px;
+  margin:0 0 8px;color:var(--text);
+}
+.cue-feat-body p{
+  font-size:14px;line-height:1.65;color:var(--muted);margin:0 0 18px;
+}
+.cue-feat-arrow{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:13px;font-weight:600;
+  color:var(--card,var(--violet));
+  transition:gap .15s;
+}
+.cue-feat-card:hover .cue-feat-arrow{gap:8px}
+
+/* HoloCard shine overlay */
+.holo-shine{
+  position:absolute;inset:0;z-index:5;border-radius:inherit;
+  pointer-events:none;opacity:0;transition:opacity .25s;
+}
+
+/* ElectricBorder: animated gradient edge (used on other pages) */
+.eb-panel{position:relative}
 .eb-panel::before{
   content:'';position:absolute;inset:-1px;border-radius:calc(var(--radius) + 1px);
   background:conic-gradient(from var(--eb-angle,0deg),
@@ -124,78 +246,6 @@
 .eb-panel:hover::before{opacity:1;animation-play-state:running}
 @keyframes eb-spin{to{--eb-angle:360deg}}
 @property --eb-angle{syntax:'<angle>';inherits:false;initial-value:0deg}
-.logo{
-  font-family:'Fraunces',Georgia,serif;font-size:clamp(28px,4vw,44px);
-  color:var(--logo);line-height:1.2;font-weight:700;margin:4px 0 6px;
-}
-.logo .sub{
-  display:block;font-family:'Inter',sans-serif;font-size:11px;
-  color:var(--faint);margin-top:10px;letter-spacing:3px;text-transform:uppercase;font-weight:600;
-}
-.lede{color:var(--muted);margin:24px 0 0;font-size:15px;line-height:1.75}
-.more{max-height:0;overflow:hidden;transition:max-height .35s ease;color:var(--muted)}
-.more.open{max-height:520px}
-.more p{margin:14px 0 0;font-size:14px;line-height:1.75}
-.showmore{
-  margin-top:16px;font-family:'Inter',sans-serif;font-weight:600;color:var(--accent);
-  display:inline-flex;align-items:center;gap:8px;font-size:14px;
-  background:none;border:none;padding:0;cursor:pointer;
-}
-.showmore .chev{transition:transform .3s}
-.showmore.open .chev{transform:rotate(180deg)}
-.discord{
-  margin-top:28px;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
-  background:#5865F2;color:#fff;font-family:'Inter',sans-serif;font-weight:700;font-size:15px;
-  padding:14px;border-radius:12px;box-shadow:0 6px 20px rgba(88,101,242,.3);
-  transition:transform .12s,filter .12s;text-decoration:none;
-}
-.discord:hover{transform:translateY(-2px);filter:brightness(1.08)}
-
-/* home themed tiles */
-.tiles{display:flex;flex-direction:column;gap:24px}
-.tile{
-  position:relative;overflow:hidden;border-radius:var(--radius);
-  min-height:192px;display:flex;align-items:center;gap:28px;
-  padding:30px 36px;text-align:left;width:100%;
-  border:1px solid rgba(140,155,255,.2);box-shadow:var(--shadow);
-  transition:transform .1s ease-out, box-shadow .1s ease-out, border-color .2s;
-  text-decoration:none;cursor:pointer;
-  transform-style:preserve-3d;will-change:transform;
-}
-.tile:hover{border-color:rgba(140,155,255,.38)}
-.tile .ico{position:relative;z-index:2;width:100px;height:100px;flex:0 0 auto;
-  filter:drop-shadow(0 6px 14px rgba(0,0,0,.55))}
-.tile .ico svg{width:100px;height:100px}
-.tile .label{position:relative;z-index:2}
-.tile h3{font-family:'Fraunces',Georgia,serif;font-weight:650;font-size:28px;margin:0;color:#fff}
-.tile p{margin:6px 0 0;font-weight:600;font-size:13px;letter-spacing:.08em;
-  text-transform:uppercase;color:rgba(255,255,255,.7);font-family:'Inter',sans-serif}
-.tile .bgart{position:absolute;inset:0;z-index:1;opacity:.85}
-.tile.events{background:radial-gradient(120% 160% at 80% 30%,#1a4f8c,#08192f)}
-.tile.store{background:radial-gradient(120% 160% at 80% 30%,#8a6010,#2e1f04)}
-
-/* HoloCard shine overlay */
-.holo-shine{
-  position:absolute;inset:0;z-index:5;border-radius:inherit;
-  pointer-events:none;opacity:0;transition:opacity .25s;
-}
-/* right-panel tile variant — vertical card */
-.tile-panel{
-  position:relative;overflow:hidden;border-radius:var(--radius);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:12px;padding:24px 16px;text-align:center;width:100%;
-  border:1px solid rgba(255,255,255,.07);box-shadow:var(--shadow);
-  transition:transform .15s,box-shadow .15s,filter .15s;
-  text-decoration:none;cursor:pointer;min-height:150px;
-}
-.tile-panel:hover{transform:translateY(-3px) scale(1.005);filter:brightness(1.08);box-shadow:0 20px 40px rgba(0,0,0,.5)}
-.tile-panel .bgart{position:absolute;inset:0;z-index:1;opacity:.9}
-.tile-panel .ico{position:relative;z-index:2;width:60px;height:60px;flex:0 0 auto;filter:drop-shadow(0 4px 8px rgba(0,0,0,.45))}
-.tile-panel .ico svg{width:60px;height:60px}
-.tile-panel .label{position:relative;z-index:2}
-.tile-panel h3{font-family:'Inter',sans-serif;font-weight:800;font-size:18px;margin:0;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.35)}
-.tile-panel p{margin:4px 0 0;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.75)}
-.tile-panel.map{background:radial-gradient(150% 200% at 60% 20%,#7c3aed,#2e1065)}
 
 /* ---------- GENERIC PAGE HEADER ---------- */
 .page-head{display:flex;align-items:center;gap:16px;margin-bottom:26px}
@@ -1105,49 +1155,38 @@
 /* ===================== RESPONSIVE ===================== */
 
 @media (max-width:880px){
-  .home{grid-template-columns:1fr;gap:20px}
-  .tile-panel{min-width:140px;flex:1}
-  .brand{font-size:11px}
+  .brand{font-size:15px}
   .timeline{grid-template-columns:1fr;gap:22px}
   .timeline::before{display:none}
   .phase{padding:0 0 0 4px}
   .store-grid{grid-template-columns:1fr;max-width:420px}
-  .tile{min-height:160px;padding:24px 28px;gap:22px}
-  .tile h3{font-size:24px}
-  .tile .ico{width:80px;height:80px}
-  .tile .ico svg{width:80px;height:80px}
+  .cue-feat-grid{grid-template-columns:1fr}
 }
 
 /* ---- Phone (≤ 600px) ---- */
 @media (max-width:600px){
-  /* Layout */
   .wrap{padding:20px 14px 60px}
 
   /* Banner */
   .banner-inner{padding:10px 14px;gap:10px}
-  .brand{font-size:10px;gap:8px}
-  .brand .cube{width:20px;height:20px}
+  .brand{font-size:14px;gap:8px}
+  .brand .cube{width:18px;height:18px}
   .banner-user span{display:none}
-  .banner-btn{font-size:12px;padding:6px 10px}
+  .banner-btn{font-size:12px;padding:5px 9px}
   .banner-login{font-size:12px;padding:6px 12px}
 
   /* Page headers */
   .page-head{flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:18px}
   .page-title{font-size:22px}
 
-  /* Home */
-  .sidebar{padding:24px 20px}
-  .logo{font-size:clamp(18px,7vw,28px)}
-  .lede{font-size:15px;margin-top:18px}
+  /* Home hero */
+  .cue-hero{padding:50px 16px 36px}
+  .cue-hero-title{font-size:clamp(60px,16vw,84px)}
+  .cue-hero-desc{font-size:15px}
+  .cue-hero-actions{gap:10px}
+  .cue-btn-primary,.cue-btn-ghost{font-size:14px;padding:11px 18px}
   .more{max-height:none}
   .showmore{display:none}
-  .discord{font-size:15px;padding:14px}
-  .tiles{gap:14px}
-  .tile{min-height:130px;padding:20px 22px;gap:18px}
-  .tile h3{font-size:21px}
-  .tile p{font-size:12px}
-  .tile .ico{width:68px;height:68px}
-  .tile .ico svg{width:68px;height:68px}
 
   /* Event feature cards */
   .efeat-art{height:200px}
