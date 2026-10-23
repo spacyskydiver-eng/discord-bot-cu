@@ -1,6 +1,9 @@
 <%- include('partials/head', { pageTitle: '' }) %>
 <%- include('partials/header') %>
 
+<!-- DitherVeil trigger -->
+<div data-dither-veil aria-hidden="true"></div>
+
 <!-- Interactive repel starfield -->
 <canvas id="starfield" aria-hidden="true" style="position:fixed;inset:0;pointer-events:none;z-index:0"></canvas>
 
@@ -8,7 +11,7 @@
   <div class="home">
 
     <!-- ── Sidebar: logo + description + Discord ── -->
-    <aside class="sidebar eb-panel">
+    <aside class="sidebar eb-panel" data-eb>
       <div class="logo">CUE<span class="sub">COLLECTIVE UNION EVENTS</span></div>
 
       <p class="lede"><%- t('home_lede') %></p>
@@ -23,10 +26,40 @@
         <span class="chev">▾</span>
       </button>
 
-      <a class="discord" href="https://discord.gg/x832cqAdu" target="_blank" rel="noopener">
+      <a class="discord" href="https://discord.gg/x832cqAdu" target="_blank" rel="noopener" data-tooltip="Join our Discord server">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4.4A19 19 0 0 0 15.3 3l-.3.5a14 14 0 0 1 4 2 16 16 0 0 0-13.4 0 14 14 0 0 1 4-2L9.3 3A19 19 0 0 0 4.6 4.4 20 20 0 0 0 1 18.6 19 19 0 0 0 6.8 21l.6-1a13 13 0 0 1-2-1l.5-.3a13 13 0 0 0 11.2 0l.5.3a13 13 0 0 1-2 1l.6 1A19 19 0 0 0 23 18.6 20 20 0 0 0 20 4.4ZM8.6 15.3c-.9 0-1.7-.9-1.7-2s.8-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Zm6.8 0c-.9 0-1.7-.9-1.7-2s.8-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2Z"/></svg>
         <%= t('join_discord') %>
       </a>
+
+      <!-- Quick-links: BranchedMenu (effect 9) -->
+      <div class="home-links">
+        <div class="home-links-title">Quick links</div>
+        <div data-branched-menu='[
+          {"label":"Events","children":[
+            {"label":"Upcoming events","value":"events","href":"/events"},
+            {"label":"Store","value":"store","href":"/store"},
+            {"label":"Staff","value":"staff","href":"/staff"}
+          ]},
+          {"label":"Community","children":[
+            {"label":"Discord","value":"discord","href":"https://discord.gg/x832cqAdu"},
+            {"label":"Nation applications","value":"nation","href":"/apply-nation-leader"}
+          ]}
+        ]'></div>
+      </div>
+
+      <!-- Radar decoration (effect 4) -->
+      <div class="home-radar">
+        <div data-radar data-radar-size="140" data-radar-accent="#4dabf7"></div>
+      </div>
+
+      <!-- Discord servers folder (effect 10) -->
+      <div style="margin-top:16px">
+        <div data-folder-float='[
+          {"label":"Main Discord","value":"main","href":"https://discord.gg/x832cqAdu"},
+          {"label":"Events Info","value":"events","href":"https://discord.gg/x832cqAdu"},
+          {"label":"Nation Hub","value":"nations","href":"https://discord.gg/x832cqAdu"}
+        ]' data-folder-label="Discord Servers"></div>
+      </div>
     </aside>
 
     <!-- ── Tiles ── -->

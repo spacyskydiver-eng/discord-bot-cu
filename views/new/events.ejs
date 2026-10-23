@@ -35,7 +35,8 @@ const ISLAND = {
     <% events.forEach(function(ev) { %>
       <% const theme = ev.theme || 'default'; %>
       <% const isl = ISLAND[theme]; %>
-      <a href="<%= lp %>/events/<%= ev.id %>" class="efeat">
+      <a href="<%= lp %>/events/<%= ev.id %>" class="efeat holo-card" data-eb>
+        <span class="holo-shine"></span>
         <div class="efeat-art">
           <% if (ev.card_image) { %>
             <div class="efeat-art-blur" style="background-image:url('<%= ev.card_image %>')"></div>

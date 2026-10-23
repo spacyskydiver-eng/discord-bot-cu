@@ -25,7 +25,8 @@
   <div class="store-grid">
 
     <!-- VIP -->
-    <div class="rank vip">
+    <div class="rank vip" data-eb>
+      <span class="holo-shine"></span>
       <div class="top">
         <svg viewBox="0 0 100 100">
           <polygon points="50,6 82,30 66,90 34,90 18,30" fill="#d6ecff"/>
@@ -39,29 +40,18 @@
         <div class="price">$4.99 <small><%= t('store_permanent') %></small></div>
         <div class="once"><%= t('store_one_time') %></div>
         <ul>
-          <li>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#74c0fc" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
-            <%= t('store_vip_feat1') %>
-          </li>
-          <li>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#74c0fc" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
-            <%= t('store_vip_feat2') %>
-          </li>
-          <li>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#74c0fc" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
-            <%= t('store_vip_feat3') %>
-          </li>
-          <li>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#74c0fc" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
-            <%= t('store_vip_feat4') %>
-          </li>
+          <li><label class="sc-feat"><input type="checkbox" class="spring-check" checked disabled><%= t('store_vip_feat1') %></label></li>
+          <li><label class="sc-feat"><input type="checkbox" class="spring-check" checked disabled><%= t('store_vip_feat2') %></label></li>
+          <li><label class="sc-feat"><input type="checkbox" class="spring-check" checked disabled><%= t('store_vip_feat3') %></label></li>
+          <li><label class="sc-feat"><input type="checkbox" class="spring-check" checked disabled><%= t('store_vip_feat4') %></label></li>
         </ul>
         <a class="buy" style="opacity:0.45;cursor:not-allowed;pointer-events:none;"><%= t('store_coming_soon') %></a>
       </div>
     </div>
 
     <!-- VIP+ -->
-    <div class="rank plus">
+    <div class="rank plus" data-eb>
+      <span class="holo-shine"></span>
       <div class="top">
         <svg viewBox="0 0 100 100">
           <polygon points="50,6 82,30 66,90 34,90 18,30" fill="#fff0c0"/>
@@ -75,26 +65,11 @@
         <div class="price">$9.99 <small><%= t('store_permanent') %></small></div>
         <div class="once"><%= t('store_vipp_includes') %></div>
         <ul>
-          <li>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffc63d" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
-            <%= t('store_vipp_feat1') %>
-          </li>
-          <li>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffc63d" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
-            <%= t('store_vipp_feat2') %>
-          </li>
-          <li>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffc63d" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
-            <%= t('store_vipp_feat3') %>
-          </li>
-          <li>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffc63d" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
-            <%= t('store_vipp_feat4') %>
-          </li>
-          <li>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffc63d" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
-            <%= t('store_vipp_feat5') %>
-          </li>
+          <li><label class="sc-feat"><input type="checkbox" class="spring-check" checked disabled><%= t('store_vipp_feat1') %></label></li>
+          <li><label class="sc-feat"><input type="checkbox" class="spring-check" checked disabled><%= t('store_vipp_feat2') %></label></li>
+          <li><label class="sc-feat"><input type="checkbox" class="spring-check" checked disabled><%= t('store_vipp_feat3') %></label></li>
+          <li><label class="sc-feat"><input type="checkbox" class="spring-check" checked disabled><%= t('store_vipp_feat4') %></label></li>
+          <li><label class="sc-feat"><input type="checkbox" class="spring-check" checked disabled><%= t('store_vipp_feat5') %></label></li>
         </ul>
         <a class="buy" style="opacity:0.45;cursor:not-allowed;pointer-events:none;"><%= t('store_coming_soon') %></a>
       </div>

@@ -347,6 +347,7 @@
 .rank ul{list-style:none;margin:0 0 22px;padding:0;display:flex;flex-direction:column;gap:10px;flex:1}
 .rank li{display:flex;gap:10px;font-size:14.5px;color:#d6d9e0}
 .rank li svg{flex:0 0 auto;margin-top:3px}
+.sc-feat{display:flex;align-items:center;gap:10px;font-size:14.5px;color:#d6d9e0;cursor:default;user-select:none}
 .buy{font-family:"Baloo 2";font-weight:800;font-size:16px;padding:13px;border-radius:12px;
   color:#0c0d10;width:100%;border:none;cursor:pointer;transition:transform .12s,filter .12s;
   display:block;text-align:center;text-decoration:none}
@@ -935,6 +936,167 @@
 .sb-text{font-size:13.5px;color:#cbced6;margin-bottom:12px;line-height:1.6}
 .sb-heading{font-family:"Baloo 2";font-weight:800;font-size:16px;color:var(--text);margin-bottom:8px}
 .sb-timestamp{font-family:"Baloo 2";font-size:12.5px;color:var(--muted);margin-bottom:12px}
+
+/* ========================================================================
+   CUE EFFECTS — All 10 React Bits components
+   ======================================================================== */
+
+/* 1. LatticeLoader */
+#cue-loader{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .4s;
+}
+.cue-loader-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+.cue-loader-cell{
+  width:10px;height:10px;border-radius:50%;
+  background:rgba(77,171,247,.2);
+  transition:background .1s,transform .1s,box-shadow .1s;
+}
+.cue-loader-cell[data-on]{
+  background:#4dabf7;
+  transform:scale(1.4);
+  box-shadow:0 0 10px 3px rgba(77,171,247,.55);
+}
+
+/* 2. HoloCard — .holo-shine already in tile block above */
+/* (ensure .card and .rank also get preserve-3d) */
+.card,.rank,.efeat{transform-style:preserve-3d;will-change:transform}
+
+/* 3. ElectricBorder canvas — positioned by JS, no extra CSS needed */
+
+/* 4. Radar container */
+[data-radar]{display:inline-block;border-radius:50%}
+
+/* 5. DitherVeil canvas — styled by JS */
+
+/* 6. ElectricLogo — ensure brand element is relative */
+[data-electric-logo]{position:relative;display:inline-block}
+
+/* 7. Warm Tooltip */
+.cue-tooltip{
+  position:absolute;z-index:9000;pointer-events:none;
+  background:rgba(22,23,28,.96);
+  border:1px solid rgba(77,171,247,.25);
+  color:#e9eaee;font-size:12px;font-weight:600;
+  padding:5px 11px;border-radius:8px;
+  white-space:nowrap;display:none;
+  box-shadow:0 4px 16px rgba(0,0,0,.5),0 0 0 1px rgba(77,171,247,.08);
+  backdrop-filter:blur(6px);
+}
+
+/* 8. SpringCheck */
+.cue-spring-check-wrap{
+  display:inline-flex;align-items:center;gap:10px;cursor:pointer;
+}
+.cue-spring-check-wrap input{position:absolute;opacity:0;width:0;height:0}
+.cue-sc-box{
+  position:relative;width:22px;height:22px;flex-shrink:0;
+  border:2px solid rgba(255,255,255,.25);border-radius:7px;
+  transition:border-color .2s;
+  overflow:hidden;
+}
+.cue-sc-fill{
+  position:absolute;inset:0;background:#4dabf7;
+  transform:scale(0);border-radius:5px;
+  transition:transform .28s cubic-bezier(.34,1.56,.64,1);
+}
+.cue-sc-box.checked{border-color:#4dabf7}
+.cue-sc-box.checked .cue-sc-fill{transform:scale(1)}
+.cue-sc-tick{
+  position:absolute;inset:2px;color:#fff;
+  opacity:0;transition:opacity .15s .08s;
+}
+.cue-sc-box.checked .cue-sc-tick{opacity:1}
+
+/* 9. BranchedMenu */
+.cue-branched-menu{
+  display:flex;flex-direction:column;gap:2px;
+  font-size:13px;user-select:none;
+}
+.cbm-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;border-radius:8px;cursor:pointer;
+  background:none;border:none;color:var(--muted);width:100%;text-align:left;
+  font-family:inherit;font-size:13px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;
+  transition:color .15s,background .15s;
+}
+.cbm-head:hover,.cbm-head.open{color:var(--text);background:rgba(255,255,255,.04)}
+.cbm-chev{transition:transform .2s}
+.cbm-head.open .cbm-chev{transform:rotate(90deg)}
+.cbm-children{
+  padding-left:32px;display:flex;flex-direction:column;gap:2px;
+  margin-bottom:6px;
+}
+.cbm-item{
+  display:block;padding:7px 12px;border-radius:7px;
+  color:var(--muted);font-size:13px;font-weight:500;
+  text-decoration:none;transition:color .12s,background .12s;
+}
+.cbm-item:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.cbm-item.active{color:#4dabf7;background:rgba(77,171,247,.08)}
+
+/* 10. FolderFloat */
+.cue-folder-float{
+  position:relative;display:inline-block;
+}
+.cff-folder{
+  position:relative;cursor:pointer;user-select:none;
+  background:var(--panel-2);border:1px solid var(--line);
+  border-radius:10px;padding:10px 16px;
+  display:flex;align-items:center;gap:10px;
+  transition:border-color .2s,background .2s;
+}
+.cff-folder:hover{border-color:rgba(77,171,247,.4);background:rgba(77,171,247,.06)}
+.cff-tab{
+  position:absolute;top:-8px;left:14px;width:32px;height:8px;
+  background:var(--panel-2);border:1px solid var(--line);
+  border-bottom:none;border-radius:5px 5px 0 0;
+}
+.cff-icon{color:var(--muted)}
+.cff-label{font-family:"Baloo 2";font-weight:700;font-size:14px;color:var(--text)}
+.cff-sub{font-size:11px;color:var(--muted);margin-left:auto}
+.cff-pills{
+  position:absolute;bottom:calc(100% + 8px);left:0;
+  display:flex;flex-direction:column;gap:6px;
+  pointer-events:none;
+  opacity:0;transform:translateY(8px);
+  transition:opacity .25s,transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.cue-folder-float.open .cff-pills{
+  pointer-events:auto;
+  opacity:1;transform:translateY(0);
+}
+.cff-pill{
+  display:inline-block;background:var(--panel-2);
+  border:1px solid rgba(77,171,247,.25);color:var(--text);
+  padding:6px 14px;border-radius:999px;font-size:13px;font-weight:600;
+  text-decoration:none;white-space:nowrap;
+  transform:translateY(calc(var(--i,0) * 4px));
+  transition:background .15s,border-color .15s,transform .15s;
+  transition-delay:calc(var(--i,0) * 0.04s);
+}
+.cff-pill:hover{background:rgba(77,171,247,.12);border-color:#4dabf7}
+
+/* Radar section on home page */
+.home-radar{
+  display:flex;align-items:center;justify-content:center;
+  padding:16px 0 4px;opacity:.75;
+  transition:opacity .3s;
+}
+.home-radar:hover{opacity:1}
+
+/* Quick-links section in sidebar */
+.home-links{margin-top:24px;padding-top:20px;border-top:1px solid var(--line)}
+.home-links-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
+
+/* ========================================================================
+   END CUE EFFECTS
+   ======================================================================== */
 
 /* ---------- RESPONSIVE ---------- */
 /* ===================== RESPONSIVE ===================== */
