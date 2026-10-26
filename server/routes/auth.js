@@ -9,6 +9,9 @@ router.get('/discord', (req, res) => {
   }
   // Remember which language the user was on so the callback can redirect correctly
   req.session.oauthReturnLang = req._lang;
+  // send people back to the page they signed in from (same-site paths only)
+  const ret = String(req.query.return || '');
+  req.session.oauthReturnTo = /^\/[A-Za-z0-9/_-]*$/.test(ret) && !ret.startsWith('//') ? ret : null;
   const params = new URLSearchParams({
     client_id: process.env.CLIENT_ID,
     redirect_uri: process.env.REDIRECT_URI,
@@ -71,8 +74,10 @@ router.get('/callback', async (req, res) => {
 
     // Redirect back to whichever language the user was on when they clicked Login
     const returnLang = req.session.oauthReturnLang || 'en';
+    const returnTo = req.session.oauthReturnTo;
     delete req.session.oauthReturnLang;
-    res.redirect(returnLang === 'fr' ? '/fr/' : '/');
+    delete req.session.oauthReturnTo;
+    res.redirect(returnTo || (returnLang === 'fr' ? '/fr/' : '/'));
   } catch (err) {
     console.error('OAuth error:', err);
     res.redirect('/auth/error?reason=oauth-failed');

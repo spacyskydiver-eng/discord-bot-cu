@@ -174,6 +174,7 @@ function mountDock() {
     { id: 'wiki', label: 'Wiki', ic: 'book-open' },
     { id: 'store', label: 'Store', ic: 'cart' },
     { id: 'team', label: 'Team', ic: 'users' },
+    ...(window.CUE_DOCK_EXTRA || []),
     ...(window.CUE && window.CUE.isAdmin ? [{ sep: true }, { href: '/admin', label: 'Admin panel', ic: 'shield' }] : []),
   ].filter(it => it.sep || it.href || (it.id && B.exists(it.id)));
   const root = h(`<nav class="nb-dock" aria-label="Dock">${items.map((it, i) => it.sep ? '<span class="nb-dock-sep" aria-hidden="true"></span>' : `<button class="nb-dock-item" data-i="${i}" aria-label="${esc(it.label)}">${icon(it.ic)}<span class="nb-dock-badge" hidden></span><span class="nb-dock-label">${esc(it.label)}</span></button>`).join('')}</nav>`);

@@ -430,6 +430,8 @@ function hashFor(id, heading) { return '#/' + encodeURI(id).replace(/#/g, '%23')
 function parseHash() {
   // wiki sections are linked as /wiki#3-5-6 (or #3-5-6 on any page)
   const h = location.hash;
+  // pages with their own address
+  if (!h.startsWith('#/') && location.pathname === '/testers') return { id: 'testers', heading: null };
   if (!h.startsWith('#/') && (location.pathname === '/wiki' || /^#\d+(-\d+)*$/.test(h))) {
     let heading = null; try { heading = decodeURIComponent(h.slice(1)) || null; } catch (e) { heading = h.slice(1) || null; }
     return { id: 'wiki', heading };

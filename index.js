@@ -42,6 +42,9 @@ client.once('ready', async () => {
   if (cuGuild) syncBansFromGuild(cuGuild);
 });
 
+// an accepted tester who joins the server after applying gets the role straight away
+client.on('guildMemberAdd', member => { require('./server/testers').onMemberJoin(member).catch(e => console.error('[testers] join', e.message)); });
+
 client.on('guildBanAdd', async (ban) => {
   if (ban.guild.id !== CU_GUILD_ID) return;
   try {

@@ -5,6 +5,7 @@ const router = express.Router();
 const db = require('../../db');
 const access = require('../access');
 const wiki = require('../wiki');
+const testers = require('../testers');
 
 function formatDesc(text) {
   if (!text) return '';
@@ -42,6 +43,12 @@ async function renderApp(req, res) {
     const ev = (await db.query(`SELECT title, is_open FROM events ORDER BY created_at DESC LIMIT 1`)).rows[0];
     if (ev && ev.is_open) applications = [{ title: ev.title, href: '/apply' }];
   } catch (e) { console.error('[home] events', e.message); }
+  let testSessions = [];
+  try {
+    testSessions = (await testers.upcomingSessions()).filter(s => s.open)
+      .map(s => ({ id: s.id, title: s.title, starts_at: s.starts_at, duration_minutes: s.duration_minutes, slots: s.slots, team_size: s.team_size, taken: s.taken }));
+  } catch (e) { console.error('[home] test sessions', e.message); }
+  for (const s of testSessions) applications.push({ title: 'Tester: ' + s.title, detail: `${s.taken} of ${s.slots} slots taken`, view: 'testers' });
   const playerWiki = wiki.getPlayer();
   const cue = {
     user: req.session.user ? { name: req.session.user.username } : null,
@@ -50,6 +57,7 @@ async function renderApp(req, res) {
     events: upcomingEvents(),
     applications,
     team,
+    testSessions,
     wikiModules: playerWiki.toc.filter(h => h.level === 2).map(h => ({ id: h.id, text: h.text })),
     store: [
       { name: 'VIP', price: '$4.99', status: t('store_coming_soon'), features: [1, 2, 3, 4].map(i => t('store_vip_feat' + i)) },
@@ -61,10 +69,18 @@ async function renderApp(req, res) {
   const cueJson = JSON.stringify(cue).replace(/</g, '\\u003c').replace(/[\u2028\u2029]/g, c => '\\u' + c.charCodeAt(0).toString(16));
   res.set('Cache-Control', 'private, no-store');
   // staff get one extra script; nothing else in the page differs
-  res.render('app', { cueJson, v: ASSET_V, staffScript: res.locals.isStaff ? '/staff-assets/wiki-staff.js?v=' + ASSET_V : null });
+  // without JavaScript the page can't show local times, so it says the time in UTC
+  const utc = ts => {
+    const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'UTC' })
+      .formatToParts(ts * 1000).map(x => [x.type, x.value]));
+    return `${p.weekday} ${p.day} ${p.month} ${p.year}, ${p.hour}:${p.minute} UTC`;
+  };
+  const noscriptSessions = testSessions.map(s => ({ title: s.title, when: utc(s.starts_at), taken: s.taken, slots: s.slots }));
+  res.render('app', { cueJson, v: ASSET_V, noscriptSessions, staffScript: res.locals.isStaff ? '/staff-assets/staff.js?v=' + ASSET_V : null });
 }
 router.get('/', renderApp);
 router.get('/wiki', renderApp);
+router.get('/testers', renderApp);
 
 router.get('/data/vault.json', (req, res) => {
   res.set('Cache-Control', 'no-cache');
@@ -86,10 +102,10 @@ router.get('/api/wiki/staff', async (req, res, next) => {
   res.set('Cache-Control', 'private, no-store');
   try { res.json(await wiki.getStaff()); } catch (e) { console.error('[wiki]', e.message); res.status(503).json({ error: 'The staff wiki is not available right now.' }); }
 });
-router.get('/staff-assets/wiki-staff.js', (req, res, next) => {
+router.get('/staff-assets/staff.js', (req, res, next) => {
   if (!res.locals.isStaff) return next();
   res.set('Cache-Control', 'private, no-store');
-  res.type('application/javascript').sendFile(path.join(__dirname, '../staff-assets/wiki-staff.js'));
+  res.type('application/javascript').sendFile(path.join(__dirname, '../staff-assets/staff.js'));
 });
 
 // sections as a graph for the neural map in the background: each module and section is a node,

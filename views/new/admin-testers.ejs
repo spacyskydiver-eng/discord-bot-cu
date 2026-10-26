@@ -1,0 +1,202 @@
+<%- include('partials/head', { pageTitle: 'Testers · Control Centre' }) %>
+<%- include('partials/header') %>
+<%
+  const accepted = apps.filter(a => a.status === 'accepted');
+  const waitlist = apps.filter(a => a.status === 'waitlisted');
+  const other = apps.filter(a => a.status !== 'accepted' && a.status !== 'waitlisted');
+  const teamA = accepted.filter(a => a.team === 'A'), teamB = accepted.filter(a => a.team === 'B'), noTeam = accepted.filter(a => !a.team);
+  const utc = ts => new Date(ts * 1000).toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
+%>
+<style>
+.tw { max-width: 1100px; margin: 0 auto; padding: 32px 20px 80px; }
+.tw h1 { font-family: 'Baloo 2'; font-weight: 900; font-size: 26px; margin: 0 0 4px; color: var(--text); }
+.tw h2 { font-family: 'Baloo 2'; font-weight: 800; font-size: 19px; margin: 0 0 14px; color: #fff; }
+.tw .sub { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
+.tw .back { display: inline-block; margin-bottom: 14px; color: var(--muted); font-size: 13px; text-decoration: none; }
+.tw .tw-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 18px; }
+.tw table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.tw th, .tw td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.tw th { color: var(--muted); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+.tw tr:last-child td { border-bottom: 0; }
+.tw .btn { display: inline-block; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--text); font-size: 12.5px; font-weight: 600; cursor: pointer; text-decoration: none; font-family: inherit; }
+.tw .btn:hover { border-color: var(--accent); color: var(--accent); }
+.tw .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tw .btn-primary:hover { color: #fff; opacity: .88; }
+.tw .btn-danger:hover { border-color: #f87171; color: #f87171; }
+.tw form.inline { display: inline; margin: 0; }
+.tw .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; align-items: end; }
+.tw label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; font-weight: 600; }
+.tw input[type=text], .tw input[type=number], .tw input[type=datetime-local], .tw select { width: 100%; box-sizing: border-box; background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 8px; color: var(--text); padding: 8px 10px; font: inherit; font-size: 13.5px; color-scheme: dark; }
+.tw .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.tw .s-accepted { background: rgba(52,211,153,.15); color: #34D399; }
+.tw .s-waitlisted { background: rgba(251,191,36,.15); color: #FBBF24; }
+.tw .s-withdrawn, .tw .s-removed { background: rgba(255,255,255,.07); color: var(--muted); }
+.tw .stats { display: flex; gap: 22px; flex-wrap: wrap; font-size: 14px; color: var(--muted); }
+.tw .stats b { color: var(--text); font-size: 18px; margin-right: 4px; }
+.tw .teams { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.tw .team h3 { margin: 0 0 8px; font-size: 15px; color: var(--text); }
+.tw .team ol { margin: 0; padding-left: 20px; font-size: 13.5px; }
+.tw .team li { padding: 3px 0; }
+.tw .muted { color: var(--muted); }
+.tw .local { color: var(--muted); font-size: 12.5px; }
+@media (max-width: 700px) { .tw .teams { grid-template-columns: 1fr; } .tw .hide-sm { display: none; } }
+</style>
+
+<main class="tw">
+<% if (mode === 'index') { %>
+  <a class="back" href="/admin">← Control Centre</a>
+  <h1>Tester sessions</h1>
+  <p class="sub">Each session has its own applications, roster and waitlist. Times are stored in UTC and shown here in your own timezone.</p>
+
+  <div class="tw-card">
+    <h2>Sessions</h2>
+    <% if (!sessions.length) { %><p class="muted">No sessions yet.</p><% } else { %>
+    <table>
+      <tr><th>Session</th><th>Starts</th><th>Places</th><th class="hide-sm">Waitlist</th><th class="hide-sm">Open</th><th></th></tr>
+      <% for (const s of sessions) { %>
+      <tr>
+        <td><%= s.title %></td>
+        <td><time data-ts="<%= s.starts_at %>"><%= utc(s.starts_at) %></time></td>
+        <td><%= s.taken %> / <%= s.slots %></td>
+        <td class="hide-sm"><%= s.waitlisted %></td>
+        <td class="hide-sm"><%= s.open ? 'Yes' : 'No' %></td>
+        <td><a class="btn" href="/admin/testers/<%= s.id %>">Open</a></td>
+      </tr>
+      <% } %>
+    </table>
+    <% } %>
+  </div>
+
+  <div class="tw-card">
+    <h2>Add a session</h2>
+    <form method="POST" action="/admin/testers/session" class="session-form">
+      <div class="grid">
+        <div style="grid-column: span 2"><label>Title</label><input type="text" name="title" value="Great War test session" required></div>
+        <div><label>Date and time (your timezone)</label><input type="datetime-local" name="starts_local" required></div>
+        <div><label>Length (minutes)</label><input type="number" name="duration_minutes" value="60" min="10"></div>
+        <div><label>Slots</label><input type="number" name="slots" value="50" min="2"></div>
+        <div><label>Team size</label><input type="number" name="team_size" value="25" min="1"></div>
+        <div><label><input type="checkbox" name="open" checked> Open for applications</label></div>
+        <div><button class="btn btn-primary" type="submit">Add session</button></div>
+      </div>
+      <input type="hidden" name="starts_at">
+      <p class="local utc-preview"></p>
+    </form>
+  </div>
+
+  <div class="tw-card">
+    <h2>Waitlist for future sessions <span class="muted" style="font-size:14px">(<%= interest.length %>)</span></h2>
+    <p class="sub" style="margin-bottom:12px">People who couldn't make a session's time or full hour and asked to hear about future ones.</p>
+    <% if (interest.length) { %>
+    <table><tr><th>Discord name</th><th>Discord ID</th><th>Joined</th></tr>
+      <% for (const i of interest) { %><tr><td><%= i.discord_name %></td><td><code><%= i.discord_id %></code></td><td><time data-ts="<%= i.at %>"><%= utc(Number(i.at)) %></time></td></tr><% } %>
+    </table>
+    <% } %>
+  </div>
+
+<% } else { %>
+  <a class="back" href="/admin/testers">← All sessions</a>
+  <h1><%= session.title %></h1>
+  <p class="sub"><time data-ts="<%= session.starts_at %>"><%= utc(session.starts_at) %></time> · <%= session.duration_minutes %> minutes · <%= session.slots %> slots, teams of <%= session.team_size %></p>
+
+  <div class="tw-card">
+    <div class="stats"><span><b><%= accepted.length %></b>of <%= session.slots %> accepted</span><span><b><%= waitlist.length %></b>waitlisted</span><span><b><%= other.length %></b>withdrawn or removed</span></div>
+    <p style="margin:16px 0 0"><a class="btn" href="/admin/testers/<%= session.id %>/export.csv">Export CSV</a></p>
+  </div>
+
+  <div class="tw-card">
+    <h2>Applications</h2>
+    <% if (!apps.length) { %><p class="muted">No applications yet.</p><% } else { %>
+    <table>
+      <tr><th>Discord</th><th>Minecraft</th><th class="hide-sm">Applied</th><th>Status</th><th></th></tr>
+      <% for (const a of apps) { %>
+      <tr>
+        <td><%= a.discord_name %><div class="local"><code><%= a.discord_id %></code></div></td>
+        <td><%= a.mc_name %></td>
+        <td class="hide-sm"><time data-ts="<%= a.applied_at %>"><%= utc(a.applied_at) %></time></td>
+        <td><span class="pill s-<%= a.status %>"><%= a.status %></span><%= a.team ? ' · Team ' + a.team : '' %></td>
+        <td style="white-space:nowrap">
+          <% if (a.status !== 'accepted') { %><form class="inline" method="POST" action="/admin/testers/app/<%= a.id %>/accept"><input type="hidden" name="session_id" value="<%= session.id %>"><button class="btn" type="submit">Accept</button></form><% } %>
+          <% if (a.status === 'accepted' || a.status === 'waitlisted') { %><form class="inline" method="POST" action="/admin/testers/app/<%= a.id %>/remove" onsubmit="return confirm('Remove <%= a.discord_name %> from this session? Their place goes to the next person on the waitlist.')"><input type="hidden" name="session_id" value="<%= session.id %>"><button class="btn btn-danger" type="submit">Remove</button></form><% } %>
+        </td>
+      </tr>
+      <% } %>
+    </table>
+    <% } %>
+  </div>
+
+  <div class="tw-card" id="teams">
+    <h2>Teams</h2>
+    <p class="sub" style="margin-bottom:14px">Auto-balance fills both teams from accepted players who aren't on one yet. Use the menu next to a name to move them.</p>
+    <div style="margin:0 0 16px">
+      <form class="inline" method="POST" action="/admin/testers/<%= session.id %>/teams/auto"><button class="btn btn-primary" type="submit">Auto-balance</button></form>
+      <form class="inline" method="POST" action="/admin/testers/<%= session.id %>/teams/clear" onsubmit="return confirm('Take everyone off both teams?')"><button class="btn" type="submit">Clear teams</button></form>
+    </div>
+    <div class="teams">
+      <% for (const [label, list] of [['Team A', teamA], ['Team B', teamB]]) { %>
+      <div class="team">
+        <h3><%= label %> <span class="muted">(<%= list.length %> of <%= session.team_size %>)</span></h3>
+        <ol>
+          <% for (const a of list) { %>
+          <li><%= a.mc_name %> <span class="muted">· <%= a.discord_name %></span>
+            <form class="inline" method="POST" action="/admin/testers/app/<%= a.id %>/team"><input type="hidden" name="session_id" value="<%= session.id %>"><input type="hidden" name="team" value="<%= a.team === 'A' ? 'B' : 'A' %>"><button class="btn" type="submit" style="padding:2px 8px;margin-left:6px">Move to <%= a.team === 'A' ? 'B' : 'A' %></button></form>
+          </li>
+          <% } %>
+        </ol>
+      </div>
+      <% } %>
+    </div>
+    <% if (noTeam.length) { %>
+    <p class="muted" style="margin:16px 0 6px">Not on a team yet (<%= noTeam.length %>)</p>
+    <ol style="font-size:13.5px;padding-left:20px;margin:0">
+      <% for (const a of noTeam) { %>
+      <li><%= a.mc_name %> <span class="muted">· <%= a.discord_name %></span>
+        <% for (const t of ['A', 'B']) { %><form class="inline" method="POST" action="/admin/testers/app/<%= a.id %>/team"><input type="hidden" name="session_id" value="<%= session.id %>"><input type="hidden" name="team" value="<%= t %>"><button class="btn" type="submit" style="padding:2px 8px;margin-left:6px">Team <%= t %></button></form><% } %>
+      </li>
+      <% } %>
+    </ol>
+    <% } %>
+  </div>
+
+  <div class="tw-card">
+    <h2>Edit session</h2>
+    <form method="POST" action="/admin/testers/session/<%= session.id %>" class="session-form">
+      <div class="grid">
+        <div style="grid-column: span 2"><label>Title</label><input type="text" name="title" value="<%= session.title %>" required></div>
+        <div><label>Date and time (your timezone)</label><input type="datetime-local" name="starts_local" data-ts="<%= session.starts_at %>" value="<%= new Date(session.starts_at * 1000).toISOString().slice(0, 16) %>" required></div>
+        <div><label>Length (minutes)</label><input type="number" name="duration_minutes" value="<%= session.duration_minutes %>" min="10"></div>
+        <div><label>Slots</label><input type="number" name="slots" value="<%= session.slots %>" min="2"></div>
+        <div><label>Team size</label><input type="number" name="team_size" value="<%= session.team_size %>" min="1"></div>
+        <div><label><input type="checkbox" name="open" <%= session.open ? 'checked' : '' %>> Open for applications</label></div>
+        <div><button class="btn btn-primary" type="submit">Save</button></div>
+      </div>
+      <input type="hidden" name="starts_at" value="<%= session.starts_at %>">
+      <p class="local utc-preview"></p>
+    </form>
+  </div>
+<% } %>
+</main>
+
+<script>
+(() => {
+  // times are stored in UTC; show them in this browser's timezone
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  // some browsers print UK time as "GMT+0" / "GMT+1"; show it as GMT and BST
+  const fmt = ts => new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(ts * 1000)
+    .replace(/\bGMT\+1$/, tz === 'Europe/London' ? 'BST' : 'GMT+1').replace(/\b(GMT|UTC)\+0$/, '$1');
+  document.querySelectorAll('time[data-ts]').forEach(t => { t.textContent = fmt(+t.dataset.ts); t.title = new Date(+t.dataset.ts * 1000).toISOString(); });
+  const pad = n => String(n).padStart(2, '0');
+  const localValue = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  document.querySelectorAll('.session-form').forEach(f => {
+    const local = f.querySelector('[name=starts_local]'), hidden = f.querySelector('[name=starts_at]'), preview = f.querySelector('.utc-preview');
+    if (local.dataset.ts) local.value = localValue(new Date(+local.dataset.ts * 1000));
+    const sync = () => {
+      const d = local.value ? new Date(local.value) : null;   // read in this browser's timezone
+      hidden.value = d && !isNaN(d) ? Math.floor(d.getTime() / 1000) : '';
+      preview.textContent = hidden.value ? 'Stored as ' + new Date(hidden.value * 1000).toISOString().replace('T', ' ').slice(0, 16) + ' UTC (Unix ' + hidden.value + ')' : '';
+    };
+    local.addEventListener('input', sync); sync();
+  });
+})();
+</script>
+<%- include('partials/foot') %>

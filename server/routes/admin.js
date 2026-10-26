@@ -205,6 +205,78 @@ router.post('/maintenance', async (req, res) => {
   res.redirect('/admin');
 });
 
+/* ---------------------------------------------------------------- tester applications */
+const testers = require('../testers');
+const testerDb = require('../../db');
+
+function sessionForm(b) {
+  // the page converts the local date and time to a UTC timestamp; without JS the value is read as UTC
+  let ts = parseInt(b.starts_at, 10);
+  if (!ts && b.starts_local) ts = Math.floor(Date.parse(b.starts_local + ':00Z') / 1000);
+  const int = (v, d, min, max) => Math.min(max, Math.max(min, parseInt(v, 10) || d));
+  return {
+    title: String(b.title || 'Great War test session').trim().slice(0, 120),
+    starts_at: ts,
+    duration_minutes: int(b.duration_minutes, 60, 10, 600),
+    slots: int(b.slots, 50, 2, 1000),
+    team_size: int(b.team_size, 25, 1, 500),
+    open: b.open === 'on' || b.open === '1',
+  };
+}
+
+router.get('/testers', async (req, res) => {
+  const sessions = await testers.allSessions();
+  const interest = (await testerDb.query(`SELECT discord_id, discord_name, extract(epoch from created_at)::bigint AS at FROM tester_interest ORDER BY created_at`)).rows;
+  res.render('new/admin-testers', { mode: 'index', sessions, interest, session: null, apps: [] });
+});
+
+router.post('/testers/session', async (req, res) => {
+  const f = sessionForm(req.body);
+  if (!f.starts_at) return res.redirect('/admin/testers');
+  const id = await testers.saveSession(null, f);
+  res.redirect('/admin/testers/' + id);
+});
+
+router.post('/testers/session/:id', async (req, res) => {
+  const f = sessionForm(req.body);
+  if (!f.starts_at) return res.redirect('/admin/testers/' + req.params.id);
+  await testers.saveSession(parseInt(req.params.id, 10), f);
+  res.redirect('/admin/testers/' + req.params.id);
+});
+
+router.get('/testers/:id(\\d+)', async (req, res) => {
+  const session = await testers.getSession(parseInt(req.params.id, 10));
+  if (!session) return res.redirect('/admin/testers');
+  res.render('new/admin-testers', { mode: 'session', sessions: [], interest: [], session, apps: await testers.applications(session.id) });
+});
+
+router.get('/testers/:id(\\d+)/export.csv', async (req, res) => {
+  const session = await testers.getSession(parseInt(req.params.id, 10));
+  if (!session) return res.redirect('/admin/testers');
+  const cell = v => { const t = String(v == null ? '' : v); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+  const rows = [['Discord name', 'Discord ID', 'Minecraft name', 'Applied (UTC)', 'Status', 'Team']]
+    .concat((await testers.applications(session.id)).map(a => [a.discord_name, a.discord_id, a.mc_name, new Date(a.applied_at * 1000).toISOString(), a.status, a.team || '']));
+  res.set('Content-Type', 'text/csv; charset=utf-8');
+  res.set('Content-Disposition', `attachment; filename="testers-session-${session.id}.csv"`);
+  res.send(rows.map(r => r.map(cell).join(',')).join('\n') + '\n');
+});
+
+router.post('/testers/app/:appId(\\d+)/:action(accept|remove)', async (req, res) => {
+  await testers.adminSetStatus(parseInt(req.params.appId, 10), req.params.action === 'accept' ? 'accepted' : 'removed');
+  res.redirect('/admin/testers/' + parseInt(req.body.session_id, 10));
+});
+
+router.post('/testers/app/:appId(\\d+)/team', async (req, res) => {
+  await testers.setTeam(parseInt(req.params.appId, 10), req.body.team);
+  res.redirect('/admin/testers/' + parseInt(req.body.session_id, 10) + '#teams');
+});
+
+router.post('/testers/:id(\\d+)/teams/:action(auto|clear)', async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (req.params.action === 'auto') await testers.autoTeams(id); else await testers.clearTeams(id);
+  res.redirect('/admin/testers/' + id + '#teams');
+});
+
 // Chest analysis (staff-readable)
 router.get('/chest-analysis', (req, res) => {
   const chestData = require('../data/chest-data.json');

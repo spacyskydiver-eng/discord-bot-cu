@@ -73,6 +73,7 @@ module.exports = function startServer() {
   });
 
   app.use('/', require('./routes/pages'));
+  app.use('/', require('./routes/testers'));
   app.use('/auth', require('./routes/auth'));
   app.use('/apply', require('./routes/apply'));
   app.use('/apply-hundred', require('./routes/apply-hundred'));
@@ -87,6 +88,8 @@ module.exports = function startServer() {
       '<b>Server Error</b>\n' + req.method + ' ' + req.path + '\n\n' +
       (err && err.stack ? err.stack : String(err)) + '</pre>');
   });
+
+  require('./testers').startSweeps();
 
   const port = process.env.PORT || 3000;
   app.listen(port, () => console.log(`Server running on port ${port}`));

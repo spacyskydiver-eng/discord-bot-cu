@@ -197,7 +197,7 @@ function showHome(view) {
         <div class="nv-ms-col nv-todo-col"><div class="nv-ms-colhead"><span class="nv-kicker">Upcoming events</span><button class="nv-ms-all" data-go="events">Open ${icon('chevron-right')}</button></div>
           <div class="nv-ms-list">${events.length ? events.map(e => `<button class="nv-ms-item" data-go="${esc(e.wiki && B.exists(e.wiki) ? e.wiki : 'events')}"><span class="nv-ms-when">${esc(fmtDate(e.date))}</span><b>${esc(e.title)}</b><small>${esc(e.setting)} · up to ${esc(e.players)} players</small></button>`).join('') : '<div class="nv-empty">No events announced yet.</div>'}</div></div>
         <div class="nv-ms-col"><div class="nv-ms-colhead"><span class="nv-kicker">Applications</span><button class="nv-ms-all" data-go="applications">Open ${icon('chevron-right')}</button></div>
-          <div class="nv-ms-list">${apps.length ? apps.map(a => `<button class="nv-ms-item" data-go="applications"><span class="nv-ms-when">Open</span><b>${esc(a.title)}</b><small>${esc(a.detail || '')}</small></button>`).join('') : `<div class="nv-empty">${next ? 'Applications for ' + esc(next.title) + ' open soon.' : 'No applications are open.'}</div>`}</div></div>
+          <div class="nv-ms-list">${apps.length ? apps.map(a => `<button class="nv-ms-item" data-go="${esc(a.view || 'applications')}"><span class="nv-ms-when">Open</span><b>${esc(a.title)}</b><small>${esc(a.detail || '')}</small></button>`).join('') : `<div class="nv-empty">${next ? 'Applications for ' + esc(next.title) + ' open soon.' : 'No applications are open.'}</div>`}</div></div>
         <div class="nv-ms-col"><div class="nv-ms-colhead"><span class="nv-kicker">Event wiki</span><button class="nv-ms-all" data-go="wiki">Open ${icon('chevron-right')}</button></div>
           <div class="nv-ms-list">${modules.length ? modules.map(m => { const t = m.text.match(/^Module (\d+):\s*(.*)$/); return `<button class="nv-ms-item" data-go="wiki" data-heading="${esc(m.id)}"><span class="nv-ms-when">${t ? plainNum(t[1]) : ''}</span><b>${esc(t ? t[2] : m.text)}</b><small>${esc(t ? 'Module ' + t[1] : '')}</small></button>`; }).join('') : '<div class="nv-empty">Nothing written yet.</div>'}</div></div>
       </div>
@@ -240,11 +240,14 @@ B.registerView('applications', {
   show(view) {
     const C = CUE(), apps = C.applications || [], next = (C.events || [])[0];
     // one open application: go straight to its form, like the old Apply button
-    if (apps.length === 1 && apps[0].href) { location.replace(apps[0].href); return; }
+    if (apps.length === 1) {
+      if (apps[0].view) { setTimeout(() => location.replace(B.hashFor(apps[0].view)), 0); return; }
+      if (apps[0].href) { location.replace(apps[0].href); return; }
+    }
     pageView(view, {
       color: '#34D399', kicker: 'Apply', title: 'Applications',
       lede: apps.length ? 'Pick the application you want to fill in.' : (next ? `Applications for ${next.title} open soon. They will be announced in the Discord.` : 'No applications are open right now.'),
-      body: apps.length ? sec('Open now', `<div class="nv-timeline">${apps.map((a, i) => card(plainNum(i + 1), esc(a.title), 'Start your application', pill('Apply'), `href="${esc(a.href)}"`)).join('')}</div>`)
+      body: apps.length ? sec('Open now', `<div class="nv-timeline">${apps.map((a, i) => card(plainNum(i + 1), esc(a.title), esc(a.detail || 'Start your application'), pill('Apply'), a.view ? `href="${esc(B.hashFor(a.view))}" data-go="${esc(a.view)}"` : `href="${esc(a.href)}"`)).join('')}</div>`)
         : `<section class="nv-sec"><div class="nv-timeline">${discordCard('·', 'Join the CUE Discord')}</div></section>`,
     });
   },
@@ -445,6 +448,253 @@ function showWiki(view, heading) {
   };
 }
 B.registerView('wiki', { title: () => 'Event wiki', icon: 'book-open', cls: 'nv-view nv-view-wiki', show: (view, id, heading) => showWiki(view, heading) });
+
+/* ---------------------------------------------------------------- times, like Discord's <t:...>
+   Times arrive as UTC Unix seconds and are written into the page as <time data-ts> holding a UTC
+   fallback. Here they're formatted in the visitor's own timezone and locale, with a countdown
+   that keeps itself up to date. */
+const TIME = {
+  date(ts, withYear) {
+    const d = new Date(ts * 1000);
+    return new Intl.DateTimeFormat(undefined, { weekday: 'long', day: 'numeric', month: 'long', ...(withYear || d.getFullYear() !== new Date().getFullYear() ? { year: 'numeric' } : {}) }).format(d);
+  },
+  clock(ts, timeZone) {
+    const f = new Intl.DateTimeFormat(timeZone ? 'en-GB' : undefined, { hour: 'numeric', minute: '2-digit', timeZoneName: 'short', ...(timeZone ? { timeZone } : {}) });
+    const tz = timeZone || f.resolvedOptions().timeZone;
+    return f.formatToParts(ts * 1000).map(p => {
+      if (p.type !== 'timeZoneName') return p.value;
+      // some browsers print UK time as "GMT+0" / "GMT+1"; people know it as GMT and BST
+      if (tz === 'Europe/London' || /^Europe\/(Jersey|Guernsey|Isle_of_Man)$/.test(tz)) return /\+1$/.test(p.value) || p.value === 'BST' ? 'BST' : 'GMT';
+      return p.value.replace(/^(GMT|UTC)\+0$/, '$1');
+    }).join('');
+  },
+  full: ts => `${TIME.date(ts)}, ${TIME.clock(ts)}`,
+  // the UK time, when the visitor isn't on it
+  uk(ts) {
+    const here = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', day: 'numeric' }).format(ts * 1000);
+    const there = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', day: 'numeric', timeZone: 'Europe/London' }).format(ts * 1000);
+    return here === there ? '' : TIME.clock(ts, 'Europe/London') + ' in the UK';
+  },
+  rel(ts, minutes) {
+    const diff = ts - Date.now() / 1000;
+    if (Math.abs(diff) < 60) return 'starting now';
+    if (diff < 0 && minutes && -diff < minutes * 60) return 'on now';
+    const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+    const a = Math.abs(diff);
+    if (a >= 86400) return rtf.format(Math.round(diff / 86400), 'day');
+    if (a >= 3600) return rtf.format(Math.round(diff / 3600), 'hour');
+    return rtf.format(Math.round(diff / 60), 'minute');
+  },
+  paint(root = document) {
+    $$('time[data-ts]', root).forEach(t => {
+      const ts = +t.dataset.ts;
+      t.textContent = t.dataset.style === 'clock' ? TIME.clock(ts) : t.dataset.style === 'date' ? TIME.date(ts) : TIME.full(ts);
+      t.title = new Date(ts * 1000).toUTCString();
+    });
+    $$('[data-rel]', root).forEach(e => { e.textContent = TIME.rel(+e.dataset.rel, +e.dataset.minutes || 0); });
+    $$('[data-uk]', root).forEach(e => { const u = TIME.uk(+e.dataset.uk); e.textContent = u; e.hidden = !u; });
+  },
+};
+// no-JS text for a time: "19:00 UTC"
+const utcFallback = ts => new Date(ts * 1000).toISOString().slice(11, 16) + ' UTC';
+const timeTag = (ts, style) => `<time datetime="${new Date(ts * 1000).toISOString()}" data-ts="${ts}"${style ? ` data-style="${style}"` : ''}>${utcFallback(ts)}</time>`;
+setInterval(() => TIME.paint(), 15000);
+N.time = TIME;
+
+/* ---------------------------------------------------------------- tester applications */
+const AGREEMENTS = [
+  'I understand this session is recorded and the footage, including my Minecraft name, skin, gameplay and any voice chat, may be used in the event trailer and promotion.',
+  'I understand this is a test: expect bugs and crashes, and nothing carries over to the real event.',
+  "I'll follow the server rules and staff instructions. No cheats, hacks or exploit abuse; I'll report bugs instead.",
+  "I won't share the modpack, server address or unreleased content outside the testers.",
+  "If I can't make it, I'll withdraw so someone else gets my slot. I'm 13 or over, and if I'm under 18 a parent or guardian is OK with me taking part.",
+];
+const postJson = (url, body) => fetch(url, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) })
+  .then(async r => ({ ok: r.ok, status: r.status, data: await r.json().catch(() => ({})) }));
+
+function showTesters(view) {
+  let alive = true;
+  view.innerHTML = `<div class="nv-page nv-module tst" style="--mod:#34D399">
+    <header class="nv-mod-head"><div class="nv-mod-text">
+      <div class="nv-mod-bar"><button class="nv-back" data-go="${esc(B.V.home)}">${icon('arrow-left')} Home</button></div>
+      <div class="nv-kicker">Test sessions</div>
+      <h1>Become a tester</h1>
+      <p class="nv-lede">Before The Great War opens, we run test battles on prebuilt maps. They let us try out the event's systems with real players, and we record them for the event trailer. Each session has 50 places, two teams of 25, and lasts about an hour.</p>
+    </div></header>
+    <div class="tst-body"><div class="nv-empty">Loading…</div></div>
+  </div>`;
+  const body = $('.tst-body', view);
+  let state = null;
+
+  async function load() {
+    const r = await fetch('/api/testers', { credentials: 'same-origin', cache: 'no-store' }).then(x => x.json()).catch(() => null);
+    if (!alive) return;
+    if (!r) { body.innerHTML = '<div class="nv-empty">This page could not be loaded. Try again in a moment.</div>'; return; }
+    state = r;
+    draw();
+  }
+  const myApp = s => state.me && state.me.applications.find(a => a.session_id === s.id);
+
+  function sessionHead(s) {
+    const left = s.slots - s.taken;
+    return `<div class="tst-when">
+        <div class="tst-time">${timeTag(s.starts_at)}</div>
+        <div class="tst-meta"><span class="tst-rel" data-rel="${s.starts_at}" data-minutes="${s.duration_minutes}"></span><span data-uk="${s.starts_at}" hidden></span></div>
+      </div>
+      <div class="tst-slots"><b>${s.taken} of ${s.slots}</b> slots taken${left <= 0 ? ' · the waitlist is open' : ''}<div class="tst-bar"><i style="width:${Math.min(100, Math.round(s.taken / s.slots * 100))}%"></i></div></div>`;
+  }
+  const discordLink = () => `<a class="tst-btn" href="${esc(CUE().discord || 'https://discord.gg/x832cqAdu')}" target="_blank" rel="noopener">${icon('external')} Open our Discord</a>`;
+
+  function panel(s) {
+    const a = myApp(s);
+    if (!state.signedIn) {
+      return `<div class="tst-box"><p>Sign in with Discord to apply. We use your Discord account to give you the GW Testers role.</p>
+        <a class="tst-btn tst-primary" href="/auth/discord?return=/testers">Sign in with Discord</a></div>`;
+    }
+    if (a && a.status === 'accepted') {
+      const d = state.me.discord;
+      const notIn = d && !d.inServer;
+      return `<div class="tst-box tst-ok">
+        <div class="tst-k">You're in</div>
+        <h3>See you on ${timeTag(s.starts_at, 'date')} at ${timeTag(s.starts_at, 'clock')}</h3>
+        ${a.team ? `<p>You're on <b>Team ${esc(a.team)}</b>.</p>` : ''}
+        <p>Applied as <b>${esc(a.mc_name)}</b>. ${notIn ? '' : d && d.hasRole ? 'You have the GW Testers role on our Discord.' : ''}</p>
+        ${notIn ? `<div class="tst-warn"><p><b>One more step:</b> you're not in our Discord server yet, so we can't give you the GW Testers role. Join the server, then come back and press the button below. If you join first, the bot gives you the role on its own.</p>
+          <div class="tst-row">${discordLink()}<button class="tst-btn" data-act="retry">I've joined, give me the role</button></div></div>` : ''}
+        <div class="tst-next"><div class="tst-k">What happens next</div>
+          <ul><li>Before the session, staff share the modpack and how to join with everyone who has the GW Testers role on Discord.</li>
+          <li>Be ready at the start time. The session lasts about an hour.</li>
+          <li>If you can't make it any more, withdraw here so the next person on the waitlist gets your place.</li></ul></div>
+        <div class="tst-row">${notIn ? '' : discordLink()}<button class="tst-btn tst-danger" data-act="withdraw" data-session="${s.id}">Withdraw</button></div>
+      </div>`;
+    }
+    if (a && a.status === 'waitlisted') {
+      return `<div class="tst-box tst-wait">
+        <div class="tst-k">You're on the waitlist</div>
+        <h3>Number ${a.position} in line</h3>
+        <p>All ${s.slots} places are taken. If someone withdraws, the next person on the waitlist gets their place automatically, and our bot will message you on Discord and give you the GW Testers role.</p>
+        <div class="tst-row"><button class="tst-btn tst-danger" data-act="withdraw" data-session="${s.id}">Leave the waitlist</button></div>
+      </div>`;
+    }
+    if (a && a.status === 'removed') {
+      return `<div class="tst-box"><p>Staff have removed you from this session. If you think that's a mistake, ask in our Discord.</p>${discordLink()}</div>`;
+    }
+    if (!s.open) return `<div class="tst-box"><p>Applications for this session are closed.</p></div>`;
+    return form(s, a && a.status === 'withdrawn');
+  }
+
+  function form(s, again) {
+    return `<form class="tst-form" data-session="${s.id}" novalidate>
+      ${again ? '<p class="tst-note">You withdrew from this session. You can apply again; you\'ll join the back of the queue.</p>' : ''}
+      ${s.taken >= s.slots ? `<p class="tst-note">All ${s.slots} places are taken, so applying puts you on the waitlist. If someone withdraws, the next person in line gets their place automatically.</p>` : ''}
+      <fieldset><legend>Can you attend on ${timeTag(s.starts_at, 'date')} at ${timeTag(s.starts_at, 'clock')}?</legend>
+        <label class="tst-choice"><input type="radio" name="attend" value="yes" required> Yes</label>
+        <label class="tst-choice"><input type="radio" name="attend" value="no"> No</label></fieldset>
+      <fieldset><legend>Can you play for the full hour?</legend>
+        <label class="tst-choice"><input type="radio" name="full_hour" value="yes" required> Yes</label>
+        <label class="tst-choice"><input type="radio" name="full_hour" value="no"> No</label></fieldset>
+      <label class="tst-field"><span>Minecraft username</span>
+        <input type="text" name="mc_name" autocomplete="off" spellcheck="false" maxlength="16" pattern="[A-Za-z0-9_]{3,16}" required placeholder="Your Java Edition username"></label>
+      <fieldset class="tst-agree"><legend>Agreements</legend>
+        ${AGREEMENTS.map((t, i) => `<label class="tst-check"><input type="checkbox" name="agree" value="${i + 1}" required><span>${esc(t)}</span></label>`).join('')}
+      </fieldset>
+      <div class="tst-error" role="alert" hidden></div>
+      <button class="tst-btn tst-primary" type="submit">Apply</button>
+    </form>`;
+  }
+
+  function needsBoth(s) {
+    const joined = state.me && state.me.interest;
+    return `<div class="tst-box">
+      <h3>Thanks for wanting to help</h3>
+      <p>This session needs testers who can be there at the start and play for the full hour, so we can't offer you a place in this one. We'll be running more sessions, though.</p>
+      ${joined ? '<p><b>You\'re on the waitlist for future sessions.</b></p>' : `<p>Join the waitlist for future sessions and staff will see you're interested when the next one is planned.</p>
+      <div class="tst-row"><button class="tst-btn tst-primary" data-act="interest">Join the waitlist for future sessions</button><button class="tst-btn" data-act="back">Back to the form</button></div>`}
+    </div>`;
+  }
+
+  function draw(override) {
+    const sessions = state.sessions.filter(s => s.open || myApp(s));
+    if (!sessions.length) {
+      body.innerHTML = `<section class="nv-sec"><div class="nv-empty">There are no test sessions open right now. New ones are announced in our Discord.</div></section>`;
+      return;
+    }
+    body.innerHTML = sessions.map(s => `<section class="nv-sec tst-session" data-id="${s.id}">
+      <div class="nv-sec-head"><h2>${esc(s.title)}</h2></div>
+      <div class="tst-card">${sessionHead(s)}</div>
+      <div class="tst-panel">${override && override.id === s.id ? override.html : panel(s)}</div>
+    </section>`).join('');
+    TIME.paint(body);
+  }
+
+  body.addEventListener('submit', async e => {
+    const f = e.target.closest('.tst-form'); if (!f) return;
+    e.preventDefault();
+    const err = $('.tst-error', f), btn = $('button[type=submit]', f);
+    const fail = msg => { err.textContent = msg; err.hidden = false; err.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
+    err.hidden = true;
+    const fd = new FormData(f);
+    const attend = fd.get('attend'), full = fd.get('full_hour');
+    const s = state.sessions.find(x => x.id === +f.dataset.session);
+    if (!attend || !full) return fail('Please answer both questions about the session.');
+    if (attend === 'no' || full === 'no') { draw({ id: s.id, html: needsBoth(s) }); return; }
+    const mc = String(fd.get('mc_name') || '').trim();
+    if (!/^[A-Za-z0-9_]{3,16}$/.test(mc)) return fail('Minecraft usernames are 3 to 16 letters, numbers or underscores.');
+    const agree = fd.getAll('agree').map(Number);
+    if (agree.length < 5) return fail('Please tick all five agreements.');
+    btn.disabled = true; btn.textContent = 'Checking your username…';
+    const r = await postJson('/api/testers/apply', { session_id: s.id, attend, full_hour: full, mc_name: mc, agree });
+    if (!alive) return;
+    btn.disabled = false; btn.textContent = 'Apply';
+    if (r.data.error === 'needs-both') { draw({ id: s.id, html: needsBoth(s) }); return; }
+    if (!r.ok) return fail(r.data.error || 'Something went wrong. Please try again.');
+    await load();
+    const top = $(`.tst-session[data-id="${s.id}"]`, view); if (top) top.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  });
+
+  view.onclick = async e => {
+    const g = e.target.closest('[data-go]'); if (g) { goFrom(g); return; }
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const act = b.dataset.act;
+    if (act === 'back') { draw(); return; }
+    if (act === 'withdraw') {
+      if (!confirm('Withdraw from this session? Your place goes to the next person on the waitlist.')) return;
+      b.disabled = true;
+      await postJson('/api/testers/withdraw', { session_id: +b.dataset.session });
+      await load(); return;
+    }
+    if (act === 'interest') {
+      b.disabled = true;
+      const r = await postJson('/api/testers/interest');
+      if (r.ok) { state.me = state.me || { applications: [] }; state.me.interest = true; const sec = b.closest('.tst-session'); const s = state.sessions.find(x => x.id === +sec.dataset.id); draw({ id: s.id, html: needsBoth(s) }); }
+      return;
+    }
+    if (act === 'retry') {
+      b.disabled = true; b.textContent = 'Checking…';
+      const r = await postJson('/api/testers/retry-role');
+      if (r.ok && r.data.inServer) { await load(); return; }
+      b.disabled = false; b.textContent = "I've joined, give me the role";
+      B.toast(r.ok ? "We still can't see you in our Discord server. Join it, then try again." : (r.data.error || 'Please try again in a minute.'));
+    }
+  };
+
+  load();
+  return () => {
+    alive = false;
+    // leaving /testers: drop the path so the next page's address is the plain one
+    if (location.pathname === '/testers') history.replaceState(null, '', '/' + location.hash);
+  };
+}
+B.registerView('testers', { title: () => 'Testers', icon: 'clipboard-list', cls: 'nv-view', show: v => showTesters(v) });
+
+/* ---------------------------------------------------------------- other scripts can add views and dock items */
+(() => {
+  const q = window.CUE_EXT = window.CUE_EXT || [];
+  const api = { B, N, icon, esc, $, $$, h, TIME, timeTag, pageView, sec, card, pill };
+  const run = f => { try { f(api); } catch (e) { console.error(e); } };
+  q.forEach(run); q.length = 0;
+  q.push = f => { run(f); return 0; };
+})();
 
 /* ---------------------------------------------------------------- routing */
 const DEFS = {
