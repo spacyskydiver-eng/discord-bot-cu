@@ -1,0 +1,225 @@
+<%- include('partials/head', { pageTitle: 'Leader applications · Staff' }) %>
+<%- include('partials/header') %>
+<%
+  const utc = ts => ts ? new Date(ts * 1000).toISOString().replace('T', ' ').slice(0, 16) + ' UTC' : '';
+  const nat = k => (NATION[k] || {}).name || k;
+  const pillCls = s => 's-' + String(s || '').toLowerCase().replace(/[^a-z]+/g, '-').replace(/-+$/, '');
+  const SCORE_HEADS = [['communication', 'Communication'], ['judgement', 'Judgement'], ['availability', 'Availability'], ['experience', 'Experience'], ['attitude', 'Attitude']];
+  const SCEN = { a: 'Your ally calls you into a war you\'ll probably lose. What do you do?', b: 'Your best fighter keeps killing neutral players and another nation demands justice. What do you do?', c: 'You\'re down to 10 players, two seat holders want to defect, and your capital is under siege. What do you do?', d: 'How do you keep 35+ people organised, active and listening?' };
+%>
+<style>
+.lw { max-width: 1100px; margin: 0 auto; padding: 32px 20px 80px; }
+.lw h1 { font-family: 'Baloo 2'; font-weight: 900; font-size: 26px; margin: 0 0 4px; color: var(--text); }
+.lw h2 { font-family: 'Baloo 2'; font-weight: 800; font-size: 19px; margin: 0 0 14px; color: #fff; }
+.lw h3 { font-size: 14px; margin: 18px 0 6px; color: var(--text); }
+.lw .sub { color: var(--muted); font-size: 13px; margin: 0 0 22px; line-height: 1.6; }
+.lw .back { display: inline-block; margin-bottom: 14px; color: var(--muted); font-size: 13px; text-decoration: none; }
+.lw .lw-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 18px; }
+.lw table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.lw th, .lw td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.lw th { color: var(--muted); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+.lw tr:last-child td { border-bottom: 0; }
+.lw .btn { display: inline-block; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--text); font-size: 12.5px; font-weight: 600; cursor: pointer; text-decoration: none; font-family: inherit; }
+.lw .btn:hover { border-color: var(--accent); color: var(--accent); }
+.lw .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.lw .btn-primary:hover { color: #fff; opacity: .88; }
+.lw .btn-danger:hover { border-color: #f87171; color: #f87171; }
+.lw .btn[disabled] { opacity: .45; cursor: default; }
+.lw form.inline { display: inline; margin: 0; }
+.lw .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
+.lw label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; font-weight: 600; }
+.lw select, .lw textarea, .lw input[type=text] { background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 8px; color: var(--text); padding: 8px 10px; font: inherit; font-size: 13.5px; color-scheme: dark; box-sizing: border-box; }
+.lw textarea { width: 100%; min-height: 80px; }
+.lw .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; background: rgba(255,255,255,.07); color: var(--muted); white-space: nowrap; }
+.lw .s-submitted, .lw .s-confirmed { background: rgba(56,189,248,.15); color: #38BDF8; }
+.lw .s-shortlisted { background: rgba(167,139,250,.16); color: #A78BFA; }
+.lw .s-attended-brief { background: rgba(251,191,36,.15); color: #FBBF24; }
+.lw .s-accepted-leader-of, .lw .s-accepted { background: rgba(52,211,153,.15); color: #34D399; }
+.lw .s-declined { background: rgba(248,113,113,.14); color: #F87171; }
+.lw .s-incomplete, .lw .s-pending { background: rgba(255,255,255,.07); color: var(--muted); }
+.lw .muted { color: var(--muted); }
+.lw .msg { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.04); margin-bottom: 16px; }
+.lw .answer { white-space: pre-wrap; line-height: 1.6; color: var(--text); font-size: 14px; margin: 0 0 6px; }
+.lw .q { color: var(--muted); font-size: 13px; margin: 14px 0 4px; font-weight: 600; }
+.lw .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.lw .scores { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.lw .scores select { width: 100%; }
+.lw .avg { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13.5px; color: var(--muted); }
+.lw .avg b { color: var(--text); font-size: 17px; margin-right: 4px; }
+.lw .prefs { margin: 0; padding-left: 20px; }
+.lw .prefs li { padding: 2px 0; }
+.lw .yt { position: relative; padding-top: 56.25%; border-radius: 10px; overflow: hidden; }
+.lw .yt iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.lw audio { width: 100%; }
+.lw .warn { color: #FBBF24; }
+@media (max-width: 760px) { .lw .grid2 { grid-template-columns: 1fr; } .lw .scores { grid-template-columns: repeat(2, minmax(0, 1fr)); } .lw .hide-sm { display: none; } }
+</style>
+
+<main class="lw">
+<% if (msg) { %><div class="msg"><%= msg %></div><% } %>
+<% if (mode === 'list') { %>
+  <% if (isOwner) { %><a class="back" href="/admin">← Control Centre</a><% } %>
+  <h1>Leader applications</h1>
+  <p class="sub">Applications close <time data-ts="<%= C.closesAt %>"><%= utc(C.closesAt) %></time>. The leader brief is on <%= C.briefAt ? '' : C.briefDate %><% if (C.briefAt) { %><time data-ts="<%= C.briefAt %>"><%= utc(C.briefAt) %></time><% } else { %> (time not set)<% } %>; only applicants who attended it can be accepted. Staff choose Leaders by <%= C.decideByLabel %>.
+    An application is complete only when all four teammates have confirmed; incomplete ones aren't reviewed. Each reviewer scores on their own: the averages show on an application once you've scored it.</p>
+
+  <div class="lw-card">
+    <form method="GET" action="/staff/leaders" class="row">
+      <div><label>Nation preference</label>
+        <select name="nation"><option value="">Any</option><% for (const n of C.nations) { %><option value="<%= n.key %>" <%= filters.nation === n.key ? 'selected' : '' %>><%= n.name %></option><% } %></select></div>
+      <div><label>Ranked</label>
+        <select name="rank"><option value="1" <%= filters.rank === '1' ? 'selected' : '' %>>first</option><option value="3" <%= filters.rank === '3' ? 'selected' : '' %>>in the top 3</option><option value="8" <%= filters.rank === '8' ? 'selected' : '' %>>anywhere</option></select></div>
+      <div><label>Status</label>
+        <select name="status"><option value="">Any</option>
+          <% for (const [v, l] of [['incomplete', 'Incomplete'], ['submitted', 'Submitted'], ['shortlisted', 'Shortlisted'], ['attended', 'Attended brief'], ['accepted', 'Accepted'], ['declined', 'Declined']]) { %><option value="<%= v %>" <%= filters.status === v ? 'selected' : '' %>><%= l %></option><% } %>
+        </select></div>
+      <div><button class="btn btn-primary" type="submit">Filter</button> <a class="btn" href="/staff/leaders">Clear</a></div>
+    </form>
+  </div>
+
+  <div class="lw-card">
+    <h2>Applications <span class="muted" style="font-size:14px">(<%= apps.length %>)</span></h2>
+    <% if (hiddenIncomplete) { %><p class="muted" style="margin:-6px 0 12px"><%= hiddenIncomplete %> incomplete application<%= hiddenIncomplete === 1 ? ' is' : 's are' %> hidden, because not all four teammates have confirmed. <a href="/staff/leaders?status=incomplete" style="color:inherit">Show them</a>.</p><% } %>
+    <% if (!apps.length) { %><p class="muted">No applications match.</p><% } else { %>
+    <table>
+      <tr><th>Applicant</th><th>Status</th><th>Team</th><th class="hide-sm">Nations (top 3)</th><th class="hide-sm">Voice</th><th class="hide-sm">Reviews</th><th></th></tr>
+      <% for (const a of apps) { %>
+      <tr>
+        <td><b><%= a.discord_name %></b><br><span class="muted"><%= a.mc_name %></span></td>
+        <td><span class="pill <%= pillCls(a.status) %>"><%= a.status %></span><% if (a.brief_attended) { %><br><span class="muted">attended brief</span><% } %></td>
+        <td><%= a.confirmed %> / <%= C.teamSize %> confirmed</td>
+        <td class="hide-sm"><%= (a.prefs || []).slice(0, 3).map(nat).join(', ') || '—' %></td>
+        <td class="hide-sm"><%= a.voice_kind === 'recording' ? 'Recording' : a.voice_kind === 'youtube' ? 'YouTube' : '—' %></td>
+        <td class="hide-sm"><%= a.reviews %></td>
+        <td><a class="btn" href="/staff/leaders/<%= a.id %>">Open</a></td>
+      </tr>
+      <% } %>
+    </table>
+    <% } %>
+  </div>
+
+  <div class="lw-card">
+    <h2>Export to the game server</h2>
+    <p class="sub" style="margin-bottom:12px">Sends every accepted Leader, their seat holders and the succession order to the game server's web API (appoint the Leader, then fill the seats in succession order). Everyone must already be a member of their nation in game. <%= C.eventStartsAt ? 'It also runs on its own at the event start.' : 'Set eventStartsAt in leaders.config.js to run it at the event start as well.' %></p>
+    <form method="POST" action="/staff/leaders/export" class="inline" onsubmit="return confirm('Export the Leaders, seats and succession to the game server now?')"><button class="btn btn-primary" type="submit">Export now</button></form>
+    <% for (const e of exports) { %>
+      <h3>Export <time data-ts="<%= e.at %>"><%= utc(e.at) %></time> by <%= e.by_name %></h3>
+      <table><tr><th>Nation</th><th>Leader</th><th>Seats, in succession order</th><th>Result</th></tr>
+      <% for (const r of e.results) { %>
+        <tr><td><%= r.nation %> <span class="muted">(<%= r.gameId %>)</span></td><td><%= r.leader %></td><td><%= r.seats.join(', ') || '—' %></td>
+          <td><%= r.appoint.ok ? 'Leader appointed' : 'Leader: ' + r.appoint.message %>; <%= r.seatsResult.ok ? 'seats set' : 'seats: ' + r.seatsResult.message %></td></tr>
+      <% } %></table>
+    <% } %>
+  </div>
+<% } else { const a = d.app; %>
+  <a class="back" href="/staff/leaders">← All applications</a>
+  <h1><%= a.discord_name %> <span class="pill <%= pillCls(d.status) %>" style="vertical-align:middle"><%= d.status %></span></h1>
+  <p class="sub">Minecraft <b><%= a.mc_name %></b> · applied <time data-ts="<%= a.created_ts %>"><%= utc(a.created_ts) %></time><% if (a.submitted_at) { %> · submitted <time data-ts="<%= a.submitted_at %>"><%= utc(a.submitted_at) %></time><% } %> · timezone <%= a.timezone || '—' %></p>
+
+  <div class="grid2">
+    <div class="lw-card">
+      <h2>Team</h2>
+      <table><tr><th>#</th><th>Discord</th><th>Minecraft</th><th>Status</th></tr>
+      <% for (const m of d.team) { %>
+        <tr><td><%= m.slot %></td><td><%= m.discord_name || '—' %></td><td><%= m.mc_name || '—' %></td><td><span class="pill <%= pillCls(m.status) %>"><%= m.status %></span></td></tr>
+        <% if (m.reason) { %><tr><td></td><td colspan="3" class="muted">Why: <%= m.reason %></td></tr><% } %>
+      <% } %></table>
+      <% if (d.history.length) { %><p class="muted" style="margin-top:10px">Earlier: <%= d.history.map(h => `${h.discord_name} (${h.status})`).join(', ') %></p><% } %>
+      <% if (!d.complete) { %><p class="warn" style="margin-top:10px">Not all four have confirmed, so this application isn't complete and isn't reviewed.</p><% } %>
+    </div>
+    <div class="lw-card">
+      <h2>Nation preference</h2>
+      <% if (a.nation_prefs) { %><ol class="prefs"><% for (const k of a.nation_prefs) { %><li><%= nat(k) %><%= d.takenNations[k] ? ' — taken by ' + d.takenNations[k] : '' %></li><% } %></ol><% } else { %><p class="muted">Not submitted yet.</p><% } %>
+      <h3>Availability</h3>
+      <p class="muted">Confirmed they can attend the leader brief and every event session<%= a.agreed_at ? '' : ' (not submitted yet)' %>.</p>
+    </div>
+  </div>
+
+  <div class="lw-card">
+    <h2>Voice pitch</h2>
+    <% if (a.voice_kind === 'recording' && d.recording) { %>
+      <audio controls preload="metadata" src="/staff/leaders/<%= a.id %>/recording"></audio>
+      <p class="muted"><%= Math.round(d.recording.seconds || 0) %> s recorded on the page, <%= Math.round(d.recording.size / 1024) %> KB.</p>
+    <% } else if (a.voice_kind === 'youtube' && a.youtube_id) { %>
+      <div class="yt"><iframe src="https://www.youtube-nocookie.com/embed/<%= a.youtube_id %>" title="Pitch video" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe></div>
+      <p class="muted"><a href="https://youtu.be/<%= a.youtube_id %>" target="_blank" rel="noopener">Open on YouTube</a></p>
+    <% } else { %><p class="muted">No pitch yet.</p><% } %>
+  </div>
+
+  <div class="lw-card">
+    <h2>Experience</h2>
+    <p class="answer"><%= a.experience || '—' %></p>
+    <p class="q">Reference</p>
+    <p class="answer"><%= a.ref_server || '—' %> · <%= a.ref_person || '—' %></p>
+    <h2 style="margin-top:20px">Scenarios</h2>
+    <% for (const k of ['a', 'b', 'c', 'd']) { %><p class="q"><%= k %>) <%= SCEN[k] %></p><p class="answer"><%= (a.answers || {})[k] || '—' %></p><% } %>
+    <h2 style="margin-top:20px">First-week plan</h2>
+    <p class="answer"><%= a.plan || '—' %></p>
+  </div>
+
+  <div class="lw-card">
+    <h2>Your scores</h2>
+    <form method="POST" action="/staff/leaders/<%= a.id %>/score">
+      <div class="scores">
+        <% for (const [k, l] of SCORE_HEADS) { %><div><label><%= l %></label><select name="<%= k %>" required><option value="">–</option><% for (let i = 1; i <= 5; i++) { %><option value="<%= i %>" <%= d.my && d.my[k] === i ? 'selected' : '' %>><%= i %></option><% } %></select></div><% } %>
+      </div>
+      <label style="margin-top:12px">Notes (staff only)</label>
+      <textarea name="notes" maxlength="4000"><%= d.my ? d.my.notes || '' : '' %></textarea>
+      <div style="margin-top:10px"><button class="btn btn-primary" type="submit"><%= d.my ? 'Update my scores' : 'Save my scores' %></button></div>
+    </form>
+    <% if (d.averages) { %>
+      <h3>Averages from <%= d.reviewCount %> reviewer<%= d.reviewCount === 1 ? '' : 's' %></h3>
+      <div class="avg"><% for (const [k, l] of SCORE_HEADS) { %><span><b><%= d.averages[k] ?? '—' %></b><%= l %></span><% } %><span><b><%= d.averages.overall ?? '—' %></b>Overall</span></div>
+      <table style="margin-top:12px"><tr><th>Reviewer</th><% for (const [, l] of SCORE_HEADS) { %><th class="hide-sm"><%= l.slice(0, 4) %>.</th><% } %><th>Notes</th></tr>
+      <% for (const r of d.reviews) { %><tr><td><%= r.reviewer_name %></td><% for (const [k] of SCORE_HEADS) { %><td class="hide-sm"><%= r[k] %></td><% } %><td class="muted"><%= r.notes || '' %></td></tr><% } %></table>
+    <% } else { %><p class="muted" style="margin-top:12px"><%= d.reviewCount %> reviewer<%= d.reviewCount === 1 ? ' has' : 's have' %> scored this. Score it yourself to see the averages.</p><% } %>
+  </div>
+
+  <div class="lw-card">
+    <h2>Decision</h2>
+    <div class="row" style="margin-bottom:14px">
+      <form method="POST" action="/staff/leaders/<%= a.id %>/shortlist" class="inline"><input type="hidden" name="on" value="<%= a.stage === 'shortlisted' ? '0' : '1' %>">
+        <button class="btn" type="submit" <%= (a.stage === 'submitted' && d.complete) || a.stage === 'shortlisted' ? '' : 'disabled' %>><%= a.stage === 'shortlisted' ? 'Remove from shortlist' : 'Shortlist' %></button></form>
+      <form method="POST" action="/staff/leaders/<%= a.id %>/brief" class="inline"><input type="hidden" name="attended" value="<%= a.brief_attended ? '0' : '1' %>">
+        <label style="display:inline-flex;gap:8px;align-items:center;margin:0;cursor:pointer;color:var(--text)"><input type="checkbox" <%= a.brief_attended ? 'checked' : '' %> <%= d.complete && ['submitted', 'shortlisted', 'attended'].includes(a.stage) ? '' : 'disabled' %> onchange="this.form.submit()"> Attended the leader brief</label></form>
+    </div>
+    <% if (a.stage === 'accepted') { %>
+      <p><b>Leader of <%= nat(a.accepted_nation) %></b>, accepted <time data-ts="<%= a.decided_at %>"><%= utc(a.decided_at) %></time> by <%= a.decided_by %>. Discord setup deadline <time data-ts="<%= a.deadline_ts %>"><%= utc(a.deadline_ts) %></time>.</p>
+      <% if (a.roles_result) { %><p class="muted">Roles: <%= a.roles_result.map(r => `${r.role} → ${r.who}: ${r.ok ? 'given' : 'not given' + (r.note ? ' (' + r.note + ')' : '')}`).join('; ') %></p><% } %>
+      <% if (d.cabinet) { %><h3>Cabinet (succession order)</h3><ol class="prefs"><% for (const s of d.cabinet.seats) { %><li><%= s.discord_name %> (<%= s.mc_name %>)<%= s.source === 'team' ? ' · team' : '' %></li><% } %></ol><% } %>
+    <% } else if (a.stage === 'declined') { %>
+      <p>Declined <time data-ts="<%= a.decided_at %>"><%= utc(a.decided_at) %></time> by <%= a.decided_by %>.</p>
+    <% } else { %>
+      <form method="POST" action="/staff/leaders/<%= a.id %>/accept" class="row" onsubmit="return confirm('Accept as Leader of ' + this.nation.options[this.nation.selectedIndex].text + '? Roles are given and the bot messages them straight away.')">
+        <div><label>Accept as Leader of</label><select name="nation" required><option value="">Choose a nation</option>
+          <% for (const k of (a.nation_prefs || C.nations.map(n => n.key))) { %><option value="<%= k %>" <%= d.takenNations[k] ? 'disabled' : '' %>><%= nat(k) %><%= d.takenNations[k] ? ' (taken)' : '' %></option><% } %></select></div>
+        <div><button class="btn btn-primary" type="submit" <%= a.stage === 'attended' && a.brief_attended && d.complete ? '' : 'disabled' %>>Accept</button></div>
+        <% if (!(a.stage === 'attended' && a.brief_attended)) { %><div class="muted">Only applicants who attended the brief can be accepted.</div><% } %>
+      </form>
+      <form method="POST" action="/staff/leaders/<%= a.id %>/decline" class="inline" style="display:block;margin-top:14px" onsubmit="return confirm('Decline this application? The applicant and their team get a polite message straight away.')">
+        <button class="btn btn-danger" type="submit">Decline</button></form>
+    <% } %>
+  </div>
+<% } %>
+</main>
+
+<script>
+(() => {
+  // times are stored in UTC; show them in this browser's timezone
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const fmt = ts => new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(ts * 1000)
+    .replace(/\bGMT\+1$/, tz === 'Europe/London' ? 'BST' : 'GMT+1').replace(/\b(GMT|UTC)\+0$/, '$1');
+  document.querySelectorAll('time[data-ts]').forEach(t => { t.textContent = fmt(+t.dataset.ts); t.title = new Date(+t.dataset.ts * 1000).toISOString(); });
+  // recordings from the browser's MediaRecorder carry no duration, so the player shows "Infinity" and
+  // can't seek; jumping to the end once makes the browser work the length out
+  const fixDuration = a => a.addEventListener('loadedmetadata', function once() {
+    a.removeEventListener('loadedmetadata', once);
+    if (a.duration !== Infinity) return;
+    const back = () => { a.removeEventListener('timeupdate', back); a.currentTime = 0; };
+    a.addEventListener('timeupdate', back);
+    a.currentTime = 1e101;
+  });
+  document.querySelectorAll('audio').forEach(a => { fixDuration(a); if (a.readyState >= 1) a.dispatchEvent(new Event('loadedmetadata')); });
+})();
+</script>
+<%- include('partials/foot') %>

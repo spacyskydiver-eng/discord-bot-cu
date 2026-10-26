@@ -6,6 +6,7 @@ const db = require('../../db');
 const access = require('../access');
 const wiki = require('../wiki');
 const testers = require('../testers');
+const leaders = require('../leaders');
 
 function formatDesc(text) {
   if (!text) return '';
@@ -49,6 +50,13 @@ async function renderApp(req, res) {
       .map(s => ({ id: s.id, title: s.title, starts_at: s.starts_at, duration_minutes: s.duration_minutes, slots: s.slots, team_size: s.team_size, taken: s.taken }));
   } catch (e) { console.error('[home] test sessions', e.message); }
   for (const s of testSessions) applications.push({ title: 'Tester: ' + s.title, detail: `${s.taken} of ${s.slots} slots taken`, view: 'testers' });
+  try {
+    const L = leaders.publicInfo();
+    // a notice for anyone named in a leadership team who hasn't answered yet
+    const inv = req.session.user ? (await leaders.invitations(req.session.user.id)).filter(i => i.status === 'pending') : [];
+    for (const i of inv) applications.unshift({ title: `${i.leader} named you in their leadership team`, detail: 'Confirm or decline', view: 'leaders' });
+    if (L.open) applications.push({ title: 'Lead a nation: The Great War', detail: 'Leader applications', view: 'leaders' });
+  } catch (e) { console.error('[home] leaders', e.message); }
   const playerWiki = wiki.getPlayer();
   const cue = {
     user: req.session.user ? { name: req.session.user.username } : null,
@@ -81,6 +89,7 @@ async function renderApp(req, res) {
 router.get('/', renderApp);
 router.get('/wiki', renderApp);
 router.get('/testers', renderApp);
+router.get('/leaders', renderApp);
 
 router.get('/data/vault.json', (req, res) => {
   res.set('Cache-Control', 'no-cache');

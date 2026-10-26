@@ -74,6 +74,7 @@ module.exports = function startServer() {
 
   app.use('/', require('./routes/pages'));
   app.use('/', require('./routes/testers'));
+  app.use('/', require('./routes/leaders'));
   app.use('/auth', require('./routes/auth'));
   app.use('/apply', require('./routes/apply'));
   app.use('/apply-hundred', require('./routes/apply-hundred'));
@@ -90,6 +91,7 @@ module.exports = function startServer() {
   });
 
   require('./testers').startSweeps();
+  require('./leaders').startAutoExport();
 
   const port = process.env.PORT || 3000;
   app.listen(port, () => console.log(`Server running on port ${port}`));
