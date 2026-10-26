@@ -12,8 +12,9 @@ taken character by character from the marked content each tag points at, which k
 exact and lets line breaks become spaces. Semibold and italic runs inside paragraphs become
 **bold** and *italic*.
 
-Sections listed in content/wiki/omit.json are left out of both versions, with everything under
-them, and the document byline (date and author) is never included.
+content/wiki/edits.json applies to both versions: "omit" lists sections left out (with everything
+under them) and "rename" gives new titles for numbered headings. The document byline (date and
+author) is never included.
 """
 import json
 import os
@@ -241,20 +242,21 @@ def md_inline(runs, in_table=False):
     return out
 
 
-OMIT_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'content', 'wiki', 'omit.json')
+EDITS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'content', 'wiki', 'edits.json')
 
 
-def omitted_sections():
+def edits():
     try:
-        return set(json.load(open(OMIT_FILE)).get('sections', []))
+        e = json.load(open(EDITS_FILE))
     except FileNotFoundError:
-        return set()
+        e = {}
+    return set(e.get('omit', [])), e.get('rename', {})
 
 
 def render(tree, T):
     lines = []
     headings = []
-    omit = omitted_sections()
+    omit, rename = edits()
     skip = {'level': None}
 
     def kids(el):
@@ -288,6 +290,9 @@ def render(tree, T):
         if re.fullmatch(r'H[1-6]', s):
             lvl = int(s[1])
             text = T.plain(el)
+            num = re.match(r'(\d+(?:\.\d+)*)\s', text)
+            if num and num.group(1) in rename:
+                text = num.group(1) + ' ' + rename[num.group(1)]
             headings.append((lvl, text))
             lines.append('')
             lines.append('#' * lvl + ' ' + esc(text))

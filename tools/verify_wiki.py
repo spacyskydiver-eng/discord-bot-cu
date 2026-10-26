@@ -75,13 +75,20 @@ def header_lines(layout, header):
     return n
 
 
-def drop_omitted(text):
-    """Remove the sections listed in content/wiki/omit.json from the PDF text, as the converter does."""
+def apply_edits(text):
+    """Apply content/wiki/edits.json to the PDF text the same way the converter does:
+    omitted sections are removed and renamed headings get their new title."""
     try:
-        omit = json.load(open(ROOT + '/content/wiki/omit.json')).get('sections', [])
+        e = json.load(open(ROOT + '/content/wiki/edits.json'))
     except FileNotFoundError:
         return text
+    omit, rename = e.get('omit', []), e.get('rename', {})
     lines = text.split('\n')
+    for num, title in rename.items():
+        for i, l in enumerate(lines):
+            if re.match(re.escape(num) + r' \S', l.strip()):
+                lines[i] = l[:len(l) - len(l.lstrip())] + num + ' ' + title
+                break
     for num in omit:
         depth = num.count('.') + 1
         start = next((i for i, l in enumerate(lines) if re.match(re.escape(num) + r' \S', l.strip())), None)
@@ -108,7 +115,7 @@ def rendered(md_path):
 def main():
     pdf, md = sys.argv[1], sys.argv[2]
     r = rendered(md)
-    a = norm_tokens(drop_omitted(pdf_text(pdf)))
+    a = norm_tokens(apply_edits(pdf_text(pdf)))
     b = norm_tokens(r['text'])
     sm = difflib.SequenceMatcher(None, a, b, autojunk=False)
     gone, added = Counter(), Counter()
@@ -120,7 +127,7 @@ def main():
     # is missing or extra overall counts. A table header printed again at the top of the next
     # page appears once on the site.
     missing, extra = gone - added, added - gone
-    layout = drop_omitted(pdf_text(pdf, layout=True)).split('\n')
+    layout = apply_edits(pdf_text(pdf, layout=True)).split('\n')
     repeated = 0
     for t in r['tables']:
         extra_copies = header_lines(layout, t['header']) - 1

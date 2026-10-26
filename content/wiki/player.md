@@ -10,7 +10,7 @@ Numbers in here are the current settings. Some will move a little during playtes
 
 ### 1.1 The event and first principles
 
-#### 1.1.1 The fantasy
+#### 1.1.1 The vision
 
 Around 300 of you are citizens of rival WW1 nations on a shared, pre-built map of Europe. You start with almost nothing. Between you, you build your nation into a war machine: gathering, producing, paying tax, researching and pushing a living front line. Death is permanent. Wars start from real incidents and real diplomacy, not from a menu. A nation rises on its economy and its discipline, and it falls when its capital is overrun.
 
