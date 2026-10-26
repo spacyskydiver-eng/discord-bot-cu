@@ -275,6 +275,17 @@
     <a href="/apply" target="_blank" class="nd-btn nd-btn-ghost nd-btn-sm">👁 Preview Application</a>
   </div>
 
+  <div class="nd-card" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px">
+    <div>
+      <h2 style="margin:0 0 4px">Maintenance mode is <%= maintenance ? 'on' : 'off' %></h2>
+      <p style="margin:0;color:var(--muted);font-size:13px"><%= maintenance ? 'Only GW Staff can use the website. Everyone else sees the maintenance page.' : 'The website is open to everyone.' %></p>
+    </div>
+    <form action="/admin/maintenance" method="POST" style="margin:0">
+      <input type="hidden" name="on" value="<%= maintenance ? '0' : '1' %>">
+      <button type="submit" class="nd-btn <%= maintenance ? 'nd-btn-primary' : 'nd-btn-danger' %>" onclick="return confirm('<%= maintenance ? 'Open the website to everyone?' : 'Put the website into maintenance mode?' %>')"><%= maintenance ? 'Turn off, open the site' : 'Turn on maintenance' %></button>
+    </form>
+  </div>
+
   <!-- Tabs -->
   <div class="nd-tabs">
     <% if (locals.isFullAdmin) { %>
@@ -881,24 +892,6 @@
       </form>
     </div>
 
-    <div class="nd-card">
-      <h2>Staff Page Access</h2>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:20px">Grant people access to see blurred content by their Discord User ID. Enable Developer Mode in Discord, then right-click their name and Copy User ID.</p>
-      <% if (staffAccess.length > 0) { %>
-        <% for (const sa of staffAccess) { %>
-          <div class="nd-access-row">
-            <code class="nd-access-id"><%= sa.discord_id %></code>
-            <span style="font-size:12px;color:var(--muted)">Added <%= new Date(sa.granted_at).toLocaleDateString() %></span>
-            <form action="/admin/staff/access/remove" method="POST" style="margin:0"><input type="hidden" name="discord_id" value="<%= sa.discord_id %>" /><button type="submit" class="nd-btn nd-btn-danger nd-btn-sm" onclick="return confirm('Remove access?')">Remove</button></form>
-          </div>
-        <% } %>
-        <hr class="nd-divider">
-      <% } %>
-      <form action="/admin/staff/access/add" method="POST" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
-        <div class="nd-form-field" style="flex:1;min-width:200px;margin:0"><label class="nd-label">Discord User ID</label><input type="text" name="discord_id" class="nd-input" placeholder="e.g. 933421117211815987" required pattern="[0-9]+" /></div>
-        <button type="submit" class="nd-btn nd-btn-primary">Grant Access</button>
-      </form>
-    </div>
   </div>
 
   <!-- ═══ WEBHOOK BUILDER TAB ═══ -->

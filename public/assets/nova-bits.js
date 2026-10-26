@@ -171,7 +171,7 @@ function mountDock() {
     { id: B.V && B.V.home, label: 'Home', ic: 'home' },
     { id: 'applications', label: 'Apply', ic: 'clipboard-list' },
     { id: 'events', label: 'Events', ic: 'calendar' },
-    { id: '01 Events/The Great War/The Great War', label: 'Wiki', ic: 'book-open' },
+    { id: 'wiki', label: 'Wiki', ic: 'book-open' },
     { id: 'store', label: 'Store', ic: 'cart' },
     { id: 'team', label: 'Team', ic: 'users' },
     ...(window.CUE && window.CUE.isAdmin ? [{ sep: true }, { href: '/admin', label: 'Admin panel', ic: 'shield' }] : []),

@@ -8,7 +8,7 @@ const EVENTS = [
     players: 300,
     type: 'Modded event',
     status: 'Applications opening soon',
-    wiki: '01 Events/The Great War/The Great War',
+    wiki: 'wiki',
   },
 ];
 

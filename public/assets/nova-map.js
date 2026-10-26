@@ -43,6 +43,18 @@ function buildData() {
     links.push({ source: nodes[a], target: nodes[b], a, b });
     nodes[a].deg++; nodes[b].deg++;
   }
+  // the wiki's modules and sections, coloured by module
+  const WG = V.wikiGraph || { nodes: [], links: [] };
+  const MODC = ['#34D399', '#A78BFA', '#FBBF24', '#38BDF8', '#FB7185'];
+  for (const w of WG.nodes) {
+    const nd = { id: w.id, title: w.title, color: MODC[(+w.module - 1) % MODC.length] || '#A78BFA', size: w.level === 2 ? 5.2 : w.level === 3 ? 3.6 : 2.2, type: 'wiki', isTerm: false, group: +w.module, folder: 'wiki' + w.module, deg: 0, x: NaN, y: NaN, z: NaN };
+    index.set(nd.id, nodes.length); nodes.push(nd);
+  }
+  for (const [x, y] of WG.links) {
+    if (!index.has(x) || !index.has(y)) continue;
+    const a = index.get(x), b = index.get(y);
+    links.push({ source: nodes[a], target: nodes[b], a, b }); nodes[a].deg++; nodes[b].deg++;
+  }
   const real = nodes.length;
   let seed = 7;
   const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };

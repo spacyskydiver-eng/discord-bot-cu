@@ -3,6 +3,7 @@ const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const path = require('path');
 const pool = require('../db');
+const access = require('./access');
 const fs = require('fs');
 
 const LOCALES = {};
@@ -52,72 +53,23 @@ module.exports = function startServer() {
       : '/fr' + origUrl;
 
     res.locals.user = req.session.user || null;
-    const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(s => s.trim());
-    res.locals.isAdmin = req.session.user ? adminIds.includes(req.session.user.id) : false;
-    res.locals.isStaffAccess = false;
-    if (req.session.user && !res.locals.isAdmin) {
-      try {
-        const row = (await pool.query(
-          `SELECT 1 FROM staff_access WHERE discord_id = $1`, [req.session.user.id]
-        )).rows[0];
-        res.locals.isStaffAccess = !!row;
-      } catch (_) {}
-    }
+    // decided on the server for every request; templates and pages only ever see the result
+    res.locals.isOwner = access.isOwner(req.session.user);
+    res.locals.isAdmin = res.locals.isOwner;
+    res.locals.isStaff = await access.isStaff(req.session.user);
     res.locals.staffRoleId = null;
     res.locals.designPreview = true;
     res.locals._url = req.originalUrl;
     next();
   });
 
-  // ── Site lockdown: staff-only access ──────────────────────────────────────
-  app.use((req, res, next) => {
-    // Always allow auth routes so login/logout flow works
-    if (req.path.startsWith('/auth')) return next();
-    const isStaff = res.locals.isAdmin || res.locals.isStaffAccess;
-    if (isStaff) return next();
-    // Not logged in at all — send to Discord login
-    if (!res.locals.user) {
-      return res.redirect('/auth/discord');
-    }
-    // Logged in but no staff role — show locked page
-    res.status(403).send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CUE — Staff Only</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,650&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{min-height:100vh;display:flex;align-items:center;justify-content:center;
-  background:#080B16;color:#E8EBF8;font-family:'Inter',sans-serif;
-  background-image:radial-gradient(900px 340px at 50% -60px,rgba(139,156,255,.15),transparent 72%)}
-.card{max-width:480px;width:100%;margin:24px;text-align:center;padding:48px 36px;
-  background:#0D1120;border:1px solid rgba(140,155,255,.14);border-radius:20px;
-  box-shadow:0 20px 60px rgba(0,0,0,.6)}
-.lock{font-size:40px;margin-bottom:20px;opacity:.6}
-h1{font-family:'Fraunces',Georgia,serif;font-size:2rem;font-weight:650;margin-bottom:12px;letter-spacing:-.02em}
-p{color:#A7AFD2;line-height:1.65;font-size:15px;margin-bottom:8px}
-.user{font-size:13px;color:#6E769C;margin-top:18px}
-.btn{display:inline-block;margin-top:24px;padding:11px 22px;background:rgba(139,156,255,.1);
-  border:1px solid rgba(139,156,255,.3);border-radius:10px;color:#8B9CFF;
-  font-family:inherit;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;
-  transition:background .12s,border-color .12s}
-.btn:hover{background:rgba(139,156,255,.18);border-color:rgba(139,156,255,.5)}
-</style>
-</head>
-<body>
-<div class="card">
-  <div class="lock">&#128274;</div>
-  <h1>Staff Access Only</h1>
-  <p>The CUE website is currently closed to the public.</p>
-  <p>Only members with the staff role can access it right now.</p>
-  <p class="user">Logged in as <strong>${res.locals.user.username}</strong> &mdash; this account does not have staff access.</p>
-  <a href="/auth/logout" class="btn">Sign out</a>
-</div>
-</body>
-</html>`);
+  // ── Maintenance mode: only staff get past this. /auth stays open so staff can sign in.
+  app.use(async (req, res, next) => {
+    if (req.path.startsWith('/auth') || res.locals.isStaff) return next();
+    if (!(await access.maintenanceOn())) return next();
+    res.set('Retry-After', '3600');
+    if (req.path.startsWith('/api/') || req.path.startsWith('/data/') || req.xhr) return res.status(503).json({ error: 'maintenance' });
+    res.status(503).render('maintenance', { user: res.locals.user });
   });
 
   app.use('/', require('./routes/pages'));

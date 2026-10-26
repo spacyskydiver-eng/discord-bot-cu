@@ -428,7 +428,13 @@ function initTabs() {
 function saveTabs() { store.set('tabs', state.tabs); store.set('activeTab', state.active); }
 function hashFor(id, heading) { return '#/' + encodeURI(id).replace(/#/g, '%23').replace(/\?/g, '%3F') + (heading ? '#' + encodeURIComponent(heading) : ''); }
 function parseHash() {
-  const raw = location.hash.slice(2);
+  // wiki sections are linked as /wiki#3-5-6 (or #3-5-6 on any page)
+  const h = location.hash;
+  if (!h.startsWith('#/') && (location.pathname === '/wiki' || /^#\d+(-\d+)*$/.test(h))) {
+    let heading = null; try { heading = decodeURIComponent(h.slice(1)) || null; } catch (e) { heading = h.slice(1) || null; }
+    return { id: 'wiki', heading };
+  }
+  const raw = h.slice(2);
   if (!raw) return null;
   const i = raw.indexOf('#');
   let id, heading = null;

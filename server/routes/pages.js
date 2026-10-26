@@ -1,7 +1,10 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const router = express.Router();
 const db = require('../../db');
+const access = require('../access');
+const wiki = require('../wiki');
 
 function formatDesc(text) {
   if (!text) return '';
@@ -28,7 +31,7 @@ const upcomingEvents = require('../cue-events');
 const ASSET_V = (process.env.RENDER_GIT_COMMIT || String(Date.now())).slice(0, 10);
 const VAULT_PATH = path.join(__dirname, '../vault/vault.json');
 
-router.get('/', async (req, res) => {
+async function renderApp(req, res) {
   const t = res.locals.t;
   let team = [];
   try {
@@ -39,13 +42,15 @@ router.get('/', async (req, res) => {
     const ev = (await db.query(`SELECT title, is_open FROM events ORDER BY created_at DESC LIMIT 1`)).rows[0];
     if (ev && ev.is_open) applications = [{ title: ev.title, href: '/apply' }];
   } catch (e) { console.error('[home] events', e.message); }
+  const playerWiki = wiki.getPlayer();
   const cue = {
     user: req.session.user ? { name: req.session.user.username } : null,
-    isAdmin: !!res.locals.isAdmin,
+    isAdmin: !!res.locals.isOwner,
     discord: 'https://discord.gg/x832cqAdu',
     events: upcomingEvents(),
     applications,
     team,
+    wikiModules: playerWiki.toc.filter(h => h.level === 2).map(h => ({ id: h.id, text: h.text })),
     store: [
       { name: 'VIP', price: '$4.99', status: t('store_coming_soon'), features: [1, 2, 3, 4].map(i => t('store_vip_feat' + i)) },
       { name: 'VIP+', price: '$9.99', status: t('store_coming_soon'), features: [1, 2, 3, 4, 5].map(i => t('store_vipp_feat' + i)) },
@@ -54,13 +59,51 @@ router.get('/', async (req, res) => {
     storeNote: t('store_cosmetic_note'),
   };
   const cueJson = JSON.stringify(cue).replace(/</g, '\\u003c').replace(/[\u2028\u2029]/g, c => '\\u' + c.charCodeAt(0).toString(16));
-  res.render('app', { cueJson, v: ASSET_V });
-});
+  res.set('Cache-Control', 'private, no-store');
+  // staff get one extra script; nothing else in the page differs
+  res.render('app', { cueJson, v: ASSET_V, staffScript: res.locals.isStaff ? '/staff-assets/wiki-staff.js?v=' + ASSET_V : null });
+}
+router.get('/', renderApp);
+router.get('/wiki', renderApp);
 
 router.get('/data/vault.json', (req, res) => {
   res.set('Cache-Control', 'no-cache');
-  res.sendFile(VAULT_PATH);
+  const vault = JSON.parse(fs.readFileSync(VAULT_PATH, 'utf8'));
+  vault.wikiGraph = wikiGraph(wiki.getPlayer().toc);
+  res.json(vault);
 });
+
+// the player wiki (Field Manual): public, like the rest of the site
+router.get('/api/wiki/player', (req, res) => {
+  res.set('Cache-Control', 'no-cache');
+  res.json(wiki.getPlayer());
+});
+
+// the staff wiki (Design Document): GW Staff and the owner only. Anyone else gets the same
+// 404 as a page that doesn't exist.
+router.get('/api/wiki/staff', async (req, res, next) => {
+  if (!res.locals.isStaff) return next();
+  res.set('Cache-Control', 'private, no-store');
+  try { res.json(await wiki.getStaff()); } catch (e) { console.error('[wiki]', e.message); res.status(503).json({ error: 'The staff wiki is not available right now.' }); }
+});
+router.get('/staff-assets/wiki-staff.js', (req, res, next) => {
+  if (!res.locals.isStaff) return next();
+  res.set('Cache-Control', 'private, no-store');
+  res.type('application/javascript').sendFile(path.join(__dirname, '../staff-assets/wiki-staff.js'));
+});
+
+// sections as a graph for the neural map in the background: each module and section is a node,
+// linked to the heading it sits under
+function wikiGraph(toc) {
+  const nodes = [], links = [], parents = [];
+  for (const h of toc) {
+    if (h.level > 4 || !/^\d+(-\d+)*$/.test(h.id)) continue;
+    nodes.push({ id: 'wiki#' + h.id, title: h.text, module: h.id.split('-')[0], level: h.level });
+    parents[h.level] = 'wiki#' + h.id;
+    for (let l = h.level - 1; l >= 2; l--) if (parents[l]) { links.push(['wiki#' + h.id, parents[l]]); break; }
+  }
+  return { nodes, links };
+}
 
 router.post('/snake/score', async (req, res) => {
   const score = parseInt(req.body.score);
@@ -341,8 +384,7 @@ router.post('/store/checkout', async (req, res) => {
 
 // Design preview toggle — only works for admins
 router.get('/design-preview/on', (req, res) => {
-  const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(s => s.trim());
-  if (req.session.user && adminIds.includes(req.session.user.id)) {
+  if (access.isOwner(req.session.user)) {
     req.session.designPreview = true;
   }
   res.redirect(req.query.return || '/');
@@ -458,8 +500,7 @@ router.post('/150-verify-ign/submit', async (req, res) => {
 router.get('/nation-place', async (req, res) => {
   if (!req.session.user) return res.redirect(`${res.locals.lp}/auth/discord`);
   const uid = req.session.user.id;
-  const adminIds = (process.env.ADMIN_DISCORD_IDS || '').split(',').map(s => s.trim());
-  const isAdmin = adminIds.includes(uid);
+  const isAdmin = access.isOwner(req.session.user);
 
   const r = await db.query(
     `SELECT * FROM nation_leader_applications WHERE discord_id = $1 AND accepted = true`, [uid]

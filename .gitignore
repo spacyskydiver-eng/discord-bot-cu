@@ -2,3 +2,6 @@ node_modules/
 .env
 .DS_Store
 public/video/
+
+# staff wiki (Design Document): never in this public repo; it is uploaded to the database with tools/upload_staff_wiki.js
+content/wiki/staff.md

@@ -9,6 +9,7 @@ const ROLE_NEWS_REPORTER = '1545849393352155338';
 const multer = require('multer');
 const path = require('path');
 const { createProxyMiddleware } = require('http-proxy-middleware');
+const access = require('../access');
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -25,30 +26,12 @@ const upload = multer({
   }
 });
 
-const ADMIN_IDS = () => (process.env.ADMIN_DISCORD_IDS || '').split(',').map(s => s.trim());
-
-async function requireAdminOrStaff(req, res, next) {
-  if (!req.session.user) return res.status(403).render('403');
-  if (ADMIN_IDS().includes(req.session.user.id)) {
-    res.locals.isFullAdmin = true;
-    return next();
-  }
-  // Check DB-managed full admins
-  const fullAdminRow = (await db.query(
-    `SELECT 1 FROM full_admin_access WHERE discord_id = $1`, [req.session.user.id]
-  )).rows[0];
-  if (fullAdminRow) {
-    res.locals.isFullAdmin = true;
-    return next();
-  }
-  const row = (await db.query(
-    `SELECT 1 FROM staff_access WHERE discord_id = $1`, [req.session.user.id]
-  )).rows[0];
-  if (row) {
-    res.locals.isFullAdmin = false;
-    return next();
-  }
-  return res.status(403).render('403');
+// The control centre belongs to one account. ADMIN_DISCORD_IDS, full_admin_access and
+// staff_access no longer grant anything here.
+function requireOwner(req, res, next) {
+  if (!access.isOwner(req.session.user)) return res.status(req.session.user ? 403 : 401).render('403');
+  res.locals.isFullAdmin = true;
+  next();
 }
 
 function requireFullAdmin(req, res, next) {
@@ -56,9 +39,9 @@ function requireFullAdmin(req, res, next) {
   next();
 }
 
-router.use(requireAdminOrStaff);
+router.use(requireOwner);
 
-// Full admin access table (DB-managed, supplements env var ADMIN_DISCORD_IDS)
+// Full admin access table (no longer grants control centre access, see requireOwner)
 db.query(`CREATE TABLE IF NOT EXISTS full_admin_access (discord_id TEXT PRIMARY KEY, granted_at TIMESTAMPTZ DEFAULT NOW())`).catch(() => {});
 
 // Ensure tracking columns exist
@@ -212,8 +195,14 @@ router.get('/', async (req, res) => {
   res.render('new/admin', {
     event, eligibilityQuestions, applications, hundredApplications, nationLeaderApplications,
     guilds: guildRes.rows, levels, levelRoles, staffRoles, staffAccess,
-    stageSettings, stageBlocks, agreementItems, playstyleOptions, killTicketConfigs
+    stageSettings, stageBlocks, agreementItems, playstyleOptions, killTicketConfigs,
+    maintenance: await access.maintenanceOn(),
   });
+});
+
+router.post('/maintenance', async (req, res) => {
+  await access.setMaintenance(req.body.on === '1');
+  res.redirect('/admin');
 });
 
 // Chest analysis (staff-readable)
@@ -1576,7 +1565,8 @@ router.get(/^\/bluemap$/, (req, res) => res.redirect(301, '/admin/bluemap/'));
 router.use('/bluemap', createProxyMiddleware({
   target: BLUEMAP_TARGET,
   changeOrigin: true,
-  ws: true,
+  // WebSocket upgrades are handled outside Express, where the owner check above can't run
+  ws: false,
 }));
 
 // Nations portal
@@ -2165,12 +2155,12 @@ db.query(`
   )
 `).catch(console.error);
 
-router.get('/map-regions', requireAdminOrStaff, async (req, res) => {
+router.get('/map-regions', requireOwner, async (req, res) => {
   const regions = (await db.query(`SELECT * FROM map_regions ORDER BY region_type, name`)).rows;
   res.render('new/admin-map-regions', { regions });
 });
 
-router.post('/map-regions/save', requireAdminOrStaff, async (req, res) => {
+router.post('/map-regions/save', requireOwner, async (req, res) => {
   const { id, name, region_type, min_x, min_z, max_x, max_z, min_y, max_y, color } = req.body;
   const values = [
     name, region_type,
@@ -2193,18 +2183,18 @@ router.post('/map-regions/save', requireAdminOrStaff, async (req, res) => {
   res.redirect('/admin/map-regions');
 });
 
-router.post('/map-regions/:id/delete', requireAdminOrStaff, async (req, res) => {
+router.post('/map-regions/:id/delete', requireOwner, async (req, res) => {
   await db.query(`DELETE FROM map_regions WHERE id=$1`, [req.params.id]);
   res.redirect('/admin/map-regions');
 });
 
-router.get('/ore-heatmap', requireAdminOrStaff, async (req, res) => {
+router.get('/ore-heatmap', requireOwner, async (req, res) => {
   const heatmaps = (await db.query(`SELECT id, name, block_id, min_x, min_z, max_x, max_z, min_y, max_y, status, total_count, error_message, created_at, scanned_at FROM ore_heatmaps ORDER BY created_at DESC`)).rows;
   const regions = (await db.query(`SELECT id, name, min_x, min_z, max_x, max_z, min_y, max_y FROM map_regions ORDER BY name`)).rows;
   res.render('new/admin-ore-heatmap', { heatmaps, regions });
 });
 
-router.post('/ore-heatmap/scan', requireAdminOrStaff, async (req, res) => {
+router.post('/ore-heatmap/scan', requireOwner, async (req, res) => {
   const { name, block_id, min_x, min_z, max_x, max_z, min_y, max_y } = req.body;
   await db.query(
     `INSERT INTO ore_heatmaps (name, block_id, min_x, min_z, max_x, max_z, min_y, max_y, status)
@@ -2219,12 +2209,12 @@ router.post('/ore-heatmap/scan', requireAdminOrStaff, async (req, res) => {
   res.redirect('/admin/ore-heatmap');
 });
 
-router.post('/ore-heatmap/:id/delete', requireAdminOrStaff, async (req, res) => {
+router.post('/ore-heatmap/:id/delete', requireOwner, async (req, res) => {
   await db.query(`DELETE FROM ore_heatmaps WHERE id=$1`, [req.params.id]);
   res.redirect('/admin/ore-heatmap');
 });
 
-router.post('/ore-heatmap/:id/rescan', requireAdminOrStaff, async (req, res) => {
+router.post('/ore-heatmap/:id/rescan', requireOwner, async (req, res) => {
   await db.query(`UPDATE ore_heatmaps SET status='pending', error_message=NULL WHERE id=$1`, [req.params.id]);
   res.redirect('/admin/ore-heatmap');
 });
@@ -2279,12 +2269,12 @@ db.query(`
 `).catch(console.error);
 db.query(`ALTER TABLE kill_ticket_config ADD COLUMN IF NOT EXISTS enabled BOOLEAN DEFAULT TRUE`).catch(() => {});
 
-router.get('/kill-tickets', requireAdminOrStaff, async (req, res) => {
+router.get('/kill-tickets', requireOwner, async (req, res) => {
   const configs = (await db.query(`SELECT * FROM kill_ticket_config ORDER BY updated_at DESC`)).rows;
   res.render('new/admin-kill-tickets', { configs });
 });
 
-router.post('/kill-tickets/save', requireAdminOrStaff, async (req, res) => {
+router.post('/kill-tickets/save', requireOwner, async (req, res) => {
   const { id, guild_id, guild_name, post_channel_id, category_id, staff_role_ids, ticket_intro, panel_payload } = req.body;
   if (!guild_id) return res.json({ ok: false, error: 'Guild ID required' });
   let payload;
@@ -2306,12 +2296,12 @@ router.post('/kill-tickets/save', requireAdminOrStaff, async (req, res) => {
   }
 });
 
-router.delete('/kill-tickets/:id', requireAdminOrStaff, async (req, res) => {
+router.delete('/kill-tickets/:id', requireOwner, async (req, res) => {
   await db.query(`DELETE FROM kill_ticket_config WHERE id=$1`, [req.params.id]);
   res.json({ ok: true });
 });
 
-router.post('/kill-tickets/:id/toggle', requireAdminOrStaff, async (req, res) => {
+router.post('/kill-tickets/:id/toggle', requireOwner, async (req, res) => {
   const r = await db.query(
     `UPDATE kill_ticket_config SET enabled = NOT COALESCE(enabled, true), updated_at = NOW() WHERE id = $1 RETURNING enabled`,
     [req.params.id]
@@ -2320,7 +2310,7 @@ router.post('/kill-tickets/:id/toggle', requireAdminOrStaff, async (req, res) =>
   res.json({ ok: true, enabled: r.rows[0].enabled });
 });
 
-router.post('/kill-tickets/:id/post', requireAdminOrStaff, async (req, res) => {
+router.post('/kill-tickets/:id/post', requireOwner, async (req, res) => {
   const cfg = (await db.query(`SELECT * FROM kill_ticket_config WHERE id=$1`, [req.params.id])).rows[0];
   if (!cfg) return res.json({ ok: false, error: 'Config not found' });
   if (!cfg.post_channel_id) return res.json({ ok: false, error: 'No channel configured' });
@@ -2364,11 +2354,11 @@ router.post('/event/close-current', async (req, res) => {
 
 // ── Rival server cross-reference ──────────────────────────────────────────────
 
-router.get('/rival-check', requireAdminOrStaff, (req, res) => {
+router.get('/rival-check', requireOwner, (req, res) => {
   res.render('new/admin-rival-check', { results: null, pastedInput: '' });
 });
 
-router.post('/rival-check', requireAdminOrStaff, async (req, res) => {
+router.post('/rival-check', requireOwner, async (req, res) => {
   const raw = (req.body.ids || '').trim();
   const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
   const seen = new Set();
@@ -2451,11 +2441,11 @@ async function fetchAllMembers(guildId, token) {
   return members;
 }
 
-router.get('/kick-preview', requireAdminOrStaff, (req, res) => {
+router.get('/kick-preview', requireOwner, (req, res) => {
   res.render('new/admin-kick-preview', { preview: null, error: null, authed: false, executed: false });
 });
 
-router.post('/kick-preview', requireAdminOrStaff, async (req, res) => {
+router.post('/kick-preview', requireOwner, async (req, res) => {
   if (req.body.password !== KICK_PASSWORD) {
     return res.render('new/admin-kick-preview', { preview: null, error: 'Wrong password.', authed: false, executed: false });
   }
@@ -2516,7 +2506,7 @@ router.post('/kick-preview', requireAdminOrStaff, async (req, res) => {
   res.render('new/admin-kick-preview', { preview, error: null, authed: true, executed: false });
 });
 
-router.post('/kick-execute', requireAdminOrStaff, async (req, res) => {
+router.post('/kick-execute', requireOwner, async (req, res) => {
   if (req.body.password !== KICK_PASSWORD) {
     return res.render('new/admin-kick-preview', { preview: null, error: 'Wrong password.', authed: false });
   }
