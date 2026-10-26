@@ -167,6 +167,8 @@ N.counter = function counter(el, value = 0, opts = {}) {
    little on hover (CSS only), the current page has a dot, Mail / Calendar carry badges. */
 function mountDock() {
   if (N.dock || !B.isNova()) return;
+  // the dock checks which pages exist, so it waits for the site data on a slow connection
+  if (!B.V) { if (!mountDock.waiting) { mountDock.waiting = true; B.onBoot(() => setTimeout(mountDock, 0)); } return; }
   const items = [
     { id: B.V && B.V.home, label: 'Home', ic: 'home' },
     { id: 'applications', label: 'Apply', ic: 'clipboard-list' },

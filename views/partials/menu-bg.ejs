@@ -1,0 +1,10 @@
+<%# The Great War menu background (public pages only). Paths from server/site-media.config.js. %>
+<div id="cue-menubg" aria-hidden="true">
+  <div class="mbg-poster" style="background-image:url('<%= media.menuPoster %>.jpg');background-image:image-set(url('<%= media.menuPoster %>.webp') type('image/webp'),url('<%= media.menuPoster %>.jpg') type('image/jpeg'))"></div>
+  <div class="mbg-breath"></div>
+  <div class="mbg-shade"></div>
+  <div class="mbg-grain"></div>
+</div>
+<button id="cue-sound" type="button" hidden></button>
+<script>window.CUE_MEDIA = <%- JSON.stringify(media) %>;</script>
+<script defer src="/assets/menu-bg.js?v=<%= typeof v !== 'undefined' ? v : '1' %>"></script>

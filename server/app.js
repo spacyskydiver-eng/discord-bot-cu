@@ -4,6 +4,7 @@ const pgSession = require('connect-pg-simple')(session);
 const path = require('path');
 const pool = require('../db');
 const access = require('./access');
+const MEDIA = require('./site-media.config');
 const fs = require('fs');
 
 const LOCALES = {};
@@ -57,6 +58,7 @@ module.exports = function startServer() {
     res.locals.isOwner = access.isOwner(req.session.user);
     res.locals.isAdmin = res.locals.isOwner;
     res.locals.isStaff = await access.isStaff(req.session.user);
+    res.locals.media = MEDIA;
     res.locals.staffRoleId = null;
     res.locals.designPreview = true;
     res.locals._url = req.originalUrl;

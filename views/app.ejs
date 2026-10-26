@@ -11,9 +11,12 @@
 <link rel="stylesheet" href="/assets/neural.css?v=<%= v %>">
 <link rel="stylesheet" href="/assets/views.css?v=<%= v %>">
 <link rel="stylesheet" href="/assets/nova.css?v=<%= v %>">
+<link rel="stylesheet" href="/assets/menu-bg.css?v=<%= v %>">
+<link rel="preload" as="image" href="<%= media.menuPoster %>.webp" type="image/webp">
 <script>window.CUE = <%- cueJson %>; window.CUE_ASSET_V = '<%= v %>';</script>
 </head>
-<body class="theme-dark ui-nova">
+<body class="theme-dark ui-nova has-menubg">
+<%- include('partials/menu-bg') %>
 <noscript>
   <div style="max-width:640px;margin:40px auto;padding:0 16px;font-family:Inter,system-ui,sans-serif;color:#E8EBF8;line-height:1.6">
     <h1 style="font-size:24px">Collective Union Events</h1>

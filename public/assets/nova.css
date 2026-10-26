@@ -1370,3 +1370,5 @@ body.ui-nova .ldr-step + .ldr-step { margin-top: 0; }
 body.ui-nova .ldr-add select, body.ui-nova .ldr-add input { padding: 9px 12px; border-radius: 10px; border: 1px solid var(--background-modifier-border); background: rgba(255,255,255,.04); color: var(--text-normal); font: inherit; font-size: 14px; color-scheme: dark; min-width: 200px; }
 body.ui-nova .ldr-addnote { margin: 8px 0 0; }
 body.ui-nova .ldr-steps li > span:last-child { display: block; }
+/* long Discord usernames wrap instead of running off the hero */
+body.ui-nova .nv-hero-copy h1 { overflow-wrap: anywhere; padding-right: 28px; }

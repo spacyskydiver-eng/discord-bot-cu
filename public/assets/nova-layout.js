@@ -129,7 +129,7 @@ function navPane(root) {
     if (g) goFrom(g);
   };
 }
-window.addEventListener('hashchange', () => { if (B.isNova()) setTimeout(() => { const el = $('#explorer'); if (el) navPane(el); }, 0); });
+window.addEventListener('hashchange', () => { if (B.isNova() && B.V) setTimeout(() => { const el = $('#explorer'); if (el) navPane(el); }, 0); });
 
 /* ---------------------------------------------------------------- accordion gallery (React Bits port, CSS transitions instead of GSAP) */
 function accordion(items, opts = {}) {

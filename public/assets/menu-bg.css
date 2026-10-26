@@ -1,0 +1,54 @@
+/* The Great War menu background (menu-bg.js). Fixed behind everything; the page reads on top as before. */
+#cue-menubg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; background: #030306; }
+#cue-menubg .mbg-poster, #cue-menubg .mbg-video {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  /* dark, slightly drained, a little cold: the bunker by candlelight, not a postcard */
+  filter: brightness(.68) saturate(.72) contrast(1.06);
+}
+#cue-menubg .mbg-poster { background-size: cover; background-position: center; }
+#cue-menubg .mbg-video { opacity: 0; transition: opacity 2.4s ease; }
+#cue-menubg.is-playing .mbg-video { opacity: 1; }
+/* a slow, faint breath of shadow, like the candle guttering */
+#cue-menubg .mbg-shade {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(180deg, rgba(3,3,8,.7) 0%, rgba(3,3,8,.08) 24%, rgba(3,3,8,.06) 64%, rgba(3,3,8,.8) 100%),
+    radial-gradient(ellipse 78% 70% at 42% 46%, rgba(0,0,0,0) 38%, rgba(0,0,0,.5) 74%, #000 100%);
+}
+#cue-menubg .mbg-breath { position: absolute; inset: 0; background: #000; opacity: .08; animation: mbg-breath 9s ease-in-out infinite; }
+@keyframes mbg-breath { 50% { opacity: .2; } }
+/* light film grain */
+#cue-menubg .mbg-grain {
+  position: absolute; inset: -50%; opacity: .085; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: mbg-grain 1.2s steps(6) infinite;
+}
+@keyframes mbg-grain {
+  0% { transform: translate(0, 0); } 20% { transform: translate(-4%, 3%); } 40% { transform: translate(3%, -5%); }
+  60% { transform: translate(-6%, -2%); } 80% { transform: translate(5%, 4%); } 100% { transform: translate(0, 0); }
+}
+@media (prefers-reduced-motion: reduce) { #cue-menubg .mbg-grain, #cue-menubg .mbg-breath { animation: none; } }
+
+/* the sound button, always in the corner */
+#cue-sound {
+  position: fixed; top: 14px; right: 14px; z-index: 80; width: 40px; height: 40px; padding: 0;
+  display: grid; place-items: center; border-radius: 50%; cursor: pointer;
+  border: 1px solid rgba(255,255,255,.14); background: rgba(6,6,12,.62); color: rgba(232,235,248,.72);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  transition: color .2s ease, border-color .2s ease, background .2s ease;
+}
+#cue-sound:hover { color: #fff; border-color: rgba(255,255,255,.3); }
+#cue-sound:focus-visible { outline: 2px solid #FBBF24; outline-offset: 2px; }
+#cue-sound.is-on { color: #FBBF24; border-color: rgba(251,191,36,.45); }
+#cue-sound svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#cue-sound svg path:first-child { fill: currentColor; fill-opacity: .2; }
+
+/* on the app pages: the neural map floats faintly over the bunker instead of its own dark sky */
+body.has-menubg .nova-bg { background: transparent !important; opacity: .42; mix-blend-mode: screen; }
+body.has-menubg .nova-bg::after { display: none; }
+body.has-menubg.ui-nova { background: #030306; }
+/* pages with text straight on the background keep the bunker well back behind it; Home, where
+   everything sits on panels, lets more of it through between them */
+body.has-menubg.ui-nova .view-content.nv-view { background: linear-gradient(90deg, rgba(3,3,8,.55), rgba(3,3,8,.78) 22%, rgba(3,3,8,.8) 78%, rgba(3,3,8,.6)); }
+body.has-menubg.ui-nova .view-content.nv-view:has(> .nv-home) { background: rgba(4, 5, 12, .16); }
+@media (max-width: 700px) { #cue-sound { top: 10px; right: 10px; width: 34px; height: 34px; background: rgba(6,6,12,.45); } #cue-sound svg { width: 15px; height: 15px; } }
