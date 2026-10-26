@@ -193,6 +193,14 @@ class Text:
         return re.sub(r'[ \t]+', ' ', ''.join(t for _, t in self.runs(el, False))).strip()
 
 
+# the document's byline ("Oct 26, 2026 · @Name") is left out: no author names or dates on the site
+BYLINE = re.compile(r'^\s*(?:(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.? \d{1,2}, \d{4})?\s*(?:\u00b7\s*)?(?:@[^\s@][^@]*)?\s*$')
+
+
+def is_byline(text):
+    return bool(text.strip()) and bool(BYLINE.match(text)) and bool(re.search(r'\d{4}|@', text))
+
+
 MD_SPECIAL = re.compile(r'([\\`*_<>\[\]|])')
 
 
@@ -258,6 +266,8 @@ def render(tree, T):
             lines.append('#' * lvl + ' ' + esc(text))
             lines.append('')
         elif s == 'P':
+            if is_byline(T.plain(el)):
+                return
             t = para(el)
             if t:
                 lines.append(indent + t)

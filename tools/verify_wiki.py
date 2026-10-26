@@ -35,6 +35,15 @@ def norm_tokens(text):
     return [w.replace('-', '') for w in text.split() if w.replace('-', '')]
 
 
+# the converter leaves out the byline (date and @author), so the comparison does too
+BYLINE = re.compile(r'^\s*(?:(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.? \d{1,2}, \d{4})?\s*(?:\u00b7\s*)?(?:@[^\s@][^@]*)?\s*$')
+
+
+def is_byline(line):
+    line = line.replace('\u200b', '')
+    return bool(line.strip()) and bool(BYLINE.match(line)) and bool(re.search(r'\d{4}|@', line))
+
+
 def pdf_text(pdf, layout=False):
     args = ['pdftotext'] + (['-layout'] if layout else []) + [pdf, '-']
     out = subprocess.run(args, capture_output=True, text=True, check=True).stdout
@@ -45,7 +54,7 @@ def pdf_text(pdf, layout=False):
         # the running header is the first line of every page; the title on page 1 comes after it
         if first is not None and lines[first].strip() in RUNNING_HEADERS:
             lines[first] = ''
-        keep += [l for l in lines if not re.fullmatch(r'Page \d+ of \d+', l.strip())]
+        keep += [l for l in lines if not re.fullmatch(r'Page \d+ of \d+', l.strip()) and not is_byline(l)]
     return '\n'.join(keep)
 
 
