@@ -69,7 +69,7 @@ async function renderApp(req, res) {
     wikiModules: playerWiki.toc.filter(h => h.level === 2).map(h => ({ id: h.id, text: h.text })),
     store: [
       { name: 'VIP', price: '$4.99', status: t('store_coming_soon'), features: [1, 2, 3, 4].map(i => t('store_vip_feat' + i)) },
-      { name: 'VIP+', price: '$9.99', status: t('store_coming_soon'), features: [1, 2, 3, 4, 5].map(i => t('store_vipp_feat' + i)) },
+      { name: 'VIP+', price: '$9.99', status: t('store_coming_soon'), features: [1, 2, 3].map(i => t('store_vipp_feat' + i)) },
     ],
     storeSub: t('store_sub'),
     storeNote: t('store_cosmetic_note'),
