@@ -1372,3 +1372,6 @@ body.ui-nova .ldr-addnote { margin: 8px 0 0; }
 body.ui-nova .ldr-steps li > span:last-child { display: block; }
 /* long Discord usernames wrap instead of running off the hero */
 body.ui-nova .nv-hero-copy h1 { overflow-wrap: anywhere; padding-right: 28px; }
+/* store: the buy button on each rank */
+body.ui-nova .store-buy { display: inline-block; padding: 8px 16px; border-radius: 10px; font-weight: 650; font-size: 14px; white-space: nowrap; color: #E0F2FE; background: color-mix(in srgb, var(--mod) 24%, transparent); border: 1px solid color-mix(in srgb, var(--mod) 55%, transparent); }
+body.ui-nova .nv-lec[data-tebex]:hover .store-buy { background: color-mix(in srgb, var(--mod) 36%, transparent); }

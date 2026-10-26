@@ -273,9 +273,20 @@ B.registerView('store', {
     const C = CUE(), ranks = C.store || [];
     pageView(view, {
       color: '#38BDF8', kicker: 'Store', title: 'Store', lede: C.storeSub || '',
-      body: sec('Ranks', `<div class="nv-timeline">${ranks.map((r, i) => card(plainNum(i + 1), esc(r.name) + ' · ' + esc(r.price), r.features.map(esc).join(' · '), pill(r.status))).join('')}</div>`)
-        + (C.storeNote ? `<section class="nv-sec"><p class="nv-lede">${esc(C.storeNote)}</p></section>` : ''),
+      body: sec('Ranks', `<div class="nv-timeline">${ranks.map((r, i) => card(plainNum(i + 1), esc(r.name) + ' · ' + esc(r.price), r.features.map(esc).join(' · '),
+          `<span class="store-buy">${esc(r.action)}</span>`, `href="${esc(r.buy)}" target="_blank" rel="noopener" data-tebex`)).join('')}</div>`)
+        + `<section class="nv-sec">${C.storeCheckoutNote ? `<p class="nv-lede">${esc(C.storeCheckoutNote)}</p>` : ''}
+          ${C.storeBasket ? `<p><a class="tst-btn" href="${esc(C.storeBasket.url)}" target="_blank" rel="noopener" data-tebex>${icon('cart')} ${esc(C.storeBasket.label)}</a></p>` : ''}
+          ${C.storeNote ? `<p class="nv-lede">${esc(C.storeNote)}</p>` : ''}</section>`,
     });
+    // Tebex opens in its own small checkout window, as before; a new tab if popups are blocked
+    view.addEventListener('click', e => {
+      const a = e.target.closest('a[data-tebex]'); if (!a) return;
+      e.preventDefault(); e.stopPropagation();
+      const w = 480, h = 700;
+      const win = window.open(a.href, 'tebex', `width=${w},height=${h},left=${Math.round(screen.width / 2 - w / 2)},top=${Math.round(screen.height / 2 - h / 2)},scrollbars=yes,resizable=yes`);
+      if (!win) window.open(a.href, '_blank', 'noopener');
+    }, true);
   },
 });
 

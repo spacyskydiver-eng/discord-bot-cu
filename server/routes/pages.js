@@ -30,6 +30,7 @@ db.query(`
 `).catch(() => {});
 
 const upcomingEvents = require('../cue-events');
+const TEBEX = 'https://collective-union.tebex.io';
 const ASSET_V = (process.env.RENDER_GIT_COMMIT || String(Date.now())).slice(0, 10);
 const VAULT_PATH = path.join(__dirname, '../vault/vault.json');
 
@@ -67,10 +68,13 @@ async function renderApp(req, res) {
     team,
     testSessions,
     wikiModules: playerWiki.toc.filter(h => h.level === 2).map(h => ({ id: h.id, text: h.text })),
+    // Tebex webstore: each rank adds its package to the basket and opens the checkout
     store: [
-      { name: 'VIP', price: '$4.99', status: t('store_coming_soon'), features: [1, 2, 3, 4].map(i => t('store_vip_feat' + i)) },
-      { name: 'VIP+', price: '$9.99', status: t('store_coming_soon'), features: [1, 2, 3].map(i => t('store_vipp_feat' + i)) },
+      { name: 'VIP', price: '$4.99', action: t('store_get') + ' VIP', buy: TEBEX + '/checkout/packages/add/7526228/single', features: [1, 2, 3, 4].map(i => t('store_vip_feat' + i)) },
+      { name: 'VIP+', price: '$9.99', action: t('store_get') + ' VIP+', buy: TEBEX + '/checkout/packages/add/7526241/single', features: [1, 2, 3].map(i => t('store_vipp_feat' + i)) },
     ],
+    storeBasket: { label: t('store_basket'), url: TEBEX + '/checkout' },
+    storeCheckoutNote: t('store_checkout_note'),
     storeSub: t('store_sub'),
     storeNote: t('store_cosmetic_note'),
   };
