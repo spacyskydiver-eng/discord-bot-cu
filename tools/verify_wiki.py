@@ -75,6 +75,28 @@ def header_lines(layout, header):
     return n
 
 
+def drop_omitted(text):
+    """Remove the sections listed in content/wiki/omit.json from the PDF text, as the converter does."""
+    try:
+        omit = json.load(open(ROOT + '/content/wiki/omit.json')).get('sections', [])
+    except FileNotFoundError:
+        return text
+    lines = text.split('\n')
+    for num in omit:
+        depth = num.count('.') + 1
+        start = next((i for i, l in enumerate(lines) if re.match(re.escape(num) + r' \S', l.strip())), None)
+        if start is None:
+            continue
+        end = len(lines)
+        for i in range(start + 1, len(lines)):
+            m = re.match(r'(\d+(?:\.\d+)*) [A-Z]', lines[i].strip())
+            if re.match(r'Module \d+:', lines[i].strip()) or (m and m.group(1).count('.') + 1 <= depth):
+                end = i
+                break
+        lines = lines[:start] + lines[end:]
+    return '\n'.join(lines)
+
+
 def rendered(md_path):
     js = ("const w=require(process.argv[1]+'/server/wiki.js');"
           "const d=w.renderFile(process.argv[2]);"
@@ -86,7 +108,7 @@ def rendered(md_path):
 def main():
     pdf, md = sys.argv[1], sys.argv[2]
     r = rendered(md)
-    a = norm_tokens(pdf_text(pdf))
+    a = norm_tokens(drop_omitted(pdf_text(pdf)))
     b = norm_tokens(r['text'])
     sm = difflib.SequenceMatcher(None, a, b, autojunk=False)
     gone, added = Counter(), Counter()
@@ -98,7 +120,7 @@ def main():
     # is missing or extra overall counts. A table header printed again at the top of the next
     # page appears once on the site.
     missing, extra = gone - added, added - gone
-    layout = pdf_text(pdf, layout=True).split('\n')
+    layout = drop_omitted(pdf_text(pdf, layout=True)).split('\n')
     repeated = 0
     for t in r['tables']:
         extra_copies = header_lines(layout, t['header']) - 1

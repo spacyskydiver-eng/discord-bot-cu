@@ -11,7 +11,12 @@ blockquotes), so the structure is read from the tags rather than guessed from la
 taken character by character from the marked content each tag points at, which keeps the wording
 exact and lets line breaks become spaces. Semibold and italic runs inside paragraphs become
 **bold** and *italic*.
+
+Sections listed in content/wiki/omit.json are left out of both versions, with everything under
+them, and the document byline (date and author) is never included.
 """
+import json
+import os
 import re
 import sys
 from collections import defaultdict
@@ -236,9 +241,21 @@ def md_inline(runs, in_table=False):
     return out
 
 
+OMIT_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'content', 'wiki', 'omit.json')
+
+
+def omitted_sections():
+    try:
+        return set(json.load(open(OMIT_FILE)).get('sections', []))
+    except FileNotFoundError:
+        return set()
+
+
 def render(tree, T):
     lines = []
     headings = []
+    omit = omitted_sections()
+    skip = {'level': None}
 
     def kids(el):
         return [k for k in el['kids'] if isinstance(k, dict)]
@@ -258,6 +275,16 @@ def render(tree, T):
 
     def block(el, indent=''):
         s = el['s']
+        # leave out an omitted section and everything under it, up to the next heading at its level or above
+        if re.fullmatch(r'H[1-6]', s):
+            lvl = int(s[1])
+            if skip['level'] is not None and lvl <= skip['level']:
+                skip['level'] = None
+            num = re.match(r'(\d+(?:\.\d+)*)\s', T.plain(el))
+            if skip['level'] is None and num and num.group(1) in omit:
+                skip['level'] = lvl
+        if skip['level'] is not None:
+            return
         if re.fullmatch(r'H[1-6]', s):
             lvl = int(s[1])
             text = T.plain(el)
