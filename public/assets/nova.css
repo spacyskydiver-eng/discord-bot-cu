@@ -1375,3 +1375,47 @@ body.ui-nova .nv-hero-copy h1 { overflow-wrap: anywhere; padding-right: 28px; }
 /* store: the buy button on each rank */
 body.ui-nova .store-buy { display: inline-block; padding: 8px 16px; border-radius: 10px; font-weight: 650; font-size: 14px; white-space: nowrap; color: #E0F2FE; background: color-mix(in srgb, var(--mod) 24%, transparent); border: 1px solid color-mix(in srgb, var(--mod) 55%, transparent); }
 body.ui-nova .nv-lec[data-tebex]:hover .store-buy { background: color-mix(in srgb, var(--mod) 36%, transparent); }
+
+/* ---------------------------------------------------------------- staff applications (/staff-apply) */
+body.ui-nova .sa-tracks { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px; align-items: start; }
+body.ui-nova .sa-track { padding: 18px 20px; border-radius: 16px; border: 1px solid var(--background-modifier-border); background: color-mix(in srgb, var(--background-secondary) 85%, transparent); }
+body.ui-nova .sa-track h3 { margin: 4px 0 2px; font-size: 20px; letter-spacing: -.01em; }
+body.ui-nova .sa-track p { margin: 0 0 10px; color: var(--text-muted); line-height: 1.55; font-size: 14.5px; }
+body.ui-nova .sa-track .sa-tag { color: var(--text-normal); font-weight: 600; }
+body.ui-nova .sa-h { margin: 14px 0 6px; font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; color: var(--text-muted); }
+body.ui-nova .sa-list { margin: 0; padding-left: 18px; line-height: 1.55; font-size: 14.5px; color: var(--text-normal); }
+body.ui-nova .sa-list li + li { margin-top: 4px; }
+body.ui-nova .sa-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+body.ui-nova .sa-chips .tst-choice { margin: 0; }
+/* the text-field rule (.tst-field input) would stretch these to full width */
+body.ui-nova .sa-form .tst-choice input { width: auto; max-width: none; padding: 0; margin: 0; accent-color: var(--mod); }
+body.ui-nova .sa-no span { padding: 3px 10px; border-radius: 999px; font-size: 13px; color: #FCA5A5; background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.25); }
+body.ui-nova .sa-rank { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; max-width: 420px; }
+body.ui-nova .sa-rank li { display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 10px; border-radius: 10px; border: 1px solid var(--background-modifier-border); background: rgba(255,255,255,.03); }
+body.ui-nova .sa-rank li.sa-on { border-color: color-mix(in srgb, var(--mod) 55%, transparent); background: color-mix(in srgb, var(--mod) 10%, transparent); }
+body.ui-nova .sa-rank label { flex: 1; display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 600; }
+body.ui-nova .sa-rank input { width: 16px; height: 16px; accent-color: var(--mod); }
+body.ui-nova .sa-n { min-width: 16px; color: var(--mod); font-weight: 700; }
+body.ui-nova .sa-form .sa-sec { padding: 16px 18px 2px; border: 1px solid color-mix(in srgb, var(--mod) 35%, transparent) !important; border-radius: 14px; }
+body.ui-nova .sa-form .sa-sec > legend { padding: 0 6px; color: var(--mod); }
+body.ui-nova .sa-form .tst-field input[type=number] { max-width: 140px; }
+body.ui-nova .sa-tool { display: grid; grid-template-columns: 190px 84px minmax(0, 1fr); gap: 10px; align-items: center; margin-bottom: 8px; }
+body.ui-nova .sa-tool b { font-weight: 600; font-size: 14.5px; }
+body.ui-nova .sa-step .sa-tool select { width: 100%; }
+body.ui-nova .sa-tool input { width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--background-modifier-border); background: rgba(255,255,255,.04); color: var(--text-normal); font: inherit; font-size: 14.5px; }
+body.ui-nova .sa-tool .ldr-ferr { grid-column: 1 / -1; margin-top: 0; }
+body.ui-nova .sa-tool.ldr-bad select, body.ui-nova .sa-tool.ldr-bad input { border-color: rgba(248,113,113,.7); }
+body.ui-nova .sa-shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin: 0 0 12px; }
+body.ui-nova .sa-shots:empty { display: none; }
+body.ui-nova .sa-shots figure { position: relative; margin: 0; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; border: 1px solid var(--background-modifier-border); }
+body.ui-nova .sa-shots img { width: 100%; height: 100%; object-fit: cover; display: block; }
+body.ui-nova .sa-shots .ldr-mini { position: absolute; top: 6px; right: 6px; background: rgba(6,6,12,.75); }
+body.ui-nova .sa-upload { align-items: center; margin-bottom: 14px; }
+body.ui-nova .sa-count { margin: -8px 0 4px; font-size: 13.5px; }
+body.ui-nova .sa-mine { margin: 0 0 14px; }
+body.ui-nova .sa-mine summary { cursor: pointer; font-weight: 600; margin-bottom: 10px; }
+body.ui-nova .sa-privacy { margin: 10px 0 0; font-size: 13.5px; }
+@media (max-width: 700px) {
+  body.ui-nova .sa-tool { grid-template-columns: minmax(0, 1fr) 84px; }
+  body.ui-nova .sa-tool input { grid-column: 1 / -1; }
+}

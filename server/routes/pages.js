@@ -7,6 +7,7 @@ const access = require('../access');
 const wiki = require('../wiki');
 const testers = require('../testers');
 const leaders = require('../leaders');
+const staffApply = require('../staff-apply');
 
 function formatDesc(text) {
   if (!text) return '';
@@ -58,6 +59,7 @@ async function renderApp(req, res) {
     for (const i of inv) applications.unshift({ title: `${i.leader} named you in their leadership team`, detail: 'Confirm or decline', view: 'leaders' });
     if (L.open) applications.push({ title: 'Lead a nation: The Great War', detail: 'Leader applications', view: 'leaders' });
   } catch (e) { console.error('[home] leaders', e.message); }
+  if (staffApply.publicInfo().open) applications.push({ title: 'Join the staff: The Great War', detail: 'Event Staff, Operator or Event Creator', view: 'staff-apply' });
   const playerWiki = wiki.getPlayer();
   const cue = {
     user: req.session.user ? { name: req.session.user.username } : null,
@@ -94,6 +96,7 @@ router.get('/', renderApp);
 router.get('/wiki', renderApp);
 router.get('/testers', renderApp);
 router.get('/leaders', renderApp);
+router.get('/staff-apply', renderApp);
 
 router.get('/data/vault.json', (req, res) => {
   res.set('Cache-Control', 'no-cache');

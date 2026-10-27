@@ -77,6 +77,7 @@ module.exports = function startServer() {
   app.use('/', require('./routes/pages'));
   app.use('/', require('./routes/testers'));
   app.use('/', require('./routes/leaders'));
+  app.use('/', require('./routes/staff-apply'));
   app.use('/auth', require('./routes/auth'));
   app.use('/apply', require('./routes/apply'));
   app.use('/apply-hundred', require('./routes/apply-hundred'));

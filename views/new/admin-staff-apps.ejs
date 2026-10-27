@@ -1,0 +1,245 @@
+<%- include('partials/head', { pageTitle: 'Staff applications · Control Centre' }) %>
+<%- include('partials/header') %>
+<%
+  const utc = ts => ts ? new Date(ts * 1000).toISOString().replace('T', ' ').slice(0, 16) + ' UTC' : '';
+  const tname = k => (TRACK[k] || {}).name || k;
+  const STATE = { review: 'Under review', accepted: 'Accepted', rejected: 'Rejected' };
+  const label = (pairs, k) => (pairs.find(p => p[0] === k) || [k, k])[1];
+%>
+<style>
+.sw { max-width: 1100px; margin: 0 auto; padding: 32px 20px 80px; }
+.sw h1 { font-family: 'Baloo 2'; font-weight: 900; font-size: 26px; margin: 0 0 4px; color: var(--text); }
+.sw h2 { font-family: 'Baloo 2'; font-weight: 800; font-size: 19px; margin: 0 0 14px; color: #fff; }
+.sw h3 { font-size: 14px; margin: 18px 0 6px; color: var(--text); }
+.sw .sub { color: var(--muted); font-size: 13px; margin: 0 0 22px; line-height: 1.6; }
+.sw .back { display: inline-block; margin-bottom: 14px; color: var(--muted); font-size: 13px; text-decoration: none; }
+.sw .sw-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 18px; }
+.sw table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.sw th, .sw td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.sw th { color: var(--muted); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+.sw tr:last-child td { border-bottom: 0; }
+.sw .btn { display: inline-block; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--text); font-size: 12.5px; font-weight: 600; cursor: pointer; text-decoration: none; font-family: inherit; }
+.sw .btn:hover { border-color: var(--accent); color: var(--accent); }
+.sw .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.sw .btn-primary:hover { color: #fff; opacity: .88; }
+.sw .btn-danger:hover { border-color: #f87171; color: #f87171; }
+.sw .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
+.sw label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; font-weight: 600; }
+.sw select, .sw textarea { background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 8px; color: var(--text); padding: 8px 10px; font: inherit; font-size: 13.5px; color-scheme: dark; box-sizing: border-box; }
+.sw textarea { width: 100%; min-height: 70px; }
+.sw .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; background: rgba(255,255,255,.07); color: var(--muted); white-space: nowrap; }
+.sw .s-review { background: rgba(56,189,248,.15); color: #38BDF8; }
+.sw .s-accepted { background: rgba(52,211,153,.15); color: #34D399; }
+.sw .s-rejected { background: rgba(248,113,113,.14); color: #F87171; }
+.sw .tracks { margin: 0; padding-left: 18px; }
+.sw .tracks li { padding: 2px 0; }
+.sw .muted { color: var(--muted); }
+.sw p.muted { font-size: 13.5px; line-height: 1.6; margin: 6px 0 0; }
+.sw .warn { color: #FBBF24; }
+.sw .msg { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.04); margin-bottom: 16px; }
+.sw .answer { white-space: pre-wrap; line-height: 1.6; color: var(--text); font-size: 14px; margin: 0 0 6px; overflow-wrap: anywhere; }
+.sw .q { color: var(--muted); font-size: 13px; margin: 14px 0 4px; font-weight: 600; }
+.sw .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.sw .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.sw .stat h3 { margin: 0 0 8px; font-size: 15px; }
+.sw .stat p { margin: 0; font-size: 13.5px; color: var(--muted); line-height: 1.7; }
+.sw .stat b { color: var(--text); }
+.sw .decide { padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 12px; }
+.sw .decide h3 { margin: 0 0 10px; display: flex; gap: 10px; align-items: center; }
+.sw .shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 8px; }
+.sw .shots a { display: block; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: rgba(255,255,255,.03); }
+.sw .shots img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sw .yt { position: relative; padding-top: 56.25%; border-radius: 10px; overflow: hidden; }
+.sw .yt iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.sw audio { width: 100%; }
+.sw .tools td { vertical-align: top; }
+@media (max-width: 760px) { .sw .grid2, .sw .stats { grid-template-columns: 1fr; } .sw .hide-sm { display: none; } }
+</style>
+
+<main class="sw">
+<% if (msg) { %><div class="msg"><%= msg %></div><% } %>
+<% if (mode === 'list') { %>
+  <a class="back" href="/admin">← Control Centre</a>
+  <h1>Staff applications</h1>
+  <p class="sub">Applications close <time data-ts="<%= C.closesAt %>"><%= utc(C.closesAt) %></time>; decisions go out by <%= C.decideByLabel %>. Each track is accepted or rejected on its own. Accepting gives the GW Staff role and the track's role, and the bot sends them their track and its rules; rejecting sends a short, polite message. The reason you give is only ever shown here.</p>
+
+  <div class="sw-card stats">
+    <% for (const t of C.tracks) { const n = counts[t.key]; %>
+      <div class="stat"><h3><%= t.name %></h3>
+        <p><b><%= n.applied %></b> applied (<%= n.first %> as first choice)<br><b><%= n.review %></b> under review · <b><%= n.accepted %></b> accepted · <b><%= n.rejected %></b> rejected</p>
+        <% if (!t.roleId) { %><p class="warn">Track role not set in staff-apply.config.js</p><% } %>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="sw-card">
+    <form method="GET" action="/admin/staff-applications" class="row">
+      <div><label>Track</label>
+        <select name="track"><option value="">Any</option><% for (const t of C.tracks) { %><option value="<%= t.key %>" <%= filters.track === t.key ? 'selected' : '' %>><%= t.name %></option><% } %></select></div>
+      <div><label>Ranked</label>
+        <select name="first"><option value="">anywhere</option><option value="1" <%= filters.first ? 'selected' : '' %>>first choice only</option></select></div>
+      <div><label>Status<%= filters.track ? ' of that track' : '' %></label>
+        <select name="status"><option value="">Any (not withdrawn)</option>
+          <% for (const [v, l] of [['review', 'Under review'], ['accepted', 'Accepted'], ['rejected', 'Rejected'], ['withdrawn', 'Withdrawn']]) { %><option value="<%= v %>" <%= filters.status === v ? 'selected' : '' %>><%= l %></option><% } %>
+        </select></div>
+      <div><button class="btn btn-primary" type="submit">Filter</button> <a class="btn" href="/admin/staff-applications">Clear</a></div>
+    </form>
+  </div>
+
+  <div class="sw-card">
+    <h2>Applications <span class="muted" style="font-size:14px">(<%= apps.length %>)</span></h2>
+    <% if (!apps.length) { %><p class="muted">No applications match.</p><% } else { %>
+    <table>
+      <tr><th>Applicant</th><th class="hide-sm">Age</th><th>Tracks, ranked</th><th class="hide-sm">Submitted</th><th></th></tr>
+      <% for (const a of apps) { %>
+      <tr>
+        <td><b><%= a.discord_name %></b><br><span class="muted"><%= a.mc_name %></span><% if (a.withdrawn) { %><br><span class="pill">Withdrawn</span><% } %></td>
+        <td class="hide-sm"><%= a.age %></td>
+        <td><ol class="tracks"><% for (const s of a.tracks) { %><li><%= s.name %> <span class="pill s-<%= s.state %>"><%= STATE[s.state] %></span></li><% } %></ol></td>
+        <td class="hide-sm"><time data-ts="<%= a.submitted_at %>"><%= utc(a.submitted_at) %></time></td>
+        <td><a class="btn" href="/admin/staff-applications/<%= a.id %>">Open</a></td>
+      </tr>
+      <% } %>
+    </table>
+    <% } %>
+  </div>
+<% } else { const a = d.app, ans = a.answers || {}; %>
+  <a class="back" href="/admin/staff-applications">← All staff applications</a>
+  <h1><%= a.discord_name %></h1>
+  <p class="sub">Minecraft <b><%= a.mc_name %></b> · age <b><%= a.age %></b> · <%= a.timezone %> · submitted <time data-ts="<%= a.submitted_at %>"><%= utc(a.submitted_at) %></time><% if (a.updated_at - a.submitted_at > 60) { %> · last changed <time data-ts="<%= a.updated_at %>"><%= utc(a.updated_at) %></time><% } %><% if (a.status === 'withdrawn') { %> · <b class="warn">withdrawn</b><% } %></p>
+
+  <% if (d.conflicts.length) { %>
+    <div class="sw-card" style="border-color:rgba(251,191,36,.45)">
+      <h2 class="warn">Check before deciding</h2>
+      <% for (const c of d.conflicts) { %><p class="answer"><%= c %></p><% } %>
+      <p class="muted">Operators can't play the event on any account. Event Creators can't be a nation leader or on a leadership team.</p>
+    </div>
+  <% } %>
+
+  <div class="sw-card">
+    <h2>Decision, per track</h2>
+    <% for (const s of d.states) { const dec = d.decisions[s.key]; %>
+      <div class="decide">
+        <h3><%= s.name %> <span class="pill s-<%= s.state %>"><%= STATE[s.state] %></span></h3>
+        <% if (dec) { %>
+          <p class="answer"><%= dec.decision === 'accepted' ? 'Accepted' : 'Rejected' %> by <%= dec.decided_by %>, <time data-ts="<%= dec.decided_ts %>"><%= utc(dec.decided_ts) %></time>.</p>
+          <p class="q">Reason (staff only)</p><p class="answer"><%= dec.reason || '—' %></p>
+          <% if (dec.roles_result) { %><p class="muted">Roles: <%= dec.roles_result.map(r => `${r.role}: ${r.ok ? 'given' : 'not given' + (r.note ? ' (' + r.note + ')' : '')}`).join('; ') %></p><% } %>
+          <p class="muted"><%= dec.dm_sent ? 'The bot messaged them.' : dec.dm_sent === false ? "The bot couldn't message them." : '' %></p>
+        <% } else if (a.status === 'withdrawn') { %>
+          <p class="muted">Withdrawn by the applicant.</p>
+        <% } else { %>
+          <form method="POST" action="/admin/staff-applications/<%= a.id %>/decide" class="decide-form" data-track="<%= s.name %>">
+            <input type="hidden" name="track" value="<%= s.key %>">
+            <label>Reason (only staff see it; required to reject)</label>
+            <textarea name="reason" maxlength="2000"></textarea>
+            <div class="row" style="margin-top:10px">
+              <button class="btn btn-primary" type="submit" name="decision" value="accept">Accept as <%= s.name %></button>
+              <button class="btn btn-danger" type="submit" name="decision" value="reject">Reject for <%= s.name %></button>
+            </div>
+          </form>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="grid2">
+    <div class="sw-card">
+      <h2>Availability</h2>
+      <p class="q"><%= Q.timezone %></p><p class="answer"><%= a.timezone %></p>
+      <p class="q"><%= Q.hours_weekdays %></p><p class="answer"><%= a.hours_weekdays %></p>
+      <p class="q"><%= Q.hours_weekends %></p><p class="answer"><%= a.hours_weekends %></p>
+    </div>
+    <div class="sw-card">
+      <h2>Background</h2>
+      <p class="q"><%= Q.played_before %></p><p class="answer"><%= ans.played_before === 'yes' ? 'Yes: ' + (ans.played_detail || '') : 'No' %></p>
+      <p class="q"><%= Q.punished %></p><p class="answer"><%= ans.punished === 'yes' ? 'Yes' : 'No' %></p>
+      <% if (ans.punished === 'yes') { %><p class="q"><%= Q.punished_detail %></p><p class="answer"><%= ans.punished_detail %></p><% } %>
+      <p class="q">Agreed to the rules of their tracks and that all staff actions are logged</p><p class="answer">Yes</p>
+    </div>
+  </div>
+
+  <div class="sw-card">
+    <h2>Everyone's questions</h2>
+    <% for (const k of ['staff_experience', 'why', 'combat_log', 'toxic_chat']) { %><p class="q"><%= Q[k] %></p><p class="answer"><%= ans[k] || '—' %></p><% } %>
+  </div>
+
+  <% if (a.tracks.includes('event_staff')) { %>
+  <div class="sw-card">
+    <h2>Event Staff</h2>
+    <p class="q"><%= Q.es_understand %></p><p class="answer"><%= ans.es_understand === 'yes' ? 'Yes' : 'No' %>. <%= ans.es_understand_why %></p>
+    <p class="q"><%= Q.es_report %></p><p class="answer"><%= ans.es_report %></p>
+    <p class="q"><%= Q.es_hours %></p><p class="answer"><%= ans.es_hours %> hours a week</p>
+  </div>
+  <% } %>
+
+  <% if (a.tracks.includes('operator')) { %>
+  <div class="sw-card">
+    <h2>Operator</h2>
+    <p class="q"><%= Q.op_tools %></p>
+    <table class="tools"><tr><th>Tool</th><th>Rating</th><th>Example</th></tr>
+      <% for (const [k, l] of OP_TOOLS) { const t = (ans.op_tools || {})[k] || {}; %><tr><td><%= l %></td><td><b><%= t.rating || '—' %></b> / 5</td><td class="answer"><%= t.example || '' %></td></tr><% } %></table>
+    <p class="q"><%= Q.op_dupe %></p><p class="answer"><%= ans.op_dupe %></p>
+    <% if (ans.op_shifts) { %>
+      <p class="q"><%= Q.op_shifts %></p>
+      <ul class="tracks"><% for (const s of ans.op_shifts) { %><li><%= s.label %>: <time data-ts="<%= s.startsAt %>"><%= utc(s.startsAt) %></time>, <%= s.minutes %> min</li><% } %></ul>
+    <% } else { %>
+      <p class="q"><%= Q.op_shifts_text %></p><p class="answer"><%= ans.op_shifts_text %></p>
+    <% } %>
+    <p class="q"><%= Q.op_known %></p><p class="answer"><%= ans.op_known %></p>
+    <p class="q"><%= Q.voice %></p>
+    <% if (a.voice_kind === 'recording' && d.recording) { %>
+      <audio controls preload="metadata" src="/admin/staff-applications/<%= a.id %>/recording"></audio>
+      <p class="muted"><%= Math.round(d.recording.seconds || 0) %> s recorded on the page.</p>
+    <% } else if (a.voice_kind === 'youtube' && a.youtube_id) { %>
+      <div class="yt"><iframe src="https://www.youtube-nocookie.com/embed/<%= a.youtube_id %>" title="Voice note" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe></div>
+      <p class="muted"><a href="https://youtu.be/<%= a.youtube_id %>" target="_blank" rel="noopener">Open on YouTube</a></p>
+    <% } else { %><p class="muted">None.</p><% } %>
+  </div>
+  <% } %>
+
+  <% if (a.tracks.includes('creator')) { %>
+  <div class="sw-card">
+    <h2>Event Creator</h2>
+    <p class="q"><%= Q.cr_makes %></p><p class="answer"><%= (ans.cr_makes || []).map(k => k === 'other' ? 'Other: ' + (ans.cr_makes_other || '') : label(CRAFTS, k)).join(', ') %></p>
+    <p class="q"><%= Q.cr_tools %></p><p class="answer"><%= (ans.cr_tools || []).map(k => k === 'other' ? 'Other: ' + (ans.cr_tools_other || '') : label(TOOLS, k)).join(', ') %></p>
+    <p class="q"><%= Q.cr_hours %></p><p class="answer"><%= ans.cr_hours %> hours a week</p>
+    <p class="q"><%= Q.cr_accept %></p><p class="answer"><%= ans.cr_accept === 'yes' ? 'Yes' : 'No' %></p>
+    <p class="q">Portfolio</p>
+    <% if (d.files.length) { %><div class="shots"><% for (const f of d.files) { %><a href="/admin/staff-applications/<%= a.id %>/files/<%= f.id %>" target="_blank" rel="noopener" title="<%= f.name %>"><img src="/admin/staff-applications/<%= a.id %>/files/<%= f.id %>" alt="<%= f.name %>" loading="lazy"></a><% } %></div><% } %>
+    <% if ((ans.cr_links || []).length) { %><ul class="tracks" style="margin-top:10px"><% for (const u of ans.cr_links) { %><li><a href="<%= u %>" target="_blank" rel="noopener noreferrer"><%= u %></a></li><% } %></ul><% } %>
+    <% if (!d.files.length && !(ans.cr_links || []).length) { %><p class="muted">Nothing uploaded.</p><% } %>
+  </div>
+  <% } %>
+<% } %>
+</main>
+
+<script>
+(() => {
+  // times are stored in UTC; show them in this browser's timezone
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const fmt = ts => new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(ts * 1000)
+    .replace(/\bGMT\+1$/, tz === 'Europe/London' ? 'BST' : 'GMT+1').replace(/\b(GMT|UTC)\+0$/, '$1');
+  document.querySelectorAll('time[data-ts]').forEach(t => { t.textContent = fmt(+t.dataset.ts); t.title = new Date(+t.dataset.ts * 1000).toISOString(); });
+  // recordings from the browser's MediaRecorder carry no duration, so the player shows "Infinity" and
+  // can't seek; jumping to the end once makes the browser work the length out
+  const fixDuration = a => a.addEventListener('loadedmetadata', function once() {
+    a.removeEventListener('loadedmetadata', once);
+    if (a.duration !== Infinity) return;
+    const back = () => { a.removeEventListener('timeupdate', back); a.currentTime = 0; };
+    a.addEventListener('timeupdate', back);
+    a.currentTime = 1e101;
+  });
+  document.querySelectorAll('audio').forEach(a => { fixDuration(a); if (a.readyState >= 1) a.dispatchEvent(new Event('loadedmetadata')); });
+  // a reject needs a reason; both ask first, because the bot messages the applicant straight away
+  document.querySelectorAll('.decide-form').forEach(f => f.addEventListener('submit', e => {
+    const b = e.submitter, track = f.dataset.track;
+    if (!b) return;
+    if (b.value === 'reject' && !f.reason.value.trim()) { e.preventDefault(); f.reason.focus(); alert('Give a reason for rejecting. Only staff see it.'); return; }
+    const q = b.value === 'accept' ? `Accept as ${track}? They get the GW Staff role and the ${track} role, and the bot messages them their track and its rules straight away.`
+      : `Reject for ${track}? The bot sends them a short, polite message straight away.`;
+    if (!confirm(q)) e.preventDefault();
+  }));
+})();
+</script>
+<%- include('partials/foot') %>

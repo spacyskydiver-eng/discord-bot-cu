@@ -433,6 +433,7 @@ function parseHash() {
   // pages with their own address
   if (!h.startsWith('#/') && location.pathname === '/testers') return { id: 'testers', heading: null };
   if (!h.startsWith('#/') && location.pathname === '/leaders') return { id: 'leaders', heading: null };
+  if (!h.startsWith('#/') && location.pathname === '/staff-apply') return { id: 'staff-apply', heading: null };
   if (!h.startsWith('#/') && (location.pathname === '/wiki' || /^#\d+(-\d+)*$/.test(h))) {
     let heading = null; try { heading = decodeURIComponent(h.slice(1)) || null; } catch (e) { heading = h.slice(1) || null; }
     return { id: 'wiki', heading };

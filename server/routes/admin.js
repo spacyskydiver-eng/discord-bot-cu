@@ -205,6 +205,9 @@ router.post('/maintenance', async (req, res) => {
   res.redirect('/admin');
 });
 
+/* ---------------------------------------------------------------- staff applications (review queue) */
+router.use('/staff-applications', require('./admin-staff-apps'));
+
 /* ---------------------------------------------------------------- tester applications */
 const testers = require('../testers');
 const testerDb = require('../../db');
