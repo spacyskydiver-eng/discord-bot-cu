@@ -175,6 +175,7 @@ function mountDock() {
     { id: 'events', label: 'Events', ic: 'calendar' },
     { id: 'wiki', label: 'Wiki', ic: 'book-open' },
     { id: 'store', label: 'Store', ic: 'cart' },
+    { id: 'Arsenal', label: 'Arsenal', ic: 'flame' },
     { id: 'team', label: 'Team', ic: 'users' },
     ...(window.CUE && window.CUE.user ? [{ id: 'account', label: 'Your account', ic: 'key' }] : []),
     ...(window.CUE_DOCK_EXTRA || []),

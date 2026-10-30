@@ -1,0 +1,306 @@
+{
+ "title": "Arsenal (placeholder)",
+ "version": 1,
+ "frame": {
+  "width": 640,
+  "height": 360,
+  "fps": 24
+ },
+ "notes": "Placeholder content in the render job's manifest format. Replace with the published renders.",
+ "views": {
+  "home": {
+   "title": "Home",
+   "description": "The home view (placeholder).",
+   "loop": "hangar/home_loop.mp4",
+   "loop_seconds": 4
+  },
+  "armoury": {
+   "title": "Armoury",
+   "description": "The armoury view (placeholder).",
+   "loop": "hangar/armoury_loop.mp4",
+   "loop_seconds": 4
+  },
+  "tanks": {
+   "title": "Tanks",
+   "description": "The tanks view (placeholder).",
+   "loop": "hangar/tanks_loop.mp4",
+   "loop_seconds": 4
+  },
+  "kills": {
+   "title": "Kills",
+   "description": "The kills view (placeholder).",
+   "loop": "hangar/kills_loop.mp4",
+   "loop_seconds": 4
+  }
+ },
+ "moves": [
+  {
+   "from": "home",
+   "to": "armoury",
+   "file": "hangar/move_home__armoury.mp4",
+   "seconds": 1.0
+  },
+  {
+   "from": "home",
+   "to": "tanks",
+   "file": "hangar/move_home__tanks.mp4",
+   "seconds": 1.0
+  },
+  {
+   "from": "home",
+   "to": "kills",
+   "file": "hangar/move_home__kills.mp4",
+   "seconds": 1.0
+  },
+  {
+   "from": "armoury",
+   "to": "home",
+   "file": "hangar/move_armoury__home.mp4",
+   "seconds": 1.0
+  },
+  {
+   "from": "armoury",
+   "to": "tanks",
+   "file": "hangar/move_armoury__tanks.mp4",
+   "seconds": 1.0
+  },
+  {
+   "from": "armoury",
+   "to": "kills",
+   "file": "hangar/move_armoury__kills.mp4",
+   "seconds": 1.0
+  },
+  {
+   "from": "tanks",
+   "to": "home",
+   "file": "hangar/move_tanks__home.mp4",
+   "seconds": 1.0
+  },
+  {
+   "from": "tanks",
+   "to": "armoury",
+   "file": "hangar/move_tanks__armoury.mp4",
+   "seconds": 1.0
+  },
+  {
+   "from": "tanks",
+   "to": "kills",
+   "file": "hangar/move_tanks__kills.mp4",
+   "seconds": 1.0
+  },
+  {
+   "from": "kills",
+   "to": "home",
+   "file": "hangar/move_kills__home.mp4",
+   "seconds": 1.0
+  },
+  {
+   "from": "kills",
+   "to": "armoury",
+   "file": "hangar/move_kills__armoury.mp4",
+   "seconds": 1.0
+  },
+  {
+   "from": "kills",
+   "to": "tanks",
+   "file": "hangar/move_kills__tanks.mp4",
+   "seconds": 1.0
+  }
+ ],
+ "assets": [
+  {
+   "id": "mark_v.standard.default",
+   "title": "Mark V",
+   "category": "tank",
+   "vip_tier": null,
+   "tank": "mark_v",
+   "description": "The Mark V in its standard paint (placeholder).",
+   "area": "tanks",
+   "files": {
+    "transparent": "tanks/mark_v/standard/default.webp",
+    "full": null,
+    "thumbnail": "tanks/mark_v/standard/default_thumb.webp"
+   }
+  },
+  {
+   "id": "mark_v.skins.grey_1916",
+   "title": "Mark V: Grey 1916",
+   "category": "tank_skin",
+   "vip_tier": "vip",
+   "tank": "mark_v",
+   "description": "Grey 1916 (placeholder).",
+   "area": "tanks",
+   "files": {
+    "transparent": "tanks/mark_v/skins/grey_1916.webp",
+    "full": null,
+    "thumbnail": "tanks/mark_v/skins/grey_1916_thumb.webp"
+   }
+  },
+  {
+   "id": "mark_v.skins.solomon_1916",
+   "title": "Mark V: Solomon 1916",
+   "category": "tank_skin",
+   "vip_tier": "vip",
+   "tank": "mark_v",
+   "description": "Solomon 1916 (placeholder).",
+   "area": "tanks",
+   "files": {
+    "transparent": "tanks/mark_v/skins/solomon_1916.webp",
+    "full": null,
+    "thumbnail": "tanks/mark_v/skins/solomon_1916_thumb.webp"
+   }
+  },
+  {
+   "id": "mark_v.flags.british_empire",
+   "title": "Mark V: British Empire flag",
+   "category": "tank_flag",
+   "vip_tier": "vip",
+   "tank": "mark_v",
+   "description": "British Empire flag (placeholder).",
+   "area": "tanks",
+   "files": {
+    "transparent": "tanks/mark_v/flags/british_empire.webp",
+    "full": null,
+    "thumbnail": "tanks/mark_v/flags/british_empire_thumb.webp"
+   }
+  },
+  {
+   "id": "mark_v.emblems.ace_of_spades_12th_division",
+   "title": "Mark V: Ace of spades, 12th Division",
+   "category": "tank_emblem",
+   "vip_tier": "vip",
+   "tank": "mark_v",
+   "description": "Ace of spades, 12th Division (placeholder).",
+   "area": "tanks",
+   "files": {
+    "transparent": "tanks/mark_v/emblems/ace_of_spades_12th_division.webp",
+    "full": null,
+    "thumbnail": "tanks/mark_v/emblems/ace_of_spades_12th_division_thumb.webp"
+   }
+  },
+  {
+   "id": "a7v.standard.default",
+   "title": "A7V",
+   "category": "tank",
+   "vip_tier": null,
+   "tank": "a7v",
+   "description": "The A7V in its standard paint (placeholder).",
+   "area": "tanks",
+   "files": {
+    "transparent": "tanks/a7v/standard/default.webp",
+    "full": null,
+    "thumbnail": "tanks/a7v/standard/default_thumb.webp"
+   }
+  },
+  {
+   "id": "a7v.skins.buntfarben_1918",
+   "title": "A7V: Buntfarben 1918",
+   "category": "tank_skin",
+   "vip_tier": "vip",
+   "tank": "a7v",
+   "description": "Buntfarben 1918 (placeholder).",
+   "area": "tanks",
+   "files": {
+    "transparent": "tanks/a7v/skins/buntfarben_1918.webp",
+    "full": null,
+    "thumbnail": "tanks/a7v/skins/buntfarben_1918_thumb.webp"
+   }
+  },
+  {
+   "id": "a7v.flags.germany",
+   "title": "A7V: German Empire flag",
+   "category": "tank_flag",
+   "vip_tier": "vip",
+   "tank": "a7v",
+   "description": "German Empire flag (placeholder).",
+   "area": "tanks",
+   "files": {
+    "transparent": "tanks/a7v/flags/germany.webp",
+    "full": null,
+    "thumbnail": "tanks/a7v/flags/germany_thumb.webp"
+   }
+  },
+  {
+   "id": "fiat_2000.standard.default",
+   "title": "Fiat 2000",
+   "category": "tank",
+   "vip_tier": null,
+   "tank": "fiat_2000",
+   "description": "The Fiat 2000 in its standard paint (placeholder).",
+   "area": "tanks",
+   "files": {
+    "transparent": "tanks/fiat_2000/standard/default.webp",
+    "full": null,
+    "thumbnail": "tanks/fiat_2000/standard/default_thumb.webp"
+   }
+  },
+  {
+   "id": "fiat_2000.skins.tre_toni",
+   "title": "Fiat 2000: Tre toni",
+   "category": "tank_skin",
+   "vip_tier": "vip",
+   "tank": "fiat_2000",
+   "description": "Tre toni (placeholder).",
+   "area": "tanks",
+   "files": {
+    "transparent": "tanks/fiat_2000/skins/tre_toni.webp",
+    "full": null,
+    "thumbnail": "tanks/fiat_2000/skins/tre_toni_thumb.webp"
+   }
+  },
+  {
+   "id": "renault_ft.standard.default",
+   "title": "Renault FT",
+   "category": "tank",
+   "vip_tier": null,
+   "tank": "renault_ft",
+   "description": "The Renault FT in its standard paint (placeholder).",
+   "area": "tanks",
+   "files": {
+    "transparent": "tanks/renault_ft/standard/default.webp",
+    "full": null,
+    "thumbnail": "tanks/renault_ft/standard/default_thumb.webp"
+   }
+  },
+  {
+   "id": "renault_ft.skins.bariole_bleu",
+   "title": "Renault FT: Bariolé bleu",
+   "category": "tank_skin",
+   "vip_tier": "vip",
+   "tank": "renault_ft",
+   "description": "Bariolé bleu (placeholder).",
+   "area": "tanks",
+   "files": {
+    "transparent": "tanks/renault_ft/skins/bariole_bleu.webp",
+    "full": null,
+    "thumbnail": "tanks/renault_ft/skins/bariole_bleu_thumb.webp"
+   }
+  },
+  {
+   "id": "kill.headshot_back",
+   "title": "Headshot: straight back",
+   "category": "kill_animation",
+   "vip_tier": "vip_plus",
+   "kind": "instant",
+   "description": "The head whips back and the body topples backwards (placeholder).",
+   "area": "kills",
+   "files": {
+    "full": "vip_plus/kill/headshot_back.mp4",
+    "thumbnail": "vip_plus/kill/headshot_back_thumb.webp"
+   }
+  },
+  {
+   "id": "kill.melee_crumple",
+   "title": "Melee: crumple",
+   "category": "kill_animation",
+   "vip_tier": "vip_plus",
+   "kind": "slow",
+   "description": "Struck and crumpling where he stands (placeholder).",
+   "area": "kills",
+   "files": {
+    "full": "vip_plus/kill/melee_crumple.mp4",
+    "thumbnail": "vip_plus/kill/melee_crumple_thumb.webp"
+   }
+  }
+ ]
+}

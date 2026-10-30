@@ -1440,3 +1440,28 @@ body.ui-nova .acc-form { margin-top: 6px; }
 /* clear of the sound button in the top corner */
 @media (max-width: 700px) { body.ui-nova .nv-vip-banner { padding-right: 52px; } }
 @media (max-width: 600px) { body.ui-nova .nv-vip-go { display: none; } }
+
+/* ---------------------------------------------------------------- the Arsenal: Coming Soon (#/Arsenal) */
+body.has-menubg.ui-nova .view-content.nv-view.nv-view-arsenal, body.ui-nova .view-content.nv-view.nv-view-arsenal { background: #030306; padding: 0; }
+body.ui-nova .ars-soon { position: relative; min-height: 100%; display: flex; align-items: flex-end; overflow: hidden; isolation: isolate; }
+body.ui-nova .ars-soon-bg, body.ui-nova .ars-soon-bg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 62% 50%; }
+body.ui-nova .ars-soon-bg { z-index: -2; animation: ars-drift 40s ease-in-out infinite alternate; }
+body.ui-nova .ars-soon-bg img { filter: brightness(.74) saturate(.9) contrast(1.05); }
+body.ui-nova .ars-soon .nv-kicker { color: #FBBF24; }
+/* darkened, with the edges sinking into the page */
+body.ui-nova .ars-soon-shade { position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(90deg, rgba(3,3,6,.92) 0%, rgba(3,3,6,.6) 34%, rgba(3,3,6,.08) 62%, rgba(3,3,6,.35) 100%),
+    linear-gradient(180deg, rgba(3,3,6,.75) 0%, rgba(3,3,6,0) 22%, rgba(3,3,6,0) 58%, #030306 100%),
+    radial-gradient(ellipse 90% 80% at 62% 50%, rgba(0,0,0,0) 45%, rgba(0,0,0,.55) 100%); }
+body.ui-nova .ars-soon-copy { position: relative; max-width: 560px; padding: 32px 48px 18vh; }
+body.ui-nova .ars-soon-copy .nv-back { margin-bottom: 18px; }
+body.ui-nova .ars-soon-copy h1 { margin: 6px 0 12px; font-size: clamp(40px, 6vw, 72px); line-height: 1; letter-spacing: -.03em; }
+body.ui-nova .ars-soon-copy .nv-lede { margin: 0 0 22px; font-size: 18px; color: rgba(232,235,248,.82); }
+body.ui-nova .ars-soon .tst-btn { --mod: #FBBF24; }
+@keyframes ars-drift { from { transform: scale(1.04) translate3d(0, 0, 0); } to { transform: scale(1.1) translate3d(-1.5%, -1%, 0); } }
+@media (prefers-reduced-motion: reduce) { body.ui-nova .ars-soon-bg { animation: none; } }
+@media (max-width: 700px) {
+  body.ui-nova .ars-soon-copy { padding: 24px 16px 22vh; }
+  body.ui-nova .ars-soon-bg img { object-position: 64% 30%; }
+  body.ui-nova .ars-soon-shade { background: linear-gradient(180deg, rgba(3,3,6,.7) 0%, rgba(3,3,6,.15) 30%, rgba(3,3,6,.7) 70%, #030306 100%); }
+}
