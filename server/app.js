@@ -67,7 +67,8 @@ module.exports = function startServer() {
 
   // ── Maintenance mode: only staff get past this. /auth stays open so staff can sign in.
   app.use(async (req, res, next) => {
-    if (req.path.startsWith('/auth') || res.locals.isStaff) return next();
+    // the game servers' VIP lookup has its own secret and must keep working during maintenance
+    if (req.path.startsWith('/auth') || req.path.startsWith('/api/vip/') || res.locals.isStaff) return next();
     if (!(await access.maintenanceOn())) return next();
     res.set('Retry-After', '3600');
     if (req.path.startsWith('/api/') || req.path.startsWith('/data/') || req.xhr) return res.status(503).json({ error: 'maintenance' });
@@ -78,6 +79,7 @@ module.exports = function startServer() {
   app.use('/', require('./routes/testers'));
   app.use('/', require('./routes/leaders'));
   app.use('/', require('./routes/staff-apply'));
+  app.use('/', require('./routes/vip'));
   app.use('/auth', require('./routes/auth'));
   app.use('/apply', require('./routes/apply'));
   app.use('/apply-hundred', require('./routes/apply-hundred'));
@@ -95,6 +97,7 @@ module.exports = function startServer() {
 
   require('./testers').startSweeps();
   require('./leaders').startAutoExport();
+  require('./minecraft-links').start();
 
   const port = process.env.PORT || 3000;
   app.listen(port, () => console.log(`Server running on port ${port}`));

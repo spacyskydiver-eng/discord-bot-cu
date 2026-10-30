@@ -8,6 +8,7 @@ const wiki = require('../wiki');
 const testers = require('../testers');
 const leaders = require('../leaders');
 const staffApply = require('../staff-apply');
+const vip = require('../vip');
 
 function formatDesc(text) {
   if (!text) return '';
@@ -60,10 +61,14 @@ async function renderApp(req, res) {
     if (L.open) applications.push({ title: 'Lead a nation: The Great War', detail: 'Leader applications', view: 'leaders' });
   } catch (e) { console.error('[home] leaders', e.message); }
   if (staffApply.publicInfo().open) applications.push({ title: 'Join the staff: The Great War', detail: 'Event Staff, Operator or Event Creator', view: 'staff-apply' });
+  // their VIP tier and Minecraft link, for the home banner and the account page
+  let vipState = null;
+  if (req.session.user) { try { vipState = await vip.mine(req.session.user); } catch (e) { console.error('[home] vip', e.message); } }
   const playerWiki = wiki.getPlayer();
   const cue = {
     user: req.session.user ? { name: req.session.user.username } : null,
     isAdmin: !!res.locals.isOwner,
+    vip: vipState,
     discord: 'https://discord.gg/x832cqAdu',
     events: upcomingEvents(),
     applications,
@@ -97,6 +102,7 @@ router.get('/wiki', renderApp);
 router.get('/testers', renderApp);
 router.get('/leaders', renderApp);
 router.get('/staff-apply', renderApp);
+router.get('/account', renderApp);
 
 router.get('/data/vault.json', (req, res) => {
   res.set('Cache-Control', 'no-cache');

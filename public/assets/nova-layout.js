@@ -182,7 +182,11 @@ function showHome(view) {
   const events = C.events || [], apps = C.applications || [], team = C.team || [];
   const next = events[0];
   const modules = C.wikiModules || [];
+  // a VIP who hasn't linked a Minecraft account gets nothing in game until they do
+  const vipBanner = C.vip && C.vip.tier && C.vip.tier !== 'none' && !C.vip.linked
+    ? `<button class="nv-vip-banner" data-go="account">${icon('key')}<span><b>Link your Minecraft account to unlock your ${esc(C.vip.tierName)} perks in game.</b><small>It takes a few seconds: just your Java Edition username.</small></span><span class="nv-vip-go">Link it ${icon('chevron-right')}</span></button>` : '';
   view.innerHTML = `<div class="nv-page nv-home">
+    ${vipBanner}
     <section class="nv-hero">
       <div class="nv-laser" aria-hidden="true"></div>
       <div class="nv-hero-copy"><h1>${greet}${name ? ', ' + esc(name) : ''}</h1></div>

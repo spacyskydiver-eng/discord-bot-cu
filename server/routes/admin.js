@@ -208,6 +208,9 @@ router.post('/maintenance', async (req, res) => {
 /* ---------------------------------------------------------------- staff applications (review queue) */
 router.use('/staff-applications', require('./admin-staff-apps'));
 
+/* ---------------------------------------------------------------- VIP for the game servers */
+router.use('/vip', require('./admin-vip'));
+
 /* ---------------------------------------------------------------- tester applications */
 const testers = require('../testers');
 const testerDb = require('../../db');

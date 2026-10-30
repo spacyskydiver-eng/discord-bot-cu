@@ -1419,3 +1419,19 @@ body.ui-nova .sa-privacy { margin: 10px 0 0; font-size: 13.5px; }
   body.ui-nova .sa-tool { grid-template-columns: minmax(0, 1fr) 84px; }
   body.ui-nova .sa-tool input { grid-column: 1 / -1; }
 }
+
+/* ---------------------------------------------------------------- VIP: home banner and the account page (/account) */
+body.ui-nova .nv-vip-banner { display: flex; align-items: center; gap: 14px; width: 100%; margin: 0 0 18px; padding: 14px 18px; border-radius: 14px; border: 1px solid rgba(251,191,36,.5); background: rgba(251,191,36,.1); color: var(--text-normal); font: inherit; text-align: left; cursor: pointer; }
+body.ui-nova .nv-vip-banner:hover { background: rgba(251,191,36,.16); }
+body.ui-nova .nv-vip-banner > .svg-icon { width: 20px; height: 20px; color: #FBBF24; flex: none; }
+body.ui-nova .nv-vip-banner > span:nth-child(2) { flex: 1; display: grid; gap: 2px; }
+body.ui-nova .nv-vip-banner b { font-size: 15px; }
+body.ui-nova .nv-vip-banner small { color: var(--text-muted); font-size: 13.5px; }
+body.ui-nova .nv-vip-go { display: inline-flex; align-items: center; gap: 4px; color: #FBBF24; font-weight: 650; font-size: 14px; white-space: nowrap; }
+body.ui-nova .nv-vip-go .svg-icon { width: 14px; height: 14px; }
+body.ui-nova .acc .tst-box + .tst-box { margin-top: 14px; }
+body.ui-nova .acc-state .svg-icon { width: 16px; height: 16px; vertical-align: -3px; color: var(--mod); }
+body.ui-nova .acc-form { margin-top: 6px; }
+/* clear of the sound button in the top corner */
+@media (max-width: 700px) { body.ui-nova .nv-vip-banner { padding-right: 52px; } }
+@media (max-width: 600px) { body.ui-nova .nv-vip-go { display: none; } }

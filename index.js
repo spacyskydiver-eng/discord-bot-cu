@@ -36,6 +36,7 @@ client.once('ready', async () => {
   runVeteranCheck(client);
   setInterval(() => runVeteranCheck(client), 6 * 60 * 60 * 1000);
   setupNationTracking(client);
+  require('./server/vip').seed(client);
 
   // Sync existing bans from the CU guild into the moderation DB
   const cuGuild = await client.guilds.fetch(CU_GUILD_ID).catch(() => null);
@@ -44,6 +45,10 @@ client.once('ready', async () => {
 
 // an accepted tester who joins the server after applying gets the role straight away
 client.on('guildMemberAdd', member => { require('./server/testers').onMemberJoin(member).catch(e => console.error('[testers] join', e.message)); });
+
+// VIP and VIP+ (given by Tebex, or by staff): tell the game servers when someone's tier changes
+client.on('guildMemberUpdate', (before, member) => require('./server/vip').onMemberUpdate(member));
+client.on('guildMemberRemove', member => require('./server/vip').onMemberRemove(member));
 
 client.on('guildBanAdd', async (ban) => {
   if (ban.guild.id !== CU_GUILD_ID) return;

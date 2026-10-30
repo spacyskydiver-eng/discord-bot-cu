@@ -176,6 +176,7 @@ function mountDock() {
     { id: 'wiki', label: 'Wiki', ic: 'book-open' },
     { id: 'store', label: 'Store', ic: 'cart' },
     { id: 'team', label: 'Team', ic: 'users' },
+    ...(window.CUE && window.CUE.user ? [{ id: 'account', label: 'Your account', ic: 'key' }] : []),
     ...(window.CUE_DOCK_EXTRA || []),
     ...(window.CUE && window.CUE.isAdmin ? [{ sep: true }, { href: '/admin', label: 'Admin panel', ic: 'shield' }] : []),
   ].filter(it => it.sep || it.href || (it.id && B.exists(it.id)));

@@ -1,0 +1,113 @@
+<%- include('partials/head', { pageTitle: 'VIP · Control Centre' }) %>
+<%- include('partials/header') %>
+<% const utc = ts => ts ? new Date(ts * 1000).toISOString().replace('T', ' ').slice(0, 19) + ' UTC' : ''; %>
+<style>
+.vw { max-width: 1100px; margin: 0 auto; padding: 32px 20px 80px; }
+.vw h1 { font-family: 'Baloo 2'; font-weight: 900; font-size: 26px; margin: 0 0 4px; color: var(--text); }
+.vw h2 { font-family: 'Baloo 2'; font-weight: 800; font-size: 19px; margin: 0 0 14px; color: #fff; }
+.vw .sub { color: var(--muted); font-size: 13px; margin: 0 0 22px; line-height: 1.6; }
+.vw .back { display: inline-block; margin-bottom: 14px; color: var(--muted); font-size: 13px; text-decoration: none; }
+.vw .vw-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 18px; }
+.vw table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.vw th, .vw td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.vw th { color: var(--muted); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+.vw tr:last-child td { border-bottom: 0; }
+.vw .btn { display: inline-block; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--text); font-size: 12.5px; font-weight: 600; cursor: pointer; text-decoration: none; font-family: inherit; }
+.vw .btn:hover { border-color: var(--accent); color: var(--accent); }
+.vw .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.vw .btn-danger:hover { border-color: #f87171; color: #f87171; }
+.vw .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.vw input[type=text] { flex: 1; min-width: 240px; background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 8px; color: var(--text); padding: 9px 12px; font: inherit; font-size: 14px; }
+.vw pre { margin: 10px 0; padding: 12px 14px; border-radius: 10px; background: rgba(0,0,0,.35); border: 1px solid var(--line); color: #A7F3D0; font-size: 13.5px; overflow-x: auto; }
+.vw .muted { color: var(--muted); }
+.vw .ok { color: #34D399; } .vw .bad { color: #F87171; } .vw .warn { color: #FBBF24; }
+.vw .msg { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.04); margin-bottom: 16px; overflow-wrap: anywhere; }
+.vw code { font-size: 12.5px; overflow-wrap: anywhere; }
+.vw .facts { display: grid; grid-template-columns: 180px 1fr; gap: 6px 14px; font-size: 13.5px; }
+.vw .facts dt { color: var(--muted); } .vw .facts dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 700px) { .vw .facts { grid-template-columns: 1fr; } .vw .hide-sm { display: none; } }
+</style>
+
+<main class="vw">
+  <a class="back" href="/admin">← Control Centre</a>
+  <h1>VIP for the game servers</h1>
+  <p class="sub">The game servers ask <code>GET /api/vip/&lt;minecraft-uuid&gt;</code> with the <code>X-CUE-Secret</code> header, and are told <code>POST &lt;server&gt;/api/vip/changed</code> when someone's tier changes. The tier comes from the Discord account linked to the UUID and its VIP or VIP+ role (VIP+ beats VIP); roles are cached for <%= C.cacheSeconds %> seconds.</p>
+  <% if (msg) { %><div class="msg"><%= msg %></div><% } %>
+
+  <div class="vw-card">
+    <h2>Setup</h2>
+    <dl class="facts">
+      <dt>Shared secret</dt><dd><%- C.secret ? '<span class="ok">set</span> (VIP_API_SECRET)' : '<span class="bad">not set</span>: every lookup gets 401 and nothing is sent. Set VIP_API_SECRET on Render and the same value in each game server.' %></dd>
+      <dt>Game servers</dt><dd><%- C.servers.length ? C.servers.map(s => '<code>' + s.replace(/[<>&"]/g, '') + '</code>').join('<br>') : '<span class="warn">none</span>: set VIP_SERVER_URLS (comma-separated base URLs)' %></dd>
+      <dt>VIP role</dt><dd><code><%= C.roles.vip.join(', ') %></code></dd>
+      <dt>VIP+ role</dt><dd><code><%= C.roles.vip_plus.join(', ') %></code></dd>
+    </dl>
+  </div>
+
+  <div class="vw-card">
+    <h2>Look up</h2>
+    <form method="GET" action="/admin/vip" class="row">
+      <input type="text" name="q" value="<%= q %>" placeholder="Minecraft UUID, Minecraft name or Discord ID" autocomplete="off" spellcheck="false">
+      <button class="btn btn-primary" type="submit">Look up</button>
+    </form>
+    <% if (result) { %>
+      <% if (!result.uuid) { %><p class="warn" style="margin-top:14px"><%= result.note %></p><% } else { %>
+        <p class="muted" style="margin:14px 0 0">From <%= result.how %> · UUID <code><%= result.dashed %></code></p>
+        <p class="muted" style="margin:10px 0 0">The endpoint returns <b><%= result.status %></b>:</p>
+        <pre><%= JSON.stringify(result.body) %></pre>
+        <dl class="facts">
+          <% if (result.why.error) { %><dt>Error</dt><dd class="bad"><%= result.why.error %></dd>
+          <% } else if (!result.why.linked) { %><dt>Why</dt><dd>No Discord account is linked to this Minecraft account.</dd>
+          <% } else { %>
+            <dt>Linked Discord</dt><dd><%= result.why.discord_name || '' %> <code><%= result.why.discord_id %></code></dd>
+            <dt>Linked Minecraft</dt><dd><%= result.why.mc_name %></dd>
+            <dt>In our server</dt><dd><%= result.why.inServer ? 'yes' : 'no' %></dd>
+            <dt>Roles from</dt><dd><%= result.why.cached ? 'the cache (under ' + C.cacheSeconds + ' s old)' : 'Discord, just now' %></dd>
+          <% } %>
+        </dl>
+        <div class="row" style="margin-top:14px">
+          <form method="POST" action="/admin/vip/notify"><input type="hidden" name="uuid" value="<%= result.uuid %>"><input type="hidden" name="q" value="<%= q %>"><button class="btn" type="submit">Send a test change notification</button></form>
+          <% if (result.why && result.why.linked) { %>
+          <form method="POST" action="/admin/vip/unlink" onsubmit="return confirm('Remove this link? Use it when someone has linked an account that isn\'t theirs.')"><input type="hidden" name="discord_id" value="<%= result.why.discord_id %>"><input type="hidden" name="q" value="<%= q %>"><button class="btn btn-danger" type="submit">Remove this link</button></form>
+          <% } %>
+        </div>
+      <% } %>
+    <% } %>
+  </div>
+
+  <div class="vw-card">
+    <h2>Change notifications <span class="muted" style="font-size:14px">(last <%= log.length %>)</span></h2>
+    <% if (!log.length) { %><p class="muted">None sent yet.</p><% } else { %>
+    <table>
+      <tr><th>When</th><th>Player</th><th class="hide-sm">Why</th><th>Server</th><th>Try</th><th>Result</th></tr>
+      <% for (const n of log) { %>
+      <tr>
+        <td><time data-ts="<%= n.at_ts %>"><%= utc(n.at_ts) %></time></td>
+        <td><%= n.mc_name || '' %><br><code class="muted"><%= n.uuid %></code></td>
+        <td class="hide-sm"><%= n.reason || '' %></td>
+        <td><code><%= n.server %></code></td>
+        <td><%= n.attempt %></td>
+        <td><span class="<%= n.ok ? 'ok' : 'bad' %>"><%= n.ok ? 'OK' : 'Failed' %><%= n.status ? ' ' + n.status : '' %></span><% if (n.response) { %><br><span class="muted"><%= n.response.slice(0, 160) %></span><% } %></td>
+      </tr>
+      <% } %>
+    </table>
+    <% } %>
+  </div>
+
+  <div class="vw-card">
+    <h2>VIP members <span class="muted" style="font-size:14px">(<%= members.length %>)</span></h2>
+    <% if (!members.length) { %><p class="muted">Nobody yet. The bot records everyone with a VIP role when it starts and whenever roles change.</p><% } else { %>
+    <table>
+      <tr><th>Discord</th><th>Tier</th><th>Minecraft</th><th>In game</th></tr>
+      <% for (const m of members) { %>
+      <tr><td><%= m.discord_name || '' %> <code class="muted"><%= m.discord_id %></code></td><td><%= TIER_NAME[m.tier] %></td><td><%= m.mc_name || '—' %></td>
+        <td><%- m.mc_uuid ? '<span class="ok">Active</span>' : '<span class="warn">Not linked</span>' %></td></tr>
+      <% } %>
+    </table>
+    <% } %>
+  </div>
+</main>
+<script>
+document.querySelectorAll('time[data-ts]').forEach(t => { t.textContent = new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', second: '2-digit', timeZoneName: 'short' }).format(+t.dataset.ts * 1000).replace(/\b(GMT|UTC)\+0$/, '$1'); });
+</script>
+<%- include('partials/foot') %>
