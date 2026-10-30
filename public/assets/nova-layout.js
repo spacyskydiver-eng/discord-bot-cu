@@ -551,12 +551,11 @@ function showTesters(view) {
   const myApp = s => state.me && state.me.applications.find(a => a.session_id === s.id);
 
   function sessionHead(s) {
-    const left = s.slots - s.taken;
     return `<div class="tst-when">
         <div class="tst-time">${timeTag(s.starts_at)}</div>
         <div class="tst-meta"><span class="tst-rel" data-rel="${s.starts_at}" data-minutes="${s.duration_minutes}"></span><span data-uk="${s.starts_at}" hidden></span></div>
       </div>
-      <div class="tst-slots"><b>${s.taken} of ${s.slots}</b> slots taken${left <= 0 ? ' · the waitlist is open' : ''}<div class="tst-bar"><i style="width:${Math.min(100, Math.round(s.taken / s.slots * 100))}%"></i></div></div>`;
+      ${s.full ? '<div class="tst-slots">The waitlist is open</div>' : ''}`;
   }
   const discordLink = () => `<a class="tst-btn" href="${esc(CUE().discord || 'https://discord.gg/x832cqAdu')}" target="_blank" rel="noopener">${icon('external')} Open our Discord</a>`;
 
@@ -587,7 +586,7 @@ function showTesters(view) {
       return `<div class="tst-box tst-wait">
         <div class="tst-k">You're on the waitlist</div>
         <h3>Number ${a.position} in line</h3>
-        <p>All ${s.slots} places are taken. If someone withdraws, the next person on the waitlist gets their place automatically, and our bot will message you on Discord and give you the GW Testers role.</p>
+        <p>All places are taken. If someone withdraws, the next person on the waitlist gets their place automatically, and our bot will message you on Discord and give you the GW Testers role.</p>
         <div class="tst-row"><button class="tst-btn tst-danger" data-act="withdraw" data-session="${s.id}">Leave the waitlist</button></div>
       </div>`;
     }
@@ -601,7 +600,7 @@ function showTesters(view) {
   function form(s, again) {
     return `<form class="tst-form" data-session="${s.id}" novalidate>
       ${again ? '<p class="tst-note">You withdrew from this session. You can apply again; you\'ll join the back of the queue.</p>' : ''}
-      ${s.taken >= s.slots ? `<p class="tst-note">All ${s.slots} places are taken, so applying puts you on the waitlist. If someone withdraws, the next person in line gets their place automatically.</p>` : ''}
+      ${s.full ? `<p class="tst-note">All places are taken, so applying puts you on the waitlist. If someone withdraws, the next person in line gets their place automatically.</p>` : ''}
       <fieldset><legend>Can you attend on ${timeTag(s.starts_at, 'date')} at ${timeTag(s.starts_at, 'clock')}?</legend>
         <label class="tst-choice"><input type="radio" name="attend" value="yes" required> Yes</label>
         <label class="tst-choice"><input type="radio" name="attend" value="no"> No</label></fieldset>

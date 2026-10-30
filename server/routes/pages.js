@@ -50,9 +50,9 @@ async function renderApp(req, res) {
   let testSessions = [];
   try {
     testSessions = (await testers.upcomingSessions()).filter(s => s.open)
-      .map(s => ({ id: s.id, title: s.title, starts_at: s.starts_at, duration_minutes: s.duration_minutes, slots: s.slots, team_size: s.team_size, taken: s.taken }));
+      .map(s => ({ id: s.id, title: s.title, starts_at: s.starts_at, duration_minutes: s.duration_minutes, team_size: s.team_size, full: s.taken >= s.slots }));
   } catch (e) { console.error('[home] test sessions', e.message); }
-  for (const s of testSessions) applications.push({ title: 'Tester: ' + s.title, detail: `${s.taken} of ${s.slots} slots taken`, view: 'testers' });
+  for (const s of testSessions) applications.push({ title: 'Tester: ' + s.title, detail: s.full ? 'Waitlist open' : 'Test battle, about an hour', view: 'testers' });
   try {
     const L = leaders.publicInfo();
     // a notice for anyone named in a leadership team who hasn't answered yet
@@ -94,7 +94,7 @@ async function renderApp(req, res) {
       .formatToParts(ts * 1000).map(x => [x.type, x.value]));
     return `${p.weekday} ${p.day} ${p.month} ${p.year}, ${p.hour}:${p.minute} UTC`;
   };
-  const noscriptSessions = testSessions.map(s => ({ title: s.title, when: utc(s.starts_at), taken: s.taken, slots: s.slots }));
+  const noscriptSessions = testSessions.map(s => ({ title: s.title, when: utc(s.starts_at) }));
   res.render('app', { cueJson, v: ASSET_V, noscriptSessions, staffScript: res.locals.isStaff ? '/staff-assets/staff.js?v=' + ASSET_V : null });
 }
 router.get('/', renderApp);

@@ -5,7 +5,7 @@ const router = express.Router();
 const testers = require('../testers');
 const { javaAccount } = require('../minecraft');
 
-const publicSession = s => ({ id: s.id, title: s.title, starts_at: s.starts_at, duration_minutes: s.duration_minutes, slots: s.slots, team_size: s.team_size, open: s.open, taken: s.taken, waitlisted: s.waitlisted });
+const publicSession = s => ({ id: s.id, title: s.title, starts_at: s.starts_at, duration_minutes: s.duration_minutes, team_size: s.team_size, open: s.open, full: s.taken >= s.slots });
 
 // JSON posts from this site only
 function sameOrigin(req, res, next) {
