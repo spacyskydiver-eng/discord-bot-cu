@@ -275,9 +275,15 @@ B.registerView('store', {
   title: () => 'Store', icon: 'cart', cls: 'nv-view',
   show(view) {
     const C = CUE(), ranks = C.store || [];
+    // a rank they already hold (bought, or VIP earned by chatting in our Discord) can't be bought again;
+    // VIP+ includes VIP
+    const tier = C.vip && C.vip.tier;
+    const owns = r => tier === r.tier || (tier === 'vip_plus' && r.tier === 'vip');
     pageView(view, {
       color: '#38BDF8', kicker: 'Store', title: 'Store', lede: C.storeSub || '',
-      body: sec('Ranks', `<div class="nv-timeline">${ranks.map((r, i) => card(plainNum(i + 1), esc(r.name) + ' · ' + esc(r.price), r.features.map(esc).join(' · '),
+      body: sec('Ranks', `<div class="nv-timeline">${ranks.map((r, i) => owns(r)
+          ? card(plainNum(i + 1), esc(r.name) + ' · ' + esc(r.price), r.features.map(esc).join(' · '), `<span class="store-owned">${icon('check')} You own this</span>`, 'aria-disabled="true" data-owned')
+          : card(plainNum(i + 1), esc(r.name) + ' · ' + esc(r.price), r.features.map(esc).join(' · '),
           `<span class="store-buy">${esc(r.action)}</span>`, `href="${esc(r.buy)}" target="_blank" rel="noopener" data-tebex`)).join('')}</div>`)
         + `<section class="nv-sec">${C.storeCheckoutNote ? `<p class="nv-lede">${esc(C.storeCheckoutNote)}</p>` : ''}
           ${C.storeBasket ? `<p><a class="tst-btn" href="${esc(C.storeBasket.url)}" target="_blank" rel="noopener" data-tebex>${icon('cart')} ${esc(C.storeBasket.label)}</a></p>` : ''}

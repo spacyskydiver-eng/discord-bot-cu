@@ -77,8 +77,8 @@ async function renderApp(req, res) {
     wikiModules: playerWiki.toc.filter(h => h.level === 2).map(h => ({ id: h.id, text: h.text })),
     // Tebex webstore: each rank adds its package to the basket and opens the checkout
     store: [
-      { name: 'VIP', price: '$4.99', action: t('store_get') + ' VIP', buy: TEBEX + '/checkout/packages/add/7526228/single', features: [1, 2, 3, 4].map(i => t('store_vip_feat' + i)) },
-      { name: 'VIP+', price: '$9.99', action: t('store_get') + ' VIP+', buy: TEBEX + '/checkout/packages/add/7526241/single', features: [1, 2, 3].map(i => t('store_vipp_feat' + i)) },
+      { name: 'VIP', tier: 'vip', price: '$4.99', action: t('store_get') + ' VIP', buy: TEBEX + '/checkout/packages/add/7526228/single', features: [1, 2, 3, 4].map(i => t('store_vip_feat' + i)) },
+      { name: 'VIP+', tier: 'vip_plus', price: '$9.99', action: t('store_get') + ' VIP+', buy: TEBEX + '/checkout/packages/add/7526241/single', features: [1, 2, 3].map(i => t('store_vipp_feat' + i)) },
     ],
     storeBasket: { label: t('store_basket'), url: TEBEX + '/checkout' },
     storeCheckoutNote: t('store_checkout_note'),
