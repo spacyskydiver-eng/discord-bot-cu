@@ -17,7 +17,7 @@ Around 300 of you are citizens of rival WW1 nations on a shared, pre-built map o
 #### 1.1.2 The platform
 
 - Minecraft 1.20.1 on Forge 47.4.x, running Java 17.
-- The weapons and combat come from the modpack: TaCZ with the Gunpowder Revolution WW1 gun pack, Historical Armors, Artillery Support, Immersive Healing and Simple Voice Chat, plus a set of performance mods. The event's own mod adds no weapons. It runs the nations, the money, the justice system and the war around the fights the pack gives you.
+- The event runs on its own modpack: custom-made mods built for The Great War, plus a set of performance mods.
 
 #### 1.1.3 Sessions and the end of the event
 
