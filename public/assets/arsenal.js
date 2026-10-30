@@ -1,8 +1,8 @@
-/* The Arsenal, at #/Arsenal (or /arsenal): everything built for The Great War. For now everyone sees
-   the Coming Soon screen. Staff who open the site with ?preview=1 get the real viewer instead: the
-   server then puts its settings in the page data and serves its script, which is loaded only here. */
+/* The Arsenal, at #/Arsenal (or /arsenal): everything built for The Great War, open to everyone. The server
+   puts the viewer's settings in the page data and serves its script (/assets/arsenal-viewer.js), loaded only
+   here. Coming Soon is the fallback when the viewer can't load. */
 (window.CUE_EXT = window.CUE_EXT || []).push(({ B, icon, esc, $ }) => {
-  const DISCORD = 'https://discord.gg/x832cqAdu';
+  const DISCORD = 'https://discord.gg/tF5hWxaQQj';
 
   function comingSoon(view) {
     const C = window.CUE || {};
@@ -23,7 +23,7 @@
     view.onclick = e => { const g = e.target.closest('[data-go]'); if (g) B.go(g.dataset.go); };
   }
 
-  // the viewer's script, fetched once and only when a staff preview opens the page
+  // the viewer's script, fetched once, when the page first opens
   let loading = null;
   const loadViewer = src => loading || (loading = new Promise((ok, fail) => {
     if (window.CUE_ARSENAL_VIEWER) return ok();
@@ -35,7 +35,7 @@
   function show(view) {
     const A = (window.CUE || {}).arsenal;
     let cleanup = null, alive = true;
-    if (!A || !A.preview) comingSoon(view);
+    if (!A || !A.viewer) comingSoon(view);
     else {
       view.innerHTML = '<div class="nv-empty" style="padding:40px">Loading the Arsenal…</div>';
       loadViewer(A.viewer).then(() => { if (alive) cleanup = window.CUE_ARSENAL_VIEWER(view, { B, icon, esc, $, settings: A, vip: (window.CUE || {}).vip }); })

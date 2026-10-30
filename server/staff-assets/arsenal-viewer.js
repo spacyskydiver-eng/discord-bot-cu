@@ -1,5 +1,5 @@
-/* The Arsenal viewer (staff preview). Served only to staff, through /staff-assets/arsenal-viewer.js, and
-   loaded only when the Arsenal page opens with ?preview=1 (public/assets/arsenal.js).
+/* The Arsenal viewer, open to everyone. Served through /assets/arsenal-viewer.js (server/routes/pages.js) and
+   loaded only when the Arsenal page opens (public/assets/arsenal.js).
 
    Everything comes from the render job's manifest.json (mi_work/arsenal/manifest.py): the hangar's four
    views (home, armoury, tanks, kills) with their seamless loops, the camera moves between them, and the

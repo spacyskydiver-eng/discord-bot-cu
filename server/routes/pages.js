@@ -70,19 +70,16 @@ async function renderApp(req, res) {
   try {
     vipLevel = (await db.query(`SELECT min(level_number) AS n FROM level_roles WHERE guild_id = $1 AND role_id = ANY($2)`, [vip.C.guildId, vip.C.roles.vip])).rows[0].n;
   } catch (e) { console.error('[home] vip level', e.message); }
-  // the Arsenal's real viewer, for staff who asked for it with ?preview=1 (?preview=0 turns it off);
-  // everyone else gets the Coming Soon page and never the viewer or its settings
-  if (req.query.preview === '1' || req.query.preview === '0') req.session.arsenalPreview = req.query.preview === '1';
-  const arsenal = res.locals.isStaff && req.session.arsenalPreview
-    ? { preview: true, viewer: '/staff-assets/arsenal-viewer.js?v=' + ASSET_V, manifest: (await access.getSetting('arsenal_manifest_url')) || ARSENAL.manifestUrl, store: ARSENAL.store, tabs: ARSENAL.tabs, tanks: ARSENAL.tanks, stats: ARSENAL.stats }
-    : null;
+  // the Arsenal's viewer and its settings, for everyone (the page falls back to Coming Soon only if the viewer
+  // can't load)
+  const arsenal = { viewer: '/assets/arsenal-viewer.js?v=' + ASSET_V, manifest: (await access.getSetting('arsenal_manifest_url')) || ARSENAL.manifestUrl, store: ARSENAL.store, tabs: ARSENAL.tabs, tanks: ARSENAL.tanks, stats: ARSENAL.stats };
   const playerWiki = wiki.getPlayer();
   const cue = {
     user: req.session.user ? { name: req.session.user.username } : null,
     isAdmin: !!res.locals.isOwner,
     vip: vipState,
     arsenal,
-    discord: 'https://discord.gg/x832cqAdu',
+    discord: 'https://discord.gg/tF5hWxaQQj',
     events: upcomingEvents(),
     applications,
     team,
@@ -138,9 +135,9 @@ router.get('/api/wiki/staff', async (req, res, next) => {
   res.set('Cache-Control', 'private, no-store');
   try { res.json(await wiki.getStaff()); } catch (e) { console.error('[wiki]', e.message); res.status(503).json({ error: 'The staff wiki is not available right now.' }); }
 });
-router.get('/staff-assets/arsenal-viewer.js', (req, res, next) => {
-  if (!res.locals.isStaff) return next();
-  res.set('Cache-Control', 'private, no-store');
+// The Arsenal's viewer, for everyone (it was a staff preview until the page opened); cached by its ?v.
+router.get('/assets/arsenal-viewer.js', (req, res) => {
+  res.set('Cache-Control', 'public, max-age=86400');
   res.type('application/javascript').sendFile(path.join(__dirname, '../staff-assets/arsenal-viewer.js'));
 });
 router.get('/staff-assets/staff.js', (req, res, next) => {

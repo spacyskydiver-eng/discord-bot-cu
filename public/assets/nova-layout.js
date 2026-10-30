@@ -237,7 +237,7 @@ function pageView(view, o) {
 const card = (n, title, sub, side, attrs = '') => `<a class="nv-lec" ${attrs}><span class="nv-lec-n">${n}</span><span class="nv-lec-body"><b>${title}</b><small>${sub}</small></span><span class="nv-lec-side">${side || ''}</span></a>`;
 const pill = t => `<span class="nv-pill">${esc(t)}</span>`;
 const sec = (h, inner) => `<section class="nv-sec"><div class="nv-sec-head"><h2>${esc(h)}</h2></div>${inner}</section>`;
-const discordCard = (n, label) => card(n, esc(label), 'discord.gg/x832cqAdu', icon('external'), `href="${esc(CUE().discord || 'https://discord.gg/x832cqAdu')}" target="_blank" rel="noopener"`);
+const discordCard = (n, label) => card(n, esc(label), 'discord.gg/tF5hWxaQQj', icon('external'), `href="${esc(CUE().discord || 'https://discord.gg/tF5hWxaQQj')}" target="_blank" rel="noopener"`);
 
 B.registerView('applications', {
   title: () => 'Applications', icon: 'clipboard-list', cls: 'nv-view',
@@ -563,7 +563,7 @@ function showTesters(view) {
       </div>
       ${s.full ? '<div class="tst-slots">The waitlist is open</div>' : ''}`;
   }
-  const discordLink = () => `<a class="tst-btn" href="${esc(CUE().discord || 'https://discord.gg/x832cqAdu')}" target="_blank" rel="noopener">${icon('external')} Open our Discord</a>`;
+  const discordLink = () => `<a class="tst-btn" href="${esc(CUE().discord || 'https://discord.gg/tF5hWxaQQj')}" target="_blank" rel="noopener">${icon('external')} Open our Discord</a>`;
 
   function panel(s) {
     const a = myApp(s);

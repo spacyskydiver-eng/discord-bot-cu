@@ -14,7 +14,7 @@ const { javaAccount } = require('./minecraft');
 
 const GUILD_ID = '1449004906068312189';
 const DISCORD_API = 'https://discord.com/api/v10';
-const DISCORD_INVITE = 'https://discord.gg/x832cqAdu';
+const DISCORD_INVITE = 'https://discord.gg/tF5hWxaQQj';
 const SITE = (() => { try { return new URL(process.env.REDIRECT_URI).origin; } catch (e) { return ''; } })();
 const TRACK = Object.fromEntries(C.tracks.map(t => [t.key, t]));
 const now = () => Math.floor(Date.now() / 1000);
