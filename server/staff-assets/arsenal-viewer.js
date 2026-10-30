@@ -13,7 +13,14 @@
      middle  the item: a transparent still rendered from the same locked camera as its area (so it sits on the
              loop exactly), faded in when picked; kill animations are full-frame clips over the kills loop.
      front   a soft vignette and drifting dust, drawn here.
-   with a slight mouse parallax between them, and the frame's edges fading into the page. */
+   all drawn at exactly the same size and position (no parallax, no extra scaling: the stills carry a soft shadow on
+   the floor, so the still and the video must be resampled identically or the cobblestones shimmer), with the
+   frame's edges fading into the page.
+
+   Close-ups: a look whose manifest entry has closeup: { view, files } (a flag or emblem) is shown from that close-up
+   view: the camera moves there (move_<area>__<view>.mp4, chained through other views when there's no direct move),
+   the look is shown at that framing, and the camera moves back when another look is picked. Until a close-up and a
+   way to reach it are in the manifest, the look stays at its area's framing. */
 'use strict';
 window.CUE_ARSENAL_VIEWER = function (view, { B, icon, esc, settings: S, vip }) {
   const $ = (s, r = view) => r.querySelector(s);
@@ -109,21 +116,42 @@ window.CUE_ARSENAL_VIEWER = function (view, { B, icon, esc, settings: S, vip }) 
     await v.play().catch(() => {});
     await Promise.race([ff, new Promise(r => setTimeout(r, 4000))]);
   }
+  // the moves from one view to another: direct if there is one, else the shortest chain of moves (each move ends on
+  // the next one's first frame, since both are that view's loop frame 0)
+  function route(from, to) {
+    if (!from) return null;
+    const seen = new Set([from]), q = [[from, []]];
+    while (q.length) {
+      const [v, path] = q.shift();
+      for (const m of M.moves) {
+        if (m.from !== v || seen.has(m.to) || !m.file) continue;
+        if (m.to === to) return [...path, m];
+        seen.add(m.to); q.push([m.to, [...path, m]]);
+      }
+    }
+    return null;
+  }
   async function goTo(to) {
     if (!alive || to === area) { if (to === area) onArrive(to); return; }
     if (busy) { wanted = to; return; }
     busy = true;
     mid.classList.remove('on');
     const from = area, loopSrc = url((M.views[to] || {}).loop);
-    const mv = from && M.moves.find(x => x.from === from && x.to === to);
-    if (mv && url(mv.file)) {
-      const vm = freeVideo([current]);
-      const vl = loopSrc ? freeVideo([current, vm]) : null;
-      if (vl) { setSrc(vl, loopSrc, true); vl.pause(); rewind(vl); }   // the next loop loads (at its start) while the move plays
-      await start(vm, url(mv.file), false);
-      showOnly(vm);
-      await ended(vm);
-      if (vl) { await start(vl, loopSrc, true); showOnly(vl); }   // the move's last frame is this loop's frame 0
+    const path = route(from, to);
+    if (path) {
+      // each next video loads (at its start) while the one before it plays, and is shown on its own first frame
+      const seq = path.map(m => [url(m.file), false]);
+      if (loopSrc) seq.push([loopSrc, true]);
+      let next = freeVideo([current]);
+      setSrc(next, seq[0][0], seq[0][1]);
+      for (let i = 0; i < seq.length; i++) {
+        const v = next;
+        await start(v, seq[i][0], seq[i][1]);
+        showOnly(v);
+        if (i + 1 < seq.length) { next = freeVideo([v]); setSrc(next, seq[i + 1][0], seq[i + 1][1]); next.pause(); rewind(next); }
+        if (!seq[i][1]) await ended(v);
+        if (!alive) return;
+      }
     } else if (loopSrc) {
       const vl = freeVideo([current]);
       vl.classList.add('fade');
@@ -145,16 +173,20 @@ window.CUE_ARSENAL_VIEWER = function (view, { B, icon, esc, settings: S, vip }) 
 
   /* ---------------------------------------------------------------- the item (middle layer) */
   const imgs = $$('.arsv-img', mid), clip = $('.arsv-clip', mid);
-  const setImage = (el, f) => {
-    el.removeAttribute('srcset');
-    if (f.webp) { el.sizes = '100vw'; el.srcset = Object.entries(f.webp).map(([w, p]) => `${url(p)} ${w}w`).join(', '); }
-    el.src = url(f.transparent || f.full);
-  };
+  // always the full 1920 still, the video's own size, so both are scaled to the screen in exactly the same way
+  const setImage = (el, f) => { el.src = url((f.webp && f.webp['1920']) || f.transparent || f.full); };
+  // where a look is shown, and which files: its close-up when the manifest has one we can reach, else its area
+  function placeOf(a) {
+    const c = a && a.closeup, v = c && c.view && M.views[c.view];
+    if (v && v.loop && c.files && (c.files.transparent || c.files.full) && (area === c.view || route(area || a.area, c.view) || route(a.area, c.view)))
+      return { view: c.view, files: c.files };
+    return { view: a ? a.area : null, files: (a && a.files) || {} };
+  }
   // a still starts loading the moment it's picked (while the camera is still moving), and once one is showing
   // the rest of that tank's looks load quietly, so swapping between them is instant
   const pre = new Map();
   function prefetch(a) {
-    const f = (a && a.files) || {};
+    const f = a ? placeOf(a).files : {};
     if (!a || a.category === 'kill_animation' || !(f.transparent || f.full)) return Promise.resolve();
     const key = f.transparent || f.full;
     if (!pre.has(key)) { const im = new Image(); setImage(im, f); pre.set(key, im.decode().catch(() => {})); }
@@ -171,7 +203,7 @@ window.CUE_ARSENAL_VIEWER = function (view, { B, icon, esc, settings: S, vip }) 
   let shown = null, slot = 0;
   async function showItem(a) {
     if (!a || !alive) return;
-    const f = a.files || {};
+    const f = placeOf(a).files;
     const video = a.category === 'kill_animation' ? url(f.full) : null;
     if (video) {
       imgs.forEach(i => i.classList.remove('on'));
@@ -220,27 +252,6 @@ window.CUE_ARSENAL_VIEWER = function (view, { B, icon, esc, settings: S, vip }) 
     document.addEventListener('visibilitychange', wake);
     stops.push(() => { cancelAnimationFrame(raf); document.removeEventListener('visibilitychange', wake); });
   })();
-
-  /* ---------------------------------------------------------------- parallax */
-  if (!reduced) {
-    // the item and the hangar move together: the stills are rendered from the loop's own camera, so any
-    // offset between them would slide the tank on its floor. The depth comes from the dust in front.
-    const layers = [[back, 6], [mid, 6], [$('.arsv-front'), 16]];
-    let tx = 0, ty = 0, x = 0, y = 0, raf = 0;
-    const move = e => {
-      const r = stage.getBoundingClientRect();
-      tx = Math.max(-1, Math.min(1, (e.clientX - r.left) / r.width * 2 - 1));
-      ty = Math.max(-1, Math.min(1, (e.clientY - r.top) / r.height * 2 - 1));
-      if (!raf) raf = requestAnimationFrame(step);
-    };
-    const step = () => {
-      x += (tx - x) * .08; y += (ty - y) * .08;
-      for (const [el, k] of layers) el.style.transform = `translate3d(${(-x * k).toFixed(2)}px, ${(-y * k).toFixed(2)}px, 0) scale(1.03)`;
-      raf = Math.abs(tx - x) + Math.abs(ty - y) > .002 ? requestAnimationFrame(step) : 0;
-    };
-    view.addEventListener('pointermove', move);
-    stops.push(() => { view.removeEventListener('pointermove', move); cancelAnimationFrame(raf); });
-  }
 
   /* ---------------------------------------------------------------- panels */
   let tabs = [], tab = null, entries = [], entry = null, item = null;
@@ -307,9 +318,10 @@ window.CUE_ARSENAL_VIEWER = function (view, { B, icon, esc, settings: S, vip }) 
     item = a; shown = a; drawSwatches(); drawInfo();
     if (!a) return;
     prefetch(a);
-    if (area === a.area && !busy) { showItem(a); return; }
-    onArrive = to => { if (shown && shown.area === to) showItem(shown); };
-    goTo(a.area);
+    const where = placeOf(a).view;
+    if (area === where && !busy) { showItem(a); return; }
+    onArrive = to => { if (shown && placeOf(shown).view === to) showItem(shown); };
+    goTo(where);
   }
 
   view.addEventListener('click', e => {
@@ -341,7 +353,7 @@ window.CUE_ARSENAL_VIEWER = function (view, { B, icon, esc, settings: S, vip }) 
       return;
     }
     if (!alive) return;
-    tabs = S.tabs.filter(t => entriesFor(t).length);
+    tabs = S.tabs.filter(t => !t.hidden && entriesFor(t).length);
     // open on the wide shot, then fly to the first tab's area
     const home = url((M.views.home || {}).loop), poster = url((M.views.home || {}).poster);
     if (poster) $('.arsv-poster').src = poster;           // the first frame straight away, while the loop loads
@@ -364,10 +376,10 @@ window.CUE_ARSENAL_VIEWER = function (view, { B, icon, esc, settings: S, vip }) 
     st.textContent = `
 body.ui-nova .nv-view-arsenal { overflow: hidden auto; }
 .arsv { position: relative; min-height: 100%; height: 100%; overflow: hidden; --gold: #FBBF24; --vipp: #C084FC; color: var(--text-normal); }
-.arsv-stage { position: absolute; inset: -2%; overflow: hidden;
+.arsv-stage { position: absolute; inset: 0; overflow: hidden;
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%), linear-gradient(180deg, transparent 0, #000 9%, #000 86%, transparent 100%);
   -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%), linear-gradient(180deg, transparent 0, #000 9%, #000 86%, transparent 100%); mask-composite: intersect; }
-.arsv-layer { position: absolute; inset: 0; will-change: transform; transform: scale(1.03); }
+.arsv-layer { position: absolute; inset: 0; }
 .arsv-poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .arsv-v, .arsv-img, .arsv-clip { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
 .arsv-v.on { opacity: 1; } .arsv-v.fade { transition: opacity .6s ease; }

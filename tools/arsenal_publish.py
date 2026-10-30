@@ -1,10 +1,11 @@
 """arsenal_publish.py <stage> <out>: makes the web copy of the Arsenal from the render job's staging folder
 (the greatwar repo's docs/website/arsenal/, or ~/arsenal_stage) for upload to the CDN.
 
-  hangar/*.mp4         re-encoded H.264 (CRF 23, faststart) so they start playing before they finish downloading;
+  hangar/*.mp4         the render job's files unchanged (only made to start playing before they finish downloading);
                        each loop also gets a poster (<view>_loop.webp, its frame 0) shown while it loads
   tanks/...png         WebP with transparency at 1920 and 960 wide (the viewer picks by screen), a full-frame WebP backup, thumbnails 240 wide
-  vip_plus/kill/*.mp4  re-encoded the same way, with a thumbnail from one second in
+  vip_plus/kill/*.mp4  the same, with a thumbnail from one second in
+  closeups             a look's closeup.files (its still from the close-up view) converted like the other stills
   manifest.json        the render job's manifest with the new file names (files.webp, thumbnail_webp, views.*.poster)
 
 Then upload it with tools/arsenal_upload.py <out> (Cloudflare R2, bucket cue-arsenal). Re-running both after a
@@ -25,8 +26,9 @@ FFMPEG = os.environ.get('FFMPEG', 'ffmpeg')
 
 def video(src, dst, poster=None, poster_at=0.0):
     os.makedirs(os.path.dirname(dst), exist_ok=True)
-    subprocess.run([FFMPEG, '-y', '-loglevel', 'error', '-i', src, '-an', '-c:v', 'libx264', '-crf', '23', '-preset', 'slow',
-                    '-pix_fmt', 'yuv420p', '-movflags', '+faststart', dst], check=True)
+    # copied exactly as rendered (no re-encode, no rescale: the cobblestone floor must stay frame-for-frame what the
+    # render job made, or it shimmers against the stills); only the index moves to the front so playback starts early
+    subprocess.run([FFMPEG, '-y', '-loglevel', 'error', '-i', src, '-an', '-c:v', 'copy', '-movflags', '+faststart', dst], check=True)
     if poster:
         tmp = poster + '.png'
         subprocess.run([FFMPEG, '-y', '-loglevel', 'error', '-ss', str(poster_at), '-i', src, '-frames:v', '1', tmp], check=True)
@@ -156,6 +158,21 @@ def main(stage, out):
                 Image.open(S(src)).convert('RGB').save(O(dst), 'WEBP', quality=84, method=6)
             once(src, [dst], full)
             f['full'] = ver(dst)
+        cf = (a.get('closeup') or {}).get('files') or {}
+        for key in ('transparent', 'full'):
+            if cf.get(key):
+                src = cf[key]
+                if key == 'transparent':
+                    sizes = {w: f'{stem(src)}_{w}.webp' for w in ('1920', '960')}
+                    once(src, list(sizes.values()), lambda: still(S(src), O(stem(src))))
+                    cf['webp'] = {w: ver(x) for w, x in sizes.items()}
+                    cf['transparent'] = cf['webp']['1920']
+                else:
+                    dst = stem(src) + '.webp'
+                    def cfull():
+                        Image.open(S(src)).convert('RGB').save(O(dst), 'WEBP', quality=84, method=6)
+                    once(src, [dst], cfull)
+                    cf['full'] = ver(dst)
         std = next((x for x in m['assets'] if x.get('tank') and x.get('tank') == a.get('tank') and x['category'] == 'tank'), None)
         if std and a['files'].get('transparent') and orig.get(std['id']):
             src, dst = orig[a['id']], stem(orig[a['id']]) + '_swatch.webp'

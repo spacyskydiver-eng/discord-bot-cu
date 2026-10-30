@@ -12,11 +12,12 @@ module.exports = {
     vip_plus: 'https://collective-union.tebex.io/checkout/packages/add/7526241/single',
   },
 
-  // tabs, in order: which manifest categories each holds. A tab only shows once it has something in it.
+  // tabs, in order: which manifest categories each holds. A tab only shows once it has something in it, and
+  // never while hidden is set.
   tabs: [
     { key: 'tanks', label: 'Tanks', categories: ['tank'] },
     { key: 'vip', label: 'VIP', tiers: ['vip'] },
-    { key: 'vip_plus', label: 'VIP+', tiers: ['vip_plus'] },
+    { key: 'vip_plus', label: 'VIP+', tiers: ['vip_plus'], hidden: true },   // the kill animations: hidden until better renders arrive
     { key: 'weapons', label: 'Weapons', categories: ['weapon'] },
     { key: 'uniforms', label: 'Uniforms', categories: ['uniform'] },
     { key: 'melee', label: 'Melee', categories: ['melee'] },
