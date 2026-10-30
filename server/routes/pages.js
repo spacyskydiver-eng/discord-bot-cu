@@ -74,7 +74,7 @@ async function renderApp(req, res) {
   // everyone else gets the Coming Soon page and never the viewer or its settings
   if (req.query.preview === '1' || req.query.preview === '0') req.session.arsenalPreview = req.query.preview === '1';
   const arsenal = res.locals.isStaff && req.session.arsenalPreview
-    ? { preview: true, viewer: '/staff-assets/arsenal-viewer.js?v=' + ASSET_V, manifest: ARSENAL.manifestUrl, store: ARSENAL.store, tabs: ARSENAL.tabs, tanks: ARSENAL.tanks, stats: ARSENAL.stats }
+    ? { preview: true, viewer: '/staff-assets/arsenal-viewer.js?v=' + ASSET_V, manifest: (await access.getSetting('arsenal_manifest_url')) || ARSENAL.manifestUrl, store: ARSENAL.store, tabs: ARSENAL.tabs, tanks: ARSENAL.tanks, stats: ARSENAL.stats }
     : null;
   const playerWiki = wiki.getPlayer();
   const cue = {

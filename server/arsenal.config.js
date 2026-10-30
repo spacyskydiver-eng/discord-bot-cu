@@ -1,10 +1,10 @@
 // The Arsenal: a showcase of everything built for The Great War. The public page says "Coming Soon";
 // staff (and the owner) can preview the real viewer with ?preview=1 (and switch it off with ?preview=0).
 module.exports = {
-  // where the viewer reads manifest.json from; every file path in the manifest is relative to it.
-  // Until the renders are published, a small placeholder manifest with dummy images and loops ships
-  // with the site. Once published to the CDN, set ARSENAL_MANIFEST_URL, e.g.
-  //   ARSENAL_MANIFEST_URL=https://arsenal.collective-union.example/v1/manifest.json
+  // where the viewer reads manifest.json from; every file path in the manifest is relative to it. It's set in
+  // the control centre (Arsenal card, stored in site_settings) so the bucket's address stays out of this public
+  // repo; ARSENAL_MANIFEST_URL in the environment works too. With neither, a small placeholder manifest with
+  // dummy images and loops that ships with the site.
   manifestUrl: process.env.ARSENAL_MANIFEST_URL || '/arsenal-placeholder/manifest.json',
 
   store: {

@@ -197,7 +197,17 @@ router.get('/', async (req, res) => {
     guilds: guildRes.rows, levels, levelRoles, staffRoles, staffAccess,
     stageSettings, stageBlocks, agreementItems, playstyleOptions, killTicketConfigs,
     maintenance: await access.maintenanceOn(),
+    arsenalManifest: await access.getSetting('arsenal_manifest_url'),
+    query: req.query,
   });
+});
+
+// where the Arsenal preview reads its renders from (the manifest on the bucket); empty goes back to the placeholder
+router.post('/arsenal', async (req, res) => {
+  const v = String(req.body.manifest || '').trim();
+  if (v && !/^https:\/\/[^\s"'<>]+\/manifest\.json(\?[^\s"'<>]*)?$/.test(v)) return res.redirect('/admin?arsenal=bad');
+  await access.setSetting('arsenal_manifest_url', v || null);
+  res.redirect('/admin');
 });
 
 router.post('/maintenance', async (req, res) => {

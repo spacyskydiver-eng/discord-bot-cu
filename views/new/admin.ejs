@@ -286,6 +286,18 @@
     </form>
   </div>
 
+  <div class="nd-card" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px">
+    <div style="flex:1;min-width:260px">
+      <h2 style="margin:0 0 4px">The Arsenal</h2>
+      <p style="margin:0 0 10px;color:var(--muted);font-size:13px">Everyone else sees Coming Soon. The preview shows the real viewer to you and GW Staff. It reads the renders from <%= locals.arsenalManifest ? 'the bucket below' : 'the placeholder content (no bucket set)' %>.<% if (locals.query && query.arsenal === 'bad') { %> <b style="color:#f87171">That isn't an https link to a manifest.json.</b><% } %></p>
+      <form action="/admin/arsenal" method="POST" style="margin:0;display:flex;gap:8px;flex-wrap:wrap">
+        <input type="text" name="manifest" value="<%= locals.arsenalManifest || '' %>" placeholder="https://…/arsenal/manifest.json" style="flex:1;min-width:240px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:8px 10px;font:inherit;font-size:13px" autocomplete="off" spellcheck="false">
+        <button type="submit" class="nd-btn nd-btn-ghost nd-btn-sm">Save</button>
+      </form>
+    </div>
+    <a href="/?preview=1#/Arsenal" target="_blank" class="nd-btn nd-btn-primary">Open the preview</a>
+  </div>
+
   <!-- Tabs -->
   <div class="nd-tabs">
     <% if (locals.isFullAdmin) { %>

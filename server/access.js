@@ -67,4 +67,22 @@ async function setMaintenance(on) {
   maint = { on, at: Date.now() };
 }
 
-module.exports = { OWNER_ID, STAFF_ROLE_ID, isOwner, isStaff, maintenanceOn, setMaintenance };
+/* ---------------------------------------------------------------- other site settings */
+// small values set from the control centre (in site_settings), read at most once a minute
+const settings = {};
+async function getSetting(key) {
+  const c = settings[key];
+  if (c && Date.now() - c.at < 60 * 1000) return c.value;
+  let value = null;
+  try { const row = (await db.query(`SELECT value FROM site_settings WHERE key = $1`, [key])).rows[0]; value = row ? row.value : null; }
+  catch (e) { console.error('[settings]', e.message); if (c) return c.value; }
+  settings[key] = { value, at: Date.now() };
+  return value;
+}
+async function setSetting(key, value) {
+  if (value === null || value === '') await db.query(`DELETE FROM site_settings WHERE key = $1`, [key]);
+  else await db.query(`INSERT INTO site_settings (key, value, updated_at) VALUES ($1, $2, NOW()) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`, [key, value]);
+  settings[key] = { value: value || null, at: Date.now() };
+}
+
+module.exports = { OWNER_ID, STAFF_ROLE_ID, isOwner, isStaff, maintenanceOn, setMaintenance, getSetting, setSetting };
