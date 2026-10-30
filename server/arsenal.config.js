@@ -17,7 +17,7 @@ module.exports = {
   tabs: [
     { key: 'tanks', label: 'Tanks', categories: ['tank'] },
     { key: 'vip', label: 'VIP', tiers: ['vip'] },
-    { key: 'vip_plus', label: 'VIP+', tiers: ['vip_plus'], hidden: true },   // the kill animations: hidden until better renders arrive
+    { key: 'vip_plus', label: 'VIP+', tiers: ['vip_plus'] },   // the kill animations (ragdoll renders, 8 s loops)
     { key: 'weapons', label: 'Weapons', categories: ['weapon'] },
     { key: 'uniforms', label: 'Uniforms', categories: ['uniform'] },
     { key: 'melee', label: 'Melee', categories: ['melee'] },
