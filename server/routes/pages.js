@@ -64,6 +64,11 @@ async function renderApp(req, res) {
   // their VIP tier and Minecraft link, for the home banner and the account page
   let vipState = null;
   if (req.session.user) { try { vipState = await vip.mine(req.session.user); } catch (e) { console.error('[home] vip', e.message); } }
+  // the chat level at which the bot gives the VIP role, if it does (level_roles)
+  let vipLevel = null;
+  try {
+    vipLevel = (await db.query(`SELECT min(level_number) AS n FROM level_roles WHERE guild_id = $1 AND role_id = ANY($2)`, [vip.C.guildId, vip.C.roles.vip])).rows[0].n;
+  } catch (e) { console.error('[home] vip level', e.message); }
   const playerWiki = wiki.getPlayer();
   const cue = {
     user: req.session.user ? { name: req.session.user.username } : null,
@@ -77,7 +82,7 @@ async function renderApp(req, res) {
     wikiModules: playerWiki.toc.filter(h => h.level === 2).map(h => ({ id: h.id, text: h.text })),
     // Tebex webstore: each rank adds its package to the basket and opens the checkout
     store: [
-      { name: 'VIP', tier: 'vip', price: '$4.99', action: t('store_get') + ' VIP', buy: TEBEX + '/checkout/packages/add/7526228/single', features: [1, 2, 3, 4].map(i => t('store_vip_feat' + i)) },
+      { name: 'VIP', tier: 'vip', price: '$4.99', free: vipLevel ? t('store_vip_free').replace('{level}', vipLevel) : null, action: t('store_get') + ' VIP', buy: TEBEX + '/checkout/packages/add/7526228/single', features: [1, 2, 3, 4].map(i => t('store_vip_feat' + i)) },
       { name: 'VIP+', tier: 'vip_plus', price: '$9.99', action: t('store_get') + ' VIP+', buy: TEBEX + '/checkout/packages/add/7526241/single', features: [1, 2, 3].map(i => t('store_vipp_feat' + i)) },
     ],
     storeBasket: { label: t('store_basket'), url: TEBEX + '/checkout' },

@@ -1374,6 +1374,7 @@ body.ui-nova .ldr-steps li > span:last-child { display: block; }
 body.ui-nova .nv-hero-copy h1 { overflow-wrap: anywhere; padding-right: 28px; }
 /* store: the buy button on each rank */
 body.ui-nova .store-buy { display: inline-block; padding: 8px 16px; border-radius: 10px; font-weight: 650; font-size: 14px; white-space: nowrap; color: #E0F2FE; background: color-mix(in srgb, var(--mod) 24%, transparent); border: 1px solid color-mix(in srgb, var(--mod) 55%, transparent); }
+body.ui-nova .store-free { display: block; margin-top: 6px; color: #FBBF24; font-weight: 600; }
 /* a rank they already own: greyed out, not a link */
 body.ui-nova .nv-lec[data-owned] { opacity: .5; filter: grayscale(1); cursor: default; pointer-events: none; }
 body.ui-nova .store-owned { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; font-weight: 650; font-size: 14px; white-space: nowrap; color: var(--text-muted); border: 1px solid var(--background-modifier-border); }

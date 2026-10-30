@@ -282,8 +282,8 @@ B.registerView('store', {
     pageView(view, {
       color: '#38BDF8', kicker: 'Store', title: 'Store', lede: C.storeSub || '',
       body: sec('Ranks', `<div class="nv-timeline">${ranks.map((r, i) => owns(r)
-          ? card(plainNum(i + 1), esc(r.name) + ' · ' + esc(r.price), r.features.map(esc).join(' · '), `<span class="store-owned">${icon('check')} You own this</span>`, 'aria-disabled="true" data-owned')
-          : card(plainNum(i + 1), esc(r.name) + ' · ' + esc(r.price), r.features.map(esc).join(' · '),
+          ? card(plainNum(i + 1), esc(r.name) + ' · ' + esc(r.price), r.features.map(esc).join(' · ') + (r.free ? `<span class="store-free">${esc(r.free)}</span>` : ''), `<span class="store-owned">${icon('check')} You own this</span>`, 'aria-disabled="true" data-owned')
+          : card(plainNum(i + 1), esc(r.name) + ' · ' + esc(r.price), r.features.map(esc).join(' · ') + (r.free ? `<span class="store-free">${esc(r.free)}</span>` : ''),
           `<span class="store-buy">${esc(r.action)}</span>`, `href="${esc(r.buy)}" target="_blank" rel="noopener" data-tebex`)).join('')}</div>`)
         + `<section class="nv-sec">${C.storeCheckoutNote ? `<p class="nv-lede">${esc(C.storeCheckoutNote)}</p>` : ''}
           ${C.storeBasket ? `<p><a class="tst-btn" href="${esc(C.storeBasket.url)}" target="_blank" rel="noopener" data-tebex>${icon('cart')} ${esc(C.storeBasket.label)}</a></p>` : ''}

@@ -188,6 +188,7 @@
   "store_permanent": "/ permanent",
   "store_one_time": "One-time purchase · unlocked forever",
   "store_get": "Get",
+  "store_vip_free": "Or get it free: reach level {level} by chatting in our Discord server.",
   "store_coming_soon": "Coming Soon",
   "store_vip_feat1": "Custom armour trims in events",
   "store_vip_feat2": "Custom shield patterns in events",
