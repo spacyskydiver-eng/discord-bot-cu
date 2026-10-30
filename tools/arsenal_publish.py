@@ -1,25 +1,24 @@
 """arsenal_publish.py <stage> <out>: makes the web copy of the Arsenal from the render job's staging folder
-(mi_work/arsenal/deliver.py writes ~/arsenal_stage) for upload to the CDN.
+(the greatwar repo's docs/website/arsenal/, or ~/arsenal_stage) for upload to the CDN.
 
   hangar/*.mp4         re-encoded H.264 (CRF 23, faststart) so they start playing before they finish downloading;
                        each loop also gets a poster (<view>_loop.webp, its frame 0) shown while it loads
-  tanks/...png         WebP with transparency at 1920 and 960 wide (the viewer picks by screen), thumbnails 320 wide
+  tanks/...png         WebP with transparency at 1920 and 960 wide (the viewer picks by screen), a full-frame WebP backup, thumbnails 240 wide
   vip_plus/kill/*.mp4  re-encoded the same way, with a thumbnail from one second in
   manifest.json        the render job's manifest with the new file names (files.webp, thumbnail_webp, views.*.poster)
 
-Then upload <out> to the bucket under a new version folder, e.g. with rclone and Cloudflare R2:
-  rclone copy <out> r2:cue-arsenal/v1 --header-upload "Cache-Control: public, max-age=31536000, immutable"
-  rclone copyto <out>/manifest.json r2:cue-arsenal/v1/manifest.json --header-upload "Cache-Control: public, max-age=300"
-and set ARSENAL_MANIFEST_URL on Render to https://<bucket domain>/v1/manifest.json. A new set of renders goes in v2,
-so nobody is ever served a mix of old and new files.
+Then upload it with tools/arsenal_upload.py <out> (Cloudflare R2, bucket cue-arsenal). Re-running both after a
+re-render is all a drop-in swap needs: unchanged sources aren't converted again, unchanged files aren't uploaded
+again, and every file in the manifest carries ?v=<content hash> so browsers pick up new files under the same names.
 
 Needs Pillow and an ffmpeg with libx264 (FFMPEG=/path/to/ffmpeg)."""
+import hashlib
 import json
 import os
 import subprocess
 import sys
 
-from PIL import Image
+from PIL import Image, ImageChops, ImageFilter
 
 FFMPEG = os.environ.get('FFMPEG', 'ffmpeg')
 
@@ -39,7 +38,7 @@ def video(src, dst, poster=None, poster_at=0.0):
 
 
 def still(src, dst_base):
-    """<dst_base>_1920.webp and _960.webp from a PNG; returns their names relative to out"""
+    """<dst_base>_1920.webp and _960.webp (with transparency) from a PNG"""
     im = Image.open(src)
     out = {}
     for w in (1920, 960):
@@ -50,45 +49,139 @@ def still(src, dst_base):
     return out
 
 
+def swatch(src_png, std_png, frame_png, dst):
+    """a close-up for the variant swatch: where this look differs most from the tank's standard paint. A flag or
+    an emblem is a small patch, so the swatch zooms in on it; a skin changes the whole hull, so the swatch shows the
+    hull. Worked out from the renders, so re-renders need nothing new."""
+    im, std = Image.open(src_png).convert('RGBA'), Image.open(std_png).convert('RGBA')
+    # only where the tank is (a transparent pixel's hidden colour means nothing); render noise is under 10
+    solid = ImageChops.lighter(im.getchannel('A'), std.getchannel('A')).point(lambda a: 255 if a > 200 else 0)
+    # the largest change in any colour channel: a repaint can keep the brightness and change only the hue
+    r, g, b = ImageChops.difference(im.convert('RGB'), std.convert('RGB')).split()
+    d = ImageChops.multiply(ImageChops.lighter(ImageChops.lighter(r, g), b), solid).point(lambda v: 0 if v < 10 else v)
+    k = 4
+    small = d.resize((d.width // k, d.height // k), Image.BOX).filter(ImageFilter.BoxBlur(1))
+    w, h = small.size
+    px = small.load()
+    best, at = -1, (w // 2, h // 2)
+    for y in range(h):
+        for x in range(w):
+            if px[x, y] > best:
+                best, at = px[x, y], (x, y)
+    tank = solid.getbbox() or (0, 0, im.width, im.height)      # solid pixels only, not the soft shadow on the floor
+    changed = d.resize((d.width // k, d.height // k), Image.BOX).point(lambda v: 255 if v > 6 else 0).histogram()[255]
+    area = max(1, (tank[2] - tank[0]) * (tank[3] - tank[1]) // (k * k))
+    clear = d.point(lambda v: 255 if v > 25 else 0).histogram()[255]   # pixels clearly changed
+    invisible = src_png != std_png and clear < 20             # no visible change at all (it's only render noise)
+    if src_png == std_png or invisible or changed / area > 0.2:  # the standard paint or a skin: the whole hull
+        cx, cy, side = (tank[0] + tank[2]) // 2, (tank[1] + tank[3]) // 2, int(max(tank[2] - tank[0], tank[3] - tank[1]) * 0.55)
+    else:                                                       # a flag or emblem: around the strongest change
+        cx, cy, side = at[0] * k + k // 2, at[1] * k + k // 2, 150
+    frame = Image.open(frame_png).convert('RGB')
+    l, t = max(0, min(frame.width - side, cx - side // 2)), max(0, min(frame.height - side, cy - side // 2))
+    frame.crop((l, t, l + side, t + side)).resize((160, 160), Image.LANCZOS).save(dst, 'WEBP', quality=84, method=6)
+    return not invisible
+
+
+def sha(path):
+    h = hashlib.sha256()
+    with open(path, 'rb') as f:
+        for b in iter(lambda: f.read(1 << 20), b''):
+            h.update(b)
+    return h.hexdigest()
+
+
 def main(stage, out):
+    """Re-running is cheap: a source whose bytes haven't changed since the last run isn't converted again.
+    Every file in the written manifest carries ?v=<first 10 hex of its own hash>, so a re-render can keep
+    the same names: the address changes with the content and browsers and caches fetch the new file."""
     m = json.load(open(os.path.join(stage, 'manifest.json')))
     os.makedirs(out, exist_ok=True)
-    rel = lambda p: os.path.relpath(p, out)
+    cache_file = os.path.join(out, '.publish-cache.json')
+    cache = json.load(open(cache_file)) if os.path.exists(cache_file) else {}
     S = lambda p: os.path.join(stage, p)
+    O = lambda p: os.path.join(out, p)
+    done = {'converted': 0, 'kept': 0}
+
+    def once(src_rel, outputs, make, sha_of=None):
+        """make() writes outputs (paths relative to out) from src_rel, unless the same source made them last time"""
+        h = sha(S(sha_of or src_rel))
+        if cache.get(src_rel) == h and all(os.path.exists(O(x)) for x in outputs):
+            done['kept'] += 1
+            return
+        for x in outputs:
+            os.makedirs(os.path.dirname(O(x)), exist_ok=True)
+        make()
+        cache[src_rel] = h
+        done['converted'] += 1
+
+    def ver(p):
+        return f'{p}?v={sha(O(p))[:10]}'
+
+    stem = lambda p: os.path.splitext(p)[0]
     for v, d in m['views'].items():
         if d.get('loop'):
-            dst = os.path.join(out, d['loop'])
-            poster = os.path.splitext(dst)[0] + '.webp'
-            video(S(d['loop']), dst, poster)
-            d['poster'] = rel(poster)
+            src, poster = d['loop'], stem(d['loop']) + '.webp'
+            once(src, [src, poster], lambda: video(S(src), O(src), O(poster)))
+            d['loop'], d['poster'] = ver(src), ver(poster)
     for mv in m['moves']:
-        video(S(mv['file']), os.path.join(out, mv['file']))
+        src = mv['file']
+        once(src, [src], lambda: video(S(src), O(src)))
+        mv['file'] = ver(src)
+    orig = {a['id']: a['files'].get('transparent') for a in m['assets'] if a['files'].get('transparent')}
+    orig_full = {a['id']: a['files'].get('full') for a in m['assets'] if a['files'].get('full') and a['category'] != 'kill_animation'}
+    keep, unseen = [], []
     for a in m['assets']:
         f = a['files']
         if a['category'] == 'kill_animation':
-            if f.get('full'):
-                dst = os.path.join(out, f['full'])
-                thumb = os.path.splitext(dst)[0] + '_thumb.webp'
-                video(S(f['full']), dst, thumb, 1.0)
-                f['thumbnail_webp'] = rel(thumb)
-            f.pop('transparent_sequence', None)     # the web uses the clip; the PNG frames stay in the stage
+            # the web plays the full-frame clip; a kill whose clip isn't delivered yet is left out until it is
+            if not f.get('full'):
+                continue
+            src, thumb = f['full'], stem(f['full']) + '_thumb.webp'
+            once(src, [src, thumb], lambda: video(S(src), O(src), O(thumb), 1.0))
+            f['full'], f['thumbnail_webp'] = ver(src), ver(thumb)
+            f.pop('transparent_sequence', None)
+            f.pop('frames', None)
+            keep.append(a)
             continue
-        for key in ('transparent', 'full'):
-            if f.get(key):
-                base = os.path.join(out, os.path.splitext(f[key])[0])
-                os.makedirs(os.path.dirname(base), exist_ok=True)
-                sizes = still(S(f[key]), base)
-                if key == 'transparent' or not f.get('webp'):
-                    f['webp'] = {w: rel(p) for w, p in sizes.items()}
-                f[key] = rel(sizes['1920'])
+        if f.get('transparent'):
+            src = f['transparent']
+            sizes = {w: f'{stem(src)}_{w}.webp' for w in ('1920', '960')}
+            once(src, list(sizes.values()), lambda: still(S(src), O(stem(src))))
+            f['webp'] = {w: ver(x) for w, x in sizes.items()}
+            f['transparent'] = f['webp']['1920']
+        if f.get('full'):
+            src, dst = f['full'], stem(f['full']) + '.webp'
+            def full():
+                Image.open(S(src)).convert('RGB').save(O(dst), 'WEBP', quality=84, method=6)
+            once(src, [dst], full)
+            f['full'] = ver(dst)
+        std = next((x for x in m['assets'] if x.get('tank') and x.get('tank') == a.get('tank') and x['category'] == 'tank'), None)
+        if std and a['files'].get('transparent') and orig.get(std['id']):
+            src, dst = orig[a['id']], stem(orig[a['id']]) + '_swatch.webp'
+            frame = orig_full.get(a['id']) or src
+            def sw():
+                if not swatch(S(src), S(orig[std['id']]), S(frame), O(dst)):
+                    unseen.append(a['id'])
+            once(src + '#swatch', [dst], sw, sha_of=src)
+            f['swatch'] = ver(dst)
         if f.get('thumbnail'):
-            p = os.path.join(out, os.path.splitext(f['thumbnail'])[0] + '.webp')
-            im = Image.open(S(f['thumbnail']))
-            im.resize((320, round(im.height * 320 / im.width)), Image.LANCZOS).save(p, 'WEBP', quality=80, method=6)
-            f['thumbnail'] = f['thumbnail_webp'] = rel(p)
-    json.dump(m, open(os.path.join(out, 'manifest.json'), 'w'), indent=1, ensure_ascii=False)
-    size = sum(os.path.getsize(os.path.join(d, x)) for d, _, fs in os.walk(out) for x in fs)
-    print(f"{len(m['assets'])} assets, {len(m['moves'])} moves, {size / 1e6:.1f} MB in {out}")
+            src, dst = f['thumbnail'], stem(f['thumbnail']) + '.webp'
+            def thumb():
+                im = Image.open(S(src))
+                im.resize((240, round(im.height * 240 / im.width)), Image.LANCZOS).save(O(dst), 'WEBP', quality=82, method=6)
+            once(src, [dst], thumb)
+            f['thumbnail'] = f['thumbnail_webp'] = ver(dst)
+        keep.append(a)
+    m['assets'] = keep
+    json.dump(m, open(O('manifest.json'), 'w'), indent=1, ensure_ascii=False)
+    json.dump(cache, open(cache_file, 'w'), indent=1)
+    size = sum(os.path.getsize(os.path.join(d, x)) for d, _, fs in os.walk(out) for x in fs if not x.startswith('.'))
+    print(f"{len(m['assets'])} assets, {len(m['moves'])} moves, {size / 1e6:.1f} MB in {out} "
+          f"({done['converted']} converted, {done['kept']} unchanged)")
+    if unseen:
+        print(f'WARNING: {len(unseen)} look(s) show no visible difference from their tank\'s standard paint in this camera:',
+              ', '.join(unseen))
 
 
 if __name__ == '__main__':

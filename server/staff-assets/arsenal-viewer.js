@@ -48,6 +48,7 @@ window.CUE_ARSENAL_VIEWER = function (view, { B, icon, esc, settings: S, vip }) 
   let M = null, base = null;
   const url = p => (p ? new URL(p, base).href : null);
   const thumbOf = a => url((a.files || {}).thumbnail_webp || (a.files || {}).thumbnail || (a.files || {}).poster || (a.files || {}).transparent || null);
+  const swatchOf = a => url((a.files || {}).swatch) || thumbOf(a);   // a close-up of what the look changes, if published
   const tankTitle = t => { const s = M.assets.find(a => a.tank === t && a.category === 'tank'); return s ? s.title : (t || '').replace(/_/g, ' '); };
 
   // a tab's list: one entry per tank (or per item, for things that aren't tanks), each with its variants
@@ -144,6 +145,29 @@ window.CUE_ARSENAL_VIEWER = function (view, { B, icon, esc, settings: S, vip }) 
 
   /* ---------------------------------------------------------------- the item (middle layer) */
   const imgs = $$('.arsv-img', mid), clip = $('.arsv-clip', mid);
+  const setImage = (el, f) => {
+    el.removeAttribute('srcset');
+    if (f.webp) { el.sizes = '100vw'; el.srcset = Object.entries(f.webp).map(([w, p]) => `${url(p)} ${w}w`).join(', '); }
+    el.src = url(f.transparent || f.full);
+  };
+  // a still starts loading the moment it's picked (while the camera is still moving), and once one is showing
+  // the rest of that tank's looks load quietly, so swapping between them is instant
+  const pre = new Map();
+  function prefetch(a) {
+    const f = (a && a.files) || {};
+    if (!a || a.category === 'kill_animation' || !(f.transparent || f.full)) return Promise.resolve();
+    const key = f.transparent || f.full;
+    if (!pre.has(key)) { const im = new Image(); setImage(im, f); pre.set(key, im.decode().catch(() => {})); }
+    return pre.get(key);
+  }
+  function prefetchAll(list) {
+    const next = () => {
+      const a = list.shift();
+      if (!a || !alive) return;
+      prefetch(a).then(() => (window.requestIdleCallback ? requestIdleCallback(next, { timeout: 800 }) : setTimeout(next, 50)));
+    };
+    next();
+  }
   let shown = null, slot = 0;
   async function showItem(a) {
     if (!a || !alive) return;
@@ -160,15 +184,13 @@ window.CUE_ARSENAL_VIEWER = function (view, { B, icon, esc, settings: S, vip }) 
     } else {
       clip.pause(); clip.classList.remove('on');
       const next = imgs[slot ^ 1];
-      const webp = f.webp || null;
-      next.removeAttribute('srcset');
-      if (webp) { next.srcset = Object.entries(webp).map(([w, p]) => `${url(p)} ${w}w`).join(', '); next.sizes = '100vw'; }
-      next.src = url(f.transparent || f.full);
+      setImage(next, f);
       try { await next.decode(); } catch (e) { /* shown anyway */ }
       if (shown !== a) return;
       next.classList.add('on'); imgs[slot].classList.remove('on'); slot ^= 1;
     }
     mid.classList.add('on');
+    if (entry && entry.variants.includes(a)) prefetchAll(entry.variants.filter(x => x !== a));
   }
 
   /* ---------------------------------------------------------------- the front layer: dust */
@@ -201,7 +223,9 @@ window.CUE_ARSENAL_VIEWER = function (view, { B, icon, esc, settings: S, vip }) 
 
   /* ---------------------------------------------------------------- parallax */
   if (!reduced) {
-    const layers = [[back, 5], [mid, 9], [$('.arsv-front'), 15]];
+    // the item and the hangar move together: the stills are rendered from the loop's own camera, so any
+    // offset between them would slide the tank on its floor. The depth comes from the dust in front.
+    const layers = [[back, 6], [mid, 6], [$('.arsv-front'), 16]];
     let tx = 0, ty = 0, x = 0, y = 0, raf = 0;
     const move = e => {
       const r = stage.getBoundingClientRect();
@@ -245,8 +269,8 @@ window.CUE_ARSENAL_VIEWER = function (view, { B, icon, esc, settings: S, vip }) 
       G.items.push(a);
     }
     box.innerHTML = groups.map(G => `<div class="arsv-sw-group"><span class="arsv-sw-k">${esc(G.g)}</span><div class="arsv-sw-row">${G.items.map(a => {
-      const th = thumbOf(a), i = entry.variants.indexOf(a);
-      return `<button class="arsv-sw${a === item ? ' on' : ''}" data-variant="${i}" title="${esc(a.title)}" aria-label="${esc(a.title)}" aria-pressed="${a === item}">${th ? `<img src="${esc(th)}" alt="" loading="lazy" decoding="async">` : ''}${a.vip_tier ? `<i class="arsv-sw-tier arsv-tier-${a.vip_tier}">${TIER[a.vip_tier]}</i>` : ''}</button>`;
+      const th = swatchOf(a), i = entry.variants.indexOf(a);
+      return `<button class="arsv-sw${a === item ? ' on' : ''}" data-variant="${i}" title="${esc(a.title)}" aria-label="${esc(a.title)}" aria-pressed="${a === item}">${th ? `<img src="${esc(th)}" alt="" decoding="async">` : ''}${a.vip_tier ? `<i class="arsv-sw-tier arsv-tier-${a.vip_tier}">${TIER[a.vip_tier]}</i>` : ''}</button>`;
     }).join('')}</div></div>`).join('');
   }
   function drawInfo() {
@@ -282,6 +306,7 @@ window.CUE_ARSENAL_VIEWER = function (view, { B, icon, esc, settings: S, vip }) 
   function pickItem(a) {
     item = a; shown = a; drawSwatches(); drawInfo();
     if (!a) return;
+    prefetch(a);
     if (area === a.area && !busy) { showItem(a); return; }
     onArrive = to => { if (shown && shown.area === to) showItem(shown); };
     goTo(a.area);
