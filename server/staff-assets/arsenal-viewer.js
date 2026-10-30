@@ -424,14 +424,21 @@ body.ui-nova .nv-view-arsenal { overflow: hidden auto; }
 .arsv-owned { color: var(--text-muted); border: 1px solid var(--background-modifier-border); }
 .arsv-buy .svg-icon, .arsv-owned .svg-icon { width: 16px; height: 16px; }
 .arsv-bottom { position: absolute; left: 300px; right: 340px; bottom: 92px; z-index: 2; display: flex; justify-content: center; pointer-events: none; }
-.arsv-swatches { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; padding: 10px 14px; border-radius: 16px; background: rgba(3,3,6,.62); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); pointer-events: auto; max-width: 100%; }
-.arsv-sw-group { display: grid; gap: 5px; }
-.arsv-sw-k { font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
-.arsv-sw-row { display: flex; gap: 6px; flex-wrap: wrap; }
-.arsv-sw { position: relative; width: 46px; height: 46px; padding: 0; border-radius: 10px; overflow: hidden; border: 2px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); cursor: pointer; }
+.arsv-swatches { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; padding: 6px 10px; border-radius: 12px; background: rgba(3,3,6,.62); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); pointer-events: auto; max-width: 100%; }
+.arsv-sw-group { display: grid; gap: 3px; }
+.arsv-sw-k { font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+.arsv-sw-row { display: flex; gap: 4px; flex-wrap: wrap; }
+.arsv-sw { position: relative; width: 34px; height: 34px; padding: 0; border-radius: 8px; overflow: hidden; border: 2px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); cursor: pointer; }
 .arsv-sw img { width: 100%; height: 100%; object-fit: cover; }
 .arsv-sw.on { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(251,191,36,.25); }
-.arsv-sw-tier { position: absolute; right: 1px; bottom: 1px; padding: 0 3px; border-radius: 4px; font-style: normal; font-size: 8.5px; font-weight: 800; }
+.arsv-sw-tier { position: absolute; right: 1px; bottom: 1px; padding: 0 2px; border-radius: 3px; font-style: normal; font-size: 7px; font-weight: 800; }
+/* laptops: the stage is short, so the picker gets smaller still */
+@media (min-width: 1001px) and (max-height: 860px) {
+  .arsv-bottom { bottom: 84px; }
+  .arsv-swatches { gap: 10px; padding: 5px 8px; }
+  .arsv-sw { width: 28px; height: 28px; border-radius: 7px; }
+  .arsv-sw-k { font-size: 8.5px; }
+}
 .arsv-msg { position: absolute; inset: auto 0 45% 0; text-align: center; color: var(--text-muted); z-index: 3; }
 .arsv button:focus-visible, .arsv a:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 @media (max-width: 1000px) {

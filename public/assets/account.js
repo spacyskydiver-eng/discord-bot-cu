@@ -12,10 +12,10 @@
     const C = window.CUE || {};
     view.innerHTML = `<div class="nv-page nv-module tst acc" style="--mod:${COLOR}">
       <header class="nv-mod-head"><div class="nv-mod-text">
-        <div class="nv-mod-bar"><button class="nv-back" data-go="${esc(B.V.home)}">${icon('arrow-left')} Home</button></div>
+        <div class="nv-mod-bar"><button class="nv-back" data-go="${esc(B.V.home)}">${icon('arrow-left')} Home</button>${C.user ? `<a class="tst-btn acc-signout" style="margin-left:auto" href="/auth/logout">Sign out</a>` : ''}</div>
         <div class="nv-kicker">Your account</div>
         <h1>${C.user ? esc(C.user.name) : 'Your account'}</h1>
-        <p class="nv-lede">Your VIP tier and your Minecraft account. The game servers give VIP perks to the Minecraft account linked here.</p>
+        <p class="nv-lede">${C.user ? 'Your VIP tier and your Minecraft account. The game servers give VIP perks to the Minecraft account linked here.' : 'Sign in with your Discord account: apply for events, see your VIP tier and link your Minecraft account.'}</p>
       </div></header>
       <div class="acc-body"><div class="nv-empty">Loading…</div></div>
     </div>`;
@@ -30,7 +30,7 @@
     }
     function draw() {
       if (!C.user) {
-        body.innerHTML = `<section class="nv-sec"><div class="tst-box"><p>Sign in with Discord to see your VIP tier and link your Minecraft account.</p>
+        body.innerHTML = `<section class="nv-sec"><div class="tst-box"><p>We only ask Discord for your username and avatar.</p>
           <a class="tst-btn tst-primary" href="/auth/discord?return=/account">Sign in with Discord</a></div></section>`;
         return;
       }
