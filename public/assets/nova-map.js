@@ -282,7 +282,9 @@ function frame(now) {
   if (M.mode === 'map') hudFrame();
   // the background only needs ~30 fps; map mode and flights run at full rate
   const next = () => { M.raf = requestAnimationFrame(frame); };
-  if (active || moving) next();
+  if (active || moving || Math.abs(M.dimGoal - M.dim) > 0.002) next();
+  // fast mode / reduced motion: a still background is drawn once, and drawn again only when kick() says something changed
+  else if (reduced) return;
   else { clearTimeout(M.idle); M.idle = setTimeout(() => { if (M && M.alive && !M.raf) M.raf = requestAnimationFrame(frame); }, 1000 / 30); }
 }
 function draw() {
