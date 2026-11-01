@@ -4,6 +4,7 @@
 //
 // load() hands back the map as it was uploaded, plus `borders`: pairs whose outlines touch but aren't in
 // connections, so a missing entry still counts as a land border.
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const db = require('../db');
@@ -115,4 +116,17 @@ async function save(text, uploadedBy) {
   cache = { stamp: null, body: null, checked: 0 };
 }
 
-module.exports = { load, info, save, validate, FILE };
+// the private share link: /campaign-map/s/<token> shows the board read-only to anyone who has it. One link at a
+// time, in site setting campaign_map_share; making a new one or switching it off kills the old one.
+const access = require('./access');
+const SHARE_KEY = 'campaign_map_share';
+const shareToken = () => access.getSetting(SHARE_KEY);
+async function newShare() { const t = crypto.randomBytes(24).toString('base64url'); await access.setSetting(SHARE_KEY, t); return t; }
+const stopShare = () => access.setSetting(SHARE_KEY, null);
+async function shareOk(token) {
+  const t = await shareToken();
+  if (!t || typeof token !== 'string' || token.length !== t.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(token), Buffer.from(t));
+}
+
+module.exports = { load, info, save, validate, FILE, shareToken, newShare, stopShare, shareOk };

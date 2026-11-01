@@ -1633,7 +1633,9 @@ const campaignUpload = multer({ storage: multer.memoryStorage(), limits: { fileS
 router.get('/campaign-map', async (req, res) => {
   let current = null;
   try { current = await campaignMap.info(); } catch (e) { current = { source: 'error', error: e.message }; }
-  res.render('new/admin-campaign-map', { current, msg: req.query.msg || '', bad: req.query.bad === '1' });
+  const token = await campaignMap.shareToken().catch(() => null);
+  res.render('new/admin-campaign-map', { current, msg: req.query.msg || '', bad: req.query.bad === '1', viewer: false,
+    dataUrl: '/admin/campaign-map/data.json', shareUrl: token ? `${req.protocol}://${req.get('host')}/campaign-map/s/${token}` : '' });
 });
 router.get('/campaign-map/data.json', async (req, res) => {
   try {
@@ -1641,6 +1643,15 @@ router.get('/campaign-map/data.json', async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: 'Could not load the campaign map: ' + e.message });
   }
+});
+router.post('/campaign-map/share', async (req, res) => {
+  const back = msg => res.redirect('/admin/campaign-map?' + new URLSearchParams({ msg }));
+  try {
+    if (req.body.action === 'off') { await campaignMap.stopShare(); return back('Share link switched off: the old link no longer works.'); }
+    const had = await campaignMap.shareToken();
+    await campaignMap.newShare();
+    back(had ? 'New share link made: the old one no longer works.' : 'Share link made: anyone with it can view the map.');
+  } catch (e) { back('Could not change the share link: ' + e.message); }
 });
 router.post('/campaign-map/upload', (req, res) => {
   const back = (msg, bad) => res.redirect('/admin/campaign-map?' + new URLSearchParams({ msg, bad: bad ? '1' : '0' }));

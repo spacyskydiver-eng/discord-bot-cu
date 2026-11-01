@@ -1,4 +1,5 @@
-<%- include('partials/head', { pageTitle: 'Campaign Map · Control Centre' }) %>
+<% const viewer = !!locals.viewer; %>
+<%- include('partials/head', { pageTitle: viewer ? 'Campaign Map' : 'Campaign Map · Control Centre' }) %>
 <%- include('partials/header') %>
 <style>
 .cm { --sea: #12324f; --ink: #0c0e11; --paper: #f3ecd9; --hud: rgba(14,17,24,.92); --line: rgba(255,255,255,.12);
@@ -34,7 +35,9 @@
 .route-lit { stroke-width: 3.2px; }
 .tok-ring { stroke: #0c0e11; stroke-width: 2px; }
 .tok-inner { fill: none; stroke: rgba(255,255,255,.75); stroke-width: 1.5px; }
-.tok-num { font-weight: 800; text-anchor: middle; dominant-baseline: central; }
+.tok-num { font-weight: 800; text-anchor: middle; dominant-baseline: central; letter-spacing: .02em; }
+.tok-val rect { fill: #ffd666; stroke: #0c0e11; stroke-width: 1.6px; }
+.tok-val text { font-weight: 800; text-anchor: middle; dominant-baseline: central; fill: #16181d; }
 .lbl { font-weight: 800; text-anchor: middle; fill: #fff; paint-order: stroke; stroke: rgba(8,10,14,.85); stroke-width: 3.2px; stroke-linejoin: round; letter-spacing: .02em; }
 .lbl-mark { font-weight: 700; font-size: 11px; fill: #ffe8a8; paint-order: stroke; stroke: rgba(8,10,14,.9); stroke-width: 3px; }
 .grid-lbl { font: 600 10px Inter, sans-serif; fill: rgba(255,255,255,.6); paint-order: stroke; stroke: rgba(8,10,14,.8); stroke-width: 2.5px; }
@@ -101,6 +104,11 @@
 .cm-up input[type=file] { color: #c6cad4; font-size: 12.5px; max-width: 100%; }
 .cm .cm-upbtn { justify-self: start; padding: 8px 14px; border-radius: 8px; background: #ffd666; color: #16181d; border: 2px solid var(--ink); font: 800 13px 'Baloo 2', sans-serif; }
 .cm-up a { color: #ffd666; }
+.cm-up p { font-size: 12.5px; margin: 8px 0; }
+.cm-share { width: 100%; box-sizing: border-box; background: rgba(0,0,0,.3); border: 1px solid var(--line); border-radius: 8px; color: #e8e9ee; padding: 8px 10px; font: 12px ui-monospace, Menlo, monospace; }
+.cm-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 8px; } .cm-row form { margin: 0; display: block; }
+.cm .cm-plain { padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); color: #c6cad4; font: 700 12.5px Inter, sans-serif; }
+.cm .cm-plain:hover { border-color: #f87171; color: #fecaca; }
 .cm-err { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font: 700 15px Inter, sans-serif; padding: 20px; text-align: center; }
 
 @media (max-width: 860px) {
@@ -176,6 +184,7 @@
   </div>
 
   <aside class="cm-panel" id="cm-panel">
+    <% if (!viewer) { %>
     <a class="back" href="/admin">&larr; Control Centre</a>
     <% if (msg) { %><div class="cm-msg <%= bad ? 'bad' : '' %>"><%= msg %></div><% } %>
     <details class="cm-up" <%= bad ? 'open' : '' %>>
@@ -189,6 +198,22 @@
       </form>
       <% if (current.source === 'database') { %><p class="src"><%= (current.size / 1024).toFixed(0) %> KB<%= current.uploadedBy ? ', by ' + current.uploadedBy : '' %>. <a href="/admin/campaign-map/data.json" download="greatwar_map.json">Download the current one</a></p><% } %>
     </details>
+    <details class="cm-up">
+      <summary>Share link <span class="src"><%= shareUrl ? 'on: anyone with the link can view' : 'off' %></span></summary>
+      <% if (shareUrl) { %>
+      <p>Anyone with this link sees the board read-only (no upload, nothing else of the control centre), even while the site is in maintenance.</p>
+      <input class="cm-share" type="text" readonly value="<%= shareUrl %>" onclick="this.select()">
+      <div class="cm-row">
+        <button class="cm-upbtn" type="button" onclick="navigator.clipboard && navigator.clipboard.writeText('<%= shareUrl %>').then(() => { this.textContent = 'Copied'; setTimeout(() => this.textContent = 'Copy link', 1200); })">Copy link</button>
+        <form method="POST" action="/admin/campaign-map/share" onsubmit="return confirm('Make a new link? The current one will stop working.')"><input type="hidden" name="action" value="new"><button class="cm-plain" type="submit">New link</button></form>
+        <form method="POST" action="/admin/campaign-map/share" onsubmit="return confirm('Switch the link off? Anyone using it loses access.')"><input type="hidden" name="action" value="off"><button class="cm-plain" type="submit">Switch off</button></form>
+      </div>
+      <% } else { %>
+      <p>Make a private link that lets anyone who has it view the board, without signing in.</p>
+      <form method="POST" action="/admin/campaign-map/share"><input type="hidden" name="action" value="new"><button class="cm-upbtn" type="submit">Make a share link</button></form>
+      <% } %>
+    </details>
+    <% } %>
     <div id="cm-info"><h1>Campaign map</h1><p>Loading the board&hellip;</p></div>
   </aside>
 </main>
@@ -213,6 +238,11 @@
   const overlayTerrain = t => !TERRAIN_FILL[t] || TERRAIN_FILL[t][0] === null;   // drawn over territories, not in place of them
 
   let M, T = {}, NAT = {}, CON = {}, ADJ = {}, terrains = [], selected = null, focusContinent = null;
+  // each token's live value (players present, capture progress...): empty until something feeds it, through
+  // window.campaignBoard.setValues({ territoryId: value }); a value in the map file (territory.value) is the start
+  const VAL = {};
+  // the code on a nation's tokens: its own code if the map gives one, else its id in capitals; unclaimed is blank
+  const natCode = id => id === 'none' || !NAT[id] ? '' : String(NAT[id].code || id).toUpperCase();
   const layers = { tokens: true, routes: true, terrain: true, names: false, grid: false };
   const view = { s: 1, tx: 0, ty: 0 }, home = { s: 1, tx: 0, ty: 0 };
   let W = 0, H = 0;
@@ -240,7 +270,7 @@
   function build() {
     M.nations.forEach(n => NAT[n.id] = n);
     M.continents.forEach(c => CON[c.id] = c);
-    M.territories.forEach(t => { T[t.id] = Object.assign({}, t, { box: bboxOf(t.polygons), d: t.polygons.map(ringsPath).join('') }); ADJ[t.id] = []; });
+    M.territories.forEach(t => { if (t.value != null) VAL[t.id] = t.value; T[t.id] = Object.assign({}, t, { box: bboxOf(t.polygons), d: t.polygons.map(ringsPath).join('') }); ADJ[t.id] = []; });
     const passBy = {};
     (M.passes || []).forEach(p => { if (p.connects) passBy[[...p.connects].sort().join('|')] = p; });
     const seen = new Set();
@@ -404,11 +434,17 @@
       const [X, Y] = toScreen(...t.label);
       if (X < -30 || X > W + 30 || Y < -30 || Y > H + 30) return;
       const col = (NAT[t.owner] || {}).color || '#ccc', dark = lum(col) > .6;
-      const tok = el('g', {}, g);
+      const tok = el('g', { class: 'tok', 'data-territory': t.id, 'data-value': VAL[t.id] == null ? '' : VAL[t.id] }, g);
       el('ellipse', { cx: X, cy: Y + 2.5, rx: r, ry: r, fill: 'rgba(0,0,0,.55)' }, tok);
       el('circle', { cx: X, cy: Y, r, fill: col, class: 'tok-ring' }, tok);
       if (r >= 14) el('circle', { cx: X, cy: Y, r: r - 3, class: 'tok-inner', stroke: dark ? 'rgba(0,0,0,.35)' : 'rgba(255,255,255,.75)' }, tok);
-      el('text', { x: X, y: Y + 1, class: 'tok-num', 'font-size': r * 1.45, fill: dark ? '#14161b' : '#fff' }, tok).textContent = t.armies != null ? t.armies : 1;
+      const code = natCode(t.owner);
+      if (code) el('text', { x: X, y: Y + 1, class: 'tok-num', 'font-size': r * (code.length > 2 ? .72 : .95), fill: dark ? '#14161b' : '#fff' }, tok).textContent = code;
+      // the value badge, top right of the token, hidden while there's no value
+      const v = VAL[t.id] == null ? '' : String(VAL[t.id]), bw = Math.max(r * 1.1, v.length * r * .62 + 8), bh = r * .95;
+      const badge = el('g', { class: 'tok-val', display: v ? '' : 'none' }, tok);
+      el('rect', { x: X + r * .55, y: Y - r * 1.25, width: bw, height: bh, rx: bh / 2 }, badge);
+      el('text', { x: X + r * .55 + bw / 2, y: Y - r * 1.25 + bh / 2 + .5, 'font-size': bh * .78 }, badge).textContent = v;
     });
   }
 
@@ -588,9 +624,14 @@
     layers[b.dataset.layer] = !layers[b.dataset.layer]; b.setAttribute('aria-pressed', layers[b.dataset.layer]); draw();
   });
   addEventListener('resize', () => { if (M) resize(false); });
+  window.campaignBoard = {
+    setValues(values) { for (const id in values) { if (values[id] == null || values[id] === '') delete VAL[id]; else VAL[id] = values[id]; } draw(); },
+    clearValues() { for (const id in VAL) delete VAL[id]; draw(); },
+    values: () => Object.assign({}, VAL),
+  };
   document.querySelectorAll('time[data-ts]').forEach(t => { t.textContent = new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(+t.dataset.ts * 1000); });
 
-  fetch('/admin/campaign-map/data.json', { credentials: 'same-origin' })
+  fetch(<%- JSON.stringify(locals.dataUrl || '/admin/campaign-map/data.json') %>, { credentials: 'same-origin' })
     .then(r => r.ok ? r.json() : r.json().then(j => Promise.reject(new Error(j.error || r.status))))
     .then(m => { M = m; build(); })
     .catch(e => { stage.insertAdjacentHTML('beforeend', `<div class="cm-err">Couldn't load the map: ${esc(e.message)}</div>`); });
