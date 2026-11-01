@@ -958,7 +958,7 @@ function makeGraph2D(host, opts = {}) {
   let W = 0, H = 0, dpr = 1, hover = null, sim = null, alive = true, raf = 0, userZoomed = false, last = performance.now(), clock = 0;
   let neighbours = new Map(), colors = {}, layout = null, tween = null;
   const view = { x: 0, y: 0, k: 1 }; let goal = d3.zoomIdentity;
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduceMotion = !!window.CUE_FAST || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function readColors() {
     const cs = getComputedStyle(document.body);

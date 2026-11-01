@@ -58,6 +58,10 @@ html.cue-fast *, html.cue-fast *::before, html.cue-fast *::after {
 }
 html.cue-fast #cue-menubg .mbg-grain, html.cue-fast #cue-menubg .mbg-breath, html.cue-fast #cue-menubg .mbg-video { display: none !important; }
 html.cue-fast .nb-dock, html.cue-fast .arsv-swatches, html.cue-fast #cue-sound { background: rgba(8,8,14,.94) !important; }
+/* the home header's light beam, drawn once instead of by a shader */
+html.cue-fast body.ui-nova .nv-laser { opacity: 1 !important;
+  background: radial-gradient(ellipse 22% 60% at 72% 100%, rgba(139,92,246,.45), transparent 70%),
+              linear-gradient(90deg, transparent calc(72% - 2px), rgba(233,213,255,.9) 72%, transparent calc(72% + 2px)); }
 #cue-sound:focus-visible { outline: 2px solid #FBBF24; outline-offset: 2px; }
 #cue-sound.is-on { color: #FBBF24; border-color: rgba(251,191,36,.45); }
 #cue-sound svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }

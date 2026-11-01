@@ -68,6 +68,8 @@ const readOf = id => (store.get(READ_KEY, {})[id] || 0);
 
 /* ---------------------------------------------------------------- GL helpers: mount once the bundle is in */
 function mountGL(el, kind, props, bag) {
+  // fast mode: no shaders (they draw every frame); the CSS keeps a still version where one matters
+  if (window.CUE_FAST) return;
   N.loadGL().then(() => {
     if (!el.isConnected || !B.isNova() || !N[kind]) return;
     try { bag.push(N[kind](el, props)); } catch (e) { console.error(e); }
