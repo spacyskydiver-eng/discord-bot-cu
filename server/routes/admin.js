@@ -1626,6 +1626,60 @@ router.post('/mining-region/:id/delete', async (req, res) => {
   res.redirect('/admin/nation-map');
 });
 
+// Campaign board: the event's territory map, drawn entirely from server/data/greatwar_map.json (swap the file to
+// change the map; it's re-read whenever it changes). data.json is the file as it is, plus `borders`: pairs whose
+// outlines touch but aren't in connections, so a missing entry still counts as a land border.
+const CAMPAIGN_MAP_FILE = path.join(__dirname, '../data/greatwar_map.json');
+let campaignMap = { mtime: 0, body: null };
+function campaignBorders(m) {
+  const tol = 3, out = [];
+  const listed = new Set((m.connections || []).map(c => [c.a, c.b].sort().join('|')));
+  const ts = (m.territories || []).map(t => {
+    const segs = [], pts = [];
+    let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
+    for (const poly of t.polygons) {
+      const r = poly[0];
+      r.forEach((p, i) => {
+        segs.push([p, r[(i + 1) % r.length]]); pts.push(p);
+        x0 = Math.min(x0, p[0]); z0 = Math.min(z0, p[1]); x1 = Math.max(x1, p[0]); z1 = Math.max(z1, p[1]);
+      });
+    }
+    return { id: t.id, segs, pts, box: [x0, z0, x1, z1] };
+  });
+  const near = (p, [a, b]) => {
+    const dx = b[0] - a[0], dz = b[1] - a[1], l = dx * dx + dz * dz || 1;
+    const u = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dz) / l));
+    return Math.hypot(a[0] + u * dx - p[0], a[1] + u * dz - p[1]) <= tol;
+  };
+  for (let i = 0; i < ts.length; i++) for (let j = i + 1; j < ts.length; j++) {
+    const A = ts[i], B = ts[j];
+    if (A.box[0] > B.box[2] + tol || B.box[0] > A.box[2] + tol || A.box[1] > B.box[3] + tol || B.box[1] > A.box[3] + tol) continue;
+    if (listed.has([A.id, B.id].sort().join('|'))) continue;
+    let n = 0;
+    for (const p of A.pts) if (B.segs.some(s => near(p, s)) && ++n >= 2) break;
+    if (n >= 2) out.push({ a: A.id, b: B.id, type: 'land' });
+  }
+  return out;
+}
+async function loadCampaignMap() {
+  const fs = require('fs');
+  const { mtimeMs } = await fs.promises.stat(CAMPAIGN_MAP_FILE);
+  if (mtimeMs !== campaignMap.mtime) {
+    const m = JSON.parse(await fs.promises.readFile(CAMPAIGN_MAP_FILE, 'utf8'));
+    m.borders = campaignBorders(m);
+    campaignMap = { mtime: mtimeMs, body: JSON.stringify(m) };
+  }
+  return campaignMap.body;
+}
+router.get('/campaign-map', (req, res) => res.render('new/admin-campaign-map'));
+router.get('/campaign-map/data.json', async (req, res) => {
+  try {
+    res.set('Cache-Control', 'no-store').type('application/json').send(await loadCampaignMap());
+  } catch (e) {
+    res.status(500).json({ error: 'Could not read server/data/greatwar_map.json: ' + e.message });
+  }
+});
+
 // Map viewer
 router.get('/map', (req, res) => res.render('new/admin-map'));
 router.get('/map-v2', (req, res) => res.render('new/admin-map-v2'));
