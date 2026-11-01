@@ -92,6 +92,15 @@
 .facts dt { color: #9aa0ad; } .facts dd { margin: 0; font-variant-numeric: tabular-nums; color: #fff; }
 .copy { cursor: pointer; border-bottom: 1px dashed rgba(255,255,255,.35); } .copy:hover { color: #ffd666; }
 .rule { padding: 10px 12px; border-radius: 10px; background: rgba(255,214,102,.08); border: 1px solid rgba(255,214,102,.25); color: #f4e3b5; line-height: 1.5; }
+.cm-msg { padding: 10px 12px; border-radius: 10px; margin-bottom: 12px; background: rgba(52,211,153,.1); border: 1px solid rgba(52,211,153,.35); color: #bff3dc; line-height: 1.5; overflow-wrap: anywhere; }
+.cm-msg.bad { background: rgba(248,113,113,.1); border-color: rgba(248,113,113,.4); color: #fecaca; }
+.cm-up { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin-bottom: 16px; background: rgba(255,255,255,.03); }
+.cm-up summary { cursor: pointer; font: 800 14px 'Baloo 2', sans-serif; color: #fff; }
+.cm-up .src { display: block; font: 500 12px Inter, sans-serif; color: #9aa0ad; margin-top: 2px; }
+.cm-up form { margin-top: 10px; display: grid; gap: 8px; }
+.cm-up input[type=file] { color: #c6cad4; font-size: 12.5px; max-width: 100%; }
+.cm .cm-upbtn { justify-self: start; padding: 8px 14px; border-radius: 8px; background: #ffd666; color: #16181d; border: 2px solid var(--ink); font: 800 13px 'Baloo 2', sans-serif; }
+.cm-up a { color: #ffd666; }
 .cm-err { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font: 700 15px Inter, sans-serif; padding: 20px; text-align: center; }
 
 @media (max-width: 860px) {
@@ -168,6 +177,18 @@
 
   <aside class="cm-panel" id="cm-panel">
     <a class="back" href="/admin">&larr; Control Centre</a>
+    <% if (msg) { %><div class="cm-msg <%= bad ? 'bad' : '' %>"><%= msg %></div><% } %>
+    <details class="cm-up" <%= bad ? 'open' : '' %>>
+      <summary>Map file
+        <span class="src"><% if (current.source === 'database') { %>uploaded <time data-ts="<%= Math.floor(new Date(current.updatedAt).getTime() / 1000) %>"></time><% } else if (current.source === 'local file') { %>local file (not uploaded)<% } else if (current.source === 'error') { %>can't read: <%= current.error %><% } else { %>none uploaded<% } %></span>
+      </summary>
+      <form method="POST" action="/admin/campaign-map/upload" enctype="multipart/form-data">
+        <p>Swap in a new map JSON. It's checked before it replaces the current one, and kept in the database, never in the repo.</p>
+        <input type="file" name="map" accept=".json,application/json" required>
+        <button class="cm-upbtn" type="submit">Upload and replace</button>
+      </form>
+      <% if (current.source === 'database') { %><p class="src"><%= (current.size / 1024).toFixed(0) %> KB<%= current.uploadedBy ? ', by ' + current.uploadedBy : '' %>. <a href="/admin/campaign-map/data.json" download="greatwar_map.json">Download the current one</a></p><% } %>
+    </details>
     <div id="cm-info"><h1>Campaign map</h1><p>Loading the board&hellip;</p></div>
   </aside>
 </main>
@@ -567,6 +588,7 @@
     layers[b.dataset.layer] = !layers[b.dataset.layer]; b.setAttribute('aria-pressed', layers[b.dataset.layer]); draw();
   });
   addEventListener('resize', () => { if (M) resize(false); });
+  document.querySelectorAll('time[data-ts]').forEach(t => { t.textContent = new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(+t.dataset.ts * 1000); });
 
   fetch('/admin/campaign-map/data.json', { credentials: 'same-origin' })
     .then(r => r.ok ? r.json() : r.json().then(j => Promise.reject(new Error(j.error || r.status))))

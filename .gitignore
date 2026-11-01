@@ -5,3 +5,6 @@ public/video/
 
 # staff wiki (Design Document): never in this public repo; it is uploaded to the database with tools/upload_staff_wiki.js
 content/wiki/staff.md
+
+# the campaign map lives in the database (campaign_map table): this repo is public
+server/data/greatwar_map.json
