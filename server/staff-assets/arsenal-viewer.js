@@ -25,7 +25,7 @@
 window.CUE_ARSENAL_VIEWER = function (view, { B, icon, esc, settings: S, vip }) {
   const $ = (s, r = view) => r.querySelector(s);
   const $$ = (s, r = view) => [...r.querySelectorAll(s)];
-  const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduced = !!window.CUE_FAST || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
   let alive = true;
   const stops = [];
   const TIER = { vip: 'VIP', vip_plus: 'VIP+' };
@@ -348,6 +348,8 @@ window.CUE_ARSENAL_VIEWER = function (view, { B, icon, esc, settings: S, vip }) 
       if (!r.ok) throw new Error('manifest ' + r.status);
       M = await r.json();
       M.views = M.views || {}; M.moves = M.moves || []; M.assets = M.assets || [];
+      // fast mode: no camera-move videos between views, the hangar cuts straight to the next one
+      if (window.CUE_FAST) M.moves = [];
     } catch (e) {
       const m = $('.arsv-msg'); m.hidden = false; m.textContent = "The Arsenal's content couldn't be loaded (" + e.message + ').';
       return;

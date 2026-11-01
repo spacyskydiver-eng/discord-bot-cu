@@ -128,7 +128,7 @@ class MapCamera {
 
 function create(host, options) {
   const { cfg, getData, titleOf, onOpen, icon, esc } = options;
-  const reduced = root.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduced = !!root.CUE_FAST || root.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const canvas = document.createElement('canvas');
   canvas.className = 'graph-canvas graph-3d-canvas'; canvas.tabIndex = 0;
   canvas.setAttribute('aria-label', '3D free graph. Drag to orbit, Shift-drag or right-drag to pan, scroll to zoom. WASD to pan, Q and E to move vertically, arrow keys to orbit, Home to reset.');

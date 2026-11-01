@@ -13,7 +13,13 @@
 <link rel="stylesheet" href="/assets/nova.css?v=<%= v %>">
 <link rel="stylesheet" href="/assets/menu-bg.css?v=<%= v %>">
 <link rel="preload" as="image" href="<%= media.menuPoster %>.webp" type="image/webp">
-<script>window.CUE = <%- cueJson %>; window.CUE_ASSET_V = '<%= v %>';</script>
+<script>window.CUE = <%- cueJson %>; window.CUE_ASSET_V = '<%= v %>';
+/* Fast mode: the visitor's choice (the bolt button), else on by itself for a low-end machine (2 cores or fewer, or 4 GB
+   of memory or less). It turns off the background video, the blurs, the animations and the light effects. */
+(function () { var c = null; try { c = localStorage.getItem('cue:fast'); } catch (e) {}
+  var n = navigator, weak = (n.hardwareConcurrency && n.hardwareConcurrency <= 2) || (n.deviceMemory && n.deviceMemory <= 4);
+  window.CUE_FAST = c ? c === 'on' : !!weak; window.CUE_FAST_AUTO = !c && !!weak;
+  if (window.CUE_FAST) document.documentElement.classList.add('cue-fast'); })();</script>
 </head>
 <body class="theme-dark ui-nova has-menubg">
 <%- include('partials/menu-bg') %>

@@ -38,6 +38,26 @@
   transition: color .2s ease, border-color .2s ease, background .2s ease;
 }
 #cue-sound:hover { color: #fff; border-color: rgba(255,255,255,.3); }
+/* fast mode's bolt, left of the sound button */
+#cue-fast {
+  position: fixed; top: 14px; right: 62px; z-index: 80; width: 40px; height: 40px; padding: 0;
+  display: grid; place-items: center; border-radius: 50%; cursor: pointer;
+  border: 1px solid rgba(255,255,255,.14); background: rgba(6,6,12,.62); color: rgba(232,235,248,.72);
+}
+#cue-fast[hidden] { display: none; }
+#cue-fast:hover { color: #fff; border-color: rgba(255,255,255,.3); }
+#cue-fast:focus-visible { outline: 2px solid #FBBF24; outline-offset: 2px; }
+#cue-fast.is-on { color: #FBBF24; border-color: rgba(251,191,36,.45); }
+#cue-fast svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+/* Fast mode: no blurs (the costliest thing for a weak graphics chip), no film grain or breathing shade, no background
+   video, animations and transitions finished at once. Panels that were see-through get a solid backing instead. */
+html.cue-fast *, html.cue-fast *::before, html.cue-fast *::after {
+  backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important;
+  scroll-behavior: auto !important;
+}
+html.cue-fast #cue-menubg .mbg-grain, html.cue-fast #cue-menubg .mbg-breath, html.cue-fast #cue-menubg .mbg-video { display: none !important; }
+html.cue-fast .nb-dock, html.cue-fast .arsv-swatches, html.cue-fast #cue-sound { background: rgba(8,8,14,.94) !important; }
 #cue-sound:focus-visible { outline: 2px solid #FBBF24; outline-offset: 2px; }
 #cue-sound.is-on { color: #FBBF24; border-color: rgba(251,191,36,.45); }
 #cue-sound svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }

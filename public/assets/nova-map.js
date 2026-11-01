@@ -18,7 +18,7 @@ const MOD_COLORS = { 'The Great War': '#FBBF24' };
 const DECO_COLORS = ['#34D399', '#A78BFA', '#FBBF24', '#38BDF8', '#FB7185', '#E9D58A', '#A78BFA', '#38BDF8'];
 const DECO_TARGET = 460;
 const hex = c => { const n = parseInt(c.slice(1), 16); return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255]; };
-const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reduced = !!window.CUE_FAST || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ---------------------------------------------------------------- graph data */
 function buildData() {

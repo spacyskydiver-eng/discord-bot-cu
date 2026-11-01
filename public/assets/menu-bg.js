@@ -21,7 +21,7 @@
 
   /* ---------------------------------------------------------------- the video */
   function videoAllowed() {
-    if (reducedMotion()) return false;
+    if (window.CUE_FAST || reducedMotion()) return false;
     if (mq('(max-width: 900px)') || mq('(pointer: coarse)')) return false;
     const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     if (c && (c.saveData || /^(slow-2g|2g|3g)$/.test(c.effectiveType || ''))) return false;
@@ -118,6 +118,24 @@
     ramp(master.gain, 0, secs);
     clearInterval(timer);
     setTimeout(() => { if (!playing) players.forEach(p => p.el.pause()); }, secs * 1000 + 100);
+  }
+
+  /* ---------------------------------------------------------------- fast mode's button */
+  const fastBtn = document.getElementById('cue-fast');
+  if (fastBtn) {
+    const on = !!window.CUE_FAST;
+    fastBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>';
+    fastBtn.setAttribute('aria-pressed', String(on));
+    fastBtn.setAttribute('aria-label', on ? 'Fast mode is on: turn it off' : 'Turn on fast mode');
+    fastBtn.title = on ? (window.CUE_FAST_AUTO ? 'Fast mode is on (this computer looks low-end). Click to turn it off.' : 'Fast mode is on. Click to turn it off.')
+      : 'Fast mode: smoother on low-end computers and laptops (no background video, blurs or animations).';
+    fastBtn.classList.toggle('is-on', on);
+    fastBtn.hidden = false;
+    fastBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      try { localStorage.setItem('cue:fast', on ? 'off' : 'on'); } catch (err) { /* storage blocked */ }
+      location.reload();
+    });
   }
 
   /* ---------------------------------------------------------------- the button */
