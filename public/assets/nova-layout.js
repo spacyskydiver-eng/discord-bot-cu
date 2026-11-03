@@ -115,6 +115,7 @@ function navPane(root) {
     <div class="nv-nav-label">Pages</div>
     ${modules.map(modRow).join('')}
     ${PAGES().filter(p => !model().modules.some(m => m.id === p.id)).map(pageRow).join('')}
+    <div class="nv-nav-mod" style="--mod:#5EB0E5"><div class="nv-nav-modrow"><button class="nv-nav-caret" style="visibility:hidden" tabindex="-1" aria-hidden="true">${icon('chevron-right')}</button><a class="nv-nav-modname" href="/map" style="text-decoration:none"><i></i><span>Campaign map</span></a></div></div>
     ${CUE().isAdmin ? `<div class="nv-nav-mod" style="--mod:#8B9CFF"><div class="nv-nav-modrow"><button class="nv-nav-caret" style="visibility:hidden" tabindex="-1" aria-hidden="true">${icon('chevron-right')}</button><a class="nv-nav-modname" href="/admin" style="text-decoration:none"><i></i><span>Admin panel</span></a></div></div>` : ''}
     <div class="nv-nav-label nv-docked">Library</div>
     <button class="nv-nav-item nv-docked" data-navmap>${icon('graph')}<span>Neural map</span></button>
