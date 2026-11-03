@@ -605,9 +605,14 @@ router.post('/nation-place/clear', async (req, res) => {
   res.redirect('/nation-place');
 });
 
-// Nation map archived — redirect to home
+// The public campaign map: anyone can view it, signed in or not. Its data comes from its own endpoint, which serves
+// only the public cut of the map (server/campaign-map.js publicMap), never the owner's file.
 router.get('/map', (req, res) => {
-  res.redirect(`${res.locals.lp}/`);
+  res.render('new/admin-campaign-map', { pub: true, dataUrl: '/map/data.json', shareUrl: '', current: {}, msg: '', bad: false });
+});
+router.get('/map/data.json', async (req, res) => {
+  try { res.set('Cache-Control', 'public, max-age=60').type('application/json').send(await require('../campaign-map').loadPublic()); }
+  catch (e) { res.status(503).json({ error: 'The map is not available right now.' }); }
 });
 
 module.exports = router;

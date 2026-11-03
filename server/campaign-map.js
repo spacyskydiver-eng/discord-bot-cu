@@ -108,6 +108,41 @@ async function load() {
   return cache.body;
 }
 
+// The public map (/map, for players): only what that page draws, nothing the owner's board has beyond it. No node
+// values, no theatre bonuses, no chokepoints, no projection or coordinate notes, and every shape moved off Minecraft
+// block coordinates onto a plain drawing grid (PUB units a block), so nothing on the public page reads as a block
+// position. Built from the same uploaded map, so it follows every upload.
+// Live ownership later: change the owner on each territory in publicMap() from the live source; the page needs nothing else.
+const PUB = 0.4;
+let pubCache = { from: null, body: null };
+function publicMap(m) {
+  const [b0, b1, b2, b3] = m.meta.bounds;
+  const pt = p => [Math.round((p[0] - b0) * PUB), Math.round((p[1] - b1) * PUB)];
+  const ring = r => r.map(pt);
+  const poly = ps => (ps || []).map(p => p.map(ring));
+  return {
+    meta: { name: m.meta.name, bounds: [0, 0, Math.round((b2 - b0) * PUB), Math.round((b3 - b1) * PUB)] },
+    nations: m.nations.map(n => ({ id: n.id, name: n.name, color: n.color, code: n.code })),
+    continents: m.continents.map(c => ({ id: c.id, name: c.name, color: c.color, territories: c.territories })),
+    territories: m.territories.map(t => ({ id: t.id, name: t.name, continent: t.continent, owner: t.owner, label: pt(t.label), polygons: poly(t.polygons) })),
+    connections: (m.connections || []).map(c => ({ a: c.a, b: c.b, type: c.type })),
+    borders: (m.borders || []).map(c => ({ a: c.a, b: c.b, type: c.type })),
+    capitals: (m.capitals || []).map(c => ({ name: c.name, nation: c.nation, territory: c.territory, pos: pt(c.pos) })),
+    passes: (m.passes || []).map(c => ({ name: c.name, connects: c.connects, pos: pt(c.pos) })),
+    terrain: (m.terrain || []).map(t => ({ type: t.type, label: t.label, rule: t.rule, polygons: poly(t.polygons) })),
+    land: poly(m.land),
+    surround: poly(m.surround),
+    edges: m.edges ? m.edges.map(e => ({ a: e.a, b: e.b, line: ring(e.line) })) : undefined,
+    rivers: m.rivers ? m.rivers.map(r => ({ r: r.r, line: ring(r.line) })) : undefined,
+    relief: m.relief ? { bounds: [...pt(m.relief.bounds.slice(0, 2)), ...pt(m.relief.bounds.slice(2))], image: m.relief.image } : undefined,
+  };
+}
+async function loadPublic() {
+  const body = await load();
+  if (pubCache.from !== body) pubCache = { from: body, body: JSON.stringify(publicMap(JSON.parse(body))) };
+  return pubCache.body;
+}
+
 // what the page shows about the current map
 async function info() {
   await ensureTable();
@@ -137,4 +172,4 @@ async function shareOk(token) {
   return crypto.timingSafeEqual(Buffer.from(token), Buffer.from(t));
 }
 
-module.exports = { load, info, save, validate, FILE, shareToken, newShare, stopShare, shareOk };
+module.exports = { load, loadPublic, publicMap, info, save, validate, FILE, shareToken, newShare, stopShare, shareOk };
