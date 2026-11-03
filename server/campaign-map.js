@@ -122,7 +122,8 @@ function publicMap(m) {
   const poly = ps => (ps || []).map(p => p.map(ring));
   return {
     meta: { name: m.meta.name, bounds: [0, 0, Math.round((b2 - b0) * PUB), Math.round((b3 - b1) * PUB)] },
-    nations: m.nations.map(n => ({ id: n.id, name: n.name, color: n.color, code: n.code })),
+    // unclaimed land is white on the owner's board; on the public map it's pale slate, so it reads on the relief
+    nations: m.nations.map(n => ({ id: n.id, name: n.name, color: n.id === 'none' ? '#c5ced8' : n.color, code: n.code })),
     continents: m.continents.map(c => ({ id: c.id, name: c.name, color: c.color, territories: c.territories })),
     territories: m.territories.map(t => ({ id: t.id, name: t.name, continent: t.continent, owner: t.owner, label: pt(t.label), polygons: poly(t.polygons) })),
     connections: (m.connections || []).map(c => ({ a: c.a, b: c.b, type: c.type })),

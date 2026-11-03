@@ -2,6 +2,7 @@
 <%# pub: the public map at /map (no values, coordinates, grid or admin controls; its data is the public cut) %>
 <%- include('partials/head', { pageTitle: pub ? 'The Great War: Map' : viewer ? 'Campaign Map' : 'Campaign Map · Control Centre' }) %>
 <%- include('partials/header') %>
+<% if (pub) { %><link rel="stylesheet" href="/assets/menu-bg.css?v=<%= locals.v || '1' %>"><%- include('../partials/menu-bg', { v: locals.v }) %><% } %>
 <style>
 .cm { --sea: #12324f; --ink: #0c0e11; --paper: #f3ecd9; --hud: rgba(14,17,24,.92); --line: rgba(255,255,255,.12);
   display: grid; grid-template-columns: 1fr 340px; height: calc(100vh - 64px); min-height: 560px; background: #0b0d12; }
@@ -34,6 +35,16 @@
 .glow-thin { fill: none; stroke-width: 8px; stroke-opacity: .9; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
 .grid-line { stroke: rgba(255,255,255,.16); stroke-width: 1px; vector-effect: non-scaling-stroke; }
 .grid-axis { stroke: rgba(255,214,102,.45); stroke-width: 1.4px; vector-effect: non-scaling-stroke; }
+<% if (pub) { %>
+/* the public map sits on the site's background: the sea is drawn inside the playable square only */
+.cm.pub { background: transparent; }
+.cm.pub .cm-stage { background: transparent; }
+.cm.pub .cm-panel { background: rgba(9,10,18,.74); border-left-color: rgba(255,255,255,.08); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+#cue-sound, #cue-fast { display: none !important; }
+/* a gold selection with a dark halo reads on every colour, pale ones included */
+.cm.pub .sel-outline { stroke: #ffd666; stroke-width: 5px; filter: drop-shadow(0 0 1.5px #000) drop-shadow(0 0 1.5px #000); }
+.cm.pub .nb-outline { stroke: #fff3c4; filter: drop-shadow(0 0 1.2px #000); }
+<% } %>
 .sel-outline { fill: none; stroke: #fff; stroke-width: 4.5px; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
 .nb-outline { fill: none; stroke: #ffd666; stroke-width: 3px; stroke-dasharray: 7 5; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
 .dim .t-shape:not(.lit) { opacity: .38; }
@@ -128,6 +139,7 @@
   .cm-legend { width: 230px; bottom: 54px; max-height: 45%; }
   .cm-legend:not([open]) { width: auto; }
   /* the public map on a phone: more map, smaller controls */
+  .cm.pub .cm-panel { background: rgba(9,10,18,.86); }
   .cm.pub .cm-panel { max-height: 34vh; }
   .cm.pub .cm-chip { padding: 4px 9px; font-size: 12px; }
   .cm.pub .cm-btn { width: 34px; height: 34px; font-size: 17px; }
@@ -145,6 +157,7 @@
           <path d="M0 23 q22.5 -9 45 0 t45 0" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="4"/>
           <path d="M-45 0 q22.5 -9 45 0 t45 0 t45 0" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="4"/>
         </pattern>
+        <radialGradient id="cm-sea-g" cx=".5" cy=".42" r=".75"><stop offset="0" stop-color="#1a4468"/><stop offset=".55" stop-color="#12324f"/><stop offset="1" stop-color="#0b2036"/></radialGradient>
         <linearGradient id="cm-sheen" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/>
           <stop offset="1" stop-color="#000" stop-opacity=".22"/>
@@ -162,7 +175,7 @@
         <pattern id="cm-marsh" width="80" height="40" patternUnits="userSpaceOnUse">
           <path d="M10 28 h24 M46 14 h24" stroke="rgba(10,40,30,.5)" stroke-width="6" stroke-linecap="round"/></pattern>
       </defs>
-      <rect id="cm-sea" fill="url(#cm-waves)"></rect>
+      <rect id="cm-sea" fill="url(#cm-waves)"<%= pub ? ' display="none"' : '' %>></rect>
       <g id="cm-world">
         <g id="L-coast"></g>
         <g id="L-surround"></g>
@@ -186,7 +199,7 @@
     </svg>
 
     <div class="cm-ctl cm-layers" id="cm-layers">
-      <button class="cm-chip" data-layer="tokens" aria-pressed="true">Tokens</button>
+      <% if (!pub) { %><button class="cm-chip" data-layer="tokens" aria-pressed="true">Tokens</button><% } %>
       <button class="cm-chip" data-layer="routes" aria-pressed="true">Sea lines</button>
       <button class="cm-chip" data-layer="terrain" aria-pressed="true">Terrain</button>
       <button class="cm-chip" data-layer="names" aria-pressed="false">Names</button>
@@ -272,7 +285,7 @@
 <% } %>  const VAL = {};
   // the code on a nation's tokens: its own code if the map gives one, else its id in capitals; unclaimed is blank
   const natCode = id => id === 'none' || !NAT[id] ? '' : String(NAT[id].code || id).toUpperCase();
-  const layers = { tokens: true, routes: true, terrain: true, names: false, grid: false };
+  const layers = { tokens: !PUB, routes: true, terrain: true, names: false, grid: false };
   const view = { s: 1, tx: 0, ty: 0 }, home = { s: 1, tx: 0, ty: 0 };
   let W = 0, H = 0;
 
@@ -316,6 +329,7 @@
     // are shifted by a fixed number of screen pixels in paint(), so the relief reads the same at every zoom
     const landD = (M.land || []).map(ringsPath).join(''), surD = (M.surround || []).map(ringsPath).join('');
     const coast = $('L-coast');
+    if (PUB) { const [b0, b1, b2, b3] = M.meta.bounds; el('rect', { x: b0, y: b1, width: b2 - b0, height: b3 - b1, fill: 'url(#cm-sea-g)' }, coast); }
     const U = (M.meta.bounds[2] - M.meta.bounds[0]) / 11500;          // world units a block (the public map is scaled)
     [[110, 'rgba(150,205,240,.07)'], [55, 'rgba(150,205,240,.10)'], [22, 'rgba(170,215,245,.16)']].forEach(([w, c]) =>
       el('path', { d: landD + surD, class: 'coast-halo', stroke: c, 'stroke-width': w * U }, coast));
@@ -465,7 +479,7 @@
   }
   function hudMarks(zoom) {
     const g = $('H-marks'); g.textContent = '';
-    const named = zoom >= 2.2 || layers.names;
+    const named = zoom >= (compact() ? 5 : 2.2) || layers.names;
     (M.capitals || []).forEach(c => {
       const [X, Y] = toScreen(...c.pos);
       el('polygon', { points: star(X, Y, 9), fill: '#ffd666', stroke: '#0c0e11', 'stroke-width': 1.6 }, g);
@@ -488,7 +502,7 @@
   const tokenR = zoom => compact() ? Math.max(5.5, Math.min(17, 4 + zoom * 2.2)) : Math.max(11, Math.min(19, 11 + (zoom - 1) * 2.4));
   function hudLabels(zoom) {
     const g = $('H-labels'); g.textContent = '';
-    const all = zoom >= 2.2 || layers.names, size = Math.max(11, Math.min(16, 10 + zoom * 1.3)), off = layers.tokens ? tokenR(zoom) + size * .9 : 0;
+    const all = zoom >= (compact() ? 4.5 : 2.2) || layers.names, size = compact() ? Math.max(10, Math.min(14, 8 + zoom)) : Math.max(11, Math.min(16, 10 + zoom * 1.3)), off = layers.tokens ? tokenR(zoom) + size * .9 : 0;
     const lit = selected ? new Set([selected, ...ADJ[selected].map(n => n.id)]) : null;
     Object.values(T).forEach(t => {
       if (!all && !(lit && lit.has(t.id))) return;
@@ -547,6 +561,7 @@
     const o = heldBy(c);
     info(<% if (pub) { %>`<h1>${esc(c.name)}</h1>
       <span class="cm-badge"><span class="lg-sw" style="background:${esc(c.color)}"></span>Theatre of ${c.territories.length} nodes</span>
+      <p>A theatre is one of the big regions of the war, a group of neighbouring nodes.</p>
       ${o && o !== 'none' ? `<p>Held whole by <b>${esc(NAT[o].name)}</b>.</p>` : ''}
       <h3>Nodes</h3>${c.territories.filter(id => T[id]).map(id => nbRow(id, (NAT[T[id].owner] || {}).name || '')).join('')}`<% } else { %>`<h1>${esc(c.name)}</h1>
       <span class="cm-badge gold"><span class="lg-sw" style="background:${esc(c.color)}"></span>+${c.bonus} bonus for holding all ${c.territories.length}</span>
@@ -586,6 +601,7 @@
     if (!html && PUB) {
       $('cm-info').innerHTML = `<h1>The Great War</h1>
         <p>Europe in August 1914: ${M.territories.length} nodes across ${M.continents.length} theatres, held by ${M.nations.filter(n => n.id !== 'none').length} nations. Every node gives its owner income and resources; take more and your nation grows stronger.</p>
+        <p>Nodes are grouped into ${M.continents.length} theatres: the big regions of the war, such as the Western Front, the Balkans or North Africa. Switch <b>Colour</b> to theatre to see them.</p>
         <p>Tap a node to see who holds it and what borders it. Drag to move, scroll or pinch to zoom.</p>
         <h3>Nations</h3>${M.nations.filter(n => n.id !== 'none').map(n => `<span class="cm-badge"><span class="lg-sw" style="background:${esc(n.color)}"></span>${esc(n.name)}</span>`).join('')}`;
       return;
