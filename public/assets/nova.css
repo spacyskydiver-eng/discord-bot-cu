@@ -1465,3 +1465,8 @@ body.ui-nova .ars-soon .tst-btn { --mod: #FBBF24; }
   body.ui-nova .ars-soon-bg img { object-position: 64% 30%; }
   body.ui-nova .ars-soon-shade { background: linear-gradient(180deg, rgba(3,3,6,.7) 0%, rgba(3,3,6,.15) 30%, rgba(3,3,6,.7) 70%, #030306 100%); }
 }
+
+/* the old layout's pieces never show under Nova: before Nova draws, they flashed as a "COLLECTIVE UNION EVENTS"
+   badge at the top and a "0 backlinks / 0 words" line in the corner */
+body.ui-nova .markdown-preview-view.subject-home .markdown-preview-sizer::before { content: none; display: none; }
+body.ui-nova .status-bar { display: none; }

@@ -605,7 +605,9 @@
         const tr = t.getBoundingClientRect();
         const left = clamp(er.left + er.width / 2 - tr.width / 2, 8, window.innerWidth - tr.width - 8);
         t.style.left = left + 'px';
-        t.style.top  = (er.top - tr.height - 10 + window.scrollY) + 'px';
+        // above the element, or below it when there's no room above (the header buttons)
+        const above = er.top - tr.height - 10;
+        t.style.top  = ((above >= 8 ? above : er.bottom + 10) + window.scrollY) + 'px';
 
         requestAnimationFrame(() => {
           t.style.transition = 'opacity .18s, transform .24s cubic-bezier(.23,1,.32,1)';

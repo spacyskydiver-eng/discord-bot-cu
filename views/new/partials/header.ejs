@@ -5,9 +5,11 @@
       CUE
     </a>
     <div class="banner-right">
+      <% if (!locals.pub) { %><%# the public map keeps its header to the brand and sign-in %>
       <a href="<%= locals.langSwitchUrl %>" class="banner-btn lang-btn" data-tooltip="Switch language"><%= t('lang_switch') %></a>
       <a href="<%= lp %>/map" class="banner-btn staff-nav" data-tooltip="The campaign map"><%= t('header_map') %></a>
       <a href="<%= lp %>/staff" class="banner-btn staff-nav" data-tooltip="Staff page"><%= t('header_staff') %></a>
+      <% } %>
       <% if (locals.user) { %>
         <div class="banner-user">
           <% if (locals.user.avatar) { %>
