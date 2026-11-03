@@ -1,6 +1,6 @@
 # The Great War: Field Manual
 
-This is the player handbook for The Great War. It covers how the event works from your side: your life and your nation, how wars start and end, how land changes hands, how you earn and spend money, what you can fight with, and where to get help.
+This is the player handbook for The Great War. It covers how the event works from your side: your life and your nation, how wars start and end, what happens when you kill someone you're not at war with, how land changes hands, how you earn and spend money, what you can fight with, and where to get help.
 
 It's split into five modules, the same five the Discord is split into, so if you've got a question about trade you know which channel to ask in. Section numbers match the staff copy. If a number skips, that part was staff only.
 
@@ -12,7 +12,7 @@ Numbers in here are the current settings. Some will move a little during playtes
 
 #### 1.1.1 The vision
 
-Up to about 500 of you are citizens of eight rival WW1 nations on a shared, pre-built map of Europe in 1914. You start with almost nothing. Between you, you build your nation into a war machine: gathering, producing, paying tax, researching and pushing a living front line. Wars are fought in set war windows, and every node of land you hold makes your nation richer. There's no official winner. The story is whatever the nations make of it.
+Up to about 500 of you are citizens of eight rival WW1 nations on a shared, pre-built map of Europe in 1914. You start with almost nothing. Between you, you build your nation into a war machine: gathering, producing, paying tax, researching and pushing a living front line. Land only changes hands in set war windows, and every node you hold makes your nation richer. There's no official winner. The story is whatever the nations make of it.
 
 #### 1.1.2 The platform
 
@@ -23,11 +23,11 @@ Up to about 500 of you are citizens of eight rival WW1 nations on a shared, pre-
 
 The event runs for two weeks. It's a sandbox: there's no official winner and no final score. What happens is up to the nations.
 
-Fighting runs on a timetable. Every 2 days there's a **war window from 19:00 to 22:00 UK time**. Fighting between enemies and capturing nodes only happen inside a window (section 3.2). Outside the windows you build, mine, trade, research and talk.
+The war runs on a timetable. Every 2 days there's a **war window from 19:00 to 22:00 UK time**. Nodes can only be captured inside a window, and only then are the borders between enemies open (section 3.2.2). PvP is on all the time, though: enemies who meet on neutral land or in a contested zone can fight whenever they like. Between windows there's plenty to do (section 3.5).
 
 #### 1.1.4 Deadlines and the web companion
 
-Every deadline in this manual is flat real time. That covers the notice before an enemy marking takes effect, the absent Leader handover, proposals and cooldowns. 24 h means 24 h from the moment it starts, whether the server is open or not.
+Every deadline in this manual is flat real time. That covers answering an incident, the notice before an enemy marking takes effect, how long someone stays Wanted, the absent Leader handover, proposals and cooldowns. 24 h means 24 h from the moment it starts, whether the server is open or not.
 
 That's fair because once the website is live, anything you can respond to in-game you can also do there (section 5.4). The only things that have to happen in-game are the physical ones: fighting, sieges and donating.
 
@@ -37,13 +37,13 @@ These are the rules the whole event is built on. They don't bend.
 
 1. Death costs you, but it doesn't end you. You drop what you're carrying and respawn at your capital after a wait. Lose your capital and you can't respawn until your nation takes it back (section 1.2.4).
 2. No kill tickets. The game reads every kill and decides what it means (section 3.1). You never file a report to get a kill judged.
-3. The game is the judge. Staff only step in to fix genuine bugs (reviving someone killed by one, for example) and for moderation. Everything else, from wars and territory to money, fines and a nation being wiped out, is decided by the game from what's actually happening.
+3. The game is the judge. Staff only step in to fix genuine bugs (reviving someone killed by one, for example) and for moderation. Everything else, from wars and territory to money, compensation and a nation being wiped out, is decided by the game or by the nations themselves.
 4. Only the living count. Siege strength and scout intel count living players only, so nobody waiting to respawn holds a node for you.
 5. The server decides. Kills, captures, payments and permissions are all settled by the server, and your screens show you what it holds.
 6. Nothing is lost. Everything saves, and a restart in the middle of the event loses nothing.
 7. The interface is a game, not a spreadsheet. Every system has its own screen opened by a key, laid out in the same tech tree style. The pause screen is still plain vanilla.
 8. Freedom plus consequences. The game rarely stops you doing something. It makes what you do mean something instead. There are two hard blocks: allies can't damage each other, and no outcome ever depends on someone being unreachable (rule 9).
-9. Nobody wins by going quiet. Nothing waits forever on someone answering. Marking a nation as an enemy needs no reply and always gives the other side at least a day's warning, and a Leader who disappears is replaced by a Regent (2.1.3).
+9. Nobody wins by going quiet. Nothing waits forever on someone answering. An incident nobody answers has a set outcome (3.1.2), marking a nation as an enemy needs no reply and always gives the other side at least a day's warning, and a Leader who disappears is replaced by a Regent (2.1.3).
 
 ### 1.2 Nations, membership, life and death
 
@@ -65,7 +65,7 @@ Each nation also has a cap of about 80 members (section 1.3).
 
 #### 1.2.3 Leaving, expulsion and rejoining
 
-- Leadership can expel you if they hold the Membership permission (section 2.1). Being expelled leaves you nationless.
+- Leadership can expel you if they hold the Membership permission (section 2.1), and your Leader can expel you for killing one of your own (3.1.4). Being expelled leaves you nationless.
 - If you're nationless, any nation can take you in by request (section 1.3).
 - If your nation is wiped out (1.2.5), you become nationless and can join another nation.
 
@@ -74,16 +74,16 @@ Each nation also has a cap of about 80 members (section 1.3).
 When you die:
 
 1. You drop your items where you died.
-2. You wait out a respawn cooldown: about 2 minutes, or about 5 minutes during a war window.
-3. You respawn at your nation's capital. The capital is the only place you can respawn.
+2. You wait out a respawn cooldown: about 2 minutes, or about 5 minutes while a war window is running.
+3. You respawn at your nation's capital, or at one of its extra respawn points (below).
 
-**If your capital has been captured, you can't respawn.** You stay dead until your nation takes it back. When it does, everyone who was waiting respawns there.
+**If your capital has been captured, you can't respawn anywhere.** You stay dead until your nation takes it back. When it does, everyone who was waiting respawns there.
+
+**Extra respawn points.** Research unlocks a second respawn point, and further research a third and so on (section 4.2). Your Leader chooses which nodes they are. They only work while your nation holds its capital, and you can't respawn at one that's being captured.
 
 While you wait, whether that's the cooldown or a lost capital, you watch through the eyes of a living player of your own nation. It's first person only, and you can switch between them. There's no free camera and you can't see through walls. If there's nobody to watch, you see the death screen and the timer. You're muted in proximity voice chat until you're back.
 
-Killing someone you're not at war with makes your own next wait longer (section 3.1.2).
-
-Dying never costs a Leader the leadership or a seat holder their seat. Staff only revive people for genuine bugs.
+Dying never costs a Leader the leadership or a seat holder their seat (2.1.3). Staff only revive people for genuine bugs.
 
 #### 1.2.5 Nation lifecycle
 
@@ -129,9 +129,10 @@ The Leader fills up to 8 leadership seats. Each seat has a name and whatever per
 | Chancellor | Treasury and tax |
 | Foreign Secretary | Mail and trade |
 | War Minister | Relations and war, orders |
+| Justice Minister | Incidents |
 | Science Minister | Research |
 | Home Secretary | Membership |
-| Officer (×3) | Nothing until given permissions |
+| Officer (×2) | Nothing until given permissions |
 
 You can hold one seat at most.
 
@@ -139,7 +140,8 @@ This is the full list of permissions. Every leadership action falls under exactl
 
 - **Read mail:** see the nation's diplomatic mailbox (section 2.3).
 - **Write mail:** send letters (section 2.3).
-- **Relations & war:** mark other nations as ally, neutral or enemy (section 3.2).
+- **Relations & war:** mark other nations as ally, neutral or enemy, and appoint scouts (sections 3.2 and 3.4).
+- **Incidents:** forgive or demand compensation when one of your people is killed, and pay or refuse when one of yours is the killer (section 3.1).
 - **Trade:** propose and answer trades (section 4.5).
 - **Treasury & tax:** set tax and spend the treasury (section 4.1).
 - **Research:** open and lock tech nodes (section 4.2).
@@ -155,7 +157,7 @@ The seats double as the succession order, seat 1 first. The Leader sets that ord
 
 If the Leader leaves the nation, the first seat holder becomes Leader straight away and everyone is told. If no seats are filled, leadership passes to the longest serving member.
 
-If the Leader has been offline for 48 h, the first seat holder who has been online in the last 24 h becomes Regent and holds the Leader's powers until the Leader comes back.
+If the Leader has been offline for 48 h, the first seat holder who has been online in the last 24 h becomes Regent and holds the Leader's powers until the Leader comes back. The same happens if the Leader is dead and the capital is lost: the first living seat holder acts as Leader until the Leader respawns.
 
 A seat holder who leaves or is expelled loses the seat immediately. Dying doesn't cost anyone their seat or the leadership.
 
@@ -179,13 +181,14 @@ Press P. The War Office is a set of tiles and nothing else.
 
 - **Me** shows your money, your nation, your class and anything waiting on you personally. It also shows the four rules:
 
-  - Kill enemies in a war window: fine.
-  - Kill anyone else: you're fined, and your next respawn takes longer.
-  - Allies can't hurt each other.
-  - Logging out in a fight is a death.
+  - Kill enemies: fine, at any time.
+  - Kill someone from a neutral nation: your nation pays compensation, or you're Wanted.
+  - Kill your own people: your Leader forgives you, fines you or expels you.
+  - Allies can't hurt each other. Logging out in a fight is a death.
 
 - **Orders** shows what your leadership wants right now (rallies and jobs, section 2.5) and the standing default work.
 - **The Daily Front** is the newspaper (section 2.4).
+- **Wanted** lists who your nation has Wanted and the bounties on them, and shows if you're Wanted yourself (section 3.1.3).
 - **Map** is the war map (section 3.4).
 
 Leave nation is inside Me, with a clear confirmation of what leaving means (section 1.3).
@@ -195,11 +198,12 @@ Leave nation is inside Me, with a clear confirmation of what leaving means (sect
 If you've played HOI4, Civ or Supremacy this will feel familiar. You only see the parts your seat's permissions cover.
 
 - **Top bar:** treasury, tax rate, members, nodes held, wars, and the time to the next war window.
-- **Alert row:** one icon per thing that needs you, each with a countdown. New mail, a trade offer, a nation marking you as an enemy (and when it takes effect), an alliance or peace waiting on your side, a node under siege, a Leader approval (2.1.4) and any deadline about to run out. Click an icon and you're taken straight to the decision.
+- **Alert row:** one icon per thing that needs you, each with a countdown. New mail, a trade offer, an incident waiting on your answer, a nation marking you as an enemy (and when it takes effect), an alliance or peace waiting on your side, a node under siege, a Leader approval (2.1.4) and any deadline about to run out. Click an icon and you're taken straight to the decision.
 - **Nations ribbon:** every nation's flag with an icon for where you stand with them (ally, neutral or enemy, and anything waiting to take effect). Click a flag to open the country panel. It shows their Leader and seats, your relationship and its history, recent events between you, and the actions *Send letter, Propose trade, Mark as ally, Mark as neutral, Mark as enemy*.
 - **Mailbox** (section 2.3): letters and trade proposals. Proposals come with their own buttons.
 - **Trade** (section 4.5): the two column deal screen.
-- **Government:** seats and permissions, succession order, tax, research focus.
+- **Incidents:** your nation's incidents both ways, and your own people's kills of each other, each with its buttons and countdown (section 3.1).
+- **Government:** seats and permissions, succession order, tax, research focus, extra respawn points.
 - **Citizens:** the roster (alive or waiting to respawn, seat, recent activity), orders and jobs (section 2.5) and the public treasury log.
 
 #### 2.2.3 Interaction rules
@@ -232,6 +236,7 @@ The paper writes stories on its own for:
 - nations marked as enemies, and when the war begins
 - peace
 - alliances formed and broken
+- compensation refused, and who is Wanted
 - nodes captured, capitals lost and retaken, and nations wiped out
 - new Leaders
 - large trades
@@ -254,7 +259,7 @@ A rally is a map marker, a time and one line of text ("Defend Calais, 19:00"). Y
 A job is a task with a reward, paid from the treasury once the game confirms you've done it. Jobs only cover things the game can actually check:
 
 - donate a set amount of a resource to a tech node (paid per item)
-- a reward for each enemy killed during a war window, either in a given node or anywhere
+- a reward for each enemy killed, either in a given node or anywhere
 - be in a node during a siege (paid per minute you're there)
 - fortify a node (see below)
 
@@ -273,7 +278,7 @@ The recipes for the two trench blocks:
 | 4 sand + 1 string | 4 sandbags |
 | 2 iron nuggets + 2 string | 4 barbed wire |
 
-Both count for Fortify jobs. A machine gunner can fire braced on a sandbag (4.6.13). Barbed wire slows anyone walking through it (Slowness III while you're in it) and hurts a little (half a heart every 1.5 s). Anyone means anyone, your own side included, so think about where you put it.
+Fortified nodes are much harder to take in the next war window, so this is how a nation gets ready for one. Both count for Fortify jobs. A machine gunner can fire braced on a sandbag (4.6.13). Barbed wire slows anyone walking through it (Slowness III while you're in it) and hurts a little (half a heart every 1.5 s). Anyone means anyone, your own side included, so think about where you put it.
 
 #### 2.5.4 Limits and pay
 
@@ -291,33 +296,44 @@ Seats with *Orders & jobs* post rallies and jobs. Spending treasury money on a j
 
 ### 3.1 Combat and consequences
 
-Everything else in this event hangs off this section, so read it properly. The game doesn't stop you hurting other players, with one exception: allies can't hurt each other. Anyone else, you can shoot. What changes is what the kill means afterwards, and that depends on whether your two nations were at war, in a war window, at that moment.
+Everything else in this event hangs off this section, so read it properly. PvP is on at all times, and the game doesn't stop you hurting other players, with one exception: allies can't hurt each other. Anyone else, you can shoot. What changes is what the kill means afterwards, and that depends on who you killed and how your nations stood at the time.
 
 #### 3.1.1 The consequence table
 
-Every kill gets checked against this table, whatever killed them (3.1.3). What counts is the relationship at the moment of the killing blow, not what it was when the fight started.
+Every kill gets checked against this table, whatever killed them (3.1.5). What counts is the relationship at the moment of the killing blow, not what it was when the fight started.
 
 | Who you killed | Can you hurt them? | What the kill means |
 |---|---|---|
-| An enemy, inside a war window | Yes | A legitimate act of war. Nothing happens to you. |
-| An enemy, outside a war window | Yes | An unlawful kill (3.1.2). Wars are only fought in the windows. |
-| A nation you've marked as an enemy, before it takes effect (3.2.3) | Yes | An unlawful kill (3.1.2). |
-| Someone in your own nation | Yes | An unlawful kill (3.1.2). |
+| An enemy | Yes | A legitimate act of war, in a window or not. Nothing happens to you. |
+| Someone your nation has Wanted (3.1.3) | Yes | Lawful. Nothing happens to you, and you may collect a bounty. |
+| Someone from a neutral nation, including one you've marked as an enemy before it takes effect (3.2.3) | Yes | An incident (3.1.2). |
+| Someone in your own nation | Yes | Your Leader decides (3.1.4). |
 | Someone in an allied nation | No | You can't. |
-| Anyone else, nationless players included | Yes | An unlawful kill (3.1.2). |
+| A nationless player | Yes | No consequence. |
 
 Damage that doesn't kill is never punished. Only kills count, so clipping a friend with splash damage won't cost you anything.
 
-#### 3.1.2 Unlawful kills: the fine
+#### 3.1.2 Incidents: killing someone from a neutral nation
 
-Killing a player you're not at war with, your own nation's players included, gets you two things automatically:
+If you kill a player from a nation that's neither your enemy nor your ally, an incident is logged automatically. Then it goes back and forth between the two nations:
 
-- **a fine**, taken from your wallet. It can push you into debt (section 4.3).
-- **a longer respawn cooldown** on your next death (1.2.4).
+1. **The victim's nation** has 24 h to choose: **Forgive**, which closes it, or **Demand compensation**, a fixed amount. If nobody answers, it's forgiven.
+2. **Your nation** then has 24 h to choose: **Pay**, out of your wallet or out of the treasury if your nation decides to cover it, or **Refuse**. If nobody answers, it counts as a refusal.
+3. **Refusing makes you Wanted** by the victim's nation (3.1.3).
 
-Nobody has to decide anything. The game applies both the moment the kill lands.
+The compensation goes up each time the same two nations have another incident, so a rich nation can't simply pay its way through a killing spree.
 
-#### 3.1.3 What counts as your kill
+On your screens these sit under Incidents in the Cabinet, and you'll get a toast when one is opened over a kill of yours.
+
+#### 3.1.3 Wanted and bounties
+
+If your nation refuses to pay for your kill, you're **Wanted** by the victim's nation for a few days. While you're Wanted, its players can kill you with no consequences, and they can post a bounty on you: cash for whoever kills you. Being Wanted shows on your Me tile, and your nation's own list of Wanted players and bounties is on the Wanted tile.
+
+#### 3.1.4 Killing your own
+
+If you kill someone in your own nation, your Leader chooses: **Forgive**, **Fine** (out of your wallet, into the treasury) or **Expel**, which leaves you nationless (1.2.3).
+
+#### 3.1.5 What counts as your kill
 
 You're credited with a kill however you did it:
 
@@ -329,13 +345,13 @@ You're credited with a kill however you did it:
 - fire (whoever lit it)
 - artillery and tank guns
 
-The relationship is read when the hit lands, not when you fire. A shell fired inside a war window that lands after the window has closed is an unlawful kill. Time your barrages. The ally block (3.1.1) covers all of these too, so you can't hurt allies with artillery or fire either.
+The relationship is read when the hit lands, not when you fire. A shell fired during a war that lands after peace is signed is a kill of a neutral nation's player, and opens an incident. Time your barrages. The ally block (3.1.1) covers all of these too, so you can't hurt allies with artillery or fire either.
 
 If you find a way of killing someone that the game doesn't credit to you, report it to staff. Using it on purpose is an exploit and will be treated as one.
 
-#### 3.1.4 Killing yourself and dying to the world
+#### 3.1.6 Killing yourself and dying to the world
 
-If you die to the world (falling, drowning, fire nobody started) or kill yourself, nobody is fined, but it's still a death (section 1.2.4). If you cause someone else's "accident", say by knocking them into lava, that's your kill and the table runs as normal.
+If you die to the world (falling, drowning, fire nobody started) or kill yourself, nobody answers for it, but it's still a death (section 1.2.4). If you cause someone else's "accident", say by knocking them into lava, that's your kill and the table runs as normal.
 
 ### 3.2 Relations and war
 
@@ -346,18 +362,23 @@ Every nation marks every other nation as an **ally**, **neutral** or an **enemy*
 | Relationship | How it's set | What it means |
 |---|---|---|
 | Ally | Both sides must mark each other as an ally | You can't hurt each other. Allies standing in a node's rings help defend it (3.3.4). |
-| Neutral | The default, and where both sides go back to for peace | Killing each other is unlawful (3.1.2). |
-| Enemy | Either side can mark the other, alone | You're at war, and fight in the war windows (3.2.2). |
+| Neutral | The default, and where both sides go back to for peace | Killing each other opens an incident (3.1.2). |
+| Enemy | Either side can mark the other, alone | You're at war. You can fight at any time, and capture each other's nodes in the war windows (3.2.2). |
 
-#### 3.2.2 War windows
+#### 3.2.2 War windows and closed borders
 
-Wars are fought in **war windows: every 2 days, 19:00 to 22:00 UK time**. Inside a window, enemies can kill each other freely and capture each other's nodes (section 3.3). Outside the windows, nobody fights and no node can be captured. That's the time for building, mining, trading, research and diplomacy.
+War windows are **every 2 days, 19:00 to 22:00 UK time**.
+
+- **Capturing nodes** only happens inside a window (section 3.3).
+- **Borders between enemies are closed between windows.** You can't cross into an enemy's land, and they can't cross into yours. Only scouts can (3.4). When a window opens the borders open. When it closes, anyone still in enemy land is sent back to their own side.
+- **PvP stays on all the time.** Between windows, enemies can still meet and fight on neutral land and in contested zones (3.5).
+- The borders of nations you aren't at war with stay open.
 
 A war stays on from window to window until both sides make peace or one side is wiped out (1.2.5).
 
 #### 3.2.3 Marking a nation as an enemy
 
-Either side can mark the other as an enemy. It doesn't need the other side's agreement. The war starts at **the first war window at least 24 hours away**, so the other side always gets at least a day's warning. Until then, nothing has changed: killing each other is still unlawful (3.1.2).
+Either side can mark the other as an enemy. It doesn't need the other side's agreement. The war starts at **the first war window at least 24 hours away**, so the other side always gets at least a day's warning. Until then, nothing has changed: you're still neutral, and a kill between you opens an incident (3.1.2).
 
 Marking an ally as an enemy ends the alliance on the spot. The war itself still waits for the first window at least 24 hours away.
 
@@ -367,7 +388,7 @@ An alliance needs both sides. Each marks the other as an ally, and it starts the
 
 Allied players can't damage each other at all. This is the only hard block in the game.
 
-Either side can end it at any time by marking the other as neutral or enemy. It's instant and the server is told. Any kill between you after that is unlawful unless you're at war in a window.
+Either side can end it at any time by marking the other as neutral or enemy. It's instant and the server is told. Any kill between you after that opens an incident unless you're at war.
 
 #### 3.2.5 Peace
 
@@ -377,7 +398,9 @@ Peace needs both sides. Each sets the other back to neutral, and the war ends wh
 
 Every diplomatic event pops a toast in the top right, in nation colours, and gets logged.
 
-Everyone sees these: a nation marked as an enemy (with when the war begins), war begun, peace, alliance formed, alliance broken, capital captured, capital retaken, nation wiped out, new Leader.
+Everyone sees these: a nation marked as an enemy (with when the war begins), war begun, war window open and closed, peace, alliance formed, alliance broken, capital captured, capital retaken, nation wiped out, new Leader.
+
+Only the people with the right permissions see these: incidents, demands for compensation, and payments and refusals.
 
 If a lot fire at once they stack and get summarised, so they won't bury your screen.
 
@@ -437,7 +460,7 @@ A few edge cases:
 
 - An undefended core still falls, at whatever pace the attackers' ring positions give them.
 - If both sides leave, the bar holds for 60 seconds and then drifts back to the owner over about 3 minutes.
-- A node a nation loses to bankruptcy (section 4.3) goes neutral, and anyone can claim it by standing on it. Allies pool their power. Rival nations that aren't allied block each other, and a rival has to drain the bar to zero before it can start its own claim.
+- A node a nation loses to bankruptcy (section 4.3) goes neutral, and anyone can claim it in a war window by standing on it. Allies pool their power. Rival nations that aren't allied block each other, and a rival has to drain the bar to zero before it can start its own claim.
 
 ### 3.4 The map
 
@@ -455,9 +478,24 @@ What you see depends on who you are:
 
 - Everyone sees territory, borders, names, capitals and public siege status.
 - Leadership sees where their own nation's living members are, by node.
-- Scouts can find out how many living enemy players are in an enemy node by standing in it. The count stays visible for 30 minutes, to the scout and to his leadership, then expires. There's a cooldown before you can scout it again.
+- Scouts can find out how many living enemy players are in an enemy node.
 
 You'll never be sent a position or a count you aren't entitled to, so there's nothing for a cheat client to dig out.
+
+**Scouts.** Each nation has a limited number of scouts, appointed by its leadership. Scouts can cross enemy borders between war windows, but they can't attack anyone from a nation they're at war with. To gather intel on a node, a scout has to stay inside it for at least 5 minutes. The count then stays visible for 30 minutes, to the scout and to his leadership. There's a cooldown before the same node can be scouted again.
+
+### 3.5 Between war windows
+
+Windows are only three hours every two days. The rest of the time is what decides how they go:
+
+- **Fortify your nodes:** trenches, wire, sandbags and bunkers. A fortified node is much harder to take in the next window, and Fortify jobs pay for the work (2.5.3).
+- **Work the economy:** mines, farms and oil produce most when players work them. A node's passive income is small (4.6.3).
+- **Build the war machine:** tanks, ammo and gear from those resources, and research by donation (4.2).
+- **Contested zones:** loot zones with prize chests, open between windows. Anyone can fight there.
+- **Scouting** enemy land before the next window (3.4).
+- **Orders and pay:** leaders post jobs, and you're paid for being active (2.5 and 4.6.8).
+
+Enemies can still fight on neutral land and in contested zones between windows. Only capturing nodes and entering enemy land wait for the window.
 
 ## Module 4: Economy and Arms
 
@@ -505,9 +543,9 @@ All of this happens automatically. Staff don't step in.
 
 **Territory upkeep.** Every node your nation holds costs money out of the treasury every real hour. The capital costs more. More land, bigger bill. A normal nation earns more than it pays, but a badly run one won't.
 
-**Nation bankruptcy.** A nation that can't pay its upkeep loses nodes one at a time until it can. The node furthest from the capital goes first, and if several are equally far, the newest one goes. Lost nodes turn neutral. If your nation loses its last node this way, it's wiped out, the same way as in section 1.2.5.
+**Nation bankruptcy.** A nation that can't pay its upkeep loses nodes one at a time, least valuable first, until it can. Lost nodes turn neutral. Bankruptcy alone never wipes a nation out: only losing its last node does (1.2.5).
 
-**Personal debt.** If your balance drops below $0 you get Slowness, Weakness and faster hunger. They lift as soon as you're back to 0. Zero isn't debt, so a fresh player on $100 is never hit by this. You get into debt through fines for unlawful kills (section 3.1.2) or by spending money you don't have.
+**Personal debt.** If your balance drops below $0 you get Slowness, Weakness and faster hunger. They lift as soon as you're back to 0. Zero isn't debt, so a fresh player on $100 is never hit by this. You get into debt through fines and compensation (section 3.1) or by spending money you don't have.
 
 ### 4.4 Healing and logistics
 
@@ -553,7 +591,7 @@ Hold land → land gives mines, farms and oil → you mine and farm, sell to you
 
 Every node (section 3.3) produces some mix of coal, iron, gold, diamond, oil and farm produce, each at tier 1 or tier 2. You can see it on the map.
 
-Nodes also pay out on their own. Every hour, each node puts money into its owner's treasury. This is where new money comes from.
+Nodes also pay a small income on their own: every hour, each node puts money into its owner's treasury. Most of what a node is worth comes from players working it.
 
 - **Mines** are built into the map. Their ore comes back over time (stone first, then ore), up to an allowance per session. Only the nation holding the node can mine it, or an enemy during a war window. Everything else inside a mine can't be broken.
 - **Farms:** crops only grow up to the node's limit, and farmland in a farm node grows faster and harvests more. Research can raise the limit.
@@ -625,15 +663,15 @@ You get paid for playing.
 
 Service pay is a small amount for every minute you're online, alive and actually doing something, up to a daily cap. Stand still and do nothing for five minutes and it stops. It comes out of your nation's treasury. The rate depends on your rank (section 4.6.9), and seat holders and the Leader get a bonus for running the country. Staff set the rates, so leaders can't vote themselves a pay rise.
 
-Combat pay comes from the treasury for enemy kills in a war window, for capturing a node and for defending one.
+Combat pay comes from the treasury for enemy kills, for capturing a node and for defending one.
 
 If the treasury can't cover pay, you don't get paid that time. The treasury never goes negative to pay you. You'll see "Britain couldn't pay you today" and your Leader gets an alert.
 
-Tax (section 4.1) only applies to money coming in from outside your nation: stall sales and trades. It never touches pay or Supply Office payments, since both already come out of your own treasury.
+Tax (section 4.1) only applies to money coming in from outside your nation: stall sales, bounties and trades. It never touches pay or Supply Office payments, since both already come out of your own treasury.
 
 #### 4.6.9 Rank, medals and your record
 
-You earn XP by fighting (enemy kills in a war window, captures and defences), by supplying (Supply Office sales, capped per day) and by staying alive.
+You earn XP by fighting (enemy kills, captures and defences), by supplying (Supply Office sales, capped per day) and by staying alive.
 
 The ranks are Private → Corporal → Sergeant → Lieutenant → Captain. Each step raises your service pay and gives a small perk, like a discount at the Armory. Your rank shows next to your name.
 
@@ -650,7 +688,7 @@ You can put down a stall, which is a shop chest, on your own nation's land. Sell
 | Where | Who can break and place blocks and open containers |
 |---|---|
 | Your nation's land | Only your nation, plus staff |
-| An enemy's land, inside a war window | The enemy too (raids and sieges) |
+| An enemy's land, inside a war window | The enemy too (raids and sieges). Between windows they can't even get in (3.2.2). |
 | An ally's land | Never you. Allies are always protected from each other. |
 | Neutral land | Anyone |
 
@@ -778,7 +816,7 @@ Every tank built and destroyed, and who destroyed it, goes in the nation's log a
 Staff don't referee ordinary outcomes (1.1.5, rule 3). If you lost a fight fair and square, that's the war. What staff do handle:
 
 - **Genuine bugs.** Staff can fix things a bug broke, including reviving someone who died to one. Dying to your own bad decisions isn't a bug.
-- **Exploits.** A way of killing someone that the game doesn't credit, or any other hole in the rules (3.1.3).
+- **Exploits.** A way of killing someone that the game doesn't credit, or any other hole in the rules (3.1.5).
 - **Moderation.** Staff can read any nation's mail, remove newspaper articles, and mute a nation's mail or press for a while.
 
 Every staff action is logged with the name of whoever took it.
@@ -793,6 +831,7 @@ You sign in with an account linked to your Minecraft account, and you see exactl
 
 Anything leadership does from a screen can be done from the website:
 
+- answering incidents: forgive, demand compensation, pay or refuse
 - marking nations as ally, neutral or enemy
 - letters and trades
 - seat and succession management
@@ -830,13 +869,13 @@ Some examples of how things play out. Britain and Germany are neutral unless it 
 
 Say the next war windows are Monday and Wednesday at 19:00. On Monday at 15:00, Germany marks Britain as an enemy. Monday's window is only 4 hours away, so the war begins at Wednesday's window, the first one at least 24 hours off. Britain gets the toast straight away and spends two days digging in.
 
-#### 5.6.2 Killed outside a window
+#### 5.6.2 Between windows
 
-Britain and Germany are at war. On the Thursday, between windows, Hans (Germany) shoots Bob (Britain) dead. That's an unlawful kill: Hans is fined, and his next respawn takes longer. Bob drops his kit and respawns in London after about 2 minutes.
+Britain and Germany are at war. On the Thursday, between windows, Bob (Britain) tries to walk into Germany and is stopped at the border. He meets Hans (Germany) in a contested zone instead, and Hans shoots him dead. That's an ordinary act of war. Bob drops his kit and respawns in London after about 2 minutes.
 
 #### 5.6.3 Killing a countryman
 
-Bob kills a fellow Briton over a chest. Bob is fined automatically, and the next time he dies he waits longer than usual to respawn.
+Bob kills a fellow Briton over a chest. Britain's Leader chooses Fine, and the money comes out of Bob's wallet and goes into the treasury.
 
 #### 5.6.4 The capital falls
 
@@ -856,4 +895,8 @@ After three windows Britain and Germany are both worn out. Britain sets Germany 
 
 #### 5.6.8 Switching sides
 
-Italy is allied to Germany. In a window, Italy marks Germany as an enemy. The alliance breaks on the spot and the whole server sees it, but Italy's war on Germany only starts at the first window at least 24 hours away. Until then, any kill between Italians and Germans is unlawful.
+Italy is allied to Germany. In a window, Italy marks Germany as an enemy. The alliance breaks on the spot and the whole server sees it, but Italy's war on Germany only starts at the first window at least 24 hours away. Until then, any kill between Italians and Germans opens an incident.
+
+#### 5.6.9 An incident refused
+
+Hans (Germany) kills Marco, an Italian, while Germany and Italy are neutral. An incident opens. Italy demands compensation, and Germany refuses. Hans is now Wanted by Italy for a few days: any Italian can kill him with no consequences, and an Italian puts a bounty on his head. If it happens again between the two nations, the compensation is higher.
