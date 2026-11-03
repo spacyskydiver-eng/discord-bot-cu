@@ -196,6 +196,7 @@ function showHome(view) {
       <div class="nv-today" id="nv-today">
         ${next ? `<button class="nv-today-cell nv-today-wide" data-go="${esc(next.wiki && B.exists(next.wiki) ? next.wiki : 'events')}"><span class="nv-today-k">Next event</span><b class="nv-today-title">${esc(next.title)}</b><small>${esc(fmtDate(next.date, true))} · ${esc(next.setting)}</small></button>` : ''}
         <button class="nv-today-cell" data-go="events"><span class="nv-today-k">Days to go</span><b>${next ? daysTo(next.date) : 0}</b><small>${next ? 'Up to ' + esc(next.players) + ' players' : 'Upcoming events'}</small></button>
+        <a class="nv-today-cell" href="/map" style="grid-column: 1 / -1; text-decoration: none"><span class="nv-today-k">Campaign map</span><b class="nv-today-title">Europe, August 1914</b><small>Every node, its nation and its neighbours</small></a>
       </div>
     </section>
     <section class="nv-sec nv-live">
