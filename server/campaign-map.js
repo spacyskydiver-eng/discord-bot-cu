@@ -17,6 +17,9 @@ async function ensureTable() {
     uploaded_by TEXT, updated_at TIMESTAMPTZ DEFAULT NOW())`);
 }
 
+// a terrain zone that falls wholly outside the map comes out as [[[]]]; it's skipped, not an error
+const isEmptyShape = ps => Array.isArray(ps) && ps.every(p => Array.isArray(p) && p.every(r => Array.isArray(r) && !r.length));
+
 // what the board needs to draw; returns a list of problems, empty if the map is usable
 function validate(m) {
   const errs = [];
@@ -42,7 +45,7 @@ function validate(m) {
     for (const id of c.territories || []) if (!ids.has(id)) errs.push(`Continent ${c.id} lists ${id}, which isn't a territory.`);
   }
   for (const c of m.connections || []) if (!ids.has(c.a) || !ids.has(c.b)) errs.push(`Connection ${c.a} to ${c.b} names a territory that doesn't exist.`);
-  (m.terrain || []).forEach((t, i) => { if (!isPolys(t.polygons)) errs.push(`terrain[${i}] (${t.label || t.type}): bad polygons.`); });
+  (m.terrain || []).forEach((t, i) => { if (!isEmptyShape(t.polygons) && !isPolys(t.polygons)) errs.push(`terrain[${i}] (${t.label || t.type}): bad polygons.`); });
   (m.land || []).forEach((p, i) => { if (!isPolys([p])) errs.push(`land[${i}]: bad polygon.`); });
   for (const k of ['capitals', 'chokepoints', 'passes']) (m[k] || []).forEach((x, i) => { if (!isPt(x.pos)) errs.push(`${k}[${i}] (${x.name}): pos must be [x, z].`); });
   return errs.slice(0, 20);
@@ -79,7 +82,12 @@ function borders(m) {
   return out;
 }
 
-const shape = text => { const m = JSON.parse(text); m.borders = borders(m); return JSON.stringify(m); };
+const shape = text => {
+  const m = JSON.parse(text);
+  if (m.terrain) m.terrain = m.terrain.filter(t => !isEmptyShape(t.polygons));
+  m.borders = borders(m);
+  return JSON.stringify(m);
+};
 
 // the map the board draws: the uploaded one (checked at most every 10 seconds), else the local file
 async function load() {
