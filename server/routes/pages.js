@@ -611,7 +611,7 @@ router.get('/map', (req, res) => {
   res.render('new/admin-campaign-map', { pub: true, v: ASSET_V, dataUrl: '/map/data.json', shareUrl: '', current: {}, msg: '', bad: false });
 });
 router.get('/map/data.json', async (req, res) => {
-  try { res.set('Cache-Control', 'public, max-age=60').type('application/json').send(await require('../campaign-map').loadPublic()); }
+  try { res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=86400').type('application/json').send(await require('../campaign-map').loadPublic()); }
   catch (e) { res.status(503).json({ error: 'The map is not available right now.' }); }
 });
 

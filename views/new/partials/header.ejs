@@ -1,7 +1,7 @@
 <header class="banner">
   <div class="banner-inner">
     <a href="<%= lp %>/" class="brand" data-tooltip="Home">
-      <span class="cube" data-electric-logo></span>
+      <span class="cube"<%- locals.pub ? '' : ' data-electric-logo' %>></span>
       CUE
     </a>
     <div class="banner-right">

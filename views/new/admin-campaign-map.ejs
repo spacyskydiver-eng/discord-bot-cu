@@ -2,7 +2,7 @@
 <%# pub: the public map at /map (no values, coordinates, grid or admin controls; its data is the public cut) %>
 <%- include('partials/head', { pageTitle: pub ? 'The Great War: Map' : viewer ? 'Campaign Map' : 'Campaign Map · Control Centre' }) %>
 <%- include('partials/header') %>
-<% if (pub) { %><link rel="stylesheet" href="/assets/menu-bg.css?v=<%= locals.v || '1' %>"><%- include('../partials/menu-bg', { v: locals.v }) %><% } %>
+<% if (pub) { %><link rel="stylesheet" href="/assets/menu-bg.css?v=<%= locals.v || '1' %>"><%- include('../partials/menu-bg', { v: locals.v }) %><link rel="preload" href="<%= locals.dataUrl %>" as="fetch" crossorigin><% } %>
 <style>
 .cm { --sea: #12324f; --ink: #0c0e11; --paper: #f3ecd9; --hud: rgba(14,17,24,.92); --line: rgba(255,255,255,.12);
   display: grid; grid-template-columns: 1fr 340px; height: calc(100vh - 64px); min-height: 560px; background: #0b0d12; }
@@ -10,45 +10,20 @@
   touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; }
 .cm-stage.dragging { cursor: grabbing; }
 .cm-stage > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.cm-hud { pointer-events: none; }
+/* the board is a painted picture: a gesture only moves these layers, which the graphics chip does for free */
+.cm-layer { position: absolute; left: 0; top: 0; display: block; transform-origin: 0 0; will-change: transform; pointer-events: none; }
+.cm-hud { pointer-events: none; transform-origin: 0 0; will-change: transform; }
 .cm-font { font-family: 'Baloo 2', system-ui, sans-serif; }
 
-/* board pieces */
-.t-shape { stroke: none; transition: opacity .15s; }
-.t-edge { fill: none; stroke: var(--ink); stroke-width: 3px; stroke-linejoin: round; vector-effect: non-scaling-stroke; pointer-events: none; transition: opacity .15s; }
-.t-rim { fill: none; stroke: rgba(255,255,255,.28); stroke-width: 5px; vector-effect: non-scaling-stroke; }
-.t-sheen { fill: url(#cm-sheen); pointer-events: none; }
-.t-shadow { fill: rgba(0,0,0,.55); }
-/* detail and relief (maps that carry them: edges, rivers, surround, relief) */
-.surround { fill: #6b716c; }
-.coast-halo { fill: none; stroke-linejoin: round; }
-.veil { fill: rgba(6,14,24,.55); pointer-events: none; }
-.frame-line { fill: none; stroke: rgba(255,255,255,.35); stroke-width: 1.5px; stroke-dasharray: 6 5; vector-effect: non-scaling-stroke; pointer-events: none; }
-.relief { mix-blend-mode: overlay; pointer-events: none; }
-.river { fill: none; stroke: #2f6fa3; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; pointer-events: none; opacity: .9; }
-.e-inner { fill: none; stroke: rgba(12,14,17,.5); stroke-width: 1px; vector-effect: non-scaling-stroke; stroke-linejoin: round; pointer-events: none; }
-.e-coast { fill: none; stroke: var(--ink); stroke-width: 1.6px; vector-effect: non-scaling-stroke; stroke-linejoin: round; pointer-events: none; }
-.e-nation { fill: none; stroke: var(--ink); stroke-width: 3px; vector-effect: non-scaling-stroke; stroke-linejoin: round; pointer-events: none; }
-.land { fill: #8f918c; stroke: #2b2d2f; stroke-width: 1.4px; vector-effect: non-scaling-stroke; }
-.ter { stroke: #2b2d2f; stroke-width: 1.4px; vector-effect: non-scaling-stroke; }
-.glow-wide { fill: none; stroke-width: 16px; stroke-opacity: .35; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
-.glow-thin { fill: none; stroke-width: 8px; stroke-opacity: .9; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
-.grid-line { stroke: rgba(255,255,255,.16); stroke-width: 1px; vector-effect: non-scaling-stroke; }
-.grid-axis { stroke: rgba(255,214,102,.45); stroke-width: 1.4px; vector-effect: non-scaling-stroke; }
 <% if (pub) { %>
 /* the public map sits on the site's background: the sea is drawn inside the playable square only */
 .cm.pub { background: transparent; }
 .cm.pub .cm-stage { background: transparent; }
-.cm.pub .cm-panel { background: rgba(9,10,18,.74); border-left-color: rgba(255,255,255,.08); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.cm.pub .cm-panel { background: rgba(9,10,18,.9); border-left-color: rgba(255,255,255,.08); }
 #cue-sound, #cue-fast { display: none !important; }
-/* a gold selection with a dark halo reads on every colour, pale ones included */
-.cm.pub .sel-outline { stroke: #ffd666; stroke-width: 5px; filter: drop-shadow(0 0 1.5px #000) drop-shadow(0 0 1.5px #000); }
-.cm.pub .nb-outline { stroke: #fff3c4; filter: drop-shadow(0 0 1.2px #000); }
+/* the moving grain and shade would redraw everything on top of them, all the time */
+#cue-menubg .mbg-grain, #cue-menubg .mbg-breath { display: none; }
 <% } %>
-.sel-outline { fill: none; stroke: #fff; stroke-width: 4.5px; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
-.nb-outline { fill: none; stroke: #ffd666; stroke-width: 3px; stroke-dasharray: 7 5; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
-.dim .t-shape:not(.lit) { opacity: .38; }
-.dim .t-sheen, .dim .t-rim { opacity: .5; }
 
 .route-sea { stroke: rgba(255,255,255,.92); stroke-width: 2.2px; stroke-dasharray: 2 7; stroke-linecap: round; fill: none; }
 .route-other { stroke: #ffc94d; stroke-width: 2.2px; stroke-dasharray: 2 6; stroke-linecap: round; fill: none; }
@@ -139,7 +114,6 @@
   .cm-legend { width: 230px; bottom: 54px; max-height: 45%; }
   .cm-legend:not([open]) { width: auto; }
   /* the public map on a phone: more map, smaller controls */
-  .cm.pub .cm-panel { background: rgba(9,10,18,.86); }
   .cm.pub .cm-panel { max-height: 34vh; }
   .cm.pub .cm-chip { padding: 4px 9px; font-size: 12px; }
   .cm.pub .cm-btn { width: 34px; height: 34px; font-size: 17px; }
@@ -151,51 +125,17 @@
 
 <main class="cm<%= pub ? ' pub' : '' %>">
   <div class="cm-stage" id="cm-stage">
-    <svg id="cm-board" aria-label="Campaign map">
-      <defs>
-        <pattern id="cm-waves" width="90" height="46" patternUnits="userSpaceOnUse">
-          <path d="M0 23 q22.5 -9 45 0 t45 0" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="4"/>
-          <path d="M-45 0 q22.5 -9 45 0 t45 0 t45 0" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="4"/>
-        </pattern>
-        <radialGradient id="cm-sea-g" cx=".5" cy=".42" r=".75"><stop offset="0" stop-color="#1a4468"/><stop offset=".55" stop-color="#12324f"/><stop offset="1" stop-color="#0b2036"/></radialGradient>
-        <linearGradient id="cm-sheen" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/>
-          <stop offset="1" stop-color="#000" stop-opacity=".22"/>
-        </linearGradient>
-        <pattern id="cm-hatch" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <line x1="0" y1="0" x2="0" y2="40" stroke="rgba(0,0,0,.28)" stroke-width="10"/></pattern>
-        <pattern id="cm-ice" width="60" height="60" patternUnits="userSpaceOnUse">
-          <path d="M10 30 h40 M30 10 v40" stroke="rgba(120,150,175,.35)" stroke-width="5"/></pattern>
-        <pattern id="cm-dunes" width="120" height="50" patternUnits="userSpaceOnUse">
-          <path d="M0 35 q30 -18 60 0 t60 0" fill="none" stroke="rgba(110,85,40,.35)" stroke-width="6"/></pattern>
-        <pattern id="cm-peaks" width="90" height="70" patternUnits="userSpaceOnUse">
-          <path d="M8 58 L30 22 L52 58 M42 58 L62 30 L82 58" fill="none" stroke="rgba(30,30,30,.45)" stroke-width="7" stroke-linejoin="round"/></pattern>
-        <pattern id="cm-rough" width="70" height="70" patternUnits="userSpaceOnUse">
-          <path d="M10 50 L25 25 L40 50" fill="none" stroke="rgba(0,0,0,.42)" stroke-width="6" stroke-linejoin="round"/></pattern>
-        <pattern id="cm-marsh" width="80" height="40" patternUnits="userSpaceOnUse">
-          <path d="M10 28 h24 M46 14 h24" stroke="rgba(10,40,30,.5)" stroke-width="6" stroke-linecap="round"/></pattern>
-      </defs>
-      <rect id="cm-sea" fill="url(#cm-waves)"<%= pub ? ' display="none"' : '' %>></rect>
-      <g id="cm-world">
-        <g id="L-coast"></g>
-        <g id="L-surround"></g>
-        <g id="L-land"></g>
-        <g id="L-glow"></g>
-        <g id="L-shadow"></g>
-        <g id="L-terr"></g>
-        <g id="L-rim"></g>
-        <g id="L-sheen"></g>
-        <g id="L-terrain"></g>
-        <g id="L-relief"></g>
-        <g id="L-rivers"></g>
-        <g id="L-edge"></g>
-        <g id="L-veil"></g>
-        <g id="L-grid"></g>
-        <g id="L-sel"></g>
-      </g>
-      <g class="cm-hud cm-font" id="cm-hud">
-        <g id="H-grid"></g><g id="H-routes"></g><g id="H-marks"></g><g id="H-labels"></g><g id="H-tokens"></g><g id="H-cross"></g>
-      </g>
+    <% if (!pub) { %><svg aria-hidden="true">
+      <defs><pattern id="cm-waves" width="90" height="46" patternUnits="userSpaceOnUse">
+        <path d="M0 23 q22.5 -9 45 0 t45 0" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="4"/>
+        <path d="M-45 0 q22.5 -9 45 0 t45 0 t45 0" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="4"/>
+      </pattern></defs>
+      <rect width="100%" height="100%" fill="url(#cm-waves)"></rect>
+    </svg><% } %>
+    <canvas class="cm-layer" id="cm-base" aria-hidden="true"></canvas>
+    <canvas class="cm-layer" id="cm-sharp" role="img" aria-label="Campaign map"></canvas>
+    <svg class="cm-hud cm-font" id="cm-board" aria-hidden="true">
+      <g id="H-grid"></g><g id="H-routes"></g><g id="H-marks"></g><g id="H-labels"></g><g id="H-tokens"></g><g id="H-cross"></g>
     </svg>
 
     <div class="cm-ctl cm-layers" id="cm-layers">
@@ -263,30 +203,31 @@
   const W_T = PUB ? 'node' : 'territory', W_TS = PUB ? 'nodes' : 'territories', W_C = PUB ? 'theatre' : 'continent', W_CS = PUB ? 'theatres' : 'continents';
   const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
   const $ = id => document.getElementById(id);
-  const stage = $('cm-stage'), svg = $('cm-board'), world = $('cm-world');
+  const stage = $('cm-stage'), hud = $('cm-board'), sharp = $('cm-sharp'), baseC = $('cm-base');
   const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-  const ringsPath = poly => poly.map(r => 'M' + r.map(p => p[0] + ' ' + p[1]).join('L') + 'Z').join('');
   const fmt = n => (n < 0 ? '−' : '') + Math.abs(Math.round(n)).toLocaleString('en-GB');
   // light fills get dark numbers on their tokens, dark fills white
   const shade = (hex, f) => '#' + [0, 2, 4].map(i => Math.round(parseInt(hex.replace('#', '').substr(i, 2), 16) * (1 - f)).toString(16).padStart(2, '0')).join('');
-  const lifts = [];
   const lum = hex => { const h = hex.replace('#', ''); const v = [0, 2, 4].map(i => parseInt(h.substr(i, 2), 16) / 255); return .2126 * v[0] + .7152 * v[1] + .0722 * v[2]; };
 
   const KIND = { land: 'Land border', sea: 'Sea route', pass: 'Mountain pass', road: 'Desert road', desert_road: 'Desert road' };
   const kindName = t => KIND[t] || (t.charAt(0).toUpperCase() + t.slice(1).replace(/_/g, ' '));
-  const TERRAIN_FILL = { arctic: ['#e4ecf1', 'cm-ice'], desert: ['#cdbf98', 'cm-dunes'], mountain: ['#8a8c86', 'cm-peaks'],
-    neutral: ['#a3a49e', 'cm-hatch'], rough: [null, 'cm-rough'], marsh: [null, 'cm-marsh'] };
+  const TERRAIN_FILL = { arctic: ['#e4ecf1', 'ice'], desert: ['#cdbf98', 'dunes'], mountain: ['#8a8c86', 'peaks'],
+    neutral: ['#a3a49e', 'hatch'], rough: [null, 'rough'], marsh: [null, 'marsh'] };
   const overlayTerrain = t => !TERRAIN_FILL[t] || TERRAIN_FILL[t][0] === null;   // drawn over territories, not in place of them
 
   let M, T = {}, NAT = {}, CON = {}, ADJ = {}, terrains = [], selected = null, focusContinent = null;
+  let lands = [], rounds = [], rims = [], glows = [], edgeBy = {}, riverBy = {}, reliefImg = null, veil = null, seaFill = null;
+  const lit = new Set(), ringed = new Set();     // what a selection brightens, and outlines as neighbours
 <% if (!pub) { %>  // each token's live value (players present, capture progress...): empty until something feeds it, through
   // window.campaignBoard.setValues({ territoryId: value }); a value in the map file (territory.value) is the start
 <% } %>  const VAL = {};
   // the code on a nation's tokens: its own code if the map gives one, else its id in capitals; unclaimed is blank
   const natCode = id => id === 'none' || !NAT[id] ? '' : String(NAT[id].code || id).toUpperCase();
   const layers = { tokens: !PUB, routes: true, terrain: true, names: false, grid: false };
-  const view = { s: 1, tx: 0, ty: 0 }, home = { s: 1, tx: 0, ty: 0 };
+  const view = { s: 1, tx: 0, ty: 0 }, home = { s: 1, tx: 0, ty: 0 }, shown = { s: 1, tx: 0, ty: 0 }, backing = { s: 1, x: 0, z: 0 };
+  const Q = Math.min(window.devicePixelRatio || 1, 2), BASE = 1536;     // pixels a screen dot, capped: a phone's 3 is four times the work for little gain
   let W = 0, H = 0;
 
   /* ------------------------------------------------------------------ geometry helpers */
@@ -312,7 +253,7 @@
   function build() {
     M.nations.forEach(n => NAT[n.id] = n);
     M.continents.forEach(c => CON[c.id] = c);
-    M.territories.forEach(t => { <% if (!pub) { %>if (t.value != null) VAL[t.id] = t.value; <% } %>T[t.id] = Object.assign({}, t, { box: bboxOf(t.polygons), d: t.polygons.map(ringsPath).join('') }); ADJ[t.id] = []; });
+    M.territories.forEach(t => { <% if (!pub) { %>if (t.value != null) VAL[t.id] = t.value; <% } %>T[t.id] = Object.assign({}, t, { box: bboxOf(t.polygons) }); ADJ[t.id] = []; });
     const passBy = {};
     (M.passes || []).forEach(p => { if (p.connects) passBy[[...p.connects].sort().join('|')] = p; });
     const seen = new Set();
@@ -323,71 +264,37 @@
       const link = { type: c.type || 'land', pass: passBy[key] || null };
       ADJ[c.a].push(Object.assign({ id: c.b }, link)); ADJ[c.b].push(Object.assign({ id: c.a }, link));
     });
-    terrains = (M.terrain || []).map(t => Object.assign({}, t, { box: bboxOf(t.polygons) }));
+    terrains = (M.terrain || []).map(t => { const box = bboxOf(t.polygons); return Object.assign({}, t, { box, piece: piece(t.polygons.flat(), box) }); });
 
-    // the board stands up off the sea: every piece of land has a side wall and a shadow under it, and these
-    // are shifted by a fixed number of screen pixels in paint(), so the relief reads the same at every zoom
-    const landD = (M.land || []).map(ringsPath).join(''), surD = (M.surround || []).map(ringsPath).join('');
-    const coast = $('L-coast');
-    if (PUB) { const [b0, b1, b2, b3] = M.meta.bounds; el('rect', { x: b0, y: b1, width: b2 - b0, height: b3 - b1, fill: 'url(#cm-sea-g)' }, coast); }
-    const U = (M.meta.bounds[2] - M.meta.bounds[0]) / 11500;          // world units a block (the public map is scaled)
-    [[110, 'rgba(150,205,240,.07)'], [55, 'rgba(150,205,240,.10)'], [22, 'rgba(170,215,245,.16)']].forEach(([w, c]) =>
-      el('path', { d: landD + surD, class: 'coast-halo', stroke: c, 'stroke-width': w * U }, coast));
-    if (surD) el('path', { d: surD, class: 'surround', 'fill-rule': 'evenodd' }, $('L-surround'));
-    const land = $('L-land'), shadow = $('L-shadow');
-    const lift = (g, d, fill) => { const p = el('path', { d, fill, 'fill-rule': 'evenodd', class: 'lift' }, g); lifts.push(p); return p; };
-    lift(land, landD, 'rgba(0,0,0,.45)').dataset.k = '2';
-    lift(land, landD, '#5c5e5a').dataset.k = '1';
-    el('path', { d: landD, class: 'land', 'fill-rule': 'evenodd' }, land);
-
-    const terr = $('L-terr'), rim = $('L-rim'), sheen = $('L-sheen'), edge = $('L-edge'), defs = svg.querySelector('defs');
+    const c = sharp.getContext('2d');
+    lands = (M.land || []).map(p => piece(p, bboxOf([p])));
+    rounds = (M.surround || []).map(p => piece(p, bboxOf([p])));
     Object.values(T).forEach(t => {
-      const col = (NAT[t.owner] || {}).color || '#ccc';
-      lift(shadow, t.d, 'rgba(0,0,0,.4)').dataset.k = '2';
-      t.wall = lift(shadow, t.d, shade(col, .42)); t.wall.dataset.k = '1';
-      t.shape = el('path', { d: t.d, class: 't-shape', 'fill-rule': 'evenodd', fill: col, 'data-id': t.id }, terr);
-      const cp = el('clipPath', { id: 'cp-' + t.id }, defs); el('path', { d: t.d, 'fill-rule': 'evenodd' }, cp);
-      el('path', { d: t.d, class: 't-rim', 'clip-path': 'url(#cp-' + t.id + ')' }, rim);
-      el('path', { d: t.d, class: 't-sheen', 'fill-rule': 'evenodd' }, sheen);
-      if (!M.edges) el('path', { d: t.d, class: 't-edge' }, edge);
+      t.piece = piece(t.polygons.flat(), t.box);
+      t.sheen = c.createLinearGradient(0, t.box[1], 0, t.box[3]);
+      [[0, 'rgba(255,255,255,.22)'], [.45, 'rgba(255,255,255,0)'], [1, 'rgba(0,0,0,.22)']].forEach(s => t.sheen.addColorStop(s[0], s[1]));
+      rims.push(t.piece);
     });
+    paintColours('nation');
     // borders: thin between a nation's own nodes, heavy where nations meet, firm along the coast
-    if (M.edges) {
-      const kind = e => !e.b || !T[e.b] ? 'e-coast' : T[e.a].owner === T[e.b].owner ? 'e-inner' : 'e-nation';
-      const by = { 'e-inner': [], 'e-coast': [], 'e-nation': [] };
-      M.edges.forEach(e => { if (T[e.a] && e.line.length > 1) by[kind(e)].push('M' + e.line.map(p => p[0] + ' ' + p[1]).join('L')); });
-      Object.keys(by).forEach(k => el('path', { d: by[k].join(''), class: k }, edge));
-    }
-    if (M.relief && M.relief.image) {
-      const [a, b, c, d] = M.relief.bounds;
-      el('image', { href: M.relief.image, x: a, y: b, width: c - a, height: d - b, preserveAspectRatio: 'none', class: 'relief', opacity: .9 }, $('L-relief'));
-    }
+    const kind = e => !e.b || !T[e.b] ? 'coast' : T[e.a].owner === T[e.b].owner ? 'inner' : 'nation';
+    edgeBy = { inner: [], coast: [], nation: [] };
+    (M.edges || []).forEach(e => { if (T[e.a] && e.line.length > 1) edgeBy[kind(e)].push(piece([e.line], bboxOf([[e.line]]), true)); });
     // rivers: big ones always, smaller ones as you zoom in
-    const rg = { 1: el('g', {}, $('L-rivers')), 2: el('g', { 'data-zoom': '1.8' }, $('L-rivers')), 3: el('g', { 'data-zoom': '3.2' }, $('L-rivers')) };
-    (M.rivers || []).forEach(r => {
-      const tier = r.r <= 5 ? 1 : r.r <= 7 ? 2 : 3;
-      el('path', { d: 'M' + r.line.map(p => p[0] + ' ' + p[1]).join('L'), class: 'river', 'stroke-width': [0, 1.9, 1.3, .9][tier] }, rg[tier]);
-    });
-    // beyond the playable square: the land carries on, under a veil
-    if (surD) {
-      const [b0, b1, b2, b3] = M.meta.bounds, E = 1e5;
-      el('path', { d: `M${-E} ${-E}H${E}V${E}H${-E}Z M${b0} ${b1}V${b3}H${b2}V${b1}Z`, class: 'veil', 'fill-rule': 'evenodd' }, $('L-veil'));
-      el('rect', { x: b0, y: b1, width: b2 - b0, height: b3 - b1, class: 'frame-line' }, $('L-veil'));
+    riverBy = { 1: [], 2: [], 3: [] };
+    (M.rivers || []).forEach(r => riverBy[r.r <= 5 ? 1 : r.r <= 7 ? 2 : 3].push(piece([r.line], bboxOf([[r.line]]), true)));
+    if (M.relief && M.relief.image) {
+      const img = new Image(); img.src = M.relief.image;
+      (img.decode ? img.decode() : new Promise(ok => { img.onload = ok; })).then(() => { reliefImg = img; baseStale = true; draw(); }).catch(() => {});
+    }
+    const [b0, b1, b2, b3] = M.meta.bounds, E = 1e5;
+    if (rounds.length) veil = new Path2D(`M${-E} ${-E}H${E}V${E}H${-E}Z M${b0} ${b1}V${b3}H${b2}V${b1}Z`);
+    if (PUB) {
+      const w = b2 - b0, cx = (b0 + b2) / 2, cz = b1 + (b3 - b1) * .42;
+      seaFill = c.createRadialGradient(cx, cz, 0, cx, cz, w * .75);
+      [[0, '#1a4468'], [.55, '#12324f'], [1, '#0b2036']].forEach(s => seaFill.addColorStop(s[0], s[1]));
     }
 
-    const tg = $('L-terrain');
-    terrains.forEach(t => {
-      const [fill, pat] = TERRAIN_FILL[t.type] || ['#9a9b96', 'cm-hatch'];
-      const d = t.polygons.map(ringsPath).join('');
-      if (fill) el('path', { d, class: 'ter', fill, 'fill-rule': 'evenodd' }, tg);
-      el('path', { d, fill: 'url(#' + pat + ')', 'fill-rule': 'evenodd', stroke: fill ? 'none' : 'rgba(0,0,0,.35)', 'stroke-width': '1.2px', 'vector-effect': 'non-scaling-stroke', 'stroke-dasharray': fill ? '' : '4 4' }, tg);
-    });
-
-<% if (!pub) { %>    // 500-block grid (lines in the world, numbers along the screen edges)
-    const gg = $('L-grid'), [b0, b1, b2, b3] = M.meta.bounds;
-    if (!PUB) for (let v = Math.ceil(b0 / 500) * 500; v <= b2; v += 500) el('line', { x1: v, y1: b1, x2: v, y2: b3, class: v === 0 ? 'grid-axis' : 'grid-line' }, gg);
-    if (!PUB) for (let v = Math.ceil(b1 / 500) * 500; v <= b3; v += 500) el('line', { x1: b0, y1: v, x2: b2, y2: v, class: v === 0 ? 'grid-axis' : 'grid-line' }, gg);
-<% } %>
     drawGlow();
     legend();
     resize(true);
@@ -400,17 +307,140 @@
     return owners.size === 1 ? [...owners][0] : null;
   }
   function drawGlow() {
-    const g = $('L-glow'); g.textContent = '';
+    glows = [];
     if (PUB) return;
     M.continents.forEach(c => {
       const o = heldBy(c);
       if (!o || o === 'none') return;
-      c.territories.forEach(id => {
-        if (!T[id]) return;
-        el('path', { d: T[id].d, class: 'glow-wide', stroke: c.color }, g);
-        el('path', { d: T[id].d, class: 'glow-thin', stroke: c.color }, g);
-      });
+      c.territories.forEach(id => { if (T[id]) glows.push({ piece: T[id].piece, color: c.color }); });
     });
+  }
+  // the fill and side wall of every piece, by nation or by theatre
+  function paintColours(mode) {
+    Object.values(T).forEach(t => {
+      t.col = mode === 'theatre' ? (CON[t.continent] || {}).color || '#ccc' : (NAT[t.owner] || {}).color || '#ccc';
+      t.wallCol = shade(t.col, .42);
+    });
+  }
+
+  /* ------------------------------------------------------------------ painting the board */
+  // A piece of the map is drawn from a copy of its points snapped to a grid no finer than the screen can show, so
+  // zoomed out there are far fewer of them; two neighbours snap their shared border alike, so no gap opens up.
+  const piece = (rings, box, open) => ({ rings, box, open, cuts: {} });
+  function cut(it, g) {
+    if (it.cuts[g]) return it.cuts[g];
+    const path = new Path2D();
+    it.rings.forEach(r => {
+      let pts = r;
+      if (g) {
+        pts = [];
+        r.forEach(p => { const x = Math.round(p[0] / g) * g, z = Math.round(p[1] / g) * g, l = pts[pts.length - 1]; if (!l || l[0] !== x || l[1] !== z) pts.push([x, z]); });
+        if (pts.length < (it.open ? 2 : 3)) pts = r;
+      }
+      pts.forEach((p, i) => i ? path.lineTo(p[0], p[1]) : path.moveTo(p[0], p[1]));
+      if (!it.open) path.closePath();
+    });
+    return it.cuts[g] = path;
+  }
+  // the finest of these that still takes more than a pixel and a half
+  const CUTS = [10, 20, 40, 80, 160];
+  const cutFor = pxPerUnit => { const u = (M.meta.bounds[2] - M.meta.bounds[0]) / 11500; let g = 0; CUTS.forEach(b => { if (b * u * pxPerUnit <= 1.6) g = b * u; }); return g; };
+  const meets = (a, b) => a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1];
+  function together(items, g, box) { const out = new Path2D(); items.forEach(it => { if (meets(it.box, box)) out.addPath(cut(it, g)); }); return out; }
+
+  // the terrain textures, drawn large enough to stay sharp when zoomed in
+  const PATS = {};
+  function tile(w, h, rotate, d, stroke, width, cap) {
+    const K = 3, cv = document.createElement('canvas'); cv.width = w * K; cv.height = h * K;
+    const x = cv.getContext('2d'); x.scale(K, K);
+    Object.assign(x, { strokeStyle: stroke, lineWidth: width, lineCap: cap || 'butt', lineJoin: 'round' }); x.stroke(new Path2D(d));
+    const pat = x.createPattern(cv, 'repeat'); pat.setTransform(new DOMMatrix().rotate(rotate).scale(1 / K));
+    return pat;
+  }
+  function pattern(name) {
+    return PATS[name] || (PATS[name] = {
+      hatch: () => tile(40, 40, 45, 'M0 0V40', 'rgba(0,0,0,.28)', 10),
+      ice: () => tile(60, 60, 0, 'M10 30h40M30 10v40', 'rgba(120,150,175,.35)', 5),
+      dunes: () => tile(120, 50, 0, 'M0 35q30 -18 60 0t60 0', 'rgba(110,85,40,.35)', 6),
+      peaks: () => tile(90, 70, 0, 'M8 58L30 22L52 58M42 58L62 30L82 58', 'rgba(30,30,30,.45)', 7),
+      rough: () => tile(70, 70, 0, 'M10 50L25 25L40 50', 'rgba(0,0,0,.42)', 6),
+      marsh: () => tile(80, 40, 0, 'M10 28h24M46 14h24', 'rgba(10,40,30,.5)', 6, 'round'),
+    }[name]());
+  }
+
+  // the whole board, at scale s and offset tx, ty, onto a canvas of w by h (q pixels each)
+  function scene(c, s, tx, ty, w, h, q) {
+    c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, w * q, h * q);
+    c.setTransform(s * q, 0, 0, s * q, tx * q, ty * q);
+    c.lineJoin = 'round'; c.lineCap = 'butt';
+    const px = 1 / s, zoom = s / home.s, U = (M.meta.bounds[2] - M.meta.bounds[0]) / 11500, g = cutFor(s * q), far = cutFor(s * q / 3);
+    // the side wall and shadow are a fixed number of pixels, so the relief reads the same at every zoom
+    const wall = (4 + 2.2 * Math.log2(Math.max(1, zoom))) * px, m = 12 * px + wall * 2.1;
+    const box = [-tx * px - m, -ty * px - m, (w - tx) * px + m, (h - ty) * px + m];
+    const line = (path, colour, width, dash) => { c.strokeStyle = colour; c.lineWidth = width * px; if (dash) c.setLineDash(dash.map(d => d * px)); c.stroke(path); if (dash) c.setLineDash([]); };
+    const fill = (path, colour) => { c.fillStyle = colour; c.fill(path, 'evenodd'); };
+    const lifted = (dy, fn) => { c.translate(0, dy); fn(); c.translate(0, -dy); };
+    const pieces = Object.values(T).filter(t => meets(t.box, box));
+    const landP = together(lands, g, box), roundP = together(rounds, g, box), allP = new Path2D();
+    pieces.forEach(t => allP.addPath(cut(t.piece, g)));
+
+    if (seaFill) { const b = M.meta.bounds; c.fillStyle = seaFill; c.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]); }
+    const halo = together(lands.concat(rounds), far, box);
+    [[110, 'rgba(150,205,240,.07)'], [55, 'rgba(150,205,240,.10)'], [22, 'rgba(170,215,245,.16)']].forEach(([wd, col]) => { c.strokeStyle = col; c.lineWidth = wd * U; c.stroke(halo); });
+    fill(roundP, '#6b716c');
+    lifted(wall * 2.1, () => fill(landP, 'rgba(0,0,0,.45)'));
+    lifted(wall, () => fill(landP, '#5c5e5a'));
+    fill(landP, '#8f918c'); line(landP, '#2b2d2f', 1.4);
+    glows.forEach(o => { c.globalAlpha = .35; line(cut(o.piece, g), o.color, 16); c.globalAlpha = .9; line(cut(o.piece, g), o.color, 8); c.globalAlpha = 1; });
+
+    lifted(wall * 2.1, () => fill(allP, 'rgba(0,0,0,.4)'));
+    lifted(wall, () => pieces.forEach(t => fill(cut(t.piece, g), t.wallCol)));
+    const dim = selected || focusContinent;
+    pieces.forEach(t => { c.globalAlpha = dim && !lit.has(t.id) ? .38 : 1; fill(cut(t.piece, g), t.col); });
+    c.globalAlpha = dim ? .5 : 1;
+    c.save(); c.clip(allP, 'evenodd'); line(allP, 'rgba(255,255,255,.28)', 5); c.restore();
+    pieces.forEach(t => fill(cut(t.piece, g), t.sheen));
+    c.globalAlpha = 1;
+
+    if (layers.terrain) terrains.forEach(t => {
+      if (!meets(t.box, box)) return;
+      const [col, pat] = TERRAIN_FILL[t.type] || ['#9a9b96', 'hatch'], path = cut(t.piece, g);
+      if (col) { fill(path, col); line(path, '#2b2d2f', 1.4); }
+      fill(path, pattern(pat));
+      if (!col) line(path, 'rgba(0,0,0,.35)', 1.2, [4, 4]);
+    });
+    if (reliefImg) {
+      // only over what's been drawn: on an empty pixel a canvas blend would lay the bare grey image down
+      const [a, b, x1, z1] = M.relief.bounds, on = new Path2D(); on.addPath(landP); on.addPath(roundP);
+      if (seaFill) { const f = M.meta.bounds; on.rect(f[0], f[1], f[2] - f[0], f[3] - f[1]); }
+      c.save(); c.clip(on);
+      c.globalCompositeOperation = 'overlay'; c.globalAlpha = .9;
+      c.drawImage(reliefImg, a, b, x1 - a, z1 - b);
+      c.restore();
+    }
+    c.lineCap = 'round'; c.globalAlpha = .9;
+    [[1, 1, 1.9], [2, 1.8, 1.3], [3, 3.2, .9]].forEach(([tier, from, wd]) => { if (zoom >= from) line(together(riverBy[tier], g, box), '#2f6fa3', wd); });
+    c.lineCap = 'butt'; c.globalAlpha = 1;
+    if (M.edges) {
+      line(together(edgeBy.inner, g, box), 'rgba(12,14,17,.5)', 1);
+      line(together(edgeBy.coast, g, box), '#0c0e11', 1.6);
+      line(together(edgeBy.nation, g, box), '#0c0e11', 3);
+    } else line(allP, '#0c0e11', 3);
+    if (veil) {
+      const b = M.meta.bounds;
+      fill(veil, 'rgba(6,14,24,.55)');
+      c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 1.5 * px; c.setLineDash([6 * px, 5 * px]); c.strokeRect(b[0], b[1], b[2] - b[0], b[3] - b[1]); c.setLineDash([]);
+    }
+<% if (!pub) { %>    // the 500-block grid
+    if (layers.grid) {
+      const [b0, b1, b2, b3] = M.meta.bounds, gl = v => v === 0 ? ['rgba(255,214,102,.45)', 1.4] : ['rgba(255,255,255,.16)', 1];
+      const rule = (x0, z0, x1, z1, v) => { const p = new Path2D(); p.moveTo(x0, z0); p.lineTo(x1, z1); line(p, ...gl(v)); };
+      for (let v = Math.ceil(b0 / 500) * 500; v <= b2; v += 500) rule(v, b1, v, b3, v);
+      for (let v = Math.ceil(b1 / 500) * 500; v <= b3; v += 500) rule(b0, v, b2, v, v);
+    }
+<% } %>    const out = new Path2D(); ringed.forEach(id => out.addPath(cut(T[id].piece, g)));
+    if (ringed.size) { if (PUB) line(out, 'rgba(0,0,0,.6)', 5); line(out, PUB ? '#fff3c4' : '#ffd666', 3, [7, 5]); }
+    if (selected) { const p = cut(T[selected].piece, g); if (PUB) line(p, 'rgba(0,0,0,.65)', 8); line(p, PUB ? '#ffd666' : '#fff', PUB ? 5 : 4.5); }
   }
 
   /* ------------------------------------------------------------------ view (pan and zoom) */
@@ -418,7 +448,8 @@
   const toWorld = (X, Y) => [(X - view.tx) / view.s, (Y - view.ty) / view.s];
   function resize(fit) {
     const r = stage.getBoundingClientRect(); W = r.width; H = r.height;
-    const sea = $('cm-sea'); sea.setAttribute('width', W); sea.setAttribute('height', H);
+    sharp.width = Math.round(W * Q); sharp.height = Math.round(H * Q);
+    sharp.style.width = W + 'px'; sharp.style.height = H + 'px';
     // fit the playable board (territories and land), not the whole 7000-block square
     const all = [...M.territories.flatMap(t => t.polygons), ...(M.land || [])];
     const [x0, z0, x1, z1] = bboxOf(all), pad = 40;
@@ -431,19 +462,41 @@
     const s = Math.max(home.s * .6, Math.min(home.s * 16, view.s * f));
     const [x, z] = toWorld(X, Y);
     view.s = s; view.tx = X - x * s; view.ty = Y - z * s;
-    draw();
+    moved();
   }
-  let raf = 0;
+  let raf = 0, settle = 0, baseStale = true;
   function draw() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; paint(); }); }
+  // a pan or zoom in progress only moves what's already painted; it's painted afresh once the view stops changing
+  let placing = 0;
+  function moved() {
+    if (!placing) placing = requestAnimationFrame(() => { placing = 0; baseC.style.visibility = 'visible'; place(); });
+    clearTimeout(settle); settle = setTimeout(draw, 130);
+  }
+  function place() {
+    const r = view.s / shown.s, m = `matrix(${r},0,0,${r},${view.tx - shown.tx * r},${view.ty - shown.ty * r})`;
+    sharp.style.transform = m; hud.style.transform = m;
+    const b = view.s / backing.s;
+    baseC.style.transform = `matrix(${b},0,0,${b},${view.tx + backing.x * view.s},${view.ty + backing.z * view.s})`;
+  }
   function paint() {
-    world.setAttribute('transform', `matrix(${view.s} 0 0 ${view.s} ${view.tx} ${view.ty})`);
+    clearTimeout(settle);
+    scene(sharp.getContext('2d'), view.s, view.tx, view.ty, W, H, Q);
+    Object.assign(shown, view);
+    baseC.style.visibility = 'hidden';
+    place();
     const zoom = view.s / home.s;
-    const wall = (4 + 2.2 * Math.log2(Math.max(1, zoom))) / view.s;
-    lifts.forEach(p => p.setAttribute('transform', `translate(0 ${p.dataset.k === '2' ? wall * 2.1 : wall})`));
-    $('L-rivers').querySelectorAll('g[data-zoom]').forEach(g => { g.style.display = zoom >= +g.dataset.zoom ? '' : 'none'; });
-    $('L-terrain').style.display = layers.terrain ? '' : 'none';
-    $('L-grid').style.display = layers.grid ? '' : 'none';
     hudGrid(); hudRoutes(); hudMarks(zoom); hudLabels(zoom); hudTokens(zoom);
+    if (baseStale) { clearTimeout(paintBase.t); paintBase.t = setTimeout(paintBase, 250); }
+  }
+  // underneath, the whole map at a modest fixed size, so land coming into view mid-gesture is never blank
+  function paintBase() {
+    const [x0, z0, x1, z1] = bboxOf([...M.territories.flatMap(t => t.polygons), ...(M.land || []), ...(M.surround || [])]);
+    const s = BASE / Math.max(x1 - x0, z1 - z0), w = Math.ceil((x1 - x0) * s), h = Math.ceil((z1 - z0) * s);
+    if (baseC.width !== w || baseC.height !== h) { baseC.width = w; baseC.height = h; }
+    Object.assign(backing, { s, x: x0, z: z0 });
+    scene(baseC.getContext('2d'), s, -x0 * s, -z0 * s, w, h, 1);
+    baseStale = false;
+    place();
   }
 
   /* ------------------------------------------------------------------ screen-space layers */
@@ -540,23 +593,19 @@
 
   function select(id) {
     selected = id; focusContinent = null;
-    const sel = $('L-sel'); sel.textContent = '';
+    lit.clear(); ringed.clear();
     document.querySelectorAll('.lg-row.on').forEach(r => r.classList.remove('on'));
-    Object.values(T).forEach(t => t.shape.classList.remove('lit'));
-    world.classList.toggle('dim', !!id);
     if (id) {
-      T[id].shape.classList.add('lit');
-      ADJ[id].forEach(n => { T[n.id].shape.classList.add('lit'); el('path', { d: T[n.id].d, class: 'nb-outline' }, sel); });
-      el('path', { d: T[id].d, class: 'sel-outline' }, sel);
+      lit.add(id);
+      ADJ[id].forEach(n => { lit.add(n.id); ringed.add(n.id); });
     }
-    draw();
+    baseStale = true; draw();
   }
   function showContinent(cid) {
     select(null);
     focusContinent = cid;
-    const c = CON[cid], sel = $('L-sel');
-    world.classList.add('dim');
-    c.territories.forEach(id => { if (!T[id]) return; T[id].shape.classList.add('lit'); el('path', { d: T[id].d, class: 'nb-outline' }, sel); });
+    const c = CON[cid];
+    c.territories.forEach(id => { if (!T[id]) return; lit.add(id); ringed.add(id); });
     document.querySelectorAll('.lg-row[data-c]').forEach(r => r.classList.toggle('on', r.dataset.c === cid));
     const o = heldBy(c);
     info(<% if (pub) { %>`<h1>${esc(c.name)}</h1>
@@ -694,11 +743,11 @@
       const [a, b] = [...ptrs.values()], mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
       const s = Math.max(home.s * .6, Math.min(home.s * 16, pinch.s * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d));
       const wx = (pinch.mid[0] - pinch.tx) / pinch.s, wz = (pinch.mid[1] - pinch.ty) / pinch.s;
-      view.s = s; view.tx = mid[0] - wx * s; view.ty = mid[1] - wz * s; draw();
+      view.s = s; view.tx = mid[0] - wx * s; view.ty = mid[1] - wz * s; moved();
     } else if (drag) {
       if (drag.held) { readout(...p, true); return; }
       if (!drag.moved && Math.hypot(p[0] - drag.X, p[1] - drag.Y) > 6) { drag.moved = true; clearTimeout(press); stage.classList.add('dragging'); tip.style.display = 'none'; }
-      if (drag.moved) { view.tx = drag.tx + p[0] - drag.X; view.ty = drag.ty + p[1] - drag.Y; draw(); }
+      if (drag.moved) { view.tx = drag.tx + p[0] - drag.X; view.ty = drag.ty + p[1] - drag.Y; moved(); }
     }
   });
   function end(e) {
@@ -719,17 +768,14 @@
   $('cm-reset').onclick = () => { Object.assign(view, home); draw(); };
   $('cm-layers').addEventListener('click', e => {
     const b = e.target.closest('[data-layer]'); if (!b) return;
-    layers[b.dataset.layer] = !layers[b.dataset.layer]; b.setAttribute('aria-pressed', layers[b.dataset.layer]); draw();
+    layers[b.dataset.layer] = !layers[b.dataset.layer]; b.setAttribute('aria-pressed', layers[b.dataset.layer]); baseStale = true; draw();
   });
   addEventListener('resize', () => { if (M) resize(false); });
   // colour the pieces by nation (owner) or by theatre; tokens keep the nation either way
   if ($('cm-colour')) $('cm-colour').onclick = e => {
     const b = e.currentTarget, mode = b.dataset.mode === 'nation' ? 'theatre' : 'nation';
     b.dataset.mode = mode; b.textContent = 'Colour: ' + mode;
-    Object.values(T).forEach(t => {
-      const col = mode === 'theatre' ? (CON[t.continent] || {}).color || '#ccc' : (NAT[t.owner] || {}).color || '#ccc';
-      t.shape.setAttribute('fill', col); if (t.wall) t.wall.setAttribute('fill', shade(col, .42));
-    });
+    paintColours(mode); baseStale = true; draw();
     if (mode === 'theatre' && !compact()) $('cm-legend').open = true;
   };
 <% if (!pub) { %>  if (!PUB) window.campaignBoard = {

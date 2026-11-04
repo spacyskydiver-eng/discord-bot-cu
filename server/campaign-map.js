@@ -118,7 +118,8 @@ let pubCache = { from: null, body: null };
 function publicMap(m) {
   const [b0, b1, b2, b3] = m.meta.bounds;
   const pt = p => [Math.round((p[0] - b0) * PUB), Math.round((p[1] - b1) * PUB)];
-  const ring = r => r.map(pt);
+  // on the coarser grid many neighbouring points land on the same spot: one is enough
+  const ring = r => r.map(pt).filter((p, i, all) => !i || p[0] !== all[i - 1][0] || p[1] !== all[i - 1][1]);
   const poly = ps => (ps || []).map(p => p.map(ring));
   return {
     meta: { name: m.meta.name, bounds: [0, 0, Math.round((b2 - b0) * PUB), Math.round((b3 - b1) * PUB)] },
