@@ -435,6 +435,7 @@ function parseHash() {
   if (!h.startsWith('#/') && location.pathname === '/great-war-in-2-minutes') return { id: 'great-war-short', heading: null };
   if (!h.startsWith('#/') && location.pathname === '/pack') return { id: 'pack', heading: null };
   if (!h.startsWith('#/') && location.pathname === '/first-hour') return { id: 'first-hour', heading: null };
+  if (!h.startsWith('#/') && location.pathname === '/leaders-handbook') return { id: 'leaders-handbook', heading: null };
   if (!h.startsWith('#/') && location.pathname === '/pack-faq') return { id: 'pack-faq', heading: null };
   if (!h.startsWith('#/') && location.pathname === '/leaders') return { id: 'leaders', heading: null };
   if (!h.startsWith('#/') && location.pathname === '/staff-apply') return { id: 'staff-apply', heading: null };

@@ -1508,3 +1508,9 @@ body.ui-nova .tst-next a { color: #a78bfa; }
 body.ui-nova .pk-sha { display: block; margin-top: 4px; font: 500 11px var(--font-monospace-theme, monospace); color: var(--text-faint); overflow-wrap: anywhere; }
 body.ui-nova .nv-otd { margin: -4px 0 14px; color: var(--text-muted); font-size: 14px; line-height: 1.55; }
 body.ui-nova .nv-otd b { color: var(--text-normal); }
+/* the Leader's handbook */
+body.ui-nova .lh-body { max-width: 76ch; color: var(--text-muted); line-height: 1.65; }
+body.ui-nova .lh-body p { margin: 0 0 10px; }
+body.ui-nova .lh-body ul { margin: 0 0 10px; padding-left: 20px; display: grid; gap: 6px; }
+body.ui-nova .lh-body b { color: var(--text-normal); }
+body.ui-nova .lh-body a { color: var(--mod); }

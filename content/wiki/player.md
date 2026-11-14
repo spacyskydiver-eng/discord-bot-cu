@@ -118,6 +118,8 @@ You pick a class, which decides how you fight (4.6.6), and you can pick a specia
 
 ### 2.1 Nation governance: the Leader and the 8 seats
 
+Leading a nation or holding a seat? Start with [the Leader's handbook](/leaders-handbook).
+
 Think Supremacy 1914, Hearts of Iron IV and Civilization. One Leader plays the country. Leadership is the Leader plus a small cabinet, and everyone else is a citizen (section 1.3) who never has to touch the business of government unless they want to.
 
 #### 2.1.1 The Leader

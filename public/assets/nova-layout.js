@@ -364,6 +364,58 @@ B.registerView('first-hour', {
   },
 });
 
+/* ---------------------------------------------------------------- the Leader's handbook
+   For Leaders and seat holders (meeting 2: leaders burn out). Every rule here is from the Field Manual; each part links
+   to its section. */
+const HANDBOOK = [
+  ['Share the load: fill your seats first', '2-1-2', `<p>You hold every permission, but you shouldn't do every job. You have <b>8 seats</b>; give each one a person and a job on your first evening. The defaults are a good start:</p>
+    <ul><li><b>Chancellor:</b> treasury and tax. <b>Foreign Secretary:</b> mail and trade. <b>War Minister:</b> relations and war, orders, tanks and scouts.</li>
+    <li><b>Justice Minister:</b> incidents. <b>Science Minister:</b> research and production. <b>Home Secretary:</b> membership. <b>Two Officers:</b> whatever you need, such as rallies and jobs.</li></ul>
+    <p>Seats double as your <b>succession order</b>: seat 1 takes over if you leave, and if you're offline for 48 hours the first seat holder who's been on in the last day becomes Regent until you're back. Put the people you trust most at the top. Only you can change seats, permissions, names and the order.</p>`],
+  ['Allies, enemies and the 24-hour rule', '3-2', `<ul><li><b>Allies:</b> both sides mark each other. Allies can't hurt each other, and they help defend each other's nodes.</li>
+    <li><b>Enemies:</b> either side can mark the other on its own. The war starts at the <b>first war window at least 24 hours away</b>, so they always get a day's warning, and so do you. Until then a kill between you is an incident, not war.</li>
+    <li><b>Peace:</b> both sides set each other back to neutral. Until both do, the war goes on.</li></ul>
+    <p>It's all on the Nations ribbon in the Cabinet (key I). Marking an ally as an enemy ends the alliance at once, but the war still waits for that window.</p>`],
+  ['Planning for a war window', '3-3', `<p>Windows are 19:00 to 22:00 UK time on six evenings (19, 21, 23, 26, 28 and 30 December; Christmas Day is a truce). Only inside one can nodes change hands, and only nodes that border your land. Before each one:</p>
+    <ul><li>Pick the nodes you'll attack and the ones you must hold. Capitals take about twice as long to capture.</li>
+    <li>Post <b>rallies</b>: a map marker, a time and one line ("Defend Calais, 19:00").</li>
+    <li>Post <b>Fortify</b> jobs on the nodes you expect to be hit: trenches, wire and sandbags decide windows.</li>
+    <li>Send <b>scouts</b> (War Minister) to count the enemy in a node: they need 5 minutes inside it, and they can't attack.</li>
+    <li>Sieges count only the living within the rings, so numbers on the core win.</li></ul>`],
+  ['Orders and jobs: give people a purpose', '2-5', `<p>Citizens should never wonder what to do. Seats with <i>Orders &amp; jobs</i> post them; spending money on a job needs <i>Treasury &amp; tax</i> or your approval.</p>
+    <ul><li><b>Jobs</b> pay from the treasury when the game sees them done: donating to a research node, kills in a node or anywhere, being in a node during a siege, and fortifying a node by the block.</li>
+    <li>Each job's budget is set aside when it's posted, and what's left comes back when it ends. Every payout is in the public treasury log.</li>
+    <li>When there are no orders, Orders shows the standing default: donate to research, gather, defend home.</li></ul>`],
+  ['The treasury and tax', '4-1', `<ul><li><b>Tax</b> is a cut of what players earn from each other (stall sales, bounties): 0 to 50%, starting at 10%. Pay from your own treasury isn't taxed.</li>
+    <li><b>Upkeep:</b> every node costs money each hour, and the capital costs more. A nation that can't pay sheds its least valuable nodes, one at a time.</li>
+    <li><b>Prices</b> at your Supply Office and Armory are yours to set, inside the limits staff set.</li>
+    <li>Any single trade, gift or spend over a quarter of the treasury waits for <b>your</b> approval (or the Regent's).</li>
+    <li>Nobody can move treasury money into a personal wallet, you included.</li></ul>`],
+  ['Incidents and your own people', '3-1', `<ul><li><b>Someone kills one of yours</b> while your nations are neutral: within 24 hours, forgive it or demand compensation. No answer means forgiven.</li>
+    <li><b>One of yours kills a neutral:</b> within 24 hours, pay (from their wallet, or the treasury if you cover it) or refuse. Refusing makes them <b>Wanted</b> by the other nation for a few days.</li>
+    <li><b>A countryman kills a countryman:</b> that's yours alone: forgive, fine or expel.</li></ul>
+    <p>Give incidents to your Justice Minister: they come in at all hours, and the clock runs even when the server's closed.</p>`],
+  ['Research and production', '4-2', `<ul><li>The Science Minister <b>opens</b> the research nodes your nation should work on and keeps the rest locked, so everyone's donations go one way.</li>
+    <li>Research unlocks better gear, new production, extra respawn points (you choose where) and your nation's tank.</li>
+    <li>Production orders turn the nation store and money into Armory stock over real time: queue ammo and first aid kits before a window.</li>
+    <li>Tanks are ordered from the Motor Pool (War Minister): at most two heavy tanks, or three FTs.</li></ul>`],
+  ['Regiments', null, `<p>Regiments (3 to 10 players with a name, banner and tag, their own jobs and Daily Front mentions) are coming for 17 December. When they arrive, they're the easiest way to give small groups a job of their own without you running each one.</p>`],
+  ['Look after yourself', null, `<p>Two weeks is long. Hand day-to-day jobs to your seats, write your plan in a letter to your cabinet so they can act without you, and take evenings off: the Regent rule exists so the nation keeps going while you sleep.</p>`],
+];
+const FIRST_EVENING = ['Fill your 8 seats, most trusted first (it\'s your succession order).', 'Set tax (10% is a fine start) and check your Supply Office and Armory prices.', 'Open your first research node.', 'Post a Fortify job on your border nodes and a donation job for research.', 'Talk to your neighbours: who\'s an ally, who\'s a threat. Remember the 24-hour rule.', 'Post a rally for the first war window, day 3 at 19:00 UK time.', 'Write one Daily Front article: tell the world who you are.'];
+B.registerView('leaders-handbook', {
+  title: () => 'The Leader\'s handbook', icon: 'flag', cls: 'nv-view',
+  show(view) {
+    pageView(view, {
+      color: '#FBBF24', kicker: 'The Great War · for Leaders and seat holders', title: 'The Leader\'s handbook',
+      lede: 'How to run a nation for two weeks without running yourself into the ground. Every rule here is from the Field Manual, linked as you go.',
+      body: sec('Your first evening as Leader', `<ol class="pk-steps">${FIRST_EVENING.map(s => `<li>${esc(s)}</li>`).join('')}</ol>`)
+        + HANDBOOK.map(([h, id, html]) => sec(h, `<div class="lh-body">${html}${id ? `<p><a ${toWiki(id)}>In the Field Manual: ${id.replace(/-/g, '.')}</a></p>` : ''}</div>`)).join(''),
+    });
+    return leaving('/leaders-handbook');
+  },
+});
+
 /* ---------------------------------------------------------------- the modpack: download, install, FAQ */
 const steps = list => `<ol class="pk-steps">${list.map(s => `<li>${s}</li>`).join('')}</ol>`;
 const qa = list => `<div class="pk-qa">${list.map(([q, a]) => `<details><summary>${esc(q)}</summary><div>${a}</div></details>`).join('')}</div>`;
