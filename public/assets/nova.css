@@ -1497,3 +1497,4 @@ body.ui-nova .pk-qa summary::after { content: '+'; float: right; color: var(--mo
 body.ui-nova .pk-qa details[open] summary::after { content: '−'; }
 body.ui-nova .pk-qa details > div { padding: 0 16px 12px; color: var(--text-muted); line-height: 1.6; }
 body.ui-nova .pk-qa p { margin: 0 0 8px; }
+body.ui-nova .pk-cover { display: block; width: 100%; max-width: 960px; height: auto; border-radius: 14px; border: 1px solid var(--background-modifier-border); }

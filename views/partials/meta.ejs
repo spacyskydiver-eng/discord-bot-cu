@@ -1,6 +1,6 @@
 <%# What a shared link shows (Discord, socials). meta: { title, description, path }; anything left out falls back to the site's own. %>
 <% const M = Object.assign({ title: 'Collective Union Events', description: 'Large Minecraft events. Next up: The Great War, a two-week World War One event for up to 500 players on custom-made mods, from 17 December 2026.', path: '/' }, Object.fromEntries(Object.entries(locals.meta || {}).filter(([, v]) => v != null)));
-   const IMG = 'https://cuevents.xyz/media/menu_background_poster.jpg'; %>
+   const IMG = 'https://cuevents.xyz' + (M.image || '/media/menu_background_poster.jpg'); %>
 <meta name="description" content="<%= M.description %>">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Collective Union Events">

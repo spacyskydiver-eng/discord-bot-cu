@@ -332,7 +332,8 @@ B.registerView('pack', {
     pageView(view, {
       color: '#34D399', kicker: 'The Great War', title: 'Get the modpack',
       lede: 'The Great War runs on its own pack of custom-made mods for Minecraft Java Edition 1.20.1. It takes a few minutes to set up, the same way on Windows and Mac.',
-      body: sec('Download', `<div class="nv-timeline">${download}</div>`)
+      body: `<section class="nv-sec"><img class="pk-cover" src="/img/pack/cover.webp" width="1280" height="720" alt="A Mark V tank in a wheat field at sunset, under the title The Great War"></section>`
+        + sec('Download', `<div class="nv-timeline">${download}</div>`)
         + sec('Install it', steps([
           '<b>Get the Modrinth App</b> from <a href="https://modrinth.com/app" target="_blank" rel="noopener">modrinth.com/app</a>: the installer on Windows, the .dmg on Mac (drag it into Applications). It\'s free, and it sets up the right Java for you.',
           '<b>Sign in</b> in the app with the Microsoft account you play Minecraft Java Edition on.',
