@@ -41,6 +41,7 @@ const VAULT_PATH = path.join(__dirname, '../vault/vault.json');
 const APP_META = {
   '/wiki': ['The Great War: Field Manual', 'The player handbook for The Great War: nations, war windows, capturing nodes, money, gear and tanks.'],
   '/great-war-in-2-minutes': ['The Great War in 2 minutes', 'Everything you need to start playing The Great War, on one page: 8 nations, 174 nodes, war windows every 2 days.'],
+  '/first-hour': ['Your first hour: The Great War', 'New to The Great War? From installing the pack to your first fight, in eleven short steps.', '/img/pack/cover.jpg'],
   '/pack': ['Get the modpack: The Great War', 'Download The Great War modpack and install it on Windows or Mac in a few minutes.', '/img/pack/cover.jpg'],
   '/pack-faq': ['Modpack FAQ: The Great War', 'Specs, low frame rate, crashes, shaders and mods, and how to report a bug.', '/img/pack/cover.jpg'],
   '/testers': ['Become a tester: The Great War', 'Play a test battle of The Great War before the event, on Saturday 21 November.'],
@@ -130,6 +131,7 @@ router.get('/great-war/windows.ics', (req, res) => {
   res.set('Content-Disposition', 'attachment; filename="great-war-windows.ics"').type('text/calendar; charset=utf-8').send(upcomingEvents.windowsIcs());
 });
 router.get('/pack', renderApp);
+router.get('/first-hour', renderApp);
 router.get('/pack-faq', renderApp);
 router.get('/leaders', renderApp);
 router.get('/staff-apply', renderApp);

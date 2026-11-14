@@ -321,10 +321,39 @@ B.registerView('great-war-short', {
         + `<section class="nv-sec"><a class="gw2-window" ${toWiki('3-2-2')}><b>19:00–22:00</b><span><strong>War windows, every 2 days, UK time.</strong> Land only changes hands inside a window. The first one opens on day 3.<small>Plan your evenings around these</small></span></a></section>`
         + gw2Windows()
         + sec('What to know', `<div class="nv-timeline">${G.orders.map(([h, p, id], i) => card(String(i + 1).padStart(2, '0'), esc(h), esc(p), wikiPill(id), toWiki(id))).join('')}</div>`)
-        + `<section class="nv-sec"><p class="nv-lede">Times, numbers and the start date may change before the event. <a ${toWiki('')}>Read the full wiki</a> for the details.</p></section>`,
+        + `<section class="nv-sec"><p class="nv-lede">New to it all? Read <a href="/first-hour" data-go="first-hour">your first hour</a>, step by step. Times, numbers and the start date may change before the event. <a ${toWiki('')}>Read the full wiki</a> for the details.</p></section>`,
     });
     TIME.paint(view);
     return () => { if (location.pathname === '/great-war-in-2-minutes') history.replaceState(null, '', '/' + location.hash); };
+  },
+});
+
+/* ---------------------------------------------------------------- your first hour
+   For a brand-new player: from installing to the first fight, short steps, each linked to its wiki section. */
+const FIRST_HOUR = [
+  ['Install the pack', 'About 10 minutes, once. Follow <a href="/pack" data-go="pack">Get the modpack</a>: the Modrinth App, import the file, give it 4 to 6 GB of memory, press Play.', null],
+  ['Start the game', 'The intro plays once each time you start (Space, Enter or Esc skips it), then our title screen. Under <b>Join the war</b> a status line says whether the front is up. Press it: there\'s no address to type.', '5-5'],
+  ['Arrive in your nation', 'You go into the nation with the fewest players, unless you asked for one that isn\'t the biggest. You arrive at your capital with $100. Your nation shows on your name tag, and your money on the HUD.', '1-2-2'],
+  ['Press P: the War Office', 'Everything you need is here. <b>Me</b> has your money, your nation and the four rules; <b>Orders</b> shows what your leaders want tonight; <b>Map</b> is the war map; <b>The Daily Front</b> is the paper.', '2-2-1'],
+  ['Pick a class', 'On the Me page. Your class decides which guns you can use. Not sure? <b>Rifleman</b> is the backbone of every army. You can switch later, for $500.', '4-6-6'],
+  ['Get your kit', 'Beside your capital\'s core are two counters: the <b>Supply Office</b> and the <b>Armory</b>. You get one free basic kit for your class; anything better is bought at the Armory.', '4-6-4'],
+  ['Earn your first money', 'Three easy ways: take a job from <b>Orders</b> (it pays as soon as the game sees it done); hand in iron, coal, gold or food at the <b>Supply Office</b>; or simply play: you\'re paid a little for every active minute.', '4-6-8'],
+  ['Find your people', 'Join the CUE <a href="https://discord.gg/tF5hWxaQQj" target="_blank" rel="noopener">Discord</a> and your nation\'s channels and voice. Armies win by moving together, and veterans are glad to show a new soldier the ropes.', null],
+  ['Know when the fighting is', 'Guns unlock on <b>day 3</b>, with the first <b>war window</b>: 19:00 to 22:00 UK time, every 2 days. Land only changes hands then. In between: dig trenches, mine, farm and get ready.', '3-2-2'],
+  ['Know who you can shoot', 'Enemies: any time. Someone from a nation you\'re not at war with: their nation can demand compensation, or you become Wanted. Your own side: your Leader decides. Allies: you can\'t hurt them.', '3-1-1'],
+  ['When you die', 'You drop what you carry and respawn at your capital after about 2 minutes (5 during a window), watching a teammate meanwhile. If your capital has fallen, you wait until your nation takes it back. Logging out mid-fight counts as a death.', '1-2-4'],
+];
+B.registerView('first-hour', {
+  title: () => 'Your first hour', icon: 'map-pin', cls: 'nv-view',
+  show(view) {
+    pageView(view, {
+      color: '#FBBF24', kicker: 'The Great War · new players', title: 'Your first hour',
+      lede: 'From installing the pack to your first fight, in eleven steps. Each one links to the full rules if you want more.',
+      body: `<section class="nv-sec"><img class="pk-cover" src="/img/pack/cover.webp" width="1280" height="720" alt="A Mark V tank in a wheat field at sunset, under the title The Great War"></section>`
+        + sec('Step by step', `<div class="nv-timeline">${FIRST_HOUR.map(([h, p, id], i) => `<div class="nv-lec fh-step"><span class="nv-lec-n">${String(i + 1).padStart(2, '0')}</span><span class="nv-lec-body"><b>${esc(h)}</b><small>${p}</small></span><span class="nv-lec-side">${id ? `<a class="nv-pill" ${toWiki(id)}>Wiki ${id.replace(/-/g, '.')}</a>` : ''}</span></div>`).join('')}</div>`)
+        + `<section class="nv-sec"><p class="nv-lede">Short on time? <a href="/great-war-in-2-minutes" data-go="great-war-short">The Great War in 2 minutes</a>. Stuck with the pack? <a href="/pack-faq" data-go="pack-faq">The pack FAQ</a>.</p></section>`,
+    });
+    return leaving('/first-hour');
   },
 });
 
@@ -356,7 +385,7 @@ B.registerView('pack', {
           'In the app, click <b>+</b> (Create instance), choose <b>Import from file</b> and pick the pack file. The app downloads everything else by itself, a few hundred MB the first time.',
           '<b>Give it memory:</b> open the instance, then Settings, then Java and memory. 6 GB is comfortable and 4 GB is the least. Leave at least half your computer\'s memory for everything else: on an 8 GB computer, give it 4 GB.',
           'Press <b>Play</b>. The intro plays, then the title screen. <b>Join the war</b> takes you to the server: there\'s no address to add.',
-        ]))
+        ]) + `<p class="nv-lede">Installed? <a href="/first-hour" data-go="first-hour">Your first hour</a> takes you from the title screen to your first fight.</p>`)
         + sec('Updating to a new version', `<p class="nv-lede">When a new version comes out, the server only lets in the new one. Download the new file and import it as a new instance, the same way as above, then delete the old instance in the app. Don't copy anything across from the old one.</p>`)
         + sec('If the server turns you away', qa([
           ["“Your pack doesn't match”", `<p>The server checks every mod and resource pack you have against the event's pack, and anything extra or missing sends you back with a message naming it. Remove what it names (an added mod, a resource pack or a shader) or, simplest, delete the instance and import the pack again, without changes. If it names something missing, reinstall the pack: a file didn't download properly.</p>`],

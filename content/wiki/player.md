@@ -1,6 +1,6 @@
 # The Great War: Field Manual
 
-Short on time? Read [The Great War in 2 minutes](/great-war-in-2-minutes) first. To play, [get the modpack](/pack); stuck with it? See the [modpack FAQ](/pack-faq).
+Short on time? Read [The Great War in 2 minutes](/great-war-in-2-minutes) first, and if you're new, [your first hour](/first-hour). To play, [get the modpack](/pack); stuck with it? See the [modpack FAQ](/pack-faq).
 
 This is the player handbook for The Great War. It covers how the event works from your side: your life and your nation, how wars start and end, what happens when you kill someone you're not at war with, how land changes hands, how you earn and spend money, what you can fight with, and where to get help.
 
@@ -194,6 +194,7 @@ Press P. The War Office is a set of tiles and nothing else.
 - **The Daily Front** is the newspaper (section 2.4).
 - **Wanted** lists who your nation has Wanted and the bounties on them, and shows if you're Wanted yourself (section 3.1.3).
 - **Map** is the war map (section 3.4).
+- **Research** is your nation's research tree, where you donate (section 4.2).
 
 Leave nation is inside Me, with a clear confirmation of what leaving means (section 1.3).
 
@@ -499,7 +500,7 @@ Windows are only three hours every two days. The rest of the time is what decide
 - **Fortify your nodes:** trenches, wire, sandbags and bunkers. A fortified node is much harder to take in the next window, and Fortify jobs pay for the work (2.5.3).
 - **Work the economy:** mines, farms and oil produce most when players work them. A node's passive income is small (4.6.3).
 - **Build the war machine:** tanks, ammo and gear from those resources, and research by donation (4.2).
-- **Contested zones:** loot zones with prize chests, open between windows. Anyone can fight there.
+- **Contested zones:** loot zones with prize chests, open between windows. Staff mark them on the map, so you'll see them on the in-game map. Anyone can fight there.
 - **Scouting** enemy land before the next window (3.4).
 - **Orders and pay:** leaders post jobs, and you're paid for being active (2.5 and 4.6.8).
 
@@ -543,7 +544,7 @@ The tree is fixed for the whole event. It won't be changed halfway through, so n
 
 You donate food, iron and gold to an open node, straight out of your inventory. Progress counts for the whole nation. Your personal contribution to each node is recorded, so it can be rewarded later. A node completes once every cost is paid.
 
-When a node's prerequisites are done it becomes available, but it starts locked. Whoever holds *Research* opens the nodes your nation should research and keeps the rest locked. That's how leadership points everyone's donations down one path. You can only donate to open nodes.
+When a node's prerequisites are done it becomes available, but it starts locked. Whoever holds *Research* opens the nodes your nation should research and keeps the rest locked. That's how leadership points everyone's donations down one path. You can only donate to open nodes. The research tree is on the War Office's Research page (press P); you can also give it its own key in Controls.
 
 ### 4.3 Consequences: upkeep, bankruptcy and penalties
 
@@ -601,7 +602,7 @@ Every node (section 3.3) produces some mix of coal, iron, gold, diamond, oil and
 
 Nodes also pay a small income on their own: every hour, each node puts money into its owner's treasury. Most of what a node is worth comes from players working it.
 
-- **Mines** are built into the map. Their ore comes back over time (stone first, then ore), up to an allowance per session. Only the nation holding the node can mine it, or an enemy during a war window. Everything else inside a mine can't be broken.
+- **Mines** are built into the map. Their ore comes back over time (stone first, then ore), up to an allowance each play session (staff start and end each session, and the allowance resets each time). Only the nation holding the node can mine it, or an enemy during a war window. Everything else inside a mine can't be broken.
 - **Farms:** crops only grow up to the node's limit, and farmland in a farm node grows faster and harvests more. Research can raise the limit.
 - **Oil:** an oil derrick placed in an oil node fills barrels. Barrels and fuel cans refuel tanks (4.7.3).
 
@@ -631,7 +632,7 @@ Research (section 4.2) sets what your nation can produce. Lose your coal nodes a
 
 Every gun in the event is a WW1 weapon, from the event's custom-made mods. Every gun has a class, a research tier and a price.
 
-You pick one of five classes, and your class controls which guns you can buy and fire.
+You pick one of five classes on the Me page of the War Office (press P), and your class controls which guns you can buy and fire.
 
 | Class | Weapons | Role |
 |---|---|---|
@@ -698,7 +699,7 @@ You can put down a stall, which is a shop chest, on your own nation's land. Sell
 | Your nation's land | Only your nation, plus staff |
 | An enemy's land, inside a war window | The enemy too (raids and sieges). Between windows they can't even get in (3.2.2). |
 | An ally's land | Never you. Allies are always protected from each other. |
-| Neutral land | Anyone |
+| Neutral land (any node no nation owns) | Anyone |
 
 You can also lock a personal chest to yourself, so your own countrymen can't help themselves to it.
 

@@ -1502,3 +1502,5 @@ body.ui-nova .gw2-nations a { text-decoration: none; }
 body.ui-nova .gw2-nations a:hover .nv-pill { color: var(--text-normal); border-color: var(--background-modifier-border-hover); }
 /* item icons in the wiki's tables: the game's own 16 px pixel art, kept sharp */
 body.ui-nova .wk-icon { width: 20px; height: 20px; vertical-align: -4px; margin-right: 6px; image-rendering: pixelated; image-rendering: crisp-edges; }
+body.ui-nova .fh-step .nv-lec-body small a { color: var(--mod); }
+body.ui-nova .fh-step .nv-lec-side a { text-decoration: none; }
