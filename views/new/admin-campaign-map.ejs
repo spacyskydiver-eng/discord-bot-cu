@@ -1,6 +1,6 @@
 <% const pub = !!locals.pub, viewer = !!locals.viewer || pub; %>
 <%# pub: the public map at /map (no values, coordinates, grid or admin controls; its data is the public cut) %>
-<%- include('partials/head', { pageTitle: pub ? 'The Great War: Map' : viewer ? 'Campaign Map' : 'Campaign Map · Control Centre' }) %>
+<%- include('partials/head', { pageTitle: pub ? 'The Great War: Map' : viewer ? 'Campaign Map' : 'Campaign Map · Control Centre', pageDescription: pub ? 'The Great War campaign map: Europe in August 1914, 174 nodes held by 8 nations. Pan, zoom and tap any node to see who holds it.' : undefined }) %>
 <%- include('partials/header') %>
 <% if (pub) { %><link rel="stylesheet" href="/assets/menu-bg.css?v=<%= locals.v || '1' %>"><%- include('../partials/menu-bg', { v: locals.v }) %><link rel="preload" href="<%= locals.dataUrl %>" as="fetch" crossorigin><% } %>
 <style>

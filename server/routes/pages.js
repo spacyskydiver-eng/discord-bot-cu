@@ -37,6 +37,18 @@ const TEBEX = 'https://collective-union.tebex.io';
 const ASSET_V = (process.env.RENDER_GIT_COMMIT || String(Date.now())).slice(0, 10);
 const VAULT_PATH = path.join(__dirname, '../vault/vault.json');
 
+// what a shared link to each of the app's own addresses shows (the rest are #/ routes, which a link preview can't see)
+const APP_META = {
+  '/wiki': ['The Great War: Field Manual', 'The player handbook for The Great War: nations, war windows, capturing nodes, money, gear and tanks.'],
+  '/great-war-in-2-minutes': ['The Great War in 2 minutes', 'Everything you need to start playing The Great War, on one page: 8 nations, 174 nodes, war windows every 2 days.'],
+  '/pack': ['Get the modpack: The Great War', 'Download The Great War modpack and install it on Windows or Mac in a few minutes.'],
+  '/pack-faq': ['Modpack FAQ: The Great War', 'Specs, low frame rate, crashes, shaders and mods, and how to report a bug.'],
+  '/testers': ['Become a tester: The Great War', 'Play a test battle of The Great War before the event, on Saturday 21 November.'],
+  '/leaders': ['Lead a nation: The Great War', 'Apply to lead one of the eight nations of The Great War with your leadership team.'],
+  '/staff-apply': ['Join the staff: The Great War', 'Apply to run The Great War as Event Staff, an Operator or an Event Creator.'],
+  '/arsenal': ['The Arsenal: The Great War', 'The tanks, guns and gear of The Great War, in 3D.'],
+  '/account': ['Your account · Collective Union Events', null],
+};
 async function renderApp(req, res) {
   const t = res.locals.t;
   let team = [];
@@ -106,7 +118,9 @@ async function renderApp(req, res) {
     return `${p.weekday} ${p.day} ${p.month} ${p.year}, ${p.hour}:${p.minute} UTC`;
   };
   const noscriptSessions = testSessions.map(s => ({ title: s.title, when: utc(s.starts_at) }));
-  res.render('app', { cueJson, v: ASSET_V, noscriptSessions, staffScript: res.locals.isStaff ? '/staff-assets/staff.js?v=' + ASSET_V : null });
+  const [mt, md] = APP_META[req.path] || [];
+  const meta = { title: mt || 'Collective Union Events', description: md || undefined, path: req.path };
+  res.render('app', { meta, cueJson, v: ASSET_V, noscriptSessions, staffScript: res.locals.isStaff ? '/staff-assets/staff.js?v=' + ASSET_V : null });
 }
 router.get('/', renderApp);
 router.get('/wiki', renderApp);
@@ -187,6 +201,8 @@ router.get('/snake/leaderboard', async (req, res) => {
 
 router.get('/staff', (req, res) => res.redirect('/#/team'));
 router.get('/rules', (req, res) => res.render('rules'));
+// browsers ask for this on pages that don't name an icon
+router.get('/favicon.ico', (req, res) => res.redirect(301, '/assets/favicon.svg'));
 router.get('/legal', (req, res) => res.render('new/legal'));
 
 // ── New design routes (designPreview only) ──────────────────────────────────

@@ -60,7 +60,7 @@ module.exports = function startServer() {
     res.locals.isStaff = await access.isStaff(req.session.user);
     res.locals.media = MEDIA;
     res.locals.staffRoleId = null;
-    res.locals.designPreview = true;
+    res.locals.designPreview = !!req.session.designPreview && res.locals.isOwner;
     res.locals._url = req.originalUrl;
     next();
   });
