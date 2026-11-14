@@ -25,7 +25,7 @@ Up to about 500 of you are citizens of eight rival WW1 nations on a shared, pre-
 
 The event runs for two weeks. It's a sandbox: there's no official winner and no final score. What happens is up to the nations.
 
-The war runs on a timetable. Every 2 days there's a **war window from 19:00 to 22:00 UK time**. Nodes can only be captured inside a window, and only then are the borders between enemies open (section 3.2.2). PvP is on all the time, though: enemies who meet on neutral land or in a contested zone can fight whenever they like. Between windows there's plenty to do (section 3.5).
+The war runs on a timetable: six **war windows from 19:00 to 22:00 UK time**, on days 3, 5, 7, 10, 12 and 14 (19, 21, 23, 26, 28 and 30 December). Christmas Day (day 9) is a **truce**: no window, PvP off for the evening, and no man's land open to meet the other side. Nodes can only be captured inside a window, and only then are the borders between enemies open (section 3.2.2). PvP is on all the time, though: enemies who meet on neutral land or in a contested zone can fight whenever they like. Between windows there's plenty to do (section 3.5).
 
 The first war window is on **day 3**, the same day guns unlock. Nothing can be captured before then, and days 1 and 2 are melee and armour only.
 
@@ -376,7 +376,7 @@ Every nation marks every other nation as an **ally**, **neutral** or an **enemy*
 
 #### 3.2.2 War windows and closed borders
 
-War windows are **every 2 days, 19:00 to 22:00 UK time**. The first one is on day 3.
+War windows are **19:00 to 22:00 UK time on days 3, 5, 7, 10, 12 and 14** (19, 21, 23, 26, 28 and 30 December). 25 December is the Christmas Truce: no window, and PvP is off for the evening.
 
 - **Capturing nodes** only happens inside a window (section 3.3).
 - **Borders between enemies are closed between windows.** You can't cross into an enemy's land, and they can't cross into yours. Only scouts can (3.4). When a window opens the borders open. When it closes, anyone still in enemy land is sent back to their own side.
@@ -495,7 +495,7 @@ You'll never be sent a position or a count you aren't entitled to, so there's no
 
 ### 3.5 Between war windows
 
-Windows are only three hours every two days. The rest of the time is what decides how they go:
+Windows are only three hours, six times over the two weeks. The rest of the time is what decides how they go:
 
 - **Fortify your nodes:** trenches, wire, sandbags and bunkers. A fortified node is much harder to take in the next window, and Fortify jobs pay for the work (2.5.3).
 - **Work the economy:** mines, farms and oil produce most when players work them. A node's passive income is small (4.6.3).

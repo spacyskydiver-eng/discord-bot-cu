@@ -279,7 +279,7 @@ B.registerView('events', {
         const to = e.wiki && B.exists(e.wiki) ? `href="${esc(B.hashFor(e.wiki))}" data-go="${esc(e.wiki)}"` : '';
         return card(plainNum(i + 1), esc(e.title), esc(fmtDate(e.date, true)) + ' · ' + esc(e.setting) + ' · up to ' + esc(e.players) + ' players', pill(daysTo(e.date) + ' days'), to)
           + (e.short ? card('·', esc(e.title) + ' in 2 minutes', 'Everything you need to start playing, on one page', pill('Read'), `href="/${esc(e.short)}" data-go="great-war-short"`) : '')
-          + (e.windows ? card('·', 'War windows calendar', `${e.windows.length} windows, 19:00 to 22:00 UK time, with a reminder before each`, pill('.ics'), 'href="/great-war/windows.ics" download') : '');
+          + (e.windows ? card('·', 'War windows calendar', `${e.windows.length} windows, 19:00 to 22:00 UK time, and the Christmas Truce, with a reminder before each`, pill('.ics'), 'href="/great-war/windows.ics" download') : '');
       }).join('')}</div>` : '<div class="nv-empty">No events announced yet.</div>'}</section>`,
     });
   },
@@ -308,8 +308,9 @@ function gw2Windows() {
   const ev = (CUE().events || []).find(e => e.windows && e.windows.length);
   if (!ev) return '';
   return sec('The war windows, in your time', `<div class="nv-timeline">${ev.windows.map(w => card('D' + w.day, timeTag(w.start, 'date'),
-      `${timeTag(w.start, 'clock')} to ${timeTag(w.end, 'clock')} <span data-uk="${w.start}" hidden></span>`, `<span class="nv-pill" data-rel="${w.start}" data-minutes="180"></span>`)).join('')}
-    ${card('+', 'Add them to your calendar', 'All six windows, with a reminder half an hour before each. Times may still change before the event.', pill('.ics'), 'href="/great-war/windows.ics" download')}</div>`);
+      `${timeTag(w.start, 'clock')} to ${timeTag(w.end, 'clock')} <span data-uk="${w.start}" hidden></span>`, `<span class="nv-pill" data-rel="${w.start}" data-minutes="180"></span>`)
+      + (ev.truce && w.day === ev.truce.day - 2 ? card('✦', `${timeTag(ev.truce.start, 'date')}: the Christmas Truce`, 'No war window. PvP is off for the evening, and no man\'s land is open to meet the other side.', pill('Truce')) : '')).join('')}
+    ${card('+', 'Add them to your calendar', 'All six windows and the truce, with a reminder half an hour before each window. Times may still change before the event.', pill('.ics'), 'href="/great-war/windows.ics" download')}</div>`);
 }
 const toWiki = id => `href="/wiki#${esc(id)}" data-go="wiki" data-heading="${esc(id)}"`;
 const wikiPill = id => pill('Wiki ' + id.replace(/-/g, '.'));
@@ -322,7 +323,7 @@ B.registerView('great-war-short', {
       lede: 'A two-week World War One event on custom-made mods. Here is everything you need to start playing. The full rules are in the wiki.',
       body: `<section class="nv-sec"><div class="gw2-facts">${G.facts.map(([b, k, id]) => `<a class="nv-today-cell" ${toWiki(id)}><b>${esc(b)}</b><span class="nv-today-k">${esc(k)}</span></a>`).join('')}</div></section>`
         + sec('Pick a side', `<div class="gw2-nations">${G.nations.map(([n, slug]) => `<a href="/nations/${slug}">${pill(n)}</a>`).join('')}</div>`)
-        + `<section class="nv-sec"><a class="gw2-window" ${toWiki('3-2-2')}><b>19:00–22:00</b><span><strong>War windows, every 2 days, UK time.</strong> Land only changes hands inside a window. The first one opens on day 3.<small>Plan your evenings around these</small></span></a></section>`
+        + `<section class="nv-sec"><a class="gw2-window" ${toWiki('3-2-2')}><b>19:00–22:00</b><span><strong>Six war windows, UK time.</strong> Land only changes hands inside a window. The first opens on day 3, and Christmas Day is a truce.<small>Plan your evenings around these</small></span></a></section>`
         + gw2Windows()
         + sec('What to know', `<div class="nv-timeline">${G.orders.map(([h, p, id], i) => card(String(i + 1).padStart(2, '0'), esc(h), esc(p), wikiPill(id), toWiki(id))).join('')}</div>`)
         + `<section class="nv-sec"><p class="nv-lede">Follow the war from anywhere: the <a href="/war">War Report</a> and <a href="/daily-front">the Daily Front</a>.</p></section>`
@@ -344,7 +345,7 @@ const FIRST_HOUR = [
   ['Get your kit', 'Beside your capital\'s core are two counters: the <b>Supply Office</b> and the <b>Armory</b>. You get one free basic kit for your class; anything better is bought at the Armory.', '4-6-4'],
   ['Earn your first money', 'Three easy ways: take a job from <b>Orders</b> (it pays as soon as the game sees it done); hand in iron, coal, gold or food at the <b>Supply Office</b>; or simply play: you\'re paid a little for every active minute.', '4-6-8'],
   ['Find your people', 'Join the CUE <a href="https://discord.gg/tF5hWxaQQj" target="_blank" rel="noopener">Discord</a> and your nation\'s channels and voice. Armies win by moving together, and veterans are glad to show a new soldier the ropes.', null],
-  ['Know when the fighting is', 'Guns unlock on <b>day 3</b>, with the first <b>war window</b>: 19:00 to 22:00 UK time, every 2 days. Land only changes hands then. In between: dig trenches, mine, farm and get ready.', '3-2-2'],
+  ['Know when the fighting is', 'Guns unlock on <b>day 3</b>, with the first <b>war window</b>: 19:00 to 22:00 UK time, six times over the two weeks, with a truce on Christmas Day. Land only changes hands then. In between: dig trenches, mine, farm and get ready.', '3-2-2'],
   ['Know who you can shoot', 'Enemies: any time. Someone from a nation you\'re not at war with: their nation can demand compensation, or you become Wanted. Your own side: your Leader decides. Allies: you can\'t hurt them.', '3-1-1'],
   ['When you die', 'You drop what you carry and respawn at your capital after about 2 minutes (5 during a window), watching a teammate meanwhile. If your capital has fallen, you wait until your nation takes it back. Logging out mid-fight counts as a death.', '1-2-4'],
 ];

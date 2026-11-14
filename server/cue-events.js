@@ -13,17 +13,14 @@ const EVENTS = [
   },
 ];
 
-// The Great War's war windows (files/RULES.md): every 2 days from day 3, 19:00 to 22:00 UK time, over the two weeks.
+// The Great War's war windows, 19:00 to 22:00 UK time, as a fixed schedule (meeting 2, 14 Nov): days 3, 5 and 7, then
+// the Christmas Truce on day 9 (25 Dec: no window, PvP off for the evening), then days 10, 12 and 14 (26, 28, 30 Dec).
 // December is GMT, so UK time is UTC. Times are UTC Unix seconds.
-function warWindows(startIso = '2026-12-17', days = 14) {
-  const [y, m, d] = startIso.split('-').map(Number), out = [];
-  for (let day = 3; day <= days; day += 2) {
-    const start = Date.UTC(y, m - 1, d + day - 1, 19) / 1000;
-    out.push({ day, start, end: start + 3 * 3600 });
-  }
-  return out;
-}
-EVENTS.find(e => e.id === 'great-war').windows = warWindows();
+const WINDOW_DAYS = [3, 5, 7, 10, 12, 14], TRUCE_DAY = 9;
+function dayAt(startIso, day) { const [y, m, d] = startIso.split('-').map(Number); return Date.UTC(y, m - 1, d + day - 1, 19) / 1000; }
+const gw = EVENTS.find(e => e.id === 'great-war');
+gw.windows = WINDOW_DAYS.map(day => { const start = dayAt(gw.date, day); return { day, start, end: start + 3 * 3600 }; });
+gw.truce = { day: TRUCE_DAY, start: dayAt(gw.date, TRUCE_DAY), end: dayAt(gw.date, TRUCE_DAY) + 3 * 3600 };
 
 // the windows as a calendar file, each with a reminder half an hour before
 function windowsIcs() {
@@ -36,6 +33,10 @@ function windowsIcs() {
     'DESCRIPTION:Nodes can only be captured inside a war window. Times may change before the event: see cuevents.xyz/great-war-in-2-minutes',
     'URL:https://cuevents.xyz/great-war-in-2-minutes',
     'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:War window in 30 minutes', 'TRIGGER:-PT30M', 'END:VALARM', 'END:VEVENT');
+  const t = EVENTS.find(e => e.id === 'great-war').truce;
+  if (t) lines.push('BEGIN:VEVENT', `UID:great-war-truce-day${t.day}@cuevents.xyz`, `DTSTAMP:${stamp(t.start - 30 * 86400)}`,
+    `DTSTART:${stamp(t.start)}`, `DTEND:${stamp(t.end)}`, 'SUMMARY:The Great War: the Christmas Truce (no war window)',
+    'DESCRIPTION:No fighting this evening: PvP is off and no man\'s land is open to meet the other side.', 'URL:https://cuevents.xyz/great-war-in-2-minutes', 'END:VEVENT');
   lines.push('END:VCALENDAR');
   // calendar lines longer than 75 characters are folded onto continuation lines that start with a space
   const fold = l => l.length <= 75 ? l : l.match(/.{1,74}/g).join('\r\n ');

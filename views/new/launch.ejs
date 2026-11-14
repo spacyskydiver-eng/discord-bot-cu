@@ -59,7 +59,7 @@
   <h2 class="ln-h2">Whatever you like to play</h2>
   <p class="ln-sub">There's no official winner. The story is whatever the nations make of it, and every kind of player has a part in it.</p>
   <div class="ln-types">
-    <div class="ln-type"><h3>Fighters</h3><p>Every two days a three-hour war window opens and the front moves. Riflemen, marksmen, assault troops, machine gunners and medics, four WW1 tank designs, and ranks and medals for the soldiers people talk about afterwards.</p></div>
+    <div class="ln-type"><h3>Fighters</h3><p>Six times over the two weeks a three-hour war window opens and the front moves. Riflemen, marksmen, assault troops, machine gunners and medics, four WW1 tank designs, and ranks and medals for the soldiers people talk about afterwards.</p></div>
     <div class="ln-type"><h3>Builders</h3><p>Trenches, wire and sandbags decide the next window: your nation pays you to fortify the nodes it holds. Builders build faster, earn more per block and repair tanks quicker.</p></div>
     <div class="ln-type"><h3>Role-players</h3><p>Uniforms, ranks, a Leader and a cabinet of eight, letters between nations, and the Daily Front, the war's own newspaper, which prints the war's big moments and your nation's statements.</p></div>
     <div class="ln-type"><h3>Traders and miners</h3><p>Every node produces coal, iron, gold, diamond, oil or food. Mine and farm, sell to your nation, run a stall, and keep the factories that make the guns and tanks running.</p></div>
@@ -82,7 +82,7 @@
   <div class="ln-flags"><% nations.forEach(n => { %><a href="/nations/<%= n.slug %>"><img src="/img/flags/<%= n.flag %>.png" alt=""><%= n.name.replace(/^The /, '') %></a><% }) %></div>
 
   <h2 class="ln-h2">War windows, in your time</h2>
-  <p class="ln-sub">19:00 to 22:00 UK time, every two days from day 3. <a href="/great-war/windows.ics" style="color:#74c0fc">Add them to your calendar</a>.</p>
+  <p class="ln-sub">19:00 to 22:00 UK time, six times over the two weeks. Christmas Day is a truce: no fighting that evening. <a href="/great-war/windows.ics" style="color:#74c0fc">Add them to your calendar</a>.</p>
   <div class="ln-win"><% windows.forEach(w => { %><div><time data-ts="<%= w.start %>"><%= new Date(w.start * 1000).toUTCString().slice(0, 11) %></time><small><span data-clock="<%= w.start %>">19:00 UK</span></small></div><% }) %></div>
 
   <h2 class="ln-h2">Questions</h2>

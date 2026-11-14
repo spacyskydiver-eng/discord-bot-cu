@@ -40,7 +40,7 @@ const VAULT_PATH = path.join(__dirname, '../vault/vault.json');
 // what a shared link to each of the app's own addresses shows (the rest are #/ routes, which a link preview can't see)
 const APP_META = {
   '/wiki': ['The Great War: Field Manual', 'The player handbook for The Great War: nations, war windows, capturing nodes, money, gear and tanks.'],
-  '/great-war-in-2-minutes': ['The Great War in 2 minutes', 'Everything you need to start playing The Great War, on one page: 8 nations, 174 nodes, war windows every 2 days.'],
+  '/great-war-in-2-minutes': ['The Great War in 2 minutes', 'Everything you need to start playing The Great War, on one page: 8 nations, 174 nodes, six war windows and a Christmas Truce.'],
   '/first-hour': ['Your first hour: The Great War', 'New to The Great War? From installing the pack to your first fight, in eleven short steps.', '/img/pack/cover.jpg'],
   '/pack': ['Get the modpack: The Great War', 'Download The Great War modpack and install it on Windows or Mac in a few minutes.', '/img/pack/cover.jpg'],
   '/pack-faq': ['Modpack FAQ: The Great War', 'Specs, low frame rate, crashes, shaders and mods, and how to report a bug.', '/img/pack/cover.jpg'],
@@ -667,7 +667,7 @@ const LAUNCH_DISCORD = `**THE GREAT WAR · from Thursday 17 December**
 Europe, 1914. Eight nations. 174 nodes. Up to 500 players. Two weeks of war, on custom-made mods.
 
 There's no official winner: the story is whatever the nations make of it.
-- **Fighters:** a war window every two days, 19:00 to 22:00 UK time. Rifles, machine guns, tanks, ranks and medals.
+- **Fighters:** six war windows, 19:00 to 22:00 UK time, and a Christmas Truce on 25 Dec. Rifles, machine guns, tanks, ranks and medals.
 - **Builders:** trenches and wire decide the next window, and your nation pays you to dig them.
 - **Role-players:** a Leader and eight seats, letters between nations, and the Daily Front newspaper.
 - **Traders:** mines, farms, oil, stalls and the factories that feed the war.
