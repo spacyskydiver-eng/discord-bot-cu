@@ -4,7 +4,7 @@ This is the player handbook for The Great War. It covers how the event works fro
 
 It's split into five modules, the same five the Discord is split into, so if you've got a question about trade you know which channel to ask in. Section numbers match the staff copy. If a number skips, that part was staff only.
 
-Numbers in here are the current settings. Some will move a little during playtesting, and if they do we'll say so in announcements. Read Module 1 and Module 3 before your first session, at the very least.
+Numbers in here are the current settings, apart from section 4.8, which is still to come. Some will move a little during playtesting, and if they do we'll say so in announcements. Read Module 1 and Module 3 before your first session, at the very least.
 
 ## Module 1: The Event and Your Life
 
@@ -24,6 +24,8 @@ Up to about 500 of you are citizens of eight rival WW1 nations on a shared, pre-
 The event runs for two weeks. It's a sandbox: there's no official winner and no final score. What happens is up to the nations.
 
 The war runs on a timetable. Every 2 days there's a **war window from 19:00 to 22:00 UK time**. Nodes can only be captured inside a window, and only then are the borders between enemies open (section 3.2.2). PvP is on all the time, though: enemies who meet on neutral land or in a contested zone can fight whenever they like. Between windows there's plenty to do (section 3.5).
+
+The first war window is on **day 3**, the same day guns unlock. Nothing can be captured before then, and days 1 and 2 are melee and armour only.
 
 #### 1.1.4 Deadlines and the web companion
 
@@ -367,7 +369,7 @@ Every nation marks every other nation as an **ally**, **neutral** or an **enemy*
 
 #### 3.2.2 War windows and closed borders
 
-War windows are **every 2 days, 19:00 to 22:00 UK time**.
+War windows are **every 2 days, 19:00 to 22:00 UK time**. The first one is on day 3.
 
 - **Capturing nodes** only happens inside a window (section 3.3).
 - **Borders between enemies are closed between windows.** You can't cross into an enemy's land, and they can't cross into yours. Only scouts can (3.4). When a window opens the borders open. When it closes, anyone still in enemy land is sent back to their own side.
@@ -421,7 +423,7 @@ This is how land changes hands.
 
 #### 3.3.1 Nodes
 
-The map is split into 74 nodes drawn by staff to follow the actual geography. They aren't chunk squares.
+The map is split into 174 nodes drawn by staff to follow the actual geography. They aren't chunk squares.
 
 Every node gives its owner **income** and **resources**, so some nodes are worth more than others (section 4.6.3). More nodes means more money and materials, which means better gear and more tanks.
 
@@ -464,9 +466,9 @@ A few edge cases:
 
 ### 3.4 The map
 
-The world is **14,000 by 14,000 blocks**: Europe in 1914. On flat ground, sprint-jumping from the edge of France to the Russian border takes about 10 minutes, and real terrain makes it longer. The terrain carries on past the playable border, so the world never visibly ends.
+The world is **11,500 by 11,500 blocks**: Europe in 1914, cropped to the playable area. On flat ground, sprint-jumping from the edge of France to the Russian border takes about 9 to 10 minutes, and real terrain makes it longer. The terrain carries on past the playable border, so the world never visibly ends.
 
-- **Theatres.** The 74 nodes are grouped into 14 theatres on the campaign map.
+- **Theatres.** The 174 nodes are grouped into 14 theatres on the campaign map.
 - **Harsh terrain.** The Arctic, the Sahara and the Syrian desert, the Alps and the Caucasus are all built and you can go in, but they're very hard to survive. The Alps and the Caucasus can be crossed at a few passes. The Carpathians and the Pripyat marshes are infantry only: no tanks.
 - **Neutral countries.** Spain, Portugal, Switzerland, the Netherlands, Denmark, Norway, Sweden and Persia can't be entered or captured. A community vote may change this.
 
@@ -635,7 +637,7 @@ You pick one of five classes, and your class controls which guns you can buy and
 
 Pistols and revolvers are open to every class. So are small and big bandages.
 
-Tier 1 weapons are there from day one. Tiers 2 and 3 have to be researched (section 4.2). Each nation's Armory sells its own historical rifle at a discount: the SMLE, Gew 98, Lebel, Mosin and so on.
+Guns unlock on day 3, with the first war window. From then, Tier 1 weapons are available. Tiers 2 and 3 have to be researched (section 4.2). Each nation's Armory sells its own historical rifle at a discount: the SMLE, Gew 98, Lebel, Mosin and so on.
 
 You can carry another class's gun. You can't fire it.
 
@@ -695,6 +697,8 @@ You can put down a stall, which is a shop chest, on your own nation's land. Sell
 You can also lock a personal chest to yourself, so your own countrymen can't help themselves to it.
 
 #### 4.6.13 Health, damage and armour
+
+> These are the rules in the game now. Section 4.8 replaces the armour, guns, stamina and ammunition after the tester event.
 
 You have **40 health** (20 hearts). Guns hit by their class, not by their model, and no single gun hit can kill you from full health.
 
@@ -808,6 +812,190 @@ At zero health a tank blows up. The blast doesn't break blocks, but every crew m
 When a node is captured, any empty tanks of the losing nation sitting in it are destroyed. When a nation is wiped out, all its tanks go with it.
 
 Every tank built and destroyed, and who destroyed it, goes in the nation's log and the Daily Front.
+
+### 4.8 Progression (coming after the tester event)
+
+> Coming after the tester event, numbers may change.
+
+None of this is in the game yet. When it arrives it replaces the armour, gun, stamina and ammunition rules in section 4.6.13. Until then, section 4.6.13 is what you'll be playing with.
+
+#### 4.8.1 Armour tiers
+
+Total damage cut is capped at 50%. Gear drops on death. Everyone starts as a Private. The starting kit is given at every respawn and vanishes on death instead of dropping. All numbers are starting values and may change after testing.
+
+| Tier | Piece | Damage cut | Sprint | Rank needed | Cost |
+| --- | --- | --- | --- | --- | --- |
+| 1 Recruit | Cloth cap | 0% | Normal | None | Starting kit |
+| 1 Recruit | Tunic, puttees, boots | 0% | Normal | None | Starting kit |
+| 2 Field | Steel helmet (national) | 4% | Normal | Private | 4 iron, 1 leather, $40 |
+| 2 Field | Padded vest | 8% | Normal | Private | 6 cotton, 2 leather, $60 |
+| 3 Trench | Reinforced helmet | 8% | Normal | Corporal | 4 steel, 2 copper, $120 |
+| 3 Trench | Steel body shield | 17% | Stamina drain ×1.3 | Corporal | 8 steel, 4 copper, 2 cotton, $200 |
+| 4 Assault | Visored helmet | 11% | Normal | Sergeant | 6 steel, 2 copper, 1 rubber, $300 |
+| 4 Assault | Heavy trench armour | 24% | Stamina drain ×1.6 | Sergeant | 12 steel, 4 copper, 2 rubber, 2 cured leather, $500 |
+| 5 Elite | Stormtrooper helmet | 15% | Normal | Lieutenant | 6 steel, 2 rubber, 1 elite plate, $800 |
+| 5 Elite | Elite cuirass | 35% | Normal | Lieutenant | 10 steel, 3 rubber, 3 elite plate, $1,200 |
+
+One helmet and one body piece are worn at a time. Full sets: Field 12%, Trench 25%, Assault 35%, Elite 50%.
+
+#### 4.8.2 Armour upgrades
+
+Each piece upgrades from ★ to ★★★★★ at the Armory. Buffs stack per piece; the 50% total cap still applies.
+
+| Upgrade | Buff (per piece) | Cost |
+| --- | --- | --- |
+| ★ | +0.5% damage cut, +10% durability | 2 steel, $100 |
+| ★★ | +1% damage cut, +20% durability | 4 steel, 1 copper, $200 |
+| ★★★ | +1.5% damage cut, +30% durability | 6 steel, 2 copper, $400 |
+| ★★★★ | +2% damage cut, +40% durability | 8 steel, 2 rubber, $800 |
+| ★★★★★ | +2.5% damage cut, +50% durability | 10 steel, 3 rubber, 1 elite plate, $1,500 |
+
+#### 4.8.3 Guns
+
+Damage is body / head on 40 health. Rifles, pistols and scoped rifles are national; the semi-auto, submachine gun, shotgun and machine guns are the same for every nation.
+
+| Tier | Gun class | Damage (body / head) | Notes | Rank needed | Cost |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Service rifle (bolt) | 26 / 32 | National rifle | None | Starting kit (usable from day 3) |
+| 1 | Service pistol | 10 / 14 | Sidearm | Private | 2 steel, $50 |
+| 2 | Marksman rifle (bolt, scoped) | 26 / 32 | Scope | Corporal | 6 steel, 2 copper, $250 |
+| 2 | Trench shotgun | 30 per blast | Close range | Corporal | 5 steel, 1 copper, $200 |
+| 3 | Semi-auto rifle | 18 / 24 | Faster follow-up shots | Sergeant | 8 steel, 3 copper, 1 rubber, $400 |
+| 3 | Light machine gun | 8 / 11 | Emplacement only | Sergeant | 12 steel, 4 copper, $600 |
+| 4 | Submachine gun | 7 / 10 | Fast fire, short range | Lieutenant | 10 steel, 4 copper, 1 rubber, $800 |
+| 4 | Heavy machine gun | 8 / 11 | Emplacement only | Lieutenant | 16 steel, 6 copper, 2 rubber, $1,000 |
+
+#### 4.8.4 Gun rules
+
+| Rule | Value |
+| --- | --- |
+| Guns unlock | Day 3 of the event, with the first war window (days 1–2: melee and armour only; the rifle is in the kit, locked) |
+| Machine guns (light and heavy) | Placed emplacement: set on the ground, fired while mounted, turns 45° each way; pick up and set up takes 5 s |
+| Aim sway | All guns sway when aiming; more while moving, less when crouched or prone |
+| Hip fire | Wide spread on every gun |
+| Recoil | Raised on every gun; machine guns hardest to keep on target |
+
+#### 4.8.5 Weight and stamina
+
+Stamina bar: 100 points, shown above the food bar only while not full. Replaces the old 3-second sprint limit on body armour. Speed and drain come from the heaviest gun anywhere in the inventory, so switching hotbar slots changes nothing; stamina never resets on a switch.
+
+| Rule | Value |
+| --- | --- |
+| Sprinting | −10 stamina per second |
+| Jumping | −15 stamina per jump |
+| Stamina empty | No sprinting or jumping until it refills to 30 |
+| Refill while walking | +12 per second, after 1 s without sprinting or jumping |
+| Refill while standing still | +25 per second, after 1 s |
+
+| Heaviest gun carried (anywhere in inventory) | Walk speed | Stamina drain |
+| --- | --- | --- |
+| Melee only / nothing | 100% | ×1.0 |
+| Pistol | 100% | ×1.0 |
+| Submachine gun | 97% | ×1.1 |
+| Service or marksman rifle | 95% | ×1.2 |
+| Trench shotgun | 95% | ×1.2 |
+| Semi-auto rifle | 93% | ×1.3 |
+| Machine gun (packed up) | 80% | ×2.0 |
+
+| Body armour worn | Stamina drain |
+| --- | --- |
+| None / Field | ×1.0 |
+| Trench | ×1.3 |
+| Assault | ×1.6 |
+| Elite | ×1.0 |
+
+Gun and armour drains multiply: a rifle in Assault armour drains ×1.9 (about 5 s of sprinting from full).
+
+#### 4.8.6 Ammunition
+
+| Ammo | Amount | Cost |
+| --- | --- | --- |
+| Rifle rounds | 30 | 1 copper, 1 saltpetre, $10 |
+| Pistol rounds | 30 | 1 copper, $8 |
+| Shotgun shells | 12 | 1 copper, 1 saltpetre, $12 |
+| Machine gun belt | 250 | 4 copper, 3 saltpetre, $60 |
+| Tank shell | 1 | 1 steel, 1 saltpetre, $15 |
+| Tank MG rounds | 50 | 1 copper, 1 saltpetre, $10 |
+| Grenade | 1 | 1 iron, 1 saltpetre, $20 |
+
+#### 4.8.7 Carry limits
+
+| Ammo | Max carried per player |
+| --- | --- |
+| Rifle rounds | 60 |
+| Pistol rounds | 40 |
+| Shotgun shells | 24 |
+| Machine gun belt | 1 (more stored at the emplacement: up to 3) |
+| Grenades | 3 |
+| Tank ammo | Tank racks only, not carried |
+
+#### 4.8.8 Melee weapons
+
+Damage on 40 health; stats copy the vanilla item named.
+
+| Weapon | Stats like | Damage | Rank needed | Cost |
+| --- | --- | --- | --- | --- |
+| Trench knife | Stone sword | 5 | None | 2 iron, 1 stick, $20 |
+| Bayonet (on rifle) | — | 6 | None | 3 iron, $40 |
+| Entrenching tool (also a shovel) | Iron axe | 9 (slow) | None | 3 iron, 2 sticks, $40 |
+| Cavalry sabre | Diamond sword | 7 | Corporal | 4 steel, 1 leather, $150 |
+| Trench club | Diamond axe | 9 (slow) | Corporal | 4 steel, 2 planks, $120 |
+| Trench shield | Shield | Blocks 12 blows of 3+ | Private | 6 steel, 4 planks, $100 (repair: planks) |
+
+#### 4.8.9 Shots to kill
+
+Hits needed to kill from full health (40), body / head, with a full armour set. Includes the no-one-shot rule (a hit from full health always leaves 2). Close range, no stars or Protection.
+
+| Weapon | No armour | Field (12%) | Trench (25%) | Assault (35%) | Elite (50%) |
+| --- | --- | --- | --- | --- | --- |
+| Service rifle (bolt) | 2 / 2 | 2 / 2 | 3 / 2 | 3 / 2 | 4 / 3 |
+| Marksman rifle | 2 / 2 | 2 / 2 | 3 / 2 | 3 / 2 | 4 / 3 |
+| Semi-auto rifle | 3 / 2 | 3 / 2 | 3 / 3 | 4 / 3 | 5 / 4 |
+| Service pistol | 4 / 3 | 5 / 4 | 6 / 4 | 7 / 5 | 8 / 6 |
+| Submachine gun | 6 / 4 | 7 / 5 | 8 / 6 | 9 / 7 | 12 / 8 |
+| Machine gun | 5 / 4 | 6 / 5 | 7 / 5 | 8 / 6 | 10 / 8 |
+| Trench shotgun (blasts) | 2 | 2 | 2 | 3 | 3 |
+| Trench knife | 8 | 10 | 11 | 13 | 16 |
+| Bayonet | 7 | 8 | 9 | 11 | 14 |
+| Cavalry sabre | 6 | 7 | 8 | 9 | 12 |
+| Entrenching tool / trench club | 5 | 6 | 6 | 7 | 9 |
+
+Every tier now adds hits against most weapons. Field armour still takes 2 bolt-rifle body hits; Trench is the first tier that takes 3.
+
+#### 4.8.10 Enchantments
+
+Vanilla enchanting (XP levels + lapis). Vanilla XP is separate from career XP and ranks.
+
+| Enchantment | Max level | Effect | Goes on |
+| --- | --- | --- | --- |
+| Protection | IV | +1% damage cut per level (inside the 50% cap) | Armour |
+| Unbreaking | III | Vanilla | Armour, weapons, tools |
+| Efficiency | V | Vanilla | Tools |
+| Fortune | II | Vanilla | Tools |
+| Sharpness | III | Vanilla | Melee |
+| Sweeping Edge | III | Vanilla | Swords, sabre |
+| Feather Falling | IV | Vanilla | Boots |
+| Respiration | III | Vanilla | Helmet |
+| Aqua Affinity | I | Vanilla | Helmet |
+| Looting | II | Vanilla | Melee |
+
+**Removed:** Mending, Thorns, Fire Aspect, Flame, Knockback, Punch, Blast Protection, Projectile Protection, Fire Protection, Power, Infinity, Multishot, Piercing, Quick Charge, Frost Walker, Soul Speed, Swift Sneak, Depth Strider, Silk Touch, Loyalty, Riptide, Channeling, Impaling, Luck of the Sea, Lure.
+
+#### 4.8.11 Custom resources
+
+Node sources follow 1914 geography and are a second resource on top of each node's current one.
+
+| Resource | How you get it | Nodes that produce it (1914 source) |
+| --- | --- | --- |
+| Steel | Craft: 2 iron + 1 coal at a blast furnace = 1 steel | — |
+| Copper | Mine at nodes; buy at the Supply Office (imported, expensive) | Nis (Bor), Thuringia (Mansfeld), West Country (Cornwall), Banat (Moldova Nouă), East Finland (Outokumpu), Tiflis (Alaverdi), Diarbekir (Ergani) |
+| Salt | Grows as crystals on budding salt at the node's mine; harvest full clusters. Also imported (expensive) | Krakow (Wieliczka), Upper Austria (Salzkammergut), Northern England (Cheshire), Lorraine (Dieuze), Transylvania (Turda), Ekaterinoslav (Bakhmut), Bucharest (Slănic), Brittany (Guérande), Palermo (Trapani), Burgas (Anchialo), Angora (Tuz Gölü) |
+| Cotton | Harvest at farm nodes; buy at the Supply Office (imported, expensive) | Egypt, Adana, Smyrna |
+| Saltpetre | Buy at the Supply Office (imported Chilean nitrate); produced at one node | Baden (the Oppau nitrogen works) |
+| Rubber | Buy at the Supply Office only (no European source in 1914); cheaper for Britain and France | — |
+| Cured leather | Craft: 1 leather + 1 salt | — |
+| Elite plate | Loot chests in contested zones only | — |
+| Iron, coal, oil, gold, farm | As now, from node resources | See section 4.6.3 |
 
 ## Module 5: Screens, Website and Getting Help
 
