@@ -1,0 +1,63 @@
+<%- include('partials/head', { pageTitle: 'Event dashboard' }) %>
+<%- include('partials/header') %>
+<meta http-equiv="refresh" content="60">
+<style>
+.db-wrap { max-width: 1180px; margin: 0 auto; padding-bottom: 60px; }
+.db-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 14px; }
+.db-box { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; }
+.db-box h2 { font: 800 15px 'Baloo 2', sans-serif; color: #fff; margin: 0 0 10px; display: flex; justify-content: space-between; gap: 8px; }
+.db-box h2 span { font: 700 11px Inter, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #fbbf24; }
+.db-big { font: 800 30px 'Baloo 2', sans-serif; color: #fff; }
+.db-sub { font: 600 13px 'Baloo 2', sans-serif; color: #9aa0ad; }
+.db-row { display: flex; justify-content: space-between; gap: 10px; font: 600 13.5px 'Baloo 2', sans-serif; color: #dfe2ea; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+.db-row img { width: 21px; height: 14px; image-rendering: pixelated; vertical-align: -2px; margin-right: 6px; }
+.db-row small { color: #9aa0ad; }
+.db-links { display: flex; flex-wrap: wrap; gap: 8px; }
+.db-links a { padding: 7px 12px; border-radius: 10px; border: 1px solid var(--line); color: #e8e9ee; text-decoration: none; font: 700 13.5px 'Baloo 2', sans-serif; }
+.db-warn { color: #fbbf24; }
+</style>
+<main class="wrap"><div class="db-wrap">
+  <div class="page-head"><div><h1 class="page-title">Event dashboard</h1><p class="page-sub">The Great War, for staff. Refreshes every minute.</p></div></div>
+  <div class="db-grid">
+    <div class="db-box"><h2>War window</h2>
+      <% if (open) { %><div class="db-big db-warn">Open now</div><div class="db-sub">closes <time data-ts="<%= open.end %>"></time> (<span data-rel="<%= open.end %>"></span>)</div>
+      <% } else if (next) { %><div class="db-big"><span data-rel="<%= next.start %>"></span></div><div class="db-sub">day <%= next.day %>: <time data-ts="<%= next.start %>"></time></div>
+      <% } else { %><div class="db-sub">No more windows this event.</div><% } %>
+      <% if (truce) { %><div class="db-sub" style="margin-top:6px">Christmas Truce: <time data-ts="<%= truce.start %>"></time></div><% } %></div>
+    <div class="db-box"><h2>Players online <% if (g.sample) { %><span>sample</span><% } %></h2>
+      <% if (g.error) { %><div class="db-sub db-warn"><%= g.error %></div><% } %>
+      <div class="db-big"><%= (g.nations || []).reduce((s, n) => s + (n.online || 0), 0) %></div>
+      <% (g.nations || []).forEach(n => { const N = NATIONS.find(x => x.id === n.id) || { name: n.id, flag: '' }; %><div class="db-row"><span><% if (N.flag) { %><img src="/img/flags/<%= N.flag %>.png" alt=""><% } %><%= N.name %></span><b><%= n.online %></b></div><% }) %></div>
+    <div class="db-box"><h2>Shards <% if (g.sample) { %><span>sample</span><% } %></h2>
+      <% (g.shards || []).forEach(s => { %><div class="db-row"><span><%= s.name %></span><span><b><%= s.online %></b> <small>online · TPS <%= s.tps %></small></span></div><% }) %></div>
+    <div class="db-box"><h2>Bug reports</h2><div class="db-big"><%= bugs.open %></div><div class="db-sub">new, not looked at yet</div>
+      <% bugs.latest.forEach(b => { %><div class="db-row"><span>#<%= b.id %> <%= b.happened %></span><small><%= b.mc_name || b.discord_name %></small></div><% }) %>
+      <div class="db-links" style="margin-top:8px"><a href="/staff/bug-reports">All reports</a></div></div>
+    <div class="db-box"><h2>Mod lock: would refuse <% if (g.sample) { %><span>sample</span><% } %></h2>
+      <% if (!(g.modlock || []).length) { %><div class="db-sub">Nothing.</div><% } %>
+      <% (g.modlock || []).slice(0, 8).forEach(m => { %><div class="db-row"><span><%= m.player %>: <%= m.reason %></span><small><%= new Date(m.at).toISOString().slice(11, 16) %> UTC</small></div><% }) %></div>
+    <div class="db-box"><h2>Applications</h2>
+      <div class="db-row"><span>Great War players</span><b><%= apps ? apps.total : 0 %></b></div>
+      <div class="db-row"><span>New to modded</span><b><%= apps ? apps.newcomers : 0 %></b></div>
+      <% if (apps) apps.styles.forEach(s => { %><div class="db-row"><span><small><%= s.label %></small></span><small><%= s.n %></small></div><% }) %>
+      <% if (apps && apps.windowHour.length) { %><div class="db-sub" style="margin-top:6px">19:00 UK falls at: <%= apps.windowHour.map(([h, n]) => h + ' (' + n + ')').join(', ') %></div><% } %>
+      <div class="db-row"><span>Testers accepted / waitlisted</span><b><%= testers.accepted || 0 %> / <%= testers.waitlisted || 0 %></b></div>
+      <div class="db-links" style="margin-top:8px"><a href="/staff/great-war-applications">All applications</a></div></div>
+    <div class="db-box"><h2>Alt flags</h2><div class="db-big"><%= shared.length %></div><div class="db-sub">Minecraft accounts given by more than one Discord account</div>
+      <% shared.slice(0, 5).forEach(s => { %><div class="db-row"><span><%= s.mc_name %></span><small><%= s.people.map(p => p.discord_name).join(', ') %></small></div><% }) %>
+      <% if (isOwner) { %><div class="db-links" style="margin-top:8px"><a href="/admin/vip">The full list</a></div><% } %></div>
+    <div class="db-box"><h2>Quick links</h2><div class="db-links">
+      <a href="/wiki">The wiki (Field Manual and staff copy)</a><a href="/map">The map</a><a href="/war">War Report</a><a href="/staff/bug-reports">Bug reports</a><a href="/staff/leaders">Leader applications</a>
+      <% if (isOwner) { %><a href="/admin">Control centre</a><a href="/admin/nation-roles">Nation roles</a><a href="/admin/front-posts">Daily Front posts</a><% } %>
+      <a href="https://github.com/spacyskydiver-eng/greatwar/tree/rework/docs" target="_blank" rel="noopener">Runbooks (docs)</a></div></div>
+  </div>
+</div></main>
+<script>
+(function paint() {
+  document.querySelectorAll('time[data-ts]').forEach(t => { t.textContent = new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' }).format(+t.dataset.ts * 1000).replace(/\b(GMT|UTC)\+0$/, '$1'); });
+  document.querySelectorAll('[data-rel]').forEach(e => { const d = +e.dataset.rel - Date.now() / 1000, a = Math.abs(d), h = Math.floor(a / 3600), m = Math.floor(a % 3600 / 60);
+    e.textContent = (a >= 86400 ? Math.floor(a / 86400) + 'd ' + Math.floor(a % 86400 / 3600) + 'h' : h + 'h ' + m + 'm') + (d < 0 ? ' ago' : ''); });
+  setTimeout(paint, 30000);
+})();
+</script>
+<%- include('partials/foot') %>
