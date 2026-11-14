@@ -1,0 +1,67 @@
+<%- include('partials/head', { pageTitle: 'Apply: The Great War', pageDescription: 'Apply to play The Great War, a two-week World War One event for up to 500 players, from 17 December.' }) %>
+<%- include('partials/header') %>
+<%# The Great War's player application (server/gw-apply.js). %>
+<style>
+.ga-wrap { max-width: 760px; margin: 0 auto; padding-bottom: 80px; }
+.ga-box { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 20px; }
+.ga-box h2 { font-family: 'Baloo 2'; font-weight: 800; font-size: 18px; color: #fff; margin: 0 0 6px; }
+.ga-box p, .ga-hint { font-family: 'Baloo 2'; font-weight: 600; font-size: 14.5px; color: #9a9db0; line-height: 1.6; margin: 0 0 10px; }
+.ga-field { margin: 0 0 20px; }
+.ga-field > label, .ga-field > .ga-q { display: block; font: 800 15px 'Baloo 2', sans-serif; color: #e8e9ee; margin-bottom: 6px; }
+.ga-field input[type=text], .ga-field select { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: rgba(0,0,0,.25); color: #fff; font: 600 15px 'Baloo 2', sans-serif; }
+.ga-opts { display: grid; gap: 8px; }
+.ga-opt { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.03); cursor: pointer; font: 700 14.5px 'Baloo 2', sans-serif; color: #e8e9ee; }
+.ga-opt small { display: block; font-weight: 600; color: #9a9db0; }
+.ga-opt input { margin-top: 4px; accent-color: #5be38f; }
+.ga-bad { border-color: rgba(248,113,113,.6) !important; }
+.ga-err { padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(248,113,113,.45); background: rgba(248,113,113,.1); color: #fecaca; font: 700 14.5px 'Baloo 2', sans-serif; margin-bottom: 18px; }
+.ga-ok { padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(91,227,143,.4); background: rgba(91,227,143,.08); color: #c9f7da; font: 700 14.5px 'Baloo 2', sans-serif; margin-bottom: 18px; }
+.ga-wrap .ga-btn { display: inline-block; padding: 11px 18px; border-radius: 10px; border: 0; background: #5be38f; color: #0c1a12; font: 800 15px 'Baloo 2', sans-serif; cursor: pointer; text-decoration: none; }
+.ga-err a, .ga-box a { color: #74c0fc; }
+</style>
+<main class="wrap"><div class="ga-wrap">
+  <div class="page-head"><div><h1 class="page-title">Apply</h1><p class="page-sub">The Great War · Europe, 1914 · from 17 December</p></div></div>
+<% if (!locals.user) { %>
+  <div class="ga-box"><h2>Sign in to apply</h2><p>We use your Discord account so we can reach you about the event. It takes a minute.</p>
+    <a class="ga-btn" href="/auth/discord?return=/apply">Sign in with Discord</a></div>
+<% } else { %>
+  <% if (saved) { %><div class="ga-ok">Thanks, you're in. We'll be in touch on Discord before the event. You can change your answers below until applications close.</div><% } %>
+  <% if (error) { %><div class="ga-err"><%= error %></div><% } %>
+  <form class="ga-box" method="POST" action="/apply/great-war">
+    <h2><%= me ? 'Your application' : 'Join The Great War' %></h2>
+    <p>A few questions so we can plan the nations and the war windows around the people who'll actually play. New to modded Minecraft? Welcome: say so below. Start with <a href="/great-war-in-2-minutes">the event in 2 minutes</a>.</p>
+    <div class="ga-field"><label for="mc">Your Minecraft username (Java Edition)</label>
+      <input id="mc" type="text" name="mc_name" maxlength="16" required value="<%= f.mc_name || '' %>" class="<%= field === 'mc_name' ? 'ga-bad' : '' %>" autocomplete="off" spellcheck="false">
+      <p class="ga-hint">One Minecraft account per person. Discord: <b><%= user.username %></b>.</p></div>
+    <div class="ga-field"><label for="tz">Your time zone</label>
+      <select id="tz" name="timezone" required class="<%= field === 'timezone' ? 'ga-bad' : '' %>" data-value="<%= f.timezone || '' %>"><option value="">Pick your time zone</option></select>
+      <p class="ga-hint" id="tz-hint">War windows are 19:00 to 22:00 UK time.</p></div>
+    <div class="ga-field"><span class="ga-q">On a typical day, how long will you play?</span><div class="ga-opts <%= field === 'hours' ? 'ga-bad' : '' %>">
+      <% S.HOURS.forEach(([k, l]) => { %><label class="ga-opt"><input type="radio" name="hours" value="<%= k %>" <%= f.hours === k ? 'checked' : '' %>><span><%= l %></span></label><% }) %></div></div>
+    <div class="ga-field"><span class="ga-q">When will you usually play? <span class="ga-hint">(tick any)</span></span><div class="ga-opts <%= field === 'times' ? 'ga-bad' : '' %>">
+      <% S.TIMES.forEach(([k, l]) => { %><label class="ga-opt"><input type="checkbox" name="times" value="<%= k %>" <%= (f.times || []).includes(k) ? 'checked' : '' %>><span><%= l %> <small>your own time</small></span></label><% }) %></div></div>
+    <div class="ga-field"><span class="ga-q">How do you like to play? <span class="ga-hint">(tick any)</span></span><div class="ga-opts <%= field === 'styles' ? 'ga-bad' : '' %>">
+      <% S.STYLES.forEach(([k, l, d]) => { %><label class="ga-opt"><input type="checkbox" name="styles" value="<%= k %>" <%= (f.styles || []).includes(k) ? 'checked' : '' %>><span><%= l %><small><%= d %></small></span></label><% }) %></div></div>
+    <div class="ga-field"><span class="ga-q">Are you new to modded Minecraft?</span><div class="ga-opts <%= field === 'new_to_modded' ? 'ga-bad' : '' %>">
+      <label class="ga-opt"><input type="radio" name="new_to_modded" value="yes" <%= f.new_to_modded === true ? 'checked' : '' %>><span>Yes, this would be my first modpack</span></label>
+      <label class="ga-opt"><input type="radio" name="new_to_modded" value="no" <%= f.new_to_modded === false ? 'checked' : '' %>><span>No, I've played modpacks before</span></label></div></div>
+    <button class="ga-btn" type="submit"><%= me ? 'Save my answers' : 'Apply' %></button>
+  </form>
+<% } %>
+</div></main>
+<script>
+(function () {
+  const sel = document.getElementById('tz'); if (!sel) return;
+  const mine = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const want = sel.dataset.value || mine;
+  const zones = (Intl.supportedValuesOf ? Intl.supportedValuesOf('timeZone') : [mine]).filter(z => z.includes('/') || z === 'UTC');
+  if (!zones.includes(want)) zones.unshift(want);
+  const win = Date.UTC(2026, 11, 19, 19);
+  const at = z => { try { return new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: z }).format(win); } catch (e) { return ''; } };
+  zones.forEach(z => { const o = document.createElement('option'); o.value = z; o.textContent = z.replace(/_/g, ' ') + (at(z) ? '  (windows start ' + at(z) + ')' : ''); if (z === want) o.selected = true; sel.appendChild(o); });
+  const hint = document.getElementById('tz-hint');
+  const say = () => { const t = at(sel.value); hint.textContent = sel.value ? 'War windows are 19:00 to 22:00 UK time: ' + t + ' where you are.' : 'War windows are 19:00 to 22:00 UK time.'; };
+  sel.addEventListener('change', say); say();
+})();
+</script>
+<%- include('partials/foot') %>

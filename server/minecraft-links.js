@@ -32,6 +32,7 @@ const SOURCES = [
   ['leader application', `SELECT discord_id, discord_name, mc_uuid, mc_name, updated_at AS at FROM leader_applications WHERE stage <> 'ended'`],
   ['leadership team', `SELECT discord_id, discord_name, mc_uuid, mc_name, responded_at AS at FROM leader_team WHERE status = 'confirmed'`],
   ['tester application', `SELECT discord_id, discord_name, mc_uuid, mc_name, applied_at AS at FROM tester_applications WHERE mc_uuid IS NOT NULL`],
+  ['Great War application', `SELECT discord_id, discord_name, mc_uuid, mc_name, updated_at AS at FROM gw_applications`],
 ];
 async function copyFromApplications() {
   await ready;

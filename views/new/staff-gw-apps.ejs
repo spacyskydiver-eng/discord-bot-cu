@@ -1,0 +1,44 @@
+<%- include('partials/head', { pageTitle: 'Great War applications' }) %>
+<%- include('partials/header') %>
+<style>
+.sg-wrap { max-width: 1100px; margin: 0 auto; padding-bottom: 80px; }
+.sg-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 18px; }
+.sg-box { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; }
+.sg-box h2 { font: 800 15px 'Baloo 2', sans-serif; color: #fff; margin: 0 0 10px; }
+.sg-big { font: 800 30px 'Baloo 2', sans-serif; color: #fff; }
+.sg-bar { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; font: 600 13.5px 'Baloo 2', sans-serif; color: #c6cad4; margin-bottom: 6px; }
+.sg-bar i { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: #5be38f; display: block; opacity: .8; }
+.sg-table { width: 100%; border-collapse: collapse; font: 600 13px 'Baloo 2', sans-serif; color: #dfe2ea; }
+.sg-table th { text-align: left; font: 700 11px Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #9aa0ad; padding: 6px; border-bottom: 1px solid var(--line); }
+.sg-table td { padding: 7px 6px; border-bottom: 1px solid rgba(255,255,255,.05); vertical-align: top; }
+.sg-msg { padding: 10px 14px; border-radius: 10px; background: rgba(91,227,143,.08); border: 1px solid rgba(91,227,143,.35); color: #c9f7da; margin-bottom: 14px; font: 700 14px 'Baloo 2', sans-serif; }
+.sg-wrap .sg-btn { padding: 8px 14px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.05); color: #fff; font: 700 14px 'Baloo 2', sans-serif; cursor: pointer; text-decoration: none; }
+</style>
+<% const bars = (list, total) => list.map(x => `<div class="sg-bar"><span>${x.label}</span><b>${x.n}</b><i style="width:${total ? Math.max(2, x.n / total * 100) : 0}%"></i></div>`).join(''); %>
+<main class="wrap"><div class="sg-wrap">
+  <div class="page-head"><div><h1 class="page-title">Great War applications</h1>
+    <p class="page-sub">Players for 17 December. Applications are <b><%= open ? 'open' : 'closed' %></b>. Private to staff.</p></div></div>
+  <% if (msg) { %><div class="sg-msg"><%= msg %></div><% } %>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
+    <a class="sg-btn" href="/staff/great-war-applications.csv">Download CSV</a>
+    <% if (isOwner) { %><form method="POST" action="/staff/great-war-applications/open" style="margin:0" onsubmit="return confirm('<%= open ? 'Close' : 'Open' %> Great War applications?')"><input type="hidden" name="open" value="<%= open ? 'no' : 'yes' %>"><button class="sg-btn" type="submit"><%= open ? 'Close applications' : 'Open applications' %></button></form><% } %>
+  </div>
+  <div class="sg-row">
+    <div class="sg-box"><h2>Applied</h2><div class="sg-big"><%= o.total %></div></div>
+    <div class="sg-box"><h2>New to modded</h2><div class="sg-big"><%= o.newcomers %></div></div>
+  </div>
+  <div class="sg-row">
+    <div class="sg-box"><h2>How they like to play</h2><%- bars(o.styles, o.total) %></div>
+    <div class="sg-box"><h2>Hours a day</h2><%- bars(o.hours, o.total) %></div>
+    <div class="sg-box"><h2>When they play</h2><%- bars(o.times, o.total) %></div>
+    <div class="sg-box"><h2>Where 19:00 UK falls for them</h2><%- bars(o.windowHour.map(([h, n]) => ({ label: h + ' local', n })), o.total) || '<p class="page-sub">Nobody yet.</p>' %></div>
+  </div>
+  <div class="sg-box"><h2>Everyone</h2>
+    <% if (!o.apps.length) { %><p class="page-sub">No applications yet.</p><% } else { %>
+    <table class="sg-table"><tr><th>Discord</th><th>Minecraft</th><th>Time zone</th><th>Hours</th><th>Plays as</th><th>New</th></tr>
+    <% o.apps.forEach(a => { %><tr><td><%= a.discord_name %></td><td><%= a.mc_name %></td><td><%= a.timezone %> <span style="color:#9aa0ad">(<%= S.localHour(a.timezone) %>)</span></td>
+      <td><%= (S.HOURS.find(h => h[0] === a.hours) || [])[1] %></td><td><%= a.styles.map(s => (S.STYLES.find(x => x[0] === s) || [])[1]).join(', ') %></td><td><%= a.new_to_modded ? 'Yes' : '' %></td></tr><% }) %>
+    </table><% } %>
+  </div>
+</div></main>
+<%- include('partials/foot') %>

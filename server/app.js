@@ -78,6 +78,7 @@ module.exports = function startServer() {
   app.use('/', require('./routes/pages'));
   app.use('/', require('./routes/testers'));
   app.use('/', require('./routes/leaders'));
+  app.use('/', require('./routes/gw-apply').router);
   app.use('/', require('./routes/staff-apply'));
   app.use('/', require('./routes/vip'));
   app.use('/', require('./routes/campaign-map-share'));

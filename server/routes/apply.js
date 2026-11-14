@@ -20,6 +20,7 @@ const isGreatWar = e => !!e && /great war/i.test(e.title || '');
 router.get('/', async (req, res) => {
   const eventRes = await db.query(`SELECT * FROM events ORDER BY created_at DESC LIMIT 1`);
   const event = eventRes.rows[0] || null;
+  if (await require('../gw-apply').isOpen()) return require('./gw-apply').form(req, res);
   if (!isGreatWar(event) || !event.is_open) return soon(req, res);
 
   const eligibilityQuestions = (await db.query(
