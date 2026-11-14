@@ -118,6 +118,9 @@ function navPane(root) {
     <div class="nv-nav-mod" style="--mod:#5EB0E5"><div class="nv-nav-modrow"><button class="nv-nav-caret" style="visibility:hidden" tabindex="-1" aria-hidden="true">${icon('chevron-right')}</button><a class="nv-nav-modname" href="/map" style="text-decoration:none"><i></i><span>Campaign map</span></a></div></div>
     <div class="nv-nav-mod" style="--mod:#5EB0E5"><div class="nv-nav-modrow"><button class="nv-nav-caret" style="visibility:hidden" tabindex="-1" aria-hidden="true">${icon('chevron-right')}</button><a class="nv-nav-modname" href="/great-war-in-2-minutes" style="text-decoration:none"><i></i><span>The Great War in 2 minutes</span></a></div></div>
     <div class="nv-nav-mod" style="--mod:#5EB0E5"><div class="nv-nav-modrow"><button class="nv-nav-caret" style="visibility:hidden" tabindex="-1" aria-hidden="true">${icon('chevron-right')}</button><a class="nv-nav-modname" href="/pack" style="text-decoration:none"><i></i><span>Get the modpack</span></a></div></div>
+    <div class="nv-nav-mod" style="--mod:#5EB0E5"><div class="nv-nav-modrow"><button class="nv-nav-caret" style="visibility:hidden" tabindex="-1" aria-hidden="true">${icon('chevron-right')}</button><a class="nv-nav-modname" href="/war" style="text-decoration:none"><i></i><span>War Report</span></a></div></div>
+    <div class="nv-nav-mod" style="--mod:#5EB0E5"><div class="nv-nav-modrow"><button class="nv-nav-caret" style="visibility:hidden" tabindex="-1" aria-hidden="true">${icon('chevron-right')}</button><a class="nv-nav-modname" href="/daily-front" style="text-decoration:none"><i></i><span>The Daily Front</span></a></div></div>
+    <div class="nv-nav-mod" style="--mod:#5EB0E5"><div class="nv-nav-modrow"><button class="nv-nav-caret" style="visibility:hidden" tabindex="-1" aria-hidden="true">${icon('chevron-right')}</button><a class="nv-nav-modname" href="/nations" style="text-decoration:none"><i></i><span>The nations</span></a></div></div>
     ${CUE().isAdmin ? `<div class="nv-nav-mod" style="--mod:#8B9CFF"><div class="nv-nav-modrow"><button class="nv-nav-caret" style="visibility:hidden" tabindex="-1" aria-hidden="true">${icon('chevron-right')}</button><a class="nv-nav-modname" href="/admin" style="text-decoration:none"><i></i><span>Admin panel</span></a></div></div>` : ''}
     <div class="nv-nav-label nv-docked">Library</div>
     <button class="nv-nav-item nv-docked" data-navmap>${icon('graph')}<span>Neural map</span></button>
@@ -321,6 +324,7 @@ B.registerView('great-war-short', {
         + `<section class="nv-sec"><a class="gw2-window" ${toWiki('3-2-2')}><b>19:00–22:00</b><span><strong>War windows, every 2 days, UK time.</strong> Land only changes hands inside a window. The first one opens on day 3.<small>Plan your evenings around these</small></span></a></section>`
         + gw2Windows()
         + sec('What to know', `<div class="nv-timeline">${G.orders.map(([h, p, id], i) => card(String(i + 1).padStart(2, '0'), esc(h), esc(p), wikiPill(id), toWiki(id))).join('')}</div>`)
+        + `<section class="nv-sec"><p class="nv-lede">Follow the war from anywhere: the <a href="/war">War Report</a> and <a href="/daily-front">the Daily Front</a>.</p></section>`
         + `<section class="nv-sec"><p class="nv-lede">New to it all? Read <a href="/first-hour" data-go="first-hour">your first hour</a>, step by step. Times, numbers and the start date may change before the event. <a ${toWiki('')}>Read the full wiki</a> for the details.</p></section>`,
     });
     TIME.paint(view);

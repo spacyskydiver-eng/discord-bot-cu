@@ -673,7 +673,16 @@ router.get('/nations/:slug', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 router.get('/map/data.json', async (req, res) => {
-  try { res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=86400').type('application/json').send(await require('../campaign-map').loadPublic()); }
+  try {
+    let body = await require('../campaign-map').loadPublic();
+    // once the game's war feed is live, the public map shows who holds each node now (never with sample data)
+    const feed = require('../war-feed');
+    if (feed.isLive()) {
+      try { const own = (await feed.report()).owners || {}, m = JSON.parse(body); m.territories.forEach(t => { if (own[t.id]) t.owner = own[t.id]; }); body = JSON.stringify(m); }
+      catch (e) { console.error('[map] war feed', e.message); }
+    }
+    res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=86400').type('application/json').send(body);
+  }
   catch (e) { res.status(503).json({ error: 'The map is not available right now.' }); }
 });
 
