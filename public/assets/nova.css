@@ -1500,3 +1500,5 @@ body.ui-nova .pk-qa p { margin: 0 0 8px; }
 body.ui-nova .pk-cover { display: block; width: 100%; max-width: 960px; height: auto; border-radius: 14px; border: 1px solid var(--background-modifier-border); }
 body.ui-nova .gw2-nations a { text-decoration: none; }
 body.ui-nova .gw2-nations a:hover .nv-pill { color: var(--text-normal); border-color: var(--background-modifier-border-hover); }
+/* item icons in the wiki's tables: the game's own 16 px pixel art, kept sharp */
+body.ui-nova .wk-icon { width: 20px; height: 20px; vertical-align: -4px; margin-right: 6px; image-rendering: pixelated; image-rendering: crisp-edges; }

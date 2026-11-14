@@ -33,7 +33,7 @@ The first war window is on **day 3**, the same day guns unlock. Nothing can be c
 
 Every deadline in this manual is flat real time. That covers answering an incident, the notice before an enemy marking takes effect, how long someone stays Wanted, the absent Leader handover, proposals and cooldowns. 24 h means 24 h from the moment it starts, whether the server is open or not.
 
-That's fair because once the website is live, anything you can respond to in-game you can also do there (section 5.4). The only things that have to happen in-game are the physical ones: fighting, sieges and donating.
+Once the web companion is live (section 5.4), anything you can respond to in-game you'll also be able to do there. Until then, anyone in your leadership with the right permission can answer for your nation, so it doesn't all fall on one person. The only things that have to happen in-game are the physical ones: fighting, sieges and donating.
 
 #### 1.1.5 First principles
 
@@ -46,7 +46,7 @@ These are the rules the whole event is built on. They don't bend.
 5. The server decides. Kills, captures, payments and permissions are all settled by the server, and your screens show you what it holds.
 6. Nothing is lost. Everything saves, and a restart in the middle of the event loses nothing.
 7. The interface is a game, not a spreadsheet. Every system has its own screen opened by a key, laid out in the same tech tree style. The pause screen is still plain vanilla.
-8. Freedom plus consequences. The game rarely stops you doing something. It makes what you do mean something instead. There are two hard blocks: allies can't damage each other, and no outcome ever depends on someone being unreachable (rule 9).
+8. Freedom plus consequences. The game rarely stops you doing something. It makes what you do mean something instead. The hard blocks are few: allies can't damage each other, enemies can't cross each other's borders between war windows (3.2.2), scouts can't attack the nations they're at war with (3.4), and you can't build on land that isn't open to you (4.6.11). On top of that, no outcome ever depends on someone being unreachable (rule 9).
 9. Nobody wins by going quiet. Nothing waits forever on someone answering. An incident nobody answers has a set outcome (3.1.2), marking a nation as an enemy needs no reply and always gives the other side at least a day's warning, and a Leader who disappears is replaced by a Regent (2.1.3).
 
 ### 1.2 Nations, membership, life and death
@@ -93,7 +93,7 @@ Dying never costs a Leader the leadership or a seat holder their seat (2.1.3). S
 
 A nation lives as long as it holds at least one node. Losing the capital doesn't end it, though nobody can respawn until it's retaken (1.2.4).
 
-A nation is **wiped** when it loses its last node, whether to a siege (section 3.3) or to bankruptcy (section 4.3). When a nation is wiped, its members become nationless and are free to join another nation. All its wars, alliances, proposals, trades and jobs end, any money tied up in them is refunded, and nobody new can join it.
+A nation is **wiped** when it loses its last node in a siege (section 3.3). Bankruptcy can cost a nation nodes, but on its own it never wipes a nation out (section 4.3). When a nation is wiped, its members become nationless and are free to join another nation. All its wars, alliances, proposals, trades and jobs end, any money tied up in them is refunded, and nobody new can join it.
 
 Being wiped is permanent. Staff can restore a nation, but only to correct a mistake.
 
@@ -103,16 +103,16 @@ Logging out in combat counts as a death (1.2.4). You're in combat for 30 seconds
 
 ### 1.3 Citizenship: leaving, joining, defecting
 
-Leaving is your right. You can leave your nation at any time from Me, after a confirmation, and you become nationless. This is the check on bad leaders. A bad Leader bleeds people.
+Leaving is your right. You can leave your nation at any time from the Me tile in the War Office (press P, section 2.2.1), after a confirmation, and you become nationless. This is the check on bad leaders. A bad Leader bleeds people.
 
 - Joining works by request. If you're nationless, you ask to join, and someone in that nation's leadership with Membership accepts or refuses.
 - No defecting to the enemy. For 72 h after you leave, you can't join a nation that has your old nation marked as an enemy, or that your old nation has marked as one.
 - Each nation has a cap of about 80 members, so one side can't snowball by soaking up everyone.
 - If you hold a leadership seat, you lose it when you leave.
 
-### 1.4 Player roles
+### 1.4 Classes and specialisations
 
-Roles have been replaced by classes and specialisations. Your class decides how you fight (4.6.6) and your specialisation decides how you earn (4.6.7).
+You pick a class, which decides how you fight (4.6.6), and you can pick a specialisation, which decides how you earn (4.6.7).
 
 ## Module 2: Leading a Nation
 
@@ -144,11 +144,11 @@ This is the full list of permissions. Every leadership action falls under exactl
 
 - **Read mail:** see the nation's diplomatic mailbox (section 2.3).
 - **Write mail:** send letters (section 2.3).
-- **Relations & war:** mark other nations as ally, neutral or enemy, and appoint scouts (sections 3.2 and 3.4).
+- **Relations & war:** mark other nations as ally, neutral or enemy, appoint scouts and order tanks (sections 3.2, 3.4 and 4.7.1).
 - **Incidents:** forgive or demand compensation when one of your people is killed, and pay or refuse when one of yours is the killer (section 3.1).
 - **Trade:** propose and answer trades (section 4.5).
-- **Treasury & tax:** set tax and spend the treasury (section 4.1).
-- **Research:** open and lock tech nodes (section 4.2).
+- **Treasury & tax:** set tax, set Supply Office and Armory prices, and spend the treasury (sections 4.1 and 4.6.4).
+- **Research:** open and lock research nodes, and queue production orders (sections 4.2 and 4.6.5).
 - **Orders & jobs:** post rallies and jobs for citizens (section 2.5).
 - **Membership:** admit and expel members (section 1.3).
 - **Press:** publish articles in the Daily Front (section 2.4).
@@ -186,7 +186,7 @@ Press P. The War Office is a set of tiles and nothing else.
 - **Me** shows your money, your nation, your class and anything waiting on you personally. It also shows the four rules:
 
   - Kill enemies: fine, at any time.
-  - Kill someone from a neutral nation: your nation pays compensation, or you're Wanted.
+  - Kill someone from a neutral nation: their nation can forgive you or demand compensation, and if your side refuses to pay, you're Wanted.
   - Kill your own people: your Leader forgives you, fines you or expels you.
   - Allies can't hurt each other. Logging out in a fight is a death.
 
@@ -197,7 +197,7 @@ Press P. The War Office is a set of tiles and nothing else.
 
 Leave nation is inside Me, with a clear confirmation of what leaving means (section 1.3).
 
-#### 2.2.2 The Leader's view: the Cabinet (Leader and seat holders only)
+#### 2.2.2 The Leader's view: the Cabinet (key I, Leader and seat holders only)
 
 If you've played HOI4, Civ or Supremacy this will feel familiar. You only see the parts your seat's permissions cover.
 
@@ -209,6 +209,8 @@ If you've played HOI4, Civ or Supremacy this will feel familiar. You only see th
 - **Incidents:** your nation's incidents both ways, and your own people's kills of each other, each with its buttons and countdown (section 3.1).
 - **Government:** seats and permissions, succession order, tax, research focus, extra respawn points.
 - **Citizens:** the roster (alive or waiting to respawn, seat, recent activity), orders and jobs (section 2.5) and the public treasury log.
+- **Motor Pool** (section 4.7): order tanks, assign crews and recall them.
+- **The Daily Front** (section 2.4).
 
 #### 2.2.3 Interaction rules
 
@@ -262,7 +264,7 @@ A rally is a map marker, a time and one line of text ("Defend Calais, 19:00"). Y
 
 A job is a task with a reward, paid from the treasury once the game confirms you've done it. Jobs only cover things the game can actually check:
 
-- donate a set amount of a resource to a tech node (paid per item)
+- donate a set amount of a resource to a research node (paid per item)
 - a reward for each enemy killed, either in a given node or anywhere
 - be in a node during a siege (paid per minute you're there)
 - fortify a node (see below)
@@ -282,7 +284,9 @@ The recipes for the two trench blocks:
 | 4 sand + 1 string | 4 sandbags |
 | 2 iron nuggets + 2 string | 4 barbed wire |
 
-Fortified nodes are much harder to take in the next war window, so this is how a nation gets ready for one. Both count for Fortify jobs. A machine gunner can fire braced on a sandbag (4.6.13). Barbed wire slows anyone walking through it (Slowness III while you're in it) and hurts a little (half a heart every 1.5 s). Anyone means anyone, your own side included, so think about where you put it.
+Sandbags and barbed wire both count for Fortify jobs.
+
+Fortified nodes are much harder to take in the next war window, so this is how a nation gets ready for one. A machine gunner can fire braced on a sandbag (4.6.13). Barbed wire slows anyone walking through it (Slowness III while you're in it) and hurts a little (half a heart every 1.5 s). Anyone means anyone, your own side included, so think about where you put it.
 
 #### 2.5.4 Limits and pay
 
@@ -300,7 +304,7 @@ Seats with *Orders & jobs* post rallies and jobs. Spending treasury money on a j
 
 ### 3.1 Combat and consequences
 
-Everything else in this event hangs off this section, so read it properly. PvP is on at all times, and the game doesn't stop you hurting other players, with one exception: allies can't hurt each other. Anyone else, you can shoot. What changes is what the kill means afterwards, and that depends on who you killed and how your nations stood at the time.
+Everything else in this event hangs off this section, so read it properly. PvP is on at all times, and the game doesn't stop you hurting other players, with two exceptions: allies can't hurt each other, and a scout can't attack anyone from a nation they're at war with (3.4). Anyone else, you can shoot. What changes is what the kill means afterwards, and that depends on who you killed and how your nations stood at the time.
 
 #### 3.1.1 The consequence table
 
@@ -349,7 +353,7 @@ You're credited with a kill however you did it:
 - fire (whoever lit it)
 - artillery and tank guns
 
-The relationship is read when the hit lands, not when you fire. A shell fired during a war that lands after peace is signed is a kill of a neutral nation's player, and opens an incident. Time your barrages. The ally block (3.1.1) covers all of these too, so you can't hurt allies with artillery or fire either.
+The relationship is read when the hit lands, not when you fire. A shell fired during a war that lands after peace takes effect is a kill of a neutral nation's player, and opens an incident. Time your barrages. The ally block (3.1.1) covers all of these too, so you can't hurt allies with artillery or fire either.
 
 If you find a way of killing someone that the game doesn't credit to you, report it to staff. Using it on purpose is an exploit and will be treated as one.
 
@@ -390,7 +394,7 @@ Marking an ally as an enemy ends the alliance on the spot. The war itself still 
 
 An alliance needs both sides. Each marks the other as an ally, and it starts the moment the second one does.
 
-Allied players can't damage each other at all. This is the only hard block in the game.
+Allied players can't damage each other at all. No weapon, explosive or fire gets round it (3.1.5).
 
 Either side can end it at any time by marking the other as neutral or enemy. It's instant and the server is told. Any kill between you after that opens an incident unless you're at war.
 
@@ -470,7 +474,7 @@ A few edge cases:
 
 The world is **11,500 by 11,500 blocks**: Europe in 1914, cropped to the playable area. On flat ground, sprint-jumping from the edge of France to the Russian border takes about 9 to 10 minutes, and real terrain makes it longer. The terrain carries on past the playable border, so the world never visibly ends.
 
-- **Theatres.** The 174 nodes are grouped into 14 theatres on the campaign map.
+- **Theatres.** The 174 nodes are grouped into 14 theatres on the campaign map. They're labels for areas of the front, nothing more.
 - **Harsh terrain.** The Arctic, the Sahara and the Syrian desert, the Alps and the Caucasus are all built and you can go in, but they're very hard to survive. The Alps and the Caucasus can be crossed at a few passes. The Carpathians and the Pripyat marshes are infantry only: no tanks.
 - **Neutral countries.** Spain, Portugal, Switzerland, the Netherlands, Denmark, Norway, Sweden and Persia can't be entered or captured. A community vote may change this.
 
@@ -486,7 +490,7 @@ What you see depends on who you are:
 
 You'll never be sent a position or a count you aren't entitled to, so there's nothing for a cheat client to dig out.
 
-**Scouts.** Each nation has a limited number of scouts, appointed by its leadership. Scouts can cross enemy borders between war windows, but they can't attack anyone from a nation they're at war with. To gather intel on a node, a scout has to stay inside it for at least 5 minutes. The count then stays visible for 30 minutes, to the scout and to his leadership. There's a cooldown before the same node can be scouted again.
+**Scouts.** Each nation has a limited number of scouts, appointed by its leadership. Scouts can cross enemy borders between war windows, but they can't attack anyone from a nation they're at war with. To gather intel on a node, a scout has to stay inside it for at least 5 minutes. The count then stays visible for 30 minutes, to the scout and their leadership. There's a cooldown before the same node can be scouted again.
 
 ### 3.5 Between war windows
 
@@ -507,7 +511,7 @@ Enemies can still fight on neutral land and in contested zones between windows. 
 
 #### 4.1.1 Personal money
 
-You have one $ balance. It's whole dollars only, it carries over between sessions, and it isn't tied to your nation or to being alive. You keep your money when you die. You start with $100.
+You have one $ balance. It's whole dollars only, it carries over when you log off, and it isn't tied to your nation or to being alive. You keep your money when you die. You start with $100.
 
 Your balance floats above your head in gold, so anyone within 32 blocks can see how rich you are. It's hidden whenever your name is hidden. It's also on your HUD, and it turns red if you go negative.
 
@@ -521,17 +525,17 @@ Leadership can't move treasury money into anyone's personal wallet, their own in
 
 Tax is a cut of what you earn, not a charge on what you already have. It's taken the moment money lands, rounded down, and the rest is yours. You'll see a receipt on the action bar, something like "+$1,000 stall sale · 20% tax $200 to Britain · you keep $800".
 
-Whoever holds the tax permission in your nation sets the rate, anywhere from 0 to 50%. It starts at 10%. Staff corrections are never taxed. Nationless players pay nothing. Being in debt doesn't get you off: income is still taxed.
+Whoever holds *Treasury & tax* in your nation sets the rate, anywhere from 0 to 50%. It starts at 10%. Staff corrections are never taxed. Nationless players pay nothing. Being in debt doesn't get you off: income is still taxed.
 
-Section 4.6.8 explains which money is taxed. Short version: money coming in from outside your nation is, pay from your own treasury isn't.
+Section 4.6.8 explains which money is taxed. Short version: money other players pay you, like stall sales and bounties, is taxed. Pay from your own treasury isn't.
 
 ### 4.2 Production and the technology tree
 
-This is a research tree in the style of Rise of Kingdoms. Your nation funds it by donating resources, and leadership picks which way it goes. Completed research opens up better gear tiers, new production and better pay as the event goes on.
+This is a research tree in the style of Rise of Kingdoms. Your nation funds it by donating resources, and leadership picks which way it goes. Completed research opens up better gear tiers, new production, better pay, extra respawn points (1.2.4) and your nation's tank (4.7.1) as the event goes on.
 
 #### 4.2.1 The tree
 
-There's one tree and every nation uses the same one, but each nation has its own progress. Every node has a name, an icon, the node or nodes you need first, and a cost in food, iron and gold. In practice that's wheat, iron ingots and gold ingots.
+There's one tree and every nation uses the same one, but each nation has its own progress. A research node has nothing to do with the nodes on the map (section 3.3): it's just one box on the tree. Every node has a name, an icon, the node or nodes you need first, and a cost in food, iron and gold. In practice that's wheat, iron ingots and gold ingots.
 
 The tree is fixed for the whole event. It won't be changed halfway through, so nobody's progress gets stranded.
 
@@ -539,7 +543,7 @@ The tree is fixed for the whole event. It won't be changed halfway through, so n
 
 You donate food, iron and gold to an open node, straight out of your inventory. Progress counts for the whole nation. Your personal contribution to each node is recorded, so it can be rewarded later. A node completes once every cost is paid.
 
-When a node's prerequisites are done it becomes available, but it starts locked. Whoever holds the tech permission opens the nodes your nation should research and keeps the rest locked. That's how leadership points everyone's donations down one path. You can only donate to open nodes.
+When a node's prerequisites are done it becomes available, but it starts locked. Whoever holds *Research* opens the nodes your nation should research and keeps the rest locked. That's how leadership points everyone's donations down one path. You can only donate to open nodes.
 
 ### 4.3 Consequences: upkeep, bankruptcy and penalties
 
@@ -553,9 +557,9 @@ All of this happens automatically. Staff don't step in.
 
 ### 4.4 Healing and logistics
 
-> The Armory sells bandages and medical kits, and the Medic class heals best (section 4.6).
+> The Armory sells bandages and first aid kits, and the Medic class heals best (section 4.6).
 
-You have 40 health (20 hearts), and natural healing is slow: about 1 health every 16 seconds while you're fed. So field medicine is real logistics. You need medical supplies to heal, and your nation has to produce them (section 4.6.5). A nation that ignores them will win fights and still lose the war to attrition.
+You have 40 health (20 hearts), and natural healing is slow: about 1 health every 16 seconds while you're fed. So field medicine is real logistics. Without medical supplies you heal very slowly, and your nation has to produce them (section 4.6.5). A nation that ignores them will win fights and still lose the war to attrition.
 
 | Item | Heals | Who |
 |---|---|---|
@@ -570,7 +574,7 @@ A Medic's bandages heal twice as much, in half the time.
 
 This is lifted from Civilization's deal screen. It has two columns, *Your offer* and *Their offer*.
 
-You can trade treasury money and resources from your nation store (food, iron and gold, collected from donations, node income and the Supply Office). You can't trade nodes. Land only changes hands through siege. A trade can be a gift too: just leave one side empty.
+You can trade treasury money and resources from your nation store (the iron, coal, gold and food that citizens hand in at the Supply Office, section 4.6.4). You can't trade nodes. Land only changes hands through siege. A trade can be a gift too: just leave one side empty.
 
 Nothing is held back while an offer is waiting. When it's accepted, the server checks both sides can still pay, then does the whole thing at once. If either side can't, it fails cleanly and tells you why.
 
@@ -593,7 +597,7 @@ Hold land → land gives mines, farms and oil → you mine and farm, sell to you
 
 #### 4.6.3 Nodes produce resources
 
-Every node (section 3.3) produces some mix of coal, iron, gold, diamond, oil and farm produce, each at tier 1 or tier 2. You can see it on the map.
+Every node (section 3.3) produces some mix of coal, iron, gold, diamond, oil and farm produce. You can see it on the map.
 
 Nodes also pay a small income on their own: every hour, each node puts money into its owner's treasury. Most of what a node is worth comes from players working it.
 
@@ -611,7 +615,7 @@ Every capital has two counters, a Supply Office and an Armory. Open either one a
 
 At the Supply Office you hand in iron, coal, gold and food. You're paid in $ from the treasury at your nation's buying prices, and the items go into the nation store.
 
-At the Armory you spend $ on war gear: guns, ammo, armour, melee weapons, grenades and medical kits. The money goes into the treasury. The Armory only stocks gear your nation has researched and produced, and it only offers you gear your class can use (section 4.6.6).
+At the Armory you spend $ on war gear: guns, ammo, armour, melee weapons, grenades and first aid kits. The money goes into the treasury. The Armory only stocks gear your nation has researched and produced, and it only offers you gear your class can use (section 4.6.6).
 
 Prices are set by whoever holds *Treasury & tax*, inside the limits staff have set for each item. Every price change and every purchase goes in the public treasury log.
 
@@ -619,7 +623,7 @@ You can't craft guns, ammo or attachments. Your nation's armour, and a few melee
 
 #### 4.6.5 Production
 
-Nobody stands at a factory by hand. A seat with *Research*, or the Leader, queues production orders like "200 rifle rounds", "20 Lee-Enfields" or "50 medical kits". Each order costs resources from the store, money from the treasury and some real time. When it's done, the goods go into the Armory's stock.
+Nobody stands at a factory by hand. A seat with *Research*, or the Leader, queues production orders like "200 rifle rounds", "20 Lee-Enfields" or "50 first aid kits". Each order costs resources from the store, money from the treasury and some real time. When it's done, the goods go into the Armory's stock.
 
 Research (section 4.2) sets what your nation can produce. Lose your coal nodes and your factories stall.
 
@@ -635,7 +639,7 @@ You pick one of five classes, and your class controls which guns you can buy and
 | Marksman | all Rifleman rifles, plus scopes (Marksman only) and the Sharps | Long range |
 | Assault | shotguns, then SMGs late in the war | Trenches and close quarters |
 | Machine Gunner | Madsen LMG, then the MG 14/17 | Holds the line |
-| Medic | pistols and the full medical kit | Keeps people alive; heals far better |
+| Medic | pistols, plus bandage rolls and first aid kits | Keeps people alive; heals far better |
 
 Pistols and revolvers are open to every class. So are small and big bandages.
 
@@ -645,7 +649,7 @@ You can carry another class's gun. You can't fire it.
 
 Class caps are per nation. You can have one Machine Gunner for every 8 members, and the same for Marksmen. Switching class costs $500 and then you wait 24 h before you can switch again.
 
-You get one free basic kit for your class. It's marked *issued*, and the Supply Office won't buy it back.
+Each time you respawn you get one free basic kit for your class, marked *issued*.
 
 Every other source of weapons is blocked: modern guns, the weapons dealer villager and its loot, and anything else that isn't on the event's weapon list.
 
@@ -657,7 +661,7 @@ Your class is how you fight. Your specialisation is how you earn. It's optional 
 |---|---|
 | Miner | 25% more ore from every ore you mine |
 | Farmer | 25% bigger harvests |
-| Builder | Builds and breaks blocks faster, and gets 25% more pay on building jobs. The *Fortify a node* job (section 2.5) pays a Builder 25% more per block, out of the job's budget. Fortifications are the Builder's work; there's no Sapper class. |
+| Builder | Builds and breaks blocks faster, gets 25% more per block on *Fortify a node* jobs (section 2.5.3, paid out of the job's budget), and repairs tanks 50% faster (4.7.5). |
 
 Buffs raise how much you produce, never what you can sell it for, so you can't pass them on to your mates. Switching specialisation costs $500, with a 24 h wait before you can switch again. You start with none.
 
@@ -671,7 +675,7 @@ Combat pay comes from the treasury for enemy kills, for capturing a node and for
 
 If the treasury can't cover pay, you don't get paid that time. The treasury never goes negative to pay you. You'll see "Britain couldn't pay you today" and your Leader gets an alert.
 
-Tax (section 4.1) only applies to money coming in from outside your nation: stall sales, bounties and trades. It never touches pay or Supply Office payments, since both already come out of your own treasury.
+Tax (section 4.1) only applies to money other players pay you: stall sales and bounties. It never touches pay or Supply Office payments, since both already come out of your own treasury.
 
 #### 4.6.9 Rank, medals and your record
 
@@ -719,13 +723,13 @@ You have **40 health** (20 hearts). Guns hit by their class, not by their model,
 Two rules always hold:
 
 1. **No one-shots.** A gun hit on a player at full health always leaves them at least 2 health, headshots included.
-2. **Two rifle hits kill** a player in a uniform, body or head. Through the heaviest body armour it takes three body hits.
+2. **Two rifle hits kill** a player in a uniform, body or head. In a full kit (steel helmet plus heavy trench armour) it takes three body hits.
 
 A few more rules:
 
 - A gun takes a moment to raise after you sprint or switch to it: 1 s, or 0.6 s for pistols and SMGs. You can't fire while sprinting.
 - Rifles and machine guns are badly inaccurate from the hip. Aim down the sights to hit anything past a few blocks.
-- **Machine guns fire prone only:** lying down (the crawl key), or braced, which means sneaking with a sandbag just in front of you. You can't sprint with one in your hands, and it's heavy.
+- **Machine guns fire prone only:** lying down (the crawl key; check Controls to see which key it's on), or braced, which means sneaking with a sandbag just in front of you. You can't sprint with one in your hands, and it's heavy.
 
 **Melee** plays like vanilla: the same attack cooldown, critical hits while falling, and sweeps with blades. Vanilla's swords, shield and trident are gone. These replace them:
 
@@ -775,7 +779,7 @@ The other four nations build a licensed copy of someone else's design, at 20% mo
 
 #### 4.7.1 Getting one
 
-The Armour research node (after Industrial War, tier 3) lets your nation build its tank. A seat with *Relations & war*, or the Leader, orders one from the Motor Pool section of the Cabinet. It costs iron, gold and coal from the nation store, money from the treasury, and then real time: about 6 h for a heavy tank, 3 h for the FT.
+The Armour research node (it comes after Industrial War, in tier 3 of the research tree) lets your nation build its tank. A seat with *Relations & war*, or the Leader, orders one from the Motor Pool section of the Cabinet. It costs iron, gold and coal from the nation store, money from the treasury, and then real time: about 6 h for a heavy tank, 3 h for the FT.
 
 The finished tank rolls out next to the Motor Pool block in your capital.
 
@@ -830,15 +834,15 @@ Total damage cut is capped at 50%. Gear drops on death. Everyone starts as a Pri
 | 1 Recruit | Cloth cap | 0% | Normal | None | Starting kit |
 | 1 Recruit | Tunic, puttees, boots | 0% | Normal | None | Starting kit |
 | 2 Field | Steel helmet (national) | 4% | Normal | Private | 4 iron, 1 leather, $40 |
-| 2 Field | Padded vest | 8% | Normal | Private | 6 cotton, 2 leather, $60 |
+| 2 Field | <img class="wk-icon" src="/img/items/padded_vest.png" alt="" width="16" height="16"> Padded vest | 8% | Normal | Private | 6 cotton, 2 leather, $60 |
 | 3 Trench | Reinforced helmet | 8% | Normal | Corporal | 4 steel, 2 copper, $120 |
-| 3 Trench | Steel body shield | 17% | Stamina drain ×1.3 | Corporal | 8 steel, 4 copper, 2 cotton, $200 |
-| 4 Assault | Visored helmet | 11% | Normal | Sergeant | 6 steel, 2 copper, 1 rubber, $300 |
-| 4 Assault | Heavy trench armour | 24% | Stamina drain ×1.6 | Sergeant | 12 steel, 4 copper, 2 rubber, 2 cured leather, $500 |
-| 5 Elite | Stormtrooper helmet | 15% | Normal | Lieutenant | 6 steel, 2 rubber, 1 elite plate, $800 |
-| 5 Elite | Elite cuirass | 35% | Normal | Lieutenant | 10 steel, 3 rubber, 3 elite plate, $1,200 |
+| 3 Trench | <img class="wk-icon" src="/img/items/body_shield.png" alt="" width="16" height="16"> Steel body shield | 17% | Stamina drain ×1.3 | Corporal | 8 steel, 4 copper, 2 cotton, $200 |
+| 4 Assault | <img class="wk-icon" src="/img/items/helmet_t4.png" alt="" width="16" height="16"> Visored helmet | 11% | Normal | Sergeant | 6 steel, 2 copper, 1 rubber, $300 |
+| 4 Assault | <img class="wk-icon" src="/img/items/trench_armour.png" alt="" width="16" height="16"> Heavy trench armour | 24% | Stamina drain ×1.6 | Sergeant | 12 steel, 4 copper, 2 rubber, 2 cured leather, $500 |
+| 5 Elite | <img class="wk-icon" src="/img/items/helmet_t5.png" alt="" width="16" height="16"> Stormtrooper helmet | 15% | Normal | Lieutenant | 6 steel, 2 rubber, 1 elite plate, $800 |
+| 5 Elite | <img class="wk-icon" src="/img/items/elite_cuirass.png" alt="" width="16" height="16"> Elite cuirass | 35% | Normal | Lieutenant | 10 steel, 3 rubber, 3 elite plate, $1,200 |
 
-One helmet and one body piece are worn at a time. Full sets: Field 12%, Trench 25%, Assault 35%, Elite 50%.
+Icons show the British pattern; every nation has its own. One helmet and one body piece are worn at a time. Full sets: Field 12%, Trench 25%, Assault 35%, Elite 50%.
 
 #### 4.8.2 Armour upgrades
 
@@ -919,10 +923,10 @@ Gun and armour drains multiply: a rifle in Assault armour drains ×1.9 (about 8 
 | Rifle rounds | 30 | 1 copper, 1 saltpetre, $10 |
 | Pistol rounds | 30 | 1 copper, $8 |
 | Shotgun shells | 12 | 1 copper, 1 saltpetre, $12 |
-| Machine gun belt | 250 | 4 copper, 3 saltpetre, $60 |
-| Tank shell | 1 | 1 steel, 1 saltpetre, $15 |
+| <img class="wk-icon" src="/img/items/mg_belt.png" alt="" width="16" height="16"> Machine gun belt | 250 | 4 copper, 3 saltpetre, $60 |
+| <img class="wk-icon" src="/img/items/tank_ammo.png" alt="" width="16" height="16"> Tank shell | 1 | 1 steel, 1 saltpetre, $15 |
 | Tank MG rounds | 50 | 1 copper, 1 saltpetre, $10 |
-| Grenade | 1 | 1 iron, 1 saltpetre, $20 |
+| <img class="wk-icon" src="/img/items/grenade_mills.png" alt="" width="16" height="16"> Grenade | 1 | 1 iron, 1 saltpetre, $20 |
 
 #### 4.8.7 Carry limits
 
@@ -931,8 +935,8 @@ Gun and armour drains multiply: a rifle in Assault armour drains ×1.9 (about 8 
 | Rifle rounds | 60 |
 | Pistol rounds | 40 |
 | Shotgun shells | 24 |
-| Machine gun belt | 1 (more stored at the emplacement: up to 3) |
-| Grenades | 3 |
+| <img class="wk-icon" src="/img/items/mg_belt.png" alt="" width="16" height="16"> Machine gun belt | 1 (more stored at the emplacement: up to 3) |
+| <img class="wk-icon" src="/img/items/grenade_mills.png" alt="" width="16" height="16"> Grenades | 3 |
 | Tank ammo | Tank racks only, not carried |
 
 #### 4.8.8 Melee weapons
@@ -941,12 +945,12 @@ Damage on 40 health; stats copy the vanilla item named.
 
 | Weapon | Stats like | Damage | Rank needed | Cost |
 | --- | --- | --- | --- | --- |
-| Trench knife | Stone sword | 5 | None | 2 iron, 1 stick, $20 |
-| Bayonet (on rifle) | — | 6 | None | 3 iron, $40 |
-| Entrenching tool (also a shovel) | Iron axe | 9 (slow) | None | 3 iron, 2 sticks, $40 |
-| Cavalry sabre | Diamond sword | 7 | Corporal | 4 steel, 1 leather, $150 |
-| Trench club | Diamond axe | 9 (slow) | Corporal | 4 steel, 2 planks, $120 |
-| Trench shield | Shield | Blocks 12 blows of 3+ | Private | 6 steel, 4 planks, $100 (repair: planks) |
+| <img class="wk-icon" src="/img/items/trench_knife.png" alt="" width="16" height="16"> Trench knife | Stone sword | 5 | None | 2 iron, 1 stick, $20 |
+| <img class="wk-icon" src="/img/items/bayonet.png" alt="" width="16" height="16"> Bayonet (on rifle) | — | 6 | None | 3 iron, $40 |
+| <img class="wk-icon" src="/img/items/entrenching_tool.png" alt="" width="16" height="16"> Entrenching tool (also a shovel) | Iron axe | 9 (slow) | None | 3 iron, 2 sticks, $40 |
+| <img class="wk-icon" src="/img/items/cavalry_sabre.png" alt="" width="16" height="16"> Cavalry sabre | Diamond sword | 7 | Corporal | 4 steel, 1 leather, $150 |
+| <img class="wk-icon" src="/img/items/trench_club.png" alt="" width="16" height="16"> Trench club | Diamond axe | 9 (slow) | Corporal | 4 steel, 2 planks, $120 |
+| <img class="wk-icon" src="/img/items/trench_shield.png" alt="" width="16" height="16"> Trench shield | Shield | Blocks 12 blows of 3+ | Private | 6 steel, 4 planks, $100 (repair: planks) |
 
 #### 4.8.9 Shots to kill
 
@@ -961,9 +965,9 @@ Hits needed to kill from full health (40), body / head, with a full armour set. 
 | Submachine gun | 6 / 4 | 7 / 5 | 8 / 6 | 9 / 7 | 12 / 8 |
 | Machine gun | 5 / 4 | 6 / 5 | 7 / 5 | 8 / 6 | 10 / 8 |
 | Trench shotgun (blasts) | 2 | 2 | 2 | 3 | 3 |
-| Trench knife | 8 | 10 | 11 | 13 | 16 |
+| <img class="wk-icon" src="/img/items/trench_knife.png" alt="" width="16" height="16"> Trench knife | 8 | 10 | 11 | 13 | 16 |
 | Bayonet | 7 | 8 | 9 | 11 | 14 |
-| Cavalry sabre | 6 | 7 | 8 | 9 | 12 |
+| <img class="wk-icon" src="/img/items/cavalry_sabre.png" alt="" width="16" height="16"> Cavalry sabre | 6 | 7 | 8 | 9 | 12 |
 | Entrenching tool / trench club | 5 | 6 | 6 | 7 | 9 |
 
 Every tier now adds hits against most weapons. Field armour still takes 2 bolt-rifle body hits; Trench is the first tier that takes 3.
@@ -993,14 +997,14 @@ Node sources follow 1914 geography and are a second resource on top of each node
 
 | Resource | How you get it | Nodes that produce it (1914 source) |
 | --- | --- | --- |
-| Steel | Craft: 2 iron + 1 coal at a blast furnace = 1 steel | — |
+| <img class="wk-icon" src="/img/items/steel.png" alt="" width="16" height="16"> Steel | Craft: 2 iron + 1 coal at a blast furnace = 1 steel | — |
 | Copper | Mine at nodes; buy at the Supply Office (imported, expensive) | Nis (Bor), Thuringia (Mansfeld), West Country (Cornwall), Banat (Moldova Nouă), East Finland (Outokumpu), Tiflis (Alaverdi), Diarbekir (Ergani) |
-| Salt | Grows as crystals on budding salt at the node's mine; harvest full clusters. Also imported (expensive) | Krakow (Wieliczka), Upper Austria (Salzkammergut), Northern England (Cheshire), Lorraine (Dieuze), Transylvania (Turda), Ekaterinoslav (Bakhmut), Bucharest (Slănic), Brittany (Guérande), Palermo (Trapani), Burgas (Anchialo), Angora (Tuz Gölü) |
-| Cotton | Harvest at farm nodes; buy at the Supply Office (imported, expensive) | Egypt, Adana, Smyrna |
-| Saltpetre | Buy at the Supply Office (imported Chilean nitrate); produced at one node | Baden (the Oppau nitrogen works) |
-| Rubber | Buy at the Supply Office only (no European source in 1914); cheaper for Britain and France | — |
-| Cured leather | Craft: 1 leather + 1 salt | — |
-| Elite plate | Loot chests in contested zones only | — |
+| <img class="wk-icon" src="/img/items/salt_crystal.png" alt="" width="16" height="16"> Salt | Grows as crystals on budding salt at the node's mine; harvest full clusters. Also imported (expensive) | Krakow (Wieliczka), Upper Austria (Salzkammergut), Northern England (Cheshire), Lorraine (Dieuze), Transylvania (Turda), Ekaterinoslav (Bakhmut), Bucharest (Slănic), Brittany (Guérande), Palermo (Trapani), Burgas (Anchialo), Angora (Tuz Gölü) |
+| <img class="wk-icon" src="/img/items/cotton.png" alt="" width="16" height="16"> Cotton | Harvest at farm nodes; buy at the Supply Office (imported, expensive) | Egypt, Adana, Smyrna |
+| <img class="wk-icon" src="/img/items/saltpetre.png" alt="" width="16" height="16"> Saltpetre | Buy at the Supply Office (imported Chilean nitrate); produced at one node | Baden (the Oppau nitrogen works) |
+| <img class="wk-icon" src="/img/items/rubber.png" alt="" width="16" height="16"> Rubber | Buy at the Supply Office only (no European source in 1914); cheaper for Britain and France | — |
+| <img class="wk-icon" src="/img/items/cured_leather.png" alt="" width="16" height="16"> Cured leather | Craft: 1 leather + 1 salt | — |
+| <img class="wk-icon" src="/img/items/elite_plate.png" alt="" width="16" height="16"> Elite plate | Loot chests in contested zones only | — |
 | Iron, coal, oil, gold, farm | As now, from node resources | See section 4.6.3 |
 
 ## Module 5: Screens, Website and Getting Help
@@ -1073,7 +1077,7 @@ Bob kills a fellow Briton over a chest. Britain's Leader chooses Fine, and the m
 
 #### 5.6.4 The capital falls
 
-In a war window Germany captures London. Every Briton who dies from then on stays dead, watching through the eyes of the Britons still alive. In the next window Britain's survivors and France, its ally, retake London, and everyone who was waiting respawns there at once.
+In a war window Germany captures London. Every Briton who dies from then on stays dead, watching through the eyes of the Britons still alive. In the next window Britain's survivors, with France (its ally, and also at war with Germany), retake London, and everyone who was waiting respawns there at once.
 
 #### 5.6.5 Wiped out
 
