@@ -1523,3 +1523,5 @@ body.ui-nova .bc-item { display: flex; gap: 12px; align-items: center; padding: 
 body.ui-nova .bc-item img, body.ui-nova .bc-noimg { width: 48px; height: 48px; flex: none; image-rendering: pixelated; border-radius: 6px; background: rgba(255,255,255,.04); }
 body.ui-nova .bc-item b { display: block; font-size: 14px; }
 body.ui-nova .bc-item small { display: block; color: var(--text-muted); font-size: 12.5px; line-height: 1.4; }
+/* wiki screenshots and mock-ups */
+body.ui-nova .wk-shot { display: block; width: 100%; max-width: 720px; height: auto; border-radius: 10px; border: 1px solid var(--background-modifier-border); margin: 8px 0 4px; }

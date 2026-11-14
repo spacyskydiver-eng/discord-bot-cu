@@ -1012,6 +1012,76 @@ Node sources follow 1914 geography and are a second resource on top of each node
 | <img class="wk-icon" src="/img/items/elite_plate.png" alt="" width="16" height="16"> Elite plate | Loot chests in contested zones only | — |
 | Iron, coal, oil, gold, farm | As now, from node resources | See section 4.6.3 |
 
+### 4.9 New for 17 December (coming)
+
+> Coming for 17 December. These are being built now: details may change, and this section will be updated as they land.
+
+Ideas the team adopted for the event, so you know what's coming. None of it is in the tester pack.
+
+#### 4.9.1 The death recap
+
+When you die, a card tells you who killed you (their name, nation, rank and regiment), with what, from how far, where they hit you and how much health they had left. It also shows your respawn countdown and which teammate you're watching while you wait (1.2.4).
+
+<img class="wk-shot" src="/img/wiki/m2/death_recap.webp" width="960" height="540" loading="lazy" alt="A death recap card: killed in action by a German sergeant with a Gewehr 98, 84 blocks away, a head shot">
+
+*Mock-up: the numbers are examples.*
+
+#### 4.9.2 Spawn protection, and no reward for killing recruits
+
+You get a few seconds of protection when you respawn at your capital or a respawn point, so nobody can camp it. Killing a soldier who's still in their starting kit earns no pay and no career XP, so farming new players gets you nothing.
+
+#### 4.9.3 The Christmas Truce
+
+There's no war window on 25 December. From 19:00 UK time PvP is off for the evening, and no man's land is open to meet the other side. A banner across the top of your screen marks it, and the Daily Front will cover it. The windows carry on on 26, 28 and 30 December (3.2.2).
+
+<img class="wk-shot" src="/img/wiki/m2/truce_notice.webp" width="960" height="540" loading="lazy" alt="The truce banner across the top of the screen, with fir boughs and candles">
+
+*Mock-up: the numbers are examples.*
+
+#### 4.9.4 The after-action report
+
+After each war window, a report shows every nation's nodes taken and lost and its kills, the window's finest soldiers, and the costliest node. It feeds the Daily Front and the site's [War Report](/war).
+
+<img class="wk-shot" src="/img/wiki/m2/after_action.webp" width="960" height="540" loading="lazy" alt="An after-action report: nodes taken and lost and kills for each nation, the finest soldiers and the costliest node">
+
+*Mock-up: the numbers are examples.*
+
+#### 4.9.5 Dog tags and the memorial
+
+Every death drops an identity tag, one design per army. Carry your own nation's fallen back to your capital's memorial and hand them in to carve their names there. There's no money for it: it's for remembrance. Enemy tags are trophies.
+
+<img class="wk-shot" src="/img/wiki/m2/memorial.webp" width="960" height="540" loading="lazy" alt="The memorial hand-in screen: the tags you carry and a Carve the names button">
+
+*Mock-up: the numbers are examples.*
+
+#### 4.9.6 Medic pay
+
+Medics are paid for healing, but only for damage dealt by the enemy, and only up to an hourly cap, so patching up a friend you shot yourself earns nothing.
+
+#### 4.9.7 Joining late
+
+Joining after day 4? You start at your nation's median rank minus one, up to Corporal, so you're not a lone Private among Lieutenants.
+
+#### 4.9.8 Gallantry medals
+
+Each week your Leader can award a few gallantry medals from a small allowance, for the soldiers who earned them. They show on your profile, your [service record](/soldier) and the ribbon bar on your uniform.
+
+<img class="wk-shot" src="/img/wiki/m2/gallantry.webp" width="960" height="540" loading="lazy" alt="A gallantry award card with the citation, by order of the Leader">
+
+*Mock-up: the numbers are examples.*
+
+#### 4.9.9 Rations and the field kitchen
+
+Tea, bully beef, stew and the rum tot, one set per army. Each ration gives a short boost to how fast your stamina refills. A field kitchen cooks them, and cooking is a paid job.
+
+#### 4.9.10 Regiments
+
+Three to ten players can found a regiment with a name, a banner and a short tag shown next to their names. Regiments get their own jobs, and their deeds make the Daily Front. A good way for a group of friends to belong inside a big nation.
+
+<img class="wk-shot" src="/img/wiki/m2/regiment.webp" width="960" height="540" loading="lazy" alt="A regiment page: its banner and colours, the roster and the jobs of the regiment">
+
+*Mock-up: the numbers are examples.*
+
 ## Module 5: Screens, Website and Getting Help
 
 ### 5.1 Getting help from staff
