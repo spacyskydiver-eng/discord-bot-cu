@@ -717,6 +717,19 @@ router.get('/soldier/:name', async (req, res, next) => {
   }
 });
 
+// the nation welcome (meeting 2): where the welcome DM points a newly assigned player
+router.get('/welcome/:slug', async (req, res, next) => {
+  try {
+    const n = require('../nations').NATIONS.find(x => x.slug === req.params.slug);
+    if (!n) return next();
+    const cfg = await require('../nation-roles').config();
+    const voice = cfg.voice && cfg.voice[n.id] ? `https://discord.com/channels/1449004906068312189/${cfg.voice[n.id]}` : null;
+    const ev = upcomingEvents().find(e => e.windows) || { windows: [] };
+    const upcoming = ev.windows.find(w => w.end > Date.now() / 1000) || null;
+    res.render('new/welcome', { n, voice, next: upcoming, leader: await require('../nation-roles').leaderName(n.id).catch(() => null) });
+  } catch (e) { next(e); }
+});
+
 // the eight nations' public pages
 router.get('/nations', async (req, res, next) => {
   try { res.render('new/nations', { nations: await require('../nations').withMap(), nation: null }); } catch (e) { next(e); }

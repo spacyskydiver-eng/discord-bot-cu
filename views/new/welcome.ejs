@@ -1,0 +1,32 @@
+<% const nm = n.name.replace(/^The /, 'the '); %>
+<%- include('partials/head', { pageTitle: 'Welcome to ' + nm, pageDescription: `You're in ${nm} for The Great War. Your Leader, your people and what to do tonight.` }) %>
+<%- include('partials/header') %>
+<%# The nation welcome (meeting 2): where a new player lands from the welcome DM. Generic per nation, nothing private. %>
+<style>
+.wl-wrap { max-width: 760px; margin: 0 auto; padding-bottom: 80px; }
+.wl-head { display: flex; align-items: center; gap: 18px; margin-bottom: 22px; }
+.wl-head img { width: 108px; height: 72px; image-rendering: pixelated; border: 2px solid #0c0e11; border-radius: 4px; flex: none; }
+.wl-head small { display: block; font: 700 12px Inter, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #9aa0ad; }
+.wl-box { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 14px; }
+.wl-box h2 { font: 800 17px 'Baloo 2', sans-serif; color: #fff; margin: 0 0 8px; }
+.wl-box p, .wl-box li { font: 600 14.5px/1.65 'Baloo 2', sans-serif; color: #c4c8d2; margin: 0 0 6px; }
+.wl-box ol { margin: 0; padding-left: 20px; }
+.wl-box a { color: #74c0fc; }
+.wl-wrap .wl-btn { display: inline-block; margin: 4px 8px 0 0; padding: 9px 14px; border-radius: 10px; border: 1px solid var(--line); color: #fff; text-decoration: none; font: 700 14px 'Baloo 2', sans-serif; }
+</style>
+<main class="wrap"><div class="wl-wrap">
+  <div class="wl-head"><img src="/img/flags/<%= n.flag %>.png" alt="The flag of <%= n.name %>"><div><small>The Great War · welcome</small><h1 class="page-title">You're in <%= nm %></h1></div></div>
+  <div class="wl-box"><h2>Why this nation</h2><p>The game puts each new soldier in the nation with the fewest players, so the war stays even, unless you asked for one that wasn't the biggest. <a href="/nations/<%= n.slug %>">Read about <%= nm %> in 1914</a>.</p></div>
+  <div class="wl-box"><h2>Your Leader and your people</h2>
+    <p>Your Leader is <b><%= leader || 'named when the war begins' %></b>, with a cabinet of up to eight seats. You'll find the Leader's orders in the War Office (press P, then Orders).</p>
+    <% if (voice) { %><a class="wl-btn" href="<%= voice %>" target="_blank" rel="noopener">Join <%= n.name.replace(/^The /, '') %>'s voice channel</a><% } else { %><p>Your nation's channels and voice are on the <a href="https://discord.gg/tF5hWxaQQj" target="_blank" rel="noopener">CUE Discord</a>.</p><% } %></div>
+  <div class="wl-box"><h2>The next war window</h2><p><% if (next) { %><time data-ts="<%= next.start %>"><%= new Date(next.start * 1000).toUTCString().slice(0, 22) %> UTC</time>, for three hours. Land only changes hands inside a window.<% } else { %>There are no more war windows this event.<% } %></p></div>
+  <div class="wl-box"><h2>Three things to do tonight</h2><ol>
+    <li><b>Take a job</b> from Orders in the War Office: it pays as soon as the game sees it done.</li>
+    <li><b>Hand in</b> iron, coal, gold or food at your capital's Supply Office for your first money, then kit yourself out at the Armory.</li>
+    <li><b>Dig in:</b> if there's a Fortify job, trenches, wire and sandbags decide the next window, and they pay by the block.</li>
+  </ol></div>
+  <a class="wl-btn" href="/great-war-in-2-minutes">The Great War in 2 minutes</a><a class="wl-btn" href="/first-hour">Your first hour</a><a class="wl-btn" href="/map">The map</a>
+</div></main>
+<script>document.querySelectorAll('time[data-ts]').forEach(t => { t.textContent = new Intl.DateTimeFormat(undefined, { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' }).format(+t.dataset.ts * 1000).replace(/\b(GMT|UTC)\+0$/, '$1'); });</script>
+<%- include('partials/foot') %>

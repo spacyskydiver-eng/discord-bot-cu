@@ -32,8 +32,8 @@ const ready = (async () => {
 
 const mode = async () => { const m = await access.getSetting('nation_roles'); return m === 'on' || m === 'dry' ? m : 'off'; };
 async function config() {
-  try { return Object.assign({ nations: {}, leader: null, seat: null }, JSON.parse((await access.getSetting('nation_roles_config')) || '{}')); }
-  catch (e) { return { nations: {}, leader: null, seat: null }; }
+  try { return Object.assign({ nations: {}, voice: {}, leader: null, seat: null }, JSON.parse((await access.getSetting('nation_roles_config')) || '{}')); }
+  catch (e) { return { nations: {}, voice: {}, leader: null, seat: null }; }
 }
 
 // the game's feed (requested from Windows): GET /api/public/nations with the shared secret ->
@@ -100,7 +100,10 @@ async function run() {
     // a member who left the server (404) is fine: the grant is still updated
     if (r.ok || r.status === 404) {
       done++;
-      if (action === 'add') await db.query(`INSERT INTO nation_role_grants (discord_id, role_id, kind) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`, [x.discord_id, x.role_id, x.kind]);
+      if (action === 'add') {
+        const fresh = (await db.query(`INSERT INTO nation_role_grants (discord_id, role_id, kind) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`, [x.discord_id, x.role_id, x.kind])).rowCount;
+        if (fresh && x.kind === 'nation') await welcome(x).catch(e => log(m, 'welcome failed', x, e.message));
+      }
       else await db.query(`DELETE FROM nation_role_grants WHERE discord_id = $1 AND role_id = $2`, [x.discord_id, x.role_id]);
       await log(m, action, x, r.status === 404 ? 'not in the server' : null);
     } else { failed++; await log(m, action + ' failed', x, String(r.status)); }
@@ -110,6 +113,30 @@ async function run() {
   return { mode: m, give: p.give.length, take: p.take.length, done, failed, left: p.give.length + p.take.length - todo.length };
 }
 
+// the welcome DM (meeting 2), when a player first gets a nation's role; its own switch, site setting nation_welcome = on
+async function welcome(x) {
+  if ((await access.getSetting('nation_welcome')) !== 'on') return;
+  const cfg = await config(), id = Object.keys(cfg.nations).find(k => cfg.nations[k] === x.role_id);
+  const n = require('./nations').NATIONS.find(y => y.id === id);
+  if (!n) return;
+  const ch = await fetch('https://discord.com/api/v10/users/@me/channels', { method: 'POST', headers: { Authorization: `Bot ${process.env.DISCORD_TOKEN}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ recipient_id: x.discord_id }), signal: AbortSignal.timeout(8000) });
+  if (!ch.ok) return;
+  const content = `Welcome to **${n.name}**. Your Leader, your nation's voice channel, the next war window in your time and three things to do tonight: https://cuevents.xyz/welcome/${n.slug}`;
+  await fetch(`https://discord.com/api/v10/channels/${(await ch.json()).id}/messages`, { method: 'POST', headers: { Authorization: `Bot ${process.env.DISCORD_TOKEN}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ content }), signal: AbortSignal.timeout(8000) });
+  await log('on', 'welcomed', x);
+}
+// the Leader's Minecraft name, from the feed (null until the feed exists)
+let leaders = { at: 0, by: {} };
+async function leaderName(nationId) {
+  if (!FEED()) return null;
+  if (Date.now() - leaders.at > 5 * 60 * 1000) {
+    const d = await feed(), by = {};
+    for (const n of d.nations) if (n.leader) { const l = await links.ofUuid(links.plainUuid(n.leader)); by[short(n.id)] = l ? l.mc_name : null; }
+    leaders = { at: Date.now(), by };
+  }
+  return leaders.by[nationId] || null;
+}
+
 function start() {
   const tick = () => run().then(s => { if (!s.skipped) console.log('[nation-roles]', JSON.stringify(s)); }).catch(e => console.error('[nation-roles]', e.message));
   setTimeout(tick, 90 * 1000);
@@ -117,4 +144,4 @@ function start() {
 }
 async function recentLog(n = 100) { await ready; return (await db.query(`SELECT *, extract(epoch from at)::bigint AS ts FROM nation_role_log ORDER BY id DESC LIMIT $1`, [n])).rows; }
 
-module.exports = { mode, config, plan, run, start, recentLog, GAME_IDS, MAX_CHANGES, ready };
+module.exports = { mode, config, plan, run, start, recentLog, leaderName, GAME_IDS, MAX_CHANGES, ready };

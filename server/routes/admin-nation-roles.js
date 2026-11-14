@@ -27,8 +27,9 @@ router.post('/mode', origin, wrap(async (req, res) => {
 }));
 router.post('/config', origin, wrap(async (req, res) => {
   const b = req.body || {}, nations = {};
-  NATIONS.forEach(n => { const v = snowflake(b['role_' + n.id]); if (v) nations[n.id] = v; });
-  await access.setSetting('nation_roles_config', JSON.stringify({ nations, leader: snowflake(b.role_leader), seat: snowflake(b.role_seat) }));
+  const voice = {};
+  NATIONS.forEach(n => { const v = snowflake(b['role_' + n.id]); if (v) nations[n.id] = v; const c = snowflake(b['voice_' + n.id]); if (c) voice[n.id] = c; });
+  await access.setSetting('nation_roles_config', JSON.stringify({ nations, voice, leader: snowflake(b.role_leader), seat: snowflake(b.role_seat) }));
   res.redirect('/admin/nation-roles?msg=' + encodeURIComponent('Role ids saved.'));
 }));
 

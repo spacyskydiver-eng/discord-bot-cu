@@ -22,6 +22,7 @@
     <li>Every 5 minutes it reads the game's nation list and gives each linked player their nation's role, plus Leader and Seat roles. A wiped nation's players lose theirs.</li>
     <li>It only removes roles it gave itself, only looks at players in the game's list (and people it gave roles to), and makes at most <%= MAX %> changes a run, one at a time.</li>
     <li>If the game's list fails, is empty or shrinks by more than a fifth, it changes nothing. <b>Dry</b> logs what it would do without doing it.</li>
+    <li>The <b>welcome DM</b> (a link to /welcome/&lt;nation&gt;) goes out when a player first gets a nation role, only while site setting <code>nation_welcome</code> is <code>on</code> as well.</li>
     <li>It creates no roles or channels: make the roles (and each nation's channels, with the role's permissions) in Discord, then paste the role ids below.</li>
     <% if (!feed) { %><li class="nr-warn">The game's nation feed isn't set up yet (NATIONS_FEED_URL), so nothing can run.</li><% } %>
   </ul>
@@ -35,7 +36,7 @@
     <p><%= preview.members %> players in nations, <%= preview.linked %> linked on the site. To give: <b><%= preview.give.length %></b>, to take back: <b><%= preview.take.length %></b> (at most <%= MAX %> a run).</p><% } %></div><% } %>
   <form class="nr-box" method="POST" action="/admin/nation-roles/config"><h2>Role ids</h2>
     <div class="nr-grid">
-      <% NATIONS.forEach(n => { %><div><label><%= n.name %></label><input name="role_<%= n.id %>" value="<%= cfg.nations[n.id] || '' %>" placeholder="role id"></div><% }) %>
+      <% NATIONS.forEach(n => { %><div><label><%= n.name %></label><input name="role_<%= n.id %>" value="<%= cfg.nations[n.id] || '' %>" placeholder="role id"><input name="voice_<%= n.id %>" value="<%= (cfg.voice || {})[n.id] || '' %>" placeholder="voice channel id (for the welcome page)" style="margin-top:4px"></div><% }) %>
       <div><label>Leader</label><input name="role_leader" value="<%= cfg.leader || '' %>" placeholder="role id"></div>
       <div><label>Seat holder</label><input name="role_seat" value="<%= cfg.seat || '' %>" placeholder="role id"></div>
     </div><button class="nr-btn" type="submit">Save role ids</button></form>
