@@ -1,0 +1,42 @@
+<%- include('partials/head', { pageTitle: 'Apply: The Great War', pageDescription: 'Applications for The Great War, a two-week World War One event for up to 500 players.' }) %>
+<%- include('partials/header') %>
+<%# /apply while The Great War's own player applications aren't open: never the past event %>
+<style>
+.as-wrap { max-width: 760px; margin: 0 auto; padding-bottom: 80px; }
+.as-box { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px 26px; margin-bottom: 22px; }
+.as-box h2 { font-family: 'Baloo 2'; font-weight: 800; font-size: 20px; color: #fff; margin: 0 0 8px; }
+.as-box p { font-family: 'Baloo 2'; font-weight: 600; font-size: 15px; color: #9a9db0; line-height: 1.7; margin: 0 0 10px; }
+.as-links { display: grid; gap: 10px; }
+.as-link { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 16px; border-radius: 12px; border: 1px solid var(--line);
+  background: rgba(255,255,255,.03); color: #e8e9ee; text-decoration: none; font-family: 'Baloo 2'; font-weight: 700; font-size: 15px; }
+.as-link:hover { border-color: rgba(255,255,255,.25); }
+.as-link small { display: block; font-weight: 600; font-size: 13px; color: #9a9db0; }
+.as-link .go { color: #5be38f; font-size: 13px; white-space: nowrap; }
+</style>
+<main class="wrap">
+<div class="as-wrap">
+  <div class="page-head"><div>
+    <h1 class="page-title">Apply</h1>
+    <p class="page-sub">The Great War · Europe, 1914</p>
+  </div></div>
+
+  <div class="as-box">
+    <h2>Applications for The Great War open soon</h2>
+    <p>Player applications for The Great War aren't open yet. They'll be announced on our Discord. Until then, find out what the event is about.</p>
+    <div class="as-links">
+      <a class="as-link" href="/great-war-in-2-minutes"><span>The Great War in 2 minutes<small>The whole event on one page</small></span><span class="go">Read</span></a>
+      <a class="as-link" href="/wiki"><span>The event wiki<small>The full rules: nations, war windows, nodes, money and gear</small></span><span class="go">Open</span></a>
+    </div>
+  </div>
+
+  <% if (open.length) { %>
+  <div class="as-box">
+    <h2>Open now</h2>
+    <div class="as-links">
+      <% open.forEach(o => { %><a class="as-link" href="<%= o.href %>"><span><%= o.title %><small><%= o.detail %></small></span><span class="go">Apply</span></a><% }) %>
+    </div>
+  </div>
+  <% } %>
+</div>
+</main>
+<%- include('partials/foot') %>

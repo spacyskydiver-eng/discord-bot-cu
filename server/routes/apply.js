@@ -3,9 +3,24 @@ const router = express.Router();
 const db = require('../../db');
 const { sendDiscordDM } = require('../discord-dm');
 
+// The Great War's own player applications are the only ones /apply shows. Until they're open it says so, with what
+// is open now (tester, leader and staff applications), and never shows a past event.
+async function soon(req, res) {
+  const open = [];
+  try {
+    for (const s of (await require('../testers').upcomingSessions()).filter(s => s.open))
+      open.push({ title: 'Tester: ' + s.title, detail: 'A test battle before the event', href: '/testers' });
+  } catch (e) { console.error('[apply] testers', e.message); }
+  try { if (require('../leaders').publicInfo().open) open.push({ title: 'Lead a nation', detail: 'Leader applications', href: '/leaders' }); } catch (e) { console.error('[apply] leaders', e.message); }
+  try { if (require('../staff-apply').publicInfo().open) open.push({ title: 'Join the staff', detail: 'Event Staff, Operator or Event Creator', href: '/staff-apply' }); } catch (e) { console.error('[apply] staff', e.message); }
+  res.render('new/apply-soon', { open });
+}
+const isGreatWar = e => !!e && /great war/i.test(e.title || '');
+
 router.get('/', async (req, res) => {
   const eventRes = await db.query(`SELECT * FROM events ORDER BY created_at DESC LIMIT 1`);
   const event = eventRes.rows[0] || null;
+  if (!isGreatWar(event) || !event.is_open) return soon(req, res);
 
   const eligibilityQuestions = (await db.query(
     `SELECT * FROM eligibility_questions ORDER BY display_order ASC, id ASC`
