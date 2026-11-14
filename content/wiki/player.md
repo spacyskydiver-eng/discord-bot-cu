@@ -1,6 +1,6 @@
 # The Great War: Field Manual
 
-Short on time? Read [The Great War in 2 minutes](/great-war-in-2-minutes) first.
+Short on time? Read [The Great War in 2 minutes](/great-war-in-2-minutes) first. To play, [get the modpack](/pack); stuck with it? See the [modpack FAQ](/pack-faq).
 
 This is the player handbook for The Great War. It covers how the event works from your side: your life and your nation, how wars start and end, what happens when you kill someone you're not at war with, how land changes hands, how you earn and spend money, what you can fight with, and where to get help.
 

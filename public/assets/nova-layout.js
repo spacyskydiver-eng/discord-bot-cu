@@ -313,6 +313,61 @@ B.registerView('great-war-short', {
   },
 });
 
+/* ---------------------------------------------------------------- the modpack: download, install, FAQ */
+const steps = list => `<ol class="pk-steps">${list.map(s => `<li>${s}</li>`).join('')}</ol>`;
+const qa = list => `<div class="pk-qa">${list.map(([q, a]) => `<details><summary>${esc(q)}</summary><div>${a}</div></details>`).join('')}</div>`;
+const leaving = path => () => { if (location.pathname === path) history.replaceState(null, '', '/' + location.hash); };
+const faqLink = `<a href="/pack-faq" data-go="pack-faq">the pack FAQ</a>`;
+B.registerView('pack', {
+  title: () => 'Get the modpack', icon: 'download', cls: 'nv-view',
+  show(view) {
+    const P = CUE().pack || {};
+    const download = P.url
+      ? card('↓', `The Great War ${esc(P.version)}`, `The modpack file (.mrpack)${P.size ? ' · ' + esc(P.size) : ''}`, `<span class="store-buy">Download</span>`, `href="${esc(P.url)}" download`)
+      : card('↓', 'The download link is coming soon', 'It goes up here before the tester event on Saturday 21 November. Testers also get it on Discord.', pill('Soon'));
+    pageView(view, {
+      color: '#34D399', kicker: 'The Great War', title: 'Get the modpack',
+      lede: 'The Great War runs on its own pack of custom-made mods for Minecraft Java Edition 1.20.1. It takes a few minutes to set up, the same way on Windows and Mac.',
+      body: sec('Download', `<div class="nv-timeline">${download}</div>`)
+        + sec('Install it', steps([
+          '<b>Get the Modrinth App</b> from <a href="https://modrinth.com/app" target="_blank" rel="noopener">modrinth.com/app</a>: the installer on Windows, the .dmg on Mac (drag it into Applications). It\'s free, and it sets up the right Java for you.',
+          '<b>Sign in</b> in the app with the Microsoft account you play Minecraft Java Edition on.',
+          '<b>Download the pack file</b> above. It ends in <code>.mrpack</code>. Don\'t unzip it.',
+          'In the app, click <b>+</b> (Create instance), choose <b>Import from file</b> and pick the pack file. The app downloads everything else by itself, a few hundred MB the first time.',
+          '<b>Give it memory:</b> open the instance, then Settings, then Java and memory. 6 GB is comfortable and 4 GB is the least. Leave at least half your computer\'s memory for everything else: on an 8 GB computer, give it 4 GB.',
+          'Press <b>Play</b>. The intro plays, then the title screen. <b>Join the war</b> takes you to the server: there\'s no address to add.',
+        ]))
+        + sec('Updating to a new version', `<p class="nv-lede">When a new version comes out, the server only lets in the new one. Download the new file and import it as a new instance, the same way as above, then delete the old instance in the app. Don't copy anything across from the old one.</p>`)
+        + sec('If the server turns you away', qa([
+          ["“Your pack doesn't match”", `<p>The server checks every mod and resource pack you have against the event's pack, and anything extra or missing sends you back with a message naming it. Remove what it names (an added mod, a resource pack or a shader) or, simplest, delete the instance and import the pack again, without changes. If it names something missing, reinstall the pack: a file didn't download properly.</p>`],
+          ['“This front is closed to you for now”', `<p>You're not on the list for this session. Testers: check you applied on the <a href="/testers" data-go="testers">testers page</a> with your exact Minecraft name and were given a place. If you were and it still says this, ask on our Discord.</p>`],
+          ['It says the server is on an older or newer version', `<p>Your pack is out of date. See Updating, above.</p>`],
+        ]))
+        + `<section class="nv-sec"><p class="nv-lede">Slow game, crashes, shaders or adding mods: see ${faqLink}.</p></section>`,
+    });
+    return leaving('/pack');
+  },
+});
+B.registerView('pack-faq', {
+  title: () => 'Modpack FAQ', icon: 'help-circle', cls: 'nv-view',
+  show(view) {
+    pageView(view, {
+      color: '#34D399', kicker: 'The Great War', title: 'Modpack FAQ',
+      lede: 'Quick answers about the pack. To install it, see the install page.',
+      body: `<section class="nv-sec"><div class="nv-timeline">${card('↓', 'Get the modpack', 'Download, install and update it', pill('Install'), 'href="/pack" data-go="pack"')}</div></section>`
+        + sec('Questions', qa([
+          ['What computer do I need?', `<p>A 64-bit Windows 10 or 11 PC or a Mac, with at least 8 GB of memory (16 GB is better) and a graphics card or chip that runs ordinary Minecraft smoothly. You need Minecraft Java Edition; Bedrock, console and phone versions can't join.</p>`],
+          ['My frame rate is low', `<p>Turn on <b>Fast mode</b> in the game's Settings: one switch for a weak machine or a big battle (shorter view distance, fewer particles, fast graphics, no clouds). Turning it off puts your settings back. Also close other programs, and check the instance has 4 to 6 GB of memory (see the install page).</p>`],
+          ['It crashes when it starts', `<p>Check the memory first: under 4 GB it can run out while loading. Update your graphics drivers. If it still crashes, delete the instance and import the pack again without changes. Then report it (below) with the newest file from the instance's <code>crash-reports</code> folder (in the Modrinth App: the instance, then the folder icon).</p>`],
+          ['Can I use shaders or my own resource packs?', `<p>No. The server refuses any change to the pack, resource packs and shaders included, and sends you back with a message naming what to remove.</p>`],
+          ['Can I add mods, like a minimap or a performance mod?', `<p>No. Only the event's pack gets in, exactly as it is. The pack already includes its own performance mods, and the War Office has the map.</p>`],
+          ['How do I report a bug?', `<p>Post it on our <a href="${esc(CUE().discord || 'https://discord.gg/tF5hWxaQQj')}" target="_blank" rel="noopener">Discord</a>, one message per bug: what you did, what you expected and what happened, the time and your Minecraft name, and a screenshot (F2) or a short clip if you can. For a crash, attach the newest file from <code>crash-reports</code>.</p>`],
+        ])),
+    });
+    return leaving('/pack-faq');
+  },
+});
+
 B.registerView('store', {
   title: () => 'Store', icon: 'cart', cls: 'nv-view',
   show(view) {

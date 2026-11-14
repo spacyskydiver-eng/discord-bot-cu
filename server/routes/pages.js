@@ -81,6 +81,7 @@ async function renderApp(req, res) {
     arsenal,
     discord: 'https://discord.gg/tF5hWxaQQj',
     events: upcomingEvents(),
+    pack: require('../pack.config'),
     applications,
     team,
     testSessions,
@@ -111,6 +112,8 @@ router.get('/', renderApp);
 router.get('/wiki', renderApp);
 router.get('/testers', renderApp);
 router.get('/great-war-in-2-minutes', renderApp);
+router.get('/pack', renderApp);
+router.get('/pack-faq', renderApp);
 router.get('/leaders', renderApp);
 router.get('/staff-apply', renderApp);
 router.get('/account', renderApp);

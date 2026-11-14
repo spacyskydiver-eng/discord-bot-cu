@@ -433,6 +433,8 @@ function parseHash() {
   // pages with their own address
   if (!h.startsWith('#/') && location.pathname === '/testers') return { id: 'testers', heading: null };
   if (!h.startsWith('#/') && location.pathname === '/great-war-in-2-minutes') return { id: 'great-war-short', heading: null };
+  if (!h.startsWith('#/') && location.pathname === '/pack') return { id: 'pack', heading: null };
+  if (!h.startsWith('#/') && location.pathname === '/pack-faq') return { id: 'pack-faq', heading: null };
   if (!h.startsWith('#/') && location.pathname === '/leaders') return { id: 'leaders', heading: null };
   if (!h.startsWith('#/') && location.pathname === '/staff-apply') return { id: 'staff-apply', heading: null };
   if (!h.startsWith('#/') && location.pathname === '/account') return { id: 'account', heading: null };

@@ -1484,3 +1484,16 @@ body.ui-nova .gw2-window small { display: block; margin-top: 6px; font-size: 10.
   body.ui-nova .gw2-facts { grid-template-columns: 1fr 1fr; }
   body.ui-nova .gw2-window { grid-template-columns: 1fr; }
 }
+/* the modpack pages */
+body.ui-nova .pk-steps { margin: 0; padding-left: 22px; display: grid; gap: 10px; color: var(--text-normal); line-height: 1.55; max-width: 72ch; }
+body.ui-nova .pk-steps li::marker { color: var(--mod); font-weight: 700; }
+body.ui-nova .pk-steps a, body.ui-nova .pk-qa a, body.ui-nova .nv-lede a { color: var(--mod); }
+body.ui-nova .pk-steps code, body.ui-nova .pk-qa code { font-size: .92em; padding: 1px 5px; border-radius: 5px; background: rgba(255,255,255,.06); }
+body.ui-nova .pk-qa { display: grid; gap: 8px; max-width: 80ch; }
+body.ui-nova .pk-qa details { border: 1px solid var(--background-modifier-border); border-radius: 12px; background: var(--background-secondary); }
+body.ui-nova .pk-qa summary { cursor: pointer; padding: 13px 16px; font-weight: 600; list-style: none; }
+body.ui-nova .pk-qa summary::-webkit-details-marker { display: none; }
+body.ui-nova .pk-qa summary::after { content: '+'; float: right; color: var(--mod); }
+body.ui-nova .pk-qa details[open] summary::after { content: '−'; }
+body.ui-nova .pk-qa details > div { padding: 0 16px 12px; color: var(--text-muted); line-height: 1.6; }
+body.ui-nova .pk-qa p { margin: 0 0 8px; }
