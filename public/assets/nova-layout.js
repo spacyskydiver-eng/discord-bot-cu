@@ -377,7 +377,7 @@ B.registerView('pack', {
   show(view) {
     const P = CUE().pack || {};
     const download = P.url
-      ? card('↓', `The Great War ${esc(P.version)}`, `The modpack file (.mrpack)${P.size ? ' · ' + esc(P.size) : ''}`, `<span class="store-buy">Download</span>`, `href="${esc(P.url)}" download`)
+      ? card('↓', `The Great War ${esc(P.version)}`, `The modpack file (.mrpack)${P.size ? ' · ' + esc(P.size) : ''}${P.sha256 ? `<span class="pk-sha">SHA-256 ${esc(P.sha256)}</span>` : ''}`, `<span class="store-buy">Download</span>`, `href="${esc(P.url)}" download`)
       : card('↓', 'The download link is coming soon', 'It goes up here before the tester event on Saturday 21 November. Testers also get it on Discord.', pill('Soon'));
     pageView(view, {
       color: '#34D399', kicker: 'The Great War', title: 'Get the modpack',

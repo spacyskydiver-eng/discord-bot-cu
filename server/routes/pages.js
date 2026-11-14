@@ -94,7 +94,7 @@ async function renderApp(req, res) {
     arsenal,
     discord: 'https://discord.gg/tF5hWxaQQj',
     events: upcomingEvents(),
-    pack: require('../pack.config'),
+    pack: await require('../pack-release').publicInfo(),
     applications,
     team,
     testSessions,
@@ -133,6 +133,7 @@ router.get('/great-war/windows.ics', (req, res) => {
 router.get('/pack', renderApp);
 router.get('/first-hour', renderApp);
 router.get('/pack-faq', renderApp);
+router.get('/download/:file', (req, res, next) => require('../pack-release').serve(req, res, next));
 router.get('/leaders', renderApp);
 router.get('/staff-apply', renderApp);
 router.get('/account', renderApp);
