@@ -1,4 +1,4 @@
-<%- include('partials/head', { pageTitle: 'Apply: The Great War', pageDescription: 'Applications for The Great War, a two-week World War One event for up to 500 players.' }) %>
+<%- include('partials/head', { publicBg: true, pageTitle: 'Apply: The Great War', pageDescription: 'Applications for The Great War, a two-week World War One event for up to 500 players.' }) %>
 <%- include('partials/header') %>
 <%# /apply while The Great War's own player applications aren't open: never the past event %>
 <style>
@@ -15,6 +15,7 @@
 </style>
 <main class="wrap">
 <div class="as-wrap">
+  <%- include('partials/home-link') %>
   <div class="page-head"><div>
     <h1 class="page-title">Apply</h1>
     <p class="page-sub">The Great War · Europe, 1914</p>

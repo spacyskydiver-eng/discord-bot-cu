@@ -1,4 +1,4 @@
-<%- include('partials/head', { pageTitle: 'The War Office', pageDescription: 'Your war on your phone: your nation, the next war window, your orders, jobs and mail.' }) %>
+<%- include('partials/head', { publicBg: true, pageTitle: 'The War Office', pageDescription: 'Your war on your phone: your nation, the next war window, your orders, jobs and mail.' }) %>
 <%- include('partials/header') %>
 <%# The War Office on your phone (S30): the player's own, read-only view. Private: no-store, per signed-in player. %>
 <style>
@@ -22,6 +22,7 @@
 .wo-box p { font: 600 14.5px/1.6 'Baloo 2', sans-serif; color: #c4c8d2; margin: 0 0 8px; }
 </style>
 <main class="wrap"><div class="wo-wrap">
+  <%- include('partials/home-link') %>
   <div class="page-head"><div><h1 class="page-title">The War Office</h1><p class="page-sub">Your war, on your phone. Read-only.</p></div></div>
 <% if (!locals.user) { %>
   <div class="wo-box"><p>Sign in with Discord, then link your Minecraft account once with a code from the game.</p><a class="wo-btn" href="/auth/discord?return=/war-office">Sign in with Discord</a></div>

@@ -1,4 +1,4 @@
-<%- include('partials/head', { pageTitle: 'Report a bug', pageDescription: 'Found a bug in The Great War? Tell us what happened and attach your log.' }) %>
+<%- include('partials/head', { publicBg: true, pageTitle: 'Report a bug', pageDescription: 'Found a bug in The Great War? Tell us what happened and attach your log.' }) %>
 <%- include('partials/header') %>
 <style>
 .br-wrap { max-width: 760px; margin: 0 auto; padding-bottom: 80px; }
@@ -17,6 +17,7 @@
 .br-box a { color: #74c0fc; }
 </style>
 <main class="wrap"><div class="br-wrap">
+  <%- include('partials/home-link') %>
   <div class="page-head"><div><h1 class="page-title">Report a bug</h1><p class="page-sub">The Great War · for testers and players</p></div></div>
 <% if (!locals.user) { %>
   <div class="br-box"><h2>Sign in to report a bug</h2><p>We use your Discord account so we can ask you about it. It takes a few seconds.</p><a class="br-btn" href="/auth/discord?return=/report">Sign in with Discord</a></div>

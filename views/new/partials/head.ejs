@@ -10,6 +10,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/new-design.css">
+  <% if (locals.publicBg) { %><link rel="stylesheet" href="/assets/menu-bg.css?v=<%= locals.v || '1' %>">
+  <style>
+    /* public pages sit on the site's own background, like the app's pages */
+    .nd-body.has-bg { background: transparent; } .nd-body.has-bg::before { display: none; }
+    #cue-sound, #cue-fast { display: none !important; }
+    .pg-home { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 6px; color: #9aa0ad; font: 600 13px Inter, sans-serif; text-decoration: none; }
+    .pg-home:hover { color: #fff; }
+  </style><% } %>
 </head>
-<body class="nd-body">
+<body class="nd-body<%= locals.publicBg ? ' has-bg' : '' %>">
+<% if (locals.publicBg) { %><%- include('../../partials/menu-bg', { v: locals.v }) %><% } %>
 <script src="/js/cue-effects.js" defer></script>

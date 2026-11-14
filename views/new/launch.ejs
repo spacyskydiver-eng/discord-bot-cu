@@ -1,4 +1,4 @@
-<%- include('partials/head', { pageTitle: 'The Great War', pageDescription: 'Europe, 1914. Eight nations, 174 nodes, up to 500 players and two weeks of war, from 17 December. Pick your side.' }) %>
+<%- include('partials/head', { publicBg: true, pageTitle: 'The Great War', pageDescription: 'Europe, 1914. Eight nations, 174 nodes, up to 500 players and two weeks of war, from 17 December. Pick your side.' }) %>
 <%- include('partials/header') %>
 <%# The 17 Dec launch page. Owner-only draft until site setting launch_public = on (S22). %>
 <style>
@@ -44,6 +44,7 @@
 @media (max-width: 700px) { .ln-facts { grid-template-columns: 1fr 1fr; } .ln-hero .ln-over { position: static; background: #0b0d12; } }
 </style>
 <main class="wrap"><div class="ln-wrap">
+  <%- include('partials/home-link') %>
   <% if (!isPublic) { %><div class="ln-draft">Draft: only you can see this page. It goes public when the head says (site setting <code>launch_public</code>).</div><% } %>
   <div class="ln-hero"><img src="/img/pack/cover.webp" width="1280" height="720" alt="A Mark V tank in a wheat field at sunset, under the title The Great War">
     <div class="ln-over"><h1>Europe, 1914. Pick your side.</h1>

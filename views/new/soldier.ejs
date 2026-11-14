@@ -1,5 +1,5 @@
 <% const r = locals.rec, acc = locals.account; %>
-<%- include('partials/head', { pageTitle: r ? acc.name + (r.rank ? ', ' + r.rank : '') + (r.nationName ? ' of ' + r.nationName : '') : 'Service records', pageDescription: r ? `${acc.name}'s service record in The Great War: ${r.kills} kills, ${r.captures} captures, ${r.daysSurvived} days served${r.medalList.length ? ', ' + r.medalList.map(m => m.title).join(', ') : ''}.` : 'Look up any soldier\'s service record in The Great War.' }) %>
+<%- include('partials/head', { publicBg: true, pageTitle: r ? acc.name + (r.rank ? ', ' + r.rank : '') + (r.nationName ? ' of ' + r.nationName : '') : 'Service records', pageDescription: r ? `${acc.name}'s service record in The Great War: ${r.kills} kills, ${r.captures} captures, ${r.daysSurvived} days served${r.medalList.length ? ', ' + r.medalList.map(m => m.title).join(', ') : ''}.` : 'Look up any soldier\'s service record in The Great War.' }) %>
 <%- include('partials/header') %>
 <style>
 .sr-wrap { max-width: 820px; margin: 0 auto; padding-bottom: 80px; }
@@ -26,6 +26,7 @@
 @media (max-width: 640px) { .sr-grid { grid-template-columns: 1fr 1fr; } .sr-paper { padding: 18px 16px; } }
 </style>
 <main class="wrap"><div class="sr-wrap">
+  <%- include('partials/home-link') %>
   <div class="page-head"><div><h1 class="page-title">Service records</h1><p class="page-sub">The Great War · every soldier's record</p></div></div>
   <form class="sr-search" method="GET" action="/soldier"><input name="name" maxlength="16" placeholder="A Minecraft name" value="<%= locals.q || '' %>" autocomplete="off" spellcheck="false"><button class="sr-btn" type="submit">Look up</button></form>
   <% if (locals.notice) { %><p class="sr-none"><%= notice %></p><% } %>

@@ -1,4 +1,4 @@
-<%- include('partials/head', { pageTitle: 'Apply: The Great War', pageDescription: 'Apply to play The Great War, a two-week World War One event for up to 500 players, from 17 December.' }) %>
+<%- include('partials/head', { publicBg: true, pageTitle: 'Apply: The Great War', pageDescription: 'Apply to play The Great War, a two-week World War One event for up to 500 players, from 17 December.' }) %>
 <%- include('partials/header') %>
 <%# The Great War's player application (server/gw-apply.js). %>
 <style>
@@ -20,6 +20,7 @@
 .ga-err a, .ga-box a { color: #74c0fc; }
 </style>
 <main class="wrap"><div class="ga-wrap">
+  <%- include('partials/home-link') %>
   <div class="page-head"><div><h1 class="page-title">Apply</h1><p class="page-sub">The Great War · Europe, 1914 · from 17 December</p></div></div>
 <% if (!locals.user) { %>
   <div class="ga-box"><h2>Sign in to apply</h2><p>We use your Discord account so we can reach you about the event. It takes a minute.</p>

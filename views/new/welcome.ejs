@@ -1,5 +1,5 @@
 <% const nm = n.name.replace(/^The /, 'the '); %>
-<%- include('partials/head', { pageTitle: 'Welcome to ' + nm, pageDescription: `You're in ${nm} for The Great War. Your Leader, your people and what to do tonight.` }) %>
+<%- include('partials/head', { publicBg: true, pageTitle: 'Welcome to ' + nm, pageDescription: `You're in ${nm} for The Great War. Your Leader, your people and what to do tonight.` }) %>
 <%- include('partials/header') %>
 <%# The nation welcome (meeting 2): where a new player lands from the welcome DM. Generic per nation, nothing private. %>
 <style>
@@ -15,6 +15,7 @@
 .wl-wrap .wl-btn { display: inline-block; margin: 4px 8px 0 0; padding: 9px 14px; border-radius: 10px; border: 1px solid var(--line); color: #fff; text-decoration: none; font: 700 14px 'Baloo 2', sans-serif; }
 </style>
 <main class="wrap"><div class="wl-wrap">
+  <%- include('partials/home-link') %>
   <div class="wl-head"><img src="/img/flags/<%= n.flag %>.png" alt="The flag of <%= n.name %>"><div><small>The Great War · welcome</small><h1 class="page-title">You're in <%= nm %></h1></div></div>
   <div class="wl-box"><h2>Why this nation</h2><p>The game puts each new soldier in the nation with the fewest players, so the war stays even, unless you asked for one that wasn't the biggest. <a href="/nations/<%= n.slug %>">Read about <%= nm %> in 1914</a>.</p></div>
   <div class="wl-box"><h2>Your Leader and your people</h2>

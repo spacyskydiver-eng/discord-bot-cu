@@ -1,5 +1,5 @@
 <% const isFront = page === 'front'; %>
-<%- include('partials/head', { pageTitle: isFront ? 'The Daily Front' : 'War Report', pageDescription: isFront ? 'The Great War\'s newspaper: every edition of the Daily Front.' : 'The Great War, live: who holds what, the wars and alliances, captures and the biggest fights.' }) %>
+<%- include('partials/head', { publicBg: true, pageTitle: isFront ? 'The Daily Front' : 'War Report', pageDescription: isFront ? 'The Great War\'s newspaper: every edition of the Daily Front.' : 'The Great War, live: who holds what, the wars and alliances, captures and the biggest fights.' }) %>
 <%- include('partials/header') %>
 <%# The War Report and the Daily Front. Data from server/war-feed.js: never node values, coordinates or scouting intel. %>
 <style>
@@ -40,6 +40,7 @@
 @media (max-width: 700px) { .wr-table .hide-sm { display: none; } .df-paper { padding: 18px 16px; } }
 </style>
 <main class="wrap"><div class="wr-wrap">
+  <%- include('partials/home-link') %>
   <div class="page-head"><div><p class="wr-kicker">The Great War · <%= isFront ? 'the newspaper' : 'day ' + report.day %></p>
     <h1 class="page-title"><%= isFront ? 'The Daily Front' : 'War Report' %></h1>
     <p class="page-sub"><%= isFront ? 'Every edition of the war\'s own newspaper.' : 'The war at a glance, for when you\'re not on the server.' %></p></div></div>
