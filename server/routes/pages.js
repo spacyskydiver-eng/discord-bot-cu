@@ -110,6 +110,7 @@ async function renderApp(req, res) {
 router.get('/', renderApp);
 router.get('/wiki', renderApp);
 router.get('/testers', renderApp);
+router.get('/great-war-in-2-minutes', renderApp);
 router.get('/leaders', renderApp);
 router.get('/staff-apply', renderApp);
 router.get('/account', renderApp);

@@ -1,5 +1,7 @@
 # The Great War: Field Manual
 
+Short on time? Read [The Great War in 2 minutes](/great-war-in-2-minutes) first.
+
 This is the player handbook for The Great War. It covers how the event works from your side: your life and your nation, how wars start and end, what happens when you kill someone you're not at war with, how land changes hands, how you earn and spend money, what you can fight with, and where to get help.
 
 It's split into five modules, the same five the Discord is split into, so if you've got a question about trade you know which channel to ask in. Section numbers match the staff copy. If a number skips, that part was staff only.

@@ -1470,3 +1470,17 @@ body.ui-nova .ars-soon .tst-btn { --mod: #FBBF24; }
    badge at the top and a "0 backlinks / 0 words" line in the corner */
 body.ui-nova .markdown-preview-view.subject-home .markdown-preview-sizer::before { content: none; display: none; }
 body.ui-nova .status-bar { display: none; }
+/* The Great War in 2 minutes */
+body.ui-nova .gw2-facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+body.ui-nova .gw2-facts .nv-today-cell { text-decoration: none; border-color: var(--background-modifier-border); }
+body.ui-nova .gw2-facts .nv-today-cell:hover, body.ui-nova .gw2-window:hover, body.ui-nova .gw2-nations:hover .nv-pill { border-color: var(--background-modifier-border-hover); }
+body.ui-nova .gw2-nations { display: flex; flex-wrap: wrap; gap: 8px; text-decoration: none; }
+body.ui-nova .gw2-nations .nv-pill { font-size: 12.5px; padding: 5px 11px; }
+body.ui-nova .gw2-window { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 22px; align-items: center; padding: 18px 20px; border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--mod) 40%, transparent); background: color-mix(in srgb, var(--mod) 9%, var(--background-secondary)); color: var(--text-normal); text-decoration: none; }
+body.ui-nova .gw2-window b { font: 700 clamp(30px, 5vw, 44px)/1 var(--font-monospace-theme, monospace); color: var(--mod); letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+body.ui-nova .gw2-window small { display: block; margin-top: 6px; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-faint); }
+@media (max-width: 700px) {
+  body.ui-nova .gw2-facts { grid-template-columns: 1fr 1fr; }
+  body.ui-nova .gw2-window { grid-template-columns: 1fr; }
+}

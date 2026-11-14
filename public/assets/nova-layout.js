@@ -269,9 +269,47 @@ B.registerView('events', {
       color: '#A78BFA', kicker: 'Events', title: 'Upcoming events', lede: '',
       body: `<section class="nv-sec">${events.length ? `<div class="nv-timeline">${events.map((e, i) => {
         const to = e.wiki && B.exists(e.wiki) ? `href="${esc(B.hashFor(e.wiki))}" data-go="${esc(e.wiki)}"` : '';
-        return card(plainNum(i + 1), esc(e.title), esc(fmtDate(e.date, true)) + ' · ' + esc(e.setting) + ' · up to ' + esc(e.players) + ' players', pill(daysTo(e.date) + ' days'), to);
+        return card(plainNum(i + 1), esc(e.title), esc(fmtDate(e.date, true)) + ' · ' + esc(e.setting) + ' · up to ' + esc(e.players) + ' players', pill(daysTo(e.date) + ' days'), to)
+          + (e.short ? card('·', esc(e.title) + ' in 2 minutes', 'Everything you need to start playing, on one page', pill('Read'), `href="/${esc(e.short)}" data-go="great-war-short"`) : '');
       }).join('')}</div>` : '<div class="nv-empty">No events announced yet.</div>'}</section>`,
     });
+  },
+});
+
+/* ---------------------------------------------------------------- The Great War in 2 minutes
+   For people who won't read the wiki: the event on one page, every point linking to its wiki section. */
+const GW_SHORT = {
+  facts: [['2 weeks', 'Event length', '1-1-3'], ['8', 'Nations', '1-2-1'], ['500', 'Players, up to', '1-1-1'], ['174', 'Nodes to hold', '3-3-1']],
+  nations: ['British Empire', 'France', 'Russia', 'Italy', 'Germany', 'Austria-Hungary', 'Ottoman Empire', 'Bulgaria'],
+  orders: [
+    ["There's no winner", "It's a sandbox. The story is whatever the nations make of it.", '1-1-3'],
+    ['Hold nodes', 'The map is split into nodes. Each one pays its owner money and resources, so more nodes means better gear and more tanks.', '3-3-1'],
+    ['Choose your enemies', 'Your nation marks every other one as ally, neutral or enemy. A new enemy only counts from the next war window at least 24 hours away.', '3-2-3'],
+    ['Take ground in a window', "Stand on an enemy node's core with more soldiers than the defenders. Capitals take twice as long.", '3-3-4'],
+    ['Between windows', 'PvP stays on, but enemy borders are closed. Fortify, mine, farm, build tanks, loot contested zones and scout.', '3-5'],
+    ['When you die', "You drop your gear and respawn at your capital after a short wait. While you wait, you watch through a teammate's eyes.", '1-2-4'],
+    ['Guard the capital', 'If your capital falls, nobody respawns until your nation takes it back. A nation is wiped when it loses its last node.', '1-2-5'],
+    ['Earn your kit', "Everyone starts with the basics. Earn rank and your nation's resources to unlock better armour and guns. Guns unlock on day 3.", '4-8'],
+    ['Leaders run the nation', 'Each nation has a Leader and 8 seats who handle diplomacy, the treasury and orders.', '2-1'],
+    ["Don't shoot neutrals", "Kill a neutral nation's player and your nation pays compensation, or you become Wanted and anyone from theirs can hunt you.", '3-1-2'],
+  ],
+};
+const toWiki = id => `href="/wiki#${esc(id)}" data-go="wiki" data-heading="${esc(id)}"`;
+const wikiPill = id => pill('Wiki ' + id.replace(/-/g, '.'));
+B.registerView('great-war-short', {
+  title: () => 'The Great War in 2 minutes', icon: 'zap', cls: 'nv-view',
+  show(view) {
+    const G = GW_SHORT;
+    pageView(view, {
+      color: '#F87171', kicker: 'The Great War · Europe, 1914', title: 'The Great War in 2 minutes',
+      lede: 'A two-week World War One event on custom-made mods. Here is everything you need to start playing. The full rules are in the wiki.',
+      body: `<section class="nv-sec"><div class="gw2-facts">${G.facts.map(([b, k, id]) => `<a class="nv-today-cell" ${toWiki(id)}><b>${esc(b)}</b><span class="nv-today-k">${esc(k)}</span></a>`).join('')}</div></section>`
+        + sec('Pick a side', `<a class="gw2-nations" ${toWiki('1-2-1')}>${G.nations.map(pill).join('')}</a>`)
+        + `<section class="nv-sec"><a class="gw2-window" ${toWiki('3-2-2')}><b>19:00–22:00</b><span><strong>War windows, every 2 days, UK time.</strong> Land only changes hands inside a window. The first one opens on day 3.<small>Plan your evenings around these</small></span></a></section>`
+        + sec('What to know', `<div class="nv-timeline">${G.orders.map(([h, p, id], i) => card(String(i + 1).padStart(2, '0'), esc(h), esc(p), wikiPill(id), toWiki(id))).join('')}</div>`)
+        + `<section class="nv-sec"><p class="nv-lede">Times, numbers and the start date may change before the event. <a ${toWiki('')}>Read the full wiki</a> for the details.</p></section>`,
+    });
+    return () => { if (location.pathname === '/great-war-in-2-minutes') history.replaceState(null, '', '/' + location.hash); };
   },
 });
 

@@ -9,6 +9,7 @@ const EVENTS = [
     type: 'Modded event',
     status: 'Applications opening soon',
     wiki: 'wiki',
+    short: 'great-war-in-2-minutes',
   },
 ];
 
