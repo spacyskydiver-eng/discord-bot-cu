@@ -274,7 +274,8 @@ B.registerView('events', {
       body: `<section class="nv-sec">${events.length ? `<div class="nv-timeline">${events.map((e, i) => {
         const to = e.wiki && B.exists(e.wiki) ? `href="${esc(B.hashFor(e.wiki))}" data-go="${esc(e.wiki)}"` : '';
         return card(plainNum(i + 1), esc(e.title), esc(fmtDate(e.date, true)) + ' · ' + esc(e.setting) + ' · up to ' + esc(e.players) + ' players', pill(daysTo(e.date) + ' days'), to)
-          + (e.short ? card('·', esc(e.title) + ' in 2 minutes', 'Everything you need to start playing, on one page', pill('Read'), `href="/${esc(e.short)}" data-go="great-war-short"`) : '');
+          + (e.short ? card('·', esc(e.title) + ' in 2 minutes', 'Everything you need to start playing, on one page', pill('Read'), `href="/${esc(e.short)}" data-go="great-war-short"`) : '')
+          + (e.windows ? card('·', 'War windows calendar', `${e.windows.length} windows, 19:00 to 22:00 UK time, with a reminder before each`, pill('.ics'), 'href="/great-war/windows.ics" download') : '');
       }).join('')}</div>` : '<div class="nv-empty">No events announced yet.</div>'}</section>`,
     });
   },
@@ -298,6 +299,14 @@ const GW_SHORT = {
     ["Don't shoot neutrals", "Kill a neutral nation's player and your nation pays compensation, or you become Wanted and anyone from theirs can hunt you.", '3-1-2'],
   ],
 };
+// the event's war windows in the visitor's own time, with the calendar file
+function gw2Windows() {
+  const ev = (CUE().events || []).find(e => e.windows && e.windows.length);
+  if (!ev) return '';
+  return sec('The war windows, in your time', `<div class="nv-timeline">${ev.windows.map(w => card('D' + w.day, timeTag(w.start, 'date'),
+      `${timeTag(w.start, 'clock')} to ${timeTag(w.end, 'clock')} <span data-uk="${w.start}" hidden></span>`, `<span class="nv-pill" data-rel="${w.start}" data-minutes="180"></span>`)).join('')}
+    ${card('+', 'Add them to your calendar', 'All six windows, with a reminder half an hour before each. Times may still change before the event.', pill('.ics'), 'href="/great-war/windows.ics" download')}</div>`);
+}
 const toWiki = id => `href="/wiki#${esc(id)}" data-go="wiki" data-heading="${esc(id)}"`;
 const wikiPill = id => pill('Wiki ' + id.replace(/-/g, '.'));
 B.registerView('great-war-short', {
@@ -310,9 +319,11 @@ B.registerView('great-war-short', {
       body: `<section class="nv-sec"><div class="gw2-facts">${G.facts.map(([b, k, id]) => `<a class="nv-today-cell" ${toWiki(id)}><b>${esc(b)}</b><span class="nv-today-k">${esc(k)}</span></a>`).join('')}</div></section>`
         + sec('Pick a side', `<div class="gw2-nations">${G.nations.map(([n, slug]) => `<a href="/nations/${slug}">${pill(n)}</a>`).join('')}</div>`)
         + `<section class="nv-sec"><a class="gw2-window" ${toWiki('3-2-2')}><b>19:00–22:00</b><span><strong>War windows, every 2 days, UK time.</strong> Land only changes hands inside a window. The first one opens on day 3.<small>Plan your evenings around these</small></span></a></section>`
+        + gw2Windows()
         + sec('What to know', `<div class="nv-timeline">${G.orders.map(([h, p, id], i) => card(String(i + 1).padStart(2, '0'), esc(h), esc(p), wikiPill(id), toWiki(id))).join('')}</div>`)
         + `<section class="nv-sec"><p class="nv-lede">Times, numbers and the start date may change before the event. <a ${toWiki('')}>Read the full wiki</a> for the details.</p></section>`,
     });
+    TIME.paint(view);
     return () => { if (location.pathname === '/great-war-in-2-minutes') history.replaceState(null, '', '/' + location.hash); };
   },
 });

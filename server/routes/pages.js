@@ -126,6 +126,9 @@ router.get('/', renderApp);
 router.get('/wiki', renderApp);
 router.get('/testers', renderApp);
 router.get('/great-war-in-2-minutes', renderApp);
+router.get('/great-war/windows.ics', (req, res) => {
+  res.set('Content-Disposition', 'attachment; filename="great-war-windows.ics"').type('text/calendar; charset=utf-8').send(upcomingEvents.windowsIcs());
+});
 router.get('/pack', renderApp);
 router.get('/pack-faq', renderApp);
 router.get('/leaders', renderApp);
