@@ -322,6 +322,10 @@ const steps = list => `<ol class="pk-steps">${list.map(s => `<li>${s}</li>`).joi
 const qa = list => `<div class="pk-qa">${list.map(([q, a]) => `<details><summary>${esc(q)}</summary><div>${a}</div></details>`).join('')}</div>`;
 const leaving = path => () => { if (location.pathname === path) history.replaceState(null, '', '/' + location.hash); };
 const faqLink = `<a href="/pack-faq" data-go="pack-faq">the pack FAQ</a>`;
+// where players go on the CUE Discord: the bugs forum, and a ticket for anything else (account, whitelist, help)
+const DISCORD_CH = id => `https://discord.com/channels/1449004906068312189/${id}`;
+const bugsLink = `<a href="${DISCORD_CH('1523333765970133163')}" target="_blank" rel="noopener">#bugs-and-improvements</a>`;
+const ticketLink = `<a href="${DISCORD_CH('1449004907368808497')}" target="_blank" rel="noopener">#create-a-ticket</a>`;
 B.registerView('pack', {
   title: () => 'Get the modpack', icon: 'download', cls: 'nv-view',
   show(view) {
@@ -345,10 +349,10 @@ B.registerView('pack', {
         + sec('Updating to a new version', `<p class="nv-lede">When a new version comes out, the server only lets in the new one. Download the new file and import it as a new instance, the same way as above, then delete the old instance in the app. Don't copy anything across from the old one.</p>`)
         + sec('If the server turns you away', qa([
           ["“Your pack doesn't match”", `<p>The server checks every mod and resource pack you have against the event's pack, and anything extra or missing sends you back with a message naming it. Remove what it names (an added mod, a resource pack or a shader) or, simplest, delete the instance and import the pack again, without changes. If it names something missing, reinstall the pack: a file didn't download properly.</p>`],
-          ['“This front is closed to you for now”', `<p>You're not on the list for this session. Testers: check you applied on the <a href="/testers" data-go="testers">testers page</a> with your exact Minecraft name and were given a place. If you were and it still says this, ask on our Discord.</p>`],
+          ['“This front is closed to you for now”', `<p>You're not on the list for this session. Testers: check you applied on the <a href="/testers" data-go="testers">testers page</a> with your exact Minecraft name and were given a place. If you were and it still says this, open a ticket in ${ticketLink} on our Discord.</p>`],
           ['It says the server is on an older or newer version', `<p>Your pack is out of date. See Updating, above.</p>`],
         ]))
-        + `<section class="nv-sec"><p class="nv-lede">Slow game, crashes, shaders or adding mods: see ${faqLink}.</p></section>`,
+        + `<section class="nv-sec"><p class="nv-lede">Slow game, crashes, shaders or adding mods: see ${faqLink}. Found a bug? Post it in ${bugsLink} on our Discord. Stuck? Open a ticket in ${ticketLink}.</p></section>`,
     });
     return leaving('/pack');
   },
@@ -366,7 +370,7 @@ B.registerView('pack-faq', {
           ['It crashes when it starts', `<p>Check the memory first: under 4 GB it can run out while loading. Update your graphics drivers. If it still crashes, delete the instance and import the pack again without changes. Then report it (below) with the newest file from the instance's <code>crash-reports</code> folder (in the Modrinth App: the instance, then the folder icon).</p>`],
           ['Can I use shaders or my own resource packs?', `<p>No. The server refuses any change to the pack, resource packs and shaders included, and sends you back with a message naming what to remove.</p>`],
           ['Can I add mods, like a minimap or a performance mod?', `<p>No. Only the event's pack gets in, exactly as it is. The pack already includes its own performance mods, and the War Office has the map.</p>`],
-          ['How do I report a bug?', `<p>Post it on our <a href="${esc(CUE().discord || 'https://discord.gg/tF5hWxaQQj')}" target="_blank" rel="noopener">Discord</a>, one message per bug: what you did, what you expected and what happened, the time and your Minecraft name, and a screenshot (F2) or a short clip if you can. For a crash, attach the newest file from <code>crash-reports</code>.</p>`],
+          ['How do I report a bug?', `<p>Make a new post in ${bugsLink} on our <a href="${esc(CUE().discord || 'https://discord.gg/tF5hWxaQQj')}" target="_blank" rel="noopener">Discord</a>, one post per bug: what you did, what you expected and what happened, the time and your Minecraft name, and a screenshot (F2) or a short clip if you can. For a crash, attach the newest file from <code>crash-reports</code>. For anything that isn't a bug (your account, the whitelist, getting the pack to work), open a ticket in ${ticketLink} instead.</p>`],
         ])),
     });
     return leaving('/pack-faq');
