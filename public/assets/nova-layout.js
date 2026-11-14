@@ -366,6 +366,8 @@ const steps = list => `<ol class="pk-steps">${list.map(s => `<li>${s}</li>`).joi
 const qa = list => `<div class="pk-qa">${list.map(([q, a]) => `<details><summary>${esc(q)}</summary><div>${a}</div></details>`).join('')}</div>`;
 const leaving = path => () => { if (location.pathname === path) history.replaceState(null, '', '/' + location.hash); };
 const faqLink = `<a href="/pack-faq" data-go="pack-faq">the pack FAQ</a>`;
+// while the mod lock only logs (the tester event) it says so; once it refuses, it says that
+const lockNote = () => (CUE().pack || {}).lockEnforced ? 'The server checks and sends you back with a message naming what to remove.' : 'At the tester event the server only notes it; from 17 December it sends you back.';
 // where players go on the CUE Discord: the bugs forum, and a ticket for anything else (account, whitelist, help)
 const DISCORD_CH = id => `https://discord.com/channels/1449004906068312189/${id}`;
 const bugsLink = `<a href="${DISCORD_CH('1523333765970133163')}" target="_blank" rel="noopener">#bugs-and-improvements</a>`;
@@ -392,7 +394,7 @@ B.registerView('pack', {
         ]) + `<p class="nv-lede">Installed? <a href="/first-hour" data-go="first-hour">Your first hour</a> takes you from the title screen to your first fight.</p>`)
         + sec('Updating to a new version', `<p class="nv-lede">When a new version comes out, the server only lets in the new one. Download the new file and import it as a new instance, the same way as above, then delete the old instance in the app. Don't copy anything across from the old one.</p>`)
         + sec('If the server turns you away', qa([
-          ["“Your pack doesn't match”", `<p>The server checks every mod and resource pack you have against the event's pack, and anything extra or missing sends you back with a message naming it. Remove what it names (an added mod, a resource pack or a shader) or, simplest, delete the instance and import the pack again, without changes. If it names something missing, reinstall the pack: a file didn't download properly.</p>`],
+          ...(P.lockEnforced ? [["“Your pack doesn't match”", `<p>The server checks every mod and resource pack you have against the event's pack, and anything extra or missing sends you back with a message naming it. Remove what it names (an added mod, a resource pack or a shader) or, simplest, delete the instance and import the pack again, without changes. If it names something missing, reinstall the pack: a file didn't download properly.</p>`]] : []),
           ['“This front is closed to you for now”', `<p>You're not on the list for this session. Testers: check you applied on the <a href="/testers" data-go="testers">testers page</a> with your exact Minecraft name and were given a place. If you were and it still says this, open a ticket in ${ticketLink} on our Discord.</p>`],
           ['It says the server is on an older or newer version', `<p>Your pack is out of date. See Updating, above.</p>`],
         ]))
@@ -412,9 +414,9 @@ B.registerView('pack-faq', {
           ['What computer do I need?', `<p>A 64-bit Windows 10 or 11 PC or a Mac, with at least 8 GB of memory (16 GB is better) and a graphics card or chip that runs ordinary Minecraft smoothly. You need Minecraft Java Edition; Bedrock, console and phone versions can't join.</p>`],
           ['My frame rate is low', `<p>Turn on <b>Fast mode</b> in the game's Settings: one switch for a weak machine or a big battle (shorter view distance, fewer particles, fast graphics, no clouds). Turning it off puts your settings back. Also close other programs, and check the instance has 4 to 6 GB of memory (see the install page).</p>`],
           ['It crashes when it starts', `<p>Check the memory first: under 4 GB it can run out while loading. Update your graphics drivers. If it still crashes, delete the instance and import the pack again without changes. Then report it (below) with the newest file from the instance's <code>crash-reports</code> folder (in the Modrinth App: the instance, then the folder icon).</p>`],
-          ['Can I use shaders or my own resource packs?', `<p>No. The server refuses any change to the pack, resource packs and shaders included, and sends you back with a message naming what to remove.</p>`],
-          ['Can I add mods, like a minimap or a performance mod?', `<p>No. Only the event's pack gets in, exactly as it is. The pack already includes its own performance mods, and the War Office has the map.</p>`],
-          ['How do I report a bug?', `<p>Make a new post in ${bugsLink} on our <a href="${esc(CUE().discord || 'https://discord.gg/tF5hWxaQQj')}" target="_blank" rel="noopener">Discord</a>, one post per bug: what you did, what you expected and what happened, the time and your Minecraft name, and a screenshot (F2) or a short clip if you can. For a crash, attach the newest file from <code>crash-reports</code>. For anything that isn't a bug (your account, the whitelist, getting the pack to work), open a ticket in ${ticketLink} instead.</p>`],
+          ['Can I use shaders or my own resource packs?', `<p>No. Only the event's pack is allowed, exactly as it is, resource packs and shaders included. ${lockNote()}</p>`],
+          ['Can I add mods, like a minimap or a performance mod?', `<p>No. Only the event's pack is allowed. The pack already includes its own performance mods, and the War Office has the map. ${lockNote()}</p>`],
+          ['How do I report a bug?', `<p><b>Testers: use the <a href="/report">bug report form</a></b>, which takes your log file too. Or make a new post in ${bugsLink} on our <a href="${esc(CUE().discord || 'https://discord.gg/tF5hWxaQQj')}" target="_blank" rel="noopener">Discord</a>, one post per bug: what you did, what you expected and what happened, the time and your Minecraft name, and a screenshot (F2) or a short clip if you can. For a crash, attach the newest file from <code>crash-reports</code>. For anything that isn't a bug (your account, the whitelist, getting the pack to work), open a ticket in ${ticketLink} instead.</p>`],
         ])),
     });
     return leaving('/pack-faq');
@@ -731,8 +733,10 @@ function showTesters(view) {
         <p>Applied as <b>${esc(a.mc_name)}</b>. ${notIn ? '' : d && d.hasRole ? 'You have the GW Testers role on our Discord.' : ''}</p>
         ${notIn ? `<div class="tst-warn"><p><b>One more step:</b> you're not in our Discord server yet, so we can't give you the GW Testers role. Join the server, then come back and press the button below. If you join first, the bot gives you the role on its own.</p>
           <div class="tst-row">${discordLink()}<button class="tst-btn" data-act="retry">I've joined, give me the role</button></div></div>` : ''}
-        <div class="tst-next"><div class="tst-k">What happens next</div>
-          <ul><li>Before the session, staff share the modpack and how to join with everyone who has the GW Testers role on Discord.</li>
+        <div class="tst-next"><div class="tst-k">Before Saturday</div>
+          <ul><li><b>Install the pack:</b> ${(CUE().pack || {}).url ? `download it from <a href="/pack">the pack page</a>` : `the download goes up on <a href="/pack">the pack page</a> before the session, and you'll get the link on Discord`}. It takes about 10 minutes.</li>
+          <li><b>Launch it once</b> before the day, so anything that goes wrong goes wrong early. Stuck? See <a href="/pack-faq">the pack FAQ</a>.</li>
+          <li><b>Report problems</b> at <a href="/report">cuevents.xyz/report</a>, with your log file.</li>
           <li>Be ready at the start time. The session lasts about an hour.</li>
           <li>If you can't make it any more, withdraw here so the next person on the waitlist gets your place.</li></ul></div>
         <div class="tst-row">${notIn ? '' : discordLink()}<button class="tst-btn tst-danger" data-act="withdraw" data-session="${s.id}">Withdraw</button></div>

@@ -1504,3 +1504,4 @@ body.ui-nova .gw2-nations a:hover .nv-pill { color: var(--text-normal); border-c
 body.ui-nova .wk-icon { width: 20px; height: 20px; vertical-align: -4px; margin-right: 6px; image-rendering: pixelated; image-rendering: crisp-edges; }
 body.ui-nova .fh-step .nv-lec-body small a { color: var(--mod); }
 body.ui-nova .fh-step .nv-lec-side a { text-decoration: none; }
+body.ui-nova .tst-next a { color: #a78bfa; }

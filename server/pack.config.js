@@ -4,4 +4,6 @@ module.exports = {
   version: null,
   url: null,
   size: null,
+  // the server's mod lock: false while it only logs (the 21 Nov test), true once it refuses (from 17 Dec)
+  lockEnforced: false,
 };

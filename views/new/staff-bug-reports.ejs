@@ -1,0 +1,31 @@
+<%- include('partials/head', { pageTitle: 'Bug reports' }) %>
+<%- include('partials/header') %>
+<style>
+.sb-wrap { max-width: 1000px; margin: 0 auto; padding-bottom: 80px; }
+.sb-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 12px; }
+.sb-top { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; font: 700 13px Inter, sans-serif; color: #9aa0ad; margin-bottom: 8px; }
+.sb-top b { color: #fff; font: 800 15px 'Baloo 2', sans-serif; }
+.sb-card p { font: 600 14.5px/1.6 'Baloo 2', sans-serif; color: #dfe2ea; margin: 0 0 8px; white-space: pre-wrap; }
+.sb-card .exp { color: #9aa0ad; }
+.sb-files a { color: #74c0fc; margin-right: 12px; font: 700 13.5px 'Baloo 2', sans-serif; }
+.sb-st { font: 800 11px Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); }
+.sb-st.new { color: #fbbf24; border-color: rgba(251,191,36,.4); }
+.sb-card form { display: inline; } .sb-card select { background: rgba(0,0,0,.3); color: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 3px 6px; }
+</style>
+<main class="wrap"><div class="sb-wrap">
+  <div class="page-head"><div><h1 class="page-title">Bug reports</h1><p class="page-sub"><%= reports.length %> reports, newest first. From cuevents.xyz/report.</p></div></div>
+  <% if (!reports.length) { %><p class="page-sub">No reports yet.</p><% } %>
+  <% reports.forEach(r => { %>
+  <div class="sb-card" id="r<%= r.id %>">
+    <div class="sb-top"><b>#<%= r.id %></b><span class="sb-st <%= r.status === 'new' ? 'new' : '' %>"><%= r.status %></span>
+      <span><%= r.discord_name %> · MC <%= r.mc_name || '?' %></span>
+      <span>happened <%= r.when_ts ? new Date(r.when_ts * 1000).toISOString().replace('T', ' ').slice(0, 16) + ' UTC' : '?' %></span>
+      <span>sent <%= new Date(r.at * 1000).toISOString().replace('T', ' ').slice(0, 16) %> UTC</span>
+      <form method="POST" action="/staff/bug-reports/<%= r.id %>/status"><select name="status" onchange="this.form.submit()"><% ['new', 'seen', 'fixed', 'not a bug'].forEach(s => { %><option <%= r.status === s ? 'selected' : '' %>><%= s %></option><% }) %></select></form></div>
+    <p><%= r.happened %></p>
+    <% if (r.expected) { %><p class="exp">Expected: <%= r.expected %></p><% } %>
+    <% if (r.files && r.files.length) { %><div class="sb-files"><% r.files.forEach(f => { %><a href="/staff/bug-reports/<%= r.id %>/files/<%= f.id %>"><%= f.name %> (<%= (f.size / 1024).toFixed(0) %> KB)</a><% }) %></div><% } %>
+  </div>
+  <% }) %>
+</div></main>
+<%- include('partials/foot') %>

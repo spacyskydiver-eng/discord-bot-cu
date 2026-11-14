@@ -1,0 +1,48 @@
+<%- include('partials/head', { pageTitle: 'Report a bug', pageDescription: 'Found a bug in The Great War? Tell us what happened and attach your log.' }) %>
+<%- include('partials/header') %>
+<style>
+.br-wrap { max-width: 760px; margin: 0 auto; padding-bottom: 80px; }
+.br-box { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 20px; }
+.br-box h2 { font: 800 18px 'Baloo 2', sans-serif; color: #fff; margin: 0 0 6px; }
+.br-box p, .br-hint { font: 600 14.5px/1.6 'Baloo 2', sans-serif; color: #9a9db0; margin: 0 0 10px; }
+.br-field { margin: 0 0 18px; }
+.br-field label { display: block; font: 800 15px 'Baloo 2', sans-serif; color: #e8e9ee; margin-bottom: 6px; }
+.br-field input[type=text], .br-field input[type=datetime-local], .br-field textarea { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: rgba(0,0,0,.25); color: #fff; font: 600 15px 'Baloo 2', sans-serif; }
+.br-field textarea { min-height: 110px; resize: vertical; }
+.br-field input[type=file] { color: #c6cad4; font: 600 14px 'Baloo 2', sans-serif; }
+.br-wrap .br-btn { display: inline-block; padding: 11px 18px; border-radius: 10px; border: 0; background: #5be38f; color: #0c1a12; font: 800 15px 'Baloo 2', sans-serif; cursor: pointer; text-decoration: none; }
+.br-err { padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(248,113,113,.45); background: rgba(248,113,113,.1); color: #fecaca; font: 700 14.5px 'Baloo 2', sans-serif; margin-bottom: 18px; }
+.br-ok { padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(91,227,143,.4); background: rgba(91,227,143,.08); color: #c9f7da; font: 700 14.5px 'Baloo 2', sans-serif; margin-bottom: 18px; }
+.br-box code { font-size: .92em; padding: 1px 5px; border-radius: 5px; background: rgba(255,255,255,.06); color: #e8e9ee; }
+.br-box a { color: #74c0fc; }
+</style>
+<main class="wrap"><div class="br-wrap">
+  <div class="page-head"><div><h1 class="page-title">Report a bug</h1><p class="page-sub">The Great War · for testers and players</p></div></div>
+<% if (!locals.user) { %>
+  <div class="br-box"><h2>Sign in to report a bug</h2><p>We use your Discord account so we can ask you about it. It takes a few seconds.</p><a class="br-btn" href="/auth/discord?return=/report">Sign in with Discord</a></div>
+<% } else { %>
+  <% if (sent) { %><div class="br-ok">Thanks, report #<%= sent %> is in. Staff will look at it and may message you on Discord. Found another? Send it below.</div><% } %>
+  <% if (error) { %><div class="br-err"><%= error %></div><% } %>
+  <form class="br-box" method="POST" action="/report" enctype="multipart/form-data">
+    <h2>What went wrong?</h2>
+    <p>One report per bug. The time and your Minecraft name let us find it in the server's logs, and your log file shows us what your game was doing.</p>
+    <div class="br-field"><label for="h">What happened?</label><textarea id="h" name="happened" required maxlength="4000" placeholder="What you did, and what happened"><%= f.happened || '' %></textarea></div>
+    <div class="br-field"><label for="e">What did you expect? <span class="br-hint">(optional)</span></label><textarea id="e" name="expected" maxlength="2000" style="min-height:70px"><%= f.expected || '' %></textarea></div>
+    <div class="br-field"><label for="t">When did it happen?</label><input id="t" type="datetime-local" name="happened_at_local"><input type="hidden" name="happened_at" id="t-utc"><p class="br-hint">Your own time; roughly is fine.</p></div>
+    <div class="br-field"><label for="mc">Your Minecraft name</label><input id="mc" type="text" name="mc_name" maxlength="16" value="<%= f.mc_name || mcName %>" autocomplete="off" spellcheck="false"></div>
+    <div class="br-field"><label for="fl">Files <span class="br-hint">(up to 4, 10 MB each)</span></label><input id="fl" type="file" name="files" multiple>
+      <p class="br-hint">Please attach <code>latest.log</code> from the instance's <code>logs</code> folder, and for a crash the newest file in <code>crash-reports</code> (in the Modrinth App: the instance, then the folder icon). A screenshot (F2) helps too.</p></div>
+    <button class="br-btn" type="submit">Send the report</button>
+  </form>
+  <div class="br-box"><p>Not a bug, or need help now? Open a ticket in <a href="https://discord.com/channels/1449004906068312189/1449004907368808497" target="_blank" rel="noopener">#create-a-ticket</a> on our Discord. Ideas are welcome in <a href="https://discord.com/channels/1449004906068312189/1523333765970133163" target="_blank" rel="noopener">#bugs-and-improvements</a>.</p></div>
+<% } %>
+</div></main>
+<script>
+(function () {
+  const t = document.getElementById('t'), u = document.getElementById('t-utc'); if (!t) return;
+  const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); t.value = now.toISOString().slice(0, 16);
+  const sync = () => { u.value = t.value ? new Date(t.value).toISOString() : ''; };
+  t.addEventListener('change', sync); t.form.addEventListener('submit', sync); sync();
+})();
+</script>
+<%- include('partials/foot') %>
