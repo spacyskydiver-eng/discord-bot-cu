@@ -661,6 +661,33 @@ async function warPage(req, res, next, page) {
 router.get('/war', (req, res, next) => warPage(req, res, next, 'report'));
 router.get('/daily-front', (req, res, next) => warPage(req, res, next, 'front'));
 
+// the 17 Dec launch page: an owner-only draft until site setting launch_public is "on" (S22)
+const LAUNCH_DISCORD = `**THE GREAT WAR · from Thursday 17 December**
+
+Europe, 1914. Eight nations. 174 nodes. Up to 500 players. Two weeks of war, on custom-made mods.
+
+There's no official winner: the story is whatever the nations make of it.
+- **Fighters:** a war window every two days, 19:00 to 22:00 UK time. Rifles, machine guns, tanks, ranks and medals.
+- **Builders:** trenches and wire decide the next window, and your nation pays you to dig them.
+- **Role-players:** a Leader and eight seats, letters between nations, and the Daily Front newspaper.
+- **Traders:** mines, farms, oil, stalls and the factories that feed the war.
+- **Leaders:** taxes, research, alliances and wars. Leader applications are open.
+- **New to modded Minecraft?** Your first hour, step by step: https://cuevents.xyz/first-hour
+
+Apply: https://cuevents.xyz/apply
+Everything in 2 minutes: https://cuevents.xyz/great-war-in-2-minutes
+The map: https://cuevents.xyz/map
+
+Pick your side.`;
+router.get('/the-great-war', async (req, res, next) => {
+  try {
+    const isPublic = (await access.getSetting('launch_public')) === 'on';
+    if (!isPublic && !res.locals.isOwner) return next();
+    res.set('Cache-Control', isPublic ? 'public, max-age=300' : 'private, no-store');
+    res.render('new/launch', { isPublic, discord: LAUNCH_DISCORD, nations: require('../nations').NATIONS, windows: (upcomingEvents().find(e => e.windows) || {}).windows || [] });
+  } catch (e) { next(e); }
+});
+
 // the eight nations' public pages
 router.get('/nations', async (req, res, next) => {
   try { res.render('new/nations', { nations: await require('../nations').withMap(), nation: null }); } catch (e) { next(e); }

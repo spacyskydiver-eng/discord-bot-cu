@@ -1,0 +1,97 @@
+<%- include('partials/head', { pageTitle: 'The Great War', pageDescription: 'Europe, 1914. Eight nations, 174 nodes, up to 500 players and two weeks of war, from 17 December. Pick your side.' }) %>
+<%- include('partials/header') %>
+<%# The 17 Dec launch page. Owner-only draft until site setting launch_public = on (S22). %>
+<style>
+.ln-wrap { max-width: 1040px; margin: 0 auto; padding-bottom: 90px; }
+.ln-draft { margin: 0 0 18px; padding: 10px 14px; border-radius: 10px; border: 1px dashed rgba(251,191,36,.55); background: rgba(251,191,36,.08); color: #f4e3b5; font: 700 14px 'Baloo 2', sans-serif; }
+.ln-hero { position: relative; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); margin-bottom: 26px; }
+.ln-hero img { display: block; width: 100%; height: auto; }
+.ln-hero .ln-over { position: absolute; inset: auto 0 0 0; padding: 26px 28px; background: linear-gradient(transparent, rgba(5,6,10,.92)); }
+.ln-hero h1 { font: 800 clamp(30px, 5vw, 54px)/1.05 'Fraunces', Georgia, serif; color: #fff; margin: 0 0 8px; }
+.ln-hero p { font: 600 clamp(15px, 2vw, 19px)/1.5 'Baloo 2', sans-serif; color: #e3e5ec; margin: 0; max-width: 60ch; }
+.ln-cta { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 30px; }
+.ln-wrap .ln-btn { padding: 12px 18px; border-radius: 12px; border: 1px solid var(--line); color: #fff; text-decoration: none; font: 800 15.5px 'Baloo 2', sans-serif; background: rgba(255,255,255,.04); }
+.ln-wrap .ln-btn.go { background: #5be38f; color: #0c1a12; border-color: transparent; }
+.ln-facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 34px; }
+.ln-fact { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+.ln-fact b { display: block; font: 800 28px 'Baloo 2', sans-serif; color: #fff; }
+.ln-fact span { font: 700 11px Inter, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #9aa0ad; }
+.ln-h2 { font: 800 26px 'Fraunces', Georgia, serif; color: #fff; margin: 34px 0 6px; }
+.ln-sub { font: 600 15px 'Baloo 2', sans-serif; color: #9aa0ad; margin: 0 0 16px; }
+.ln-types { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 12px; }
+.ln-type { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 18px 16px; }
+.ln-type h3 { font: 800 18px 'Baloo 2', sans-serif; color: #fff; margin: 0 0 6px; }
+.ln-type p { font: 600 14.5px/1.6 'Baloo 2', sans-serif; color: #c4c8d2; margin: 0; }
+.ln-type a { color: #74c0fc; }
+.ln-flags { display: flex; flex-wrap: wrap; gap: 10px; }
+.ln-flags a { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: #fff; text-decoration: none; font: 700 14px 'Baloo 2', sans-serif; }
+.ln-flags img { width: 30px; height: 20px; image-rendering: pixelated; border: 1px solid #0c0e11; }
+.ln-win { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.ln-win div { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font: 700 14px 'Baloo 2', sans-serif; color: #fff; }
+.ln-win small { display: block; color: #9aa0ad; font-weight: 600; }
+.ln-faq details { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px; }
+.ln-faq summary { cursor: pointer; padding: 13px 16px; font: 800 15px 'Baloo 2', sans-serif; color: #fff; list-style: none; }
+.ln-faq summary::-webkit-details-marker { display: none; }
+.ln-faq details > p { margin: 0; padding: 0 16px 14px; font: 600 14.5px/1.6 'Baloo 2', sans-serif; color: #c4c8d2; }
+.ln-faq a { color: #74c0fc; }
+.ln-dc { margin-top: 40px; border: 1px dashed rgba(251,191,36,.55); border-radius: 14px; padding: 18px; background: rgba(251,191,36,.05); }
+.ln-dc h2 { font: 800 17px 'Baloo 2', sans-serif; color: #f4e3b5; margin: 0 0 8px; }
+.ln-dc pre { white-space: pre-wrap; font: 500 13.5px/1.55 ui-monospace, Menlo, monospace; color: #e8e9ee; background: rgba(0,0,0,.35); border-radius: 10px; padding: 14px; margin: 0 0 10px; }
+@media (max-width: 700px) { .ln-facts { grid-template-columns: 1fr 1fr; } .ln-hero .ln-over { position: static; background: #0b0d12; } }
+</style>
+<main class="wrap"><div class="ln-wrap">
+  <% if (!isPublic) { %><div class="ln-draft">Draft: only you can see this page. It goes public when the head says (site setting <code>launch_public</code>).</div><% } %>
+  <div class="ln-hero"><img src="/img/pack/cover.webp" width="1280" height="720" alt="A Mark V tank in a wheat field at sunset, under the title The Great War">
+    <div class="ln-over"><h1>Europe, 1914. Pick your side.</h1>
+      <p>The Great War: two weeks of war across a hand-built map of Europe, for up to 500 players in eight nations, on custom-made mods. From 17 December.</p></div></div>
+  <div class="ln-cta"><a class="ln-btn go" href="/apply">Apply to play</a><a class="ln-btn" href="/great-war-in-2-minutes">The war in 2 minutes</a><a class="ln-btn" href="/map">See the map</a><a class="ln-btn" href="/pack">Get the modpack</a></div>
+  <div class="ln-facts">
+    <div class="ln-fact"><b>17 Dec</b><span>Two weeks of war</span></div>
+    <div class="ln-fact"><b>8</b><span>Nations of 1914</span></div>
+    <div class="ln-fact"><b>174</b><span>Nodes to fight over</span></div>
+    <div class="ln-fact"><b>500</b><span>Players, up to</span></div>
+  </div>
+
+  <h2 class="ln-h2">Whatever you like to play</h2>
+  <p class="ln-sub">There's no official winner. The story is whatever the nations make of it, and every kind of player has a part in it.</p>
+  <div class="ln-types">
+    <div class="ln-type"><h3>Fighters</h3><p>Every two days a three-hour war window opens and the front moves. Riflemen, marksmen, assault troops, machine gunners and medics, four WW1 tank designs, and ranks and medals for the soldiers people talk about afterwards.</p></div>
+    <div class="ln-type"><h3>Builders</h3><p>Trenches, wire and sandbags decide the next window: your nation pays you to fortify the nodes it holds. Builders build faster, earn more per block and repair tanks quicker.</p></div>
+    <div class="ln-type"><h3>Role-players</h3><p>Uniforms, ranks, a Leader and a cabinet of eight, letters between nations, and the Daily Front, the war's own newspaper, which prints the war's big moments and your nation's statements.</p></div>
+    <div class="ln-type"><h3>Traders and miners</h3><p>Every node produces coal, iron, gold, diamond, oil or food. Mine and farm, sell to your nation, run a stall, and keep the factories that make the guns and tanks running.</p></div>
+    <div class="ln-type"><h3>Leaders</h3><p>Run a nation: set taxes, pick the research, mark allies and enemies, write to other leaders and decide when to go to war. <a href="/leaders">Leader applications</a> are open.</p></div>
+    <div class="ln-type"><h3>Explorers</h3><p>An 11,500-block Europe, built by hand: the Alps and the Caucasus, the Sahara and the Arctic, the Pripyat marshes. Scouts cross enemy lines between windows to see what's coming.</p></div>
+    <div class="ln-type"><h3>New players</h3><p>Never played modded Minecraft? <a href="/first-hour">Your first hour</a> takes you from installing to your first fight in eleven steps, and you're paid for every active minute from day one.</p></div>
+    <div class="ln-type"><h3>An hour a night</h3><p>Death costs your kit, not your character: you respawn at your capital. Take a job from your leaders, do something useful, and follow the war on the <a href="/war">War Report</a> when you're away.</p></div>
+  </div>
+
+  <h2 class="ln-h2">The eight nations</h2>
+  <p class="ln-sub">Everyone starts neutral; the players decide who fights whom.</p>
+  <div class="ln-flags"><% nations.forEach(n => { %><a href="/nations/<%= n.slug %>"><img src="/img/flags/<%= n.flag %>.png" alt=""><%= n.name.replace(/^The /, '') %></a><% }) %></div>
+
+  <h2 class="ln-h2">War windows, in your time</h2>
+  <p class="ln-sub">19:00 to 22:00 UK time, every two days from day 3. <a href="/great-war/windows.ics" style="color:#74c0fc">Add them to your calendar</a>.</p>
+  <div class="ln-win"><% windows.forEach(w => { %><div><time data-ts="<%= w.start %>"><%= new Date(w.start * 1000).toUTCString().slice(0, 11) %></time><small><span data-clock="<%= w.start %>">19:00 UK</span></small></div><% }) %></div>
+
+  <h2 class="ln-h2">Questions</h2>
+  <div class="ln-faq">
+    <details><summary>When is it?</summary><p>From Thursday 17 December 2026, for two weeks. Land changes hands only in the war windows above; between them there's building, trading, scouting and the fight in the contested zones.</p></details>
+    <details><summary>How do I join?</summary><p><a href="/apply">Apply on the site</a> with your Discord account and your Minecraft Java name. We'll be in touch on Discord before the start.</p></details>
+    <details><summary>What do I need?</summary><p>Minecraft Java Edition and our free modpack: <a href="/pack">get the modpack</a> (Windows and Mac, about 10 minutes to install). Bedrock, console and phone versions can't join. More in the <a href="/pack-faq">pack FAQ</a>.</p></details>
+    <details><summary>I've never played modded Minecraft.</summary><p>Good: you're who we built <a href="/first-hour">your first hour</a> for. Pick a class, take a job, and stick with your nation's people.</p></details>
+    <details><summary>Can I play with my friends?</summary><p>Yes: when you apply you can ask for a nation, and you'll get it unless it's already the biggest. Each nation holds up to about 80 players.</p></details>
+    <details><summary>Where are the full rules?</summary><p>In the <a href="/wiki">Field Manual</a>, or the short version: <a href="/great-war-in-2-minutes">The Great War in 2 minutes</a>.</p></details>
+  </div>
+
+  <% if (!isPublic) { %>
+  <div class="ln-dc"><h2>Discord announcement (draft, owner only)</h2>
+    <pre id="dc-text"><%= discord %></pre>
+    <button class="ln-btn" type="button" onclick="navigator.clipboard.writeText(document.getElementById('dc-text').textContent).then(() => { this.textContent = 'Copied'; })">Copy the announcement</button>
+  </div><% } %>
+</div></main>
+<script>
+document.querySelectorAll('time[data-ts]').forEach(t => { t.textContent = new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric', month: 'short' }).format(+t.dataset.ts * 1000); });
+document.querySelectorAll('[data-clock]').forEach(s => { const ts = +s.dataset.clock * 1000, f = o => new Intl.DateTimeFormat(undefined, Object.assign({ hour: '2-digit', minute: '2-digit' }, o)).format(ts);
+  s.textContent = f({ timeZoneName: 'short' }).replace(/\b(GMT|UTC)\+0$/, '$1') + ' to ' + new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(ts + 3 * 3600e3); });
+</script>
+<%- include('partials/foot') %>
