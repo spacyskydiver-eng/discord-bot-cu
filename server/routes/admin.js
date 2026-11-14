@@ -220,6 +220,7 @@ router.use('/staff-applications', require('./admin-staff-apps'));
 
 /* ---------------------------------------------------------------- VIP for the game servers */
 router.use('/vip', require('./admin-vip'));
+router.use('/nation-roles', require('./admin-nation-roles'));
 
 /* ---------------------------------------------------------------- tester applications */
 const testers = require('../testers');
