@@ -1,0 +1,77 @@
+<% const isFront = page === 'front'; %>
+<%- include('partials/head', { pageTitle: isFront ? 'The Daily Front' : 'War Report', pageDescription: isFront ? 'The Great War\'s newspaper: every edition of the Daily Front.' : 'The Great War, live: who holds what, the wars and alliances, captures and the biggest fights.' }) %>
+<%- include('partials/header') %>
+<%# The War Report and the Daily Front. Data from server/war-feed.js: never node values, coordinates or scouting intel. %>
+<style>
+.wr-wrap { max-width: 980px; margin: 0 auto; padding-bottom: 80px; }
+.wr-kicker { font: 700 12px Inter, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #9aa0ad; margin: 0 0 6px; }
+.wr-sample { margin: 0 0 22px; padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(251,191,36,.35); background: rgba(251,191,36,.08); color: #f4e3b5; font: 600 14px 'Baloo 2', sans-serif; }
+.wr-box { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 20px; }
+.wr-box h2 { font-family: 'Baloo 2'; font-weight: 800; font-size: 18px; color: #fff; margin: 0 0 12px; }
+.wr-table { width: 100%; border-collapse: collapse; font: 600 14px 'Baloo 2', sans-serif; color: #dfe2ea; }
+.wr-table th { text-align: left; font: 700 11px Inter, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #9aa0ad; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.wr-table td { padding: 9px 8px; border-bottom: 1px solid rgba(255,255,255,.05); }
+.wr-table td.n { font-variant-numeric: tabular-nums; }
+.wr-up { color: #5be38f; } .wr-down { color: #f87171; }
+.wr-flag { width: 27px; height: 18px; image-rendering: pixelated; vertical-align: -4px; margin-right: 8px; border: 1px solid #0c0e11; }
+.wr-nat { color: #fff; text-decoration: none; } .wr-nat:hover { text-decoration: underline; }
+.wr-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.wr-list li { font: 600 14.5px 'Baloo 2', sans-serif; color: #dfe2ea; display: flex; gap: 12px; align-items: baseline; }
+.wr-list time { flex: none; min-width: 96px; color: #9aa0ad; font: 600 12.5px Inter, sans-serif; font-variant-numeric: tabular-nums; }
+.wr-rel { display: flex; flex-wrap: wrap; gap: 8px; }
+.wr-rel span { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); font: 700 13.5px 'Baloo 2', sans-serif; color: #e8e9ee; }
+.wr-rel .war { border-color: rgba(248,113,113,.45); background: rgba(248,113,113,.08); }
+.wr-rel .ally { border-color: rgba(91,227,143,.4); background: rgba(91,227,143,.07); }
+.wr-rel .pending { border-style: dashed; color: #c6cad4; }
+.wr-btns { display: flex; flex-wrap: wrap; gap: 10px; }
+.wr-btn { padding: 9px 14px; border-radius: 10px; border: 1px solid var(--line); color: #e8e9ee; text-decoration: none; font: 700 14px 'Baloo 2', sans-serif; }
+.wr-btn:hover { border-color: rgba(255,255,255,.3); }
+.df-paper { background: #efe9da; color: #1d1b16; border-radius: 6px; padding: 26px 28px; margin-bottom: 22px; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+.df-mast { text-align: center; border-bottom: 3px double #1d1b16; padding-bottom: 10px; margin-bottom: 14px; }
+.df-mast b { display: block; font: 900 clamp(30px, 6vw, 46px)/1 'Fraunces', Georgia, serif; letter-spacing: .02em; }
+.df-mast small { font: 600 12px Georgia, serif; letter-spacing: .1em; text-transform: uppercase; }
+.df-head { font: 800 clamp(24px, 4vw, 32px)/1.15 'Fraunces', Georgia, serif; margin: 6px 0 16px; text-align: center; }
+.df-cols { columns: 2 300px; column-gap: 28px; }
+.df-art { break-inside: avoid; margin-bottom: 16px; }
+.df-art h3 { font: 800 17px/1.25 Georgia, serif; margin: 0 0 4px; }
+.df-art p { font: 15px/1.55 Georgia, serif; margin: 0; }
+.df-art .by { font: italic 13px Georgia, serif; color: #5b5547; margin-top: 4px; }
+@media (max-width: 700px) { .wr-table .hide-sm { display: none; } .df-paper { padding: 18px 16px; } }
+</style>
+<main class="wrap"><div class="wr-wrap">
+  <div class="page-head"><div><p class="wr-kicker">The Great War · <%= isFront ? 'the newspaper' : 'day ' + report.day %></p>
+    <h1 class="page-title"><%= isFront ? 'The Daily Front' : 'War Report' %></h1>
+    <p class="page-sub"><%= isFront ? 'Every edition of the war\'s own newspaper.' : 'The war at a glance, for when you\'re not on the server.' %></p></div></div>
+  <% if (sample) { %><div class="wr-sample">The war hasn't started yet: this is sample data, built from the real map, to show what the page will look like from 17 December.</div><% } %>
+<% if (isFront) { %>
+  <% front.editions.forEach(ed => { %>
+  <article class="df-paper">
+    <div class="df-mast"><b>THE DAILY FRONT</b><small>Day <%= ed.day %> · <%= new Date(ed.date + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) %></small></div>
+    <h2 class="df-head"><%= ed.headline %></h2>
+    <div class="df-cols"><% ed.articles.forEach(a => { %><div class="df-art"><h3><%= a.title %></h3><p><%= a.body %></p><% if (a.kind === 'press') { %><p class="by">From <%= nat(a.nation).name %><%= a.author ? ', ' + a.author : '' %></p><% } %></div><% }) %></div>
+  </article>
+  <% }) %>
+  <div class="wr-btns"><a class="wr-btn" href="/war">War Report</a><a class="wr-btn" href="/map">The map</a></div>
+<% } else { %>
+  <div class="wr-box"><h2>Nations</h2>
+    <table class="wr-table"><thead><tr><th>Nation</th><th>Nodes</th><th>Taken today</th><th>Lost today</th><th class="hide-sm">Capital</th></tr></thead><tbody>
+    <% report.nations.slice().sort((a, b) => b.nodes - a.nodes).forEach(n => { const N = nat(n.id); %>
+      <tr><td><a class="wr-nat" href="/nations/<%= N.slug %>"><img class="wr-flag" src="/img/flags/<%= N.flag %>.png" alt=""><%= N.name %></a><%= n.wiped ? ' (wiped)' : '' %></td>
+        <td class="n"><%= n.nodes %></td><td class="n <%= n.captured24h ? 'wr-up' : '' %>"><%= n.captured24h ? '+' + n.captured24h : '–' %></td>
+        <td class="n <%= n.lost24h ? 'wr-down' : '' %>"><%= n.lost24h ? '−' + n.lost24h : '–' %></td><td class="hide-sm"><%= n.capitalHeld ? 'Held' : 'Lost' %></td></tr>
+    <% }) %></tbody></table></div>
+  <div class="wr-box"><h2>Wars and alliances</h2><div class="wr-rel">
+    <% report.relations.forEach(r => { const cls = r.state === 'war' ? 'war' : r.state === 'ally' ? 'ally' : 'pending'; %>
+      <span class="<%= cls %>"><%= nat(r.a).short %> <%= r.state === 'ally' ? '+' : r.state === 'war' ? '×' : '→' %> <%= nat(r.b).short %><%= r.state === 'war_pending' ? ' (war from the next window)' : r.state === 'ally' ? ' (allied)' : ' (at war)' %></span>
+    <% }) %><% if (!report.relations.length) { %><span>Every nation is at peace.</span><% } %></div></div>
+  <div class="wr-box"><h2>The last few days</h2><ul class="wr-list">
+    <% report.events.slice(0, 12).forEach(e => { %><li><time datetime="<%= new Date(e.at).toISOString() %>"><%= new Date(e.at).toLocaleString('en-GB', { weekday: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' }) %></time><span><%= said(e) %></span></li><% }) %>
+  </ul></div>
+  <% if (report.battles.length) { %><div class="wr-box"><h2>The biggest fights</h2>
+    <table class="wr-table"><thead><tr><th>Node</th><th>Attacker</th><th>Defender</th><th>Deaths</th><th class="hide-sm">Result</th></tr></thead><tbody>
+    <% report.battles.forEach(b => { %><tr><td><%= nodeName(b.node) %></td><td><%= nat(b.attacker).short %></td><td><%= nat(b.defender).short %></td><td class="n"><%= b.deaths %></td><td class="hide-sm"><%= b.result === 'captured' ? 'Taken' : 'Held' %></td></tr><% }) %>
+    </tbody></table><p class="page-sub" style="margin-top:10px">Window <%= report.battles[0].window %> and earlier. Fights are only listed once their window has closed.</p></div><% } %>
+  <div class="wr-btns"><a class="wr-btn" href="/map">The war map</a><a class="wr-btn" href="/daily-front">The Daily Front</a><a class="wr-btn" href="/great-war-in-2-minutes">The Great War in 2 minutes</a></div>
+<% } %>
+</div></main>
+<%- include('partials/foot') %>

@@ -635,6 +635,31 @@ router.post('/nation-place/clear', async (req, res) => {
 router.get('/map', (req, res) => {
   res.render('new/admin-campaign-map', { pub: true, v: ASSET_V, dataUrl: '/map/data.json', shareUrl: '', current: {}, msg: '', bad: false });
 });
+// the war for people who aren't online: the War Report and the Daily Front (server/war-feed.js)
+async function warPage(req, res, next, page) {
+  try {
+    const feed = require('../war-feed'), N = require('../nations').NATIONS;
+    const [report, front, m] = await Promise.all([feed.report(), page === 'front' ? feed.front() : null, require('../campaign-map').loadPublic().then(JSON.parse)]);
+    const names = Object.fromEntries(m.territories.map(t => [t.id, t.name]));
+    const nat = id => { const n = N.find(x => x.id === id) || { name: id, slug: '', flag: '' }; return Object.assign({ short: n.name.replace(/^The /, '') }, n); };
+    const nodeName = id => names[id] || id;
+    const said = e => ({
+      capture: () => `${nat(e.to).short} took ${nodeName(e.node)} from ${nat(e.from).short}`,
+      capital_lost: () => `${nat(e.from).short} lost its capital, ${nodeName(e.node)}`,
+      capital_retaken: () => `${nat(e.to).short} retook its capital, ${nodeName(e.node)}`,
+      wiped: () => `${nat(e.a).short} was wiped out`,
+      war_declared: () => `${nat(e.a).short} marked ${nat(e.b).short} as an enemy`,
+      war_begun: () => `War began between ${nat(e.a).short} and ${nat(e.b).short}`,
+      peace: () => `${nat(e.a).short} and ${nat(e.b).short} made peace`,
+      alliance: () => `${nat(e.a).short} and ${nat(e.b).short} became allies`,
+      alliance_broken: () => `The alliance of ${nat(e.a).short} and ${nat(e.b).short} ended`,
+    }[e.kind] || (() => e.kind))();
+    res.render('new/war', { page, report, front, sample: !!report.sample, nat, nodeName, said });
+  } catch (e) { next(e); }
+}
+router.get('/war', (req, res, next) => warPage(req, res, next, 'report'));
+router.get('/daily-front', (req, res, next) => warPage(req, res, next, 'front'));
+
 // the eight nations' public pages
 router.get('/nations', async (req, res, next) => {
   try { res.render('new/nations', { nations: await require('../nations').withMap(), nation: null }); } catch (e) { next(e); }
