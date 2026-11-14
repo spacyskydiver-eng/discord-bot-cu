@@ -221,6 +221,7 @@ router.use('/staff-applications', require('./admin-staff-apps'));
 /* ---------------------------------------------------------------- VIP for the game servers */
 router.use('/vip', require('./admin-vip'));
 router.use('/nation-roles', require('./admin-nation-roles'));
+router.use('/front-posts', require('./admin-front-posts'));
 
 /* ---------------------------------------------------------------- tester applications */
 const testers = require('../testers');

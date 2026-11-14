@@ -99,6 +99,7 @@ module.exports = function startServer() {
   });
 
   require('./testers').startSweeps();
+  require('./front-poster').start();   // does nothing while site setting front_post is off
   require('./nation-roles').start();   // does nothing while site setting nation_roles is off
   require('./leaders').startAutoExport();
   require('./minecraft-links').start();

@@ -1,0 +1,27 @@
+<%- include('partials/head', { pageTitle: 'Daily Front on Discord · Control Centre' }) %>
+<%- include('partials/header') %>
+<style>
+.fp-wrap { max-width: 900px; margin: 0 auto; padding-bottom: 80px; }
+.fp-box { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 16px; }
+.fp-box h2 { font: 800 16px 'Baloo 2', sans-serif; color: #fff; margin: 0 0 8px; }
+.fp-box p, .fp-box li { font: 600 14px/1.6 'Baloo 2', sans-serif; color: #b9bdc8; margin: 0 0 6px; }
+.fp-wrap .fp-btn { padding: 8px 14px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.06); color: #fff; font: 700 14px 'Baloo 2', sans-serif; cursor: pointer; }
+.fp-wrap .fp-btn.on { background: #5be38f; color: #0c1a12; border-color: transparent; }
+.fp-box input { padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: rgba(0,0,0,.3); color: #fff; font: 13px ui-monospace, Menlo, monospace; width: 240px; }
+.fp-msg { padding: 10px 14px; border-radius: 10px; background: rgba(91,227,143,.08); border: 1px solid rgba(91,227,143,.35); color: #c9f7da; margin-bottom: 14px; font: 700 14px 'Baloo 2', sans-serif; }
+.fp-log { width: 100%; border-collapse: collapse; font: 12.5px ui-monospace, Menlo, monospace; color: #dfe2ea; } .fp-log td { padding: 4px 6px; border-bottom: 1px solid rgba(255,255,255,.05); }
+</style>
+<main class="wrap"><div class="fp-wrap">
+  <div class="page-head"><div><h1 class="page-title">The Daily Front on Discord</h1><p class="page-sub">Editions, after-action reports and breaking news, posted by the bot. Now: <b><%= mode %></b>.</p></div></div>
+  <% if (msg) { %><div class="fp-msg"><%= msg %></div><% } %>
+  <div class="fp-box"><h2>How it works</h2><ul>
+    <li>Every 5 minutes it reads the war feed and posts what's new to one channel: each Daily Front edition, each war window's after-action report, and breaking news (a capital lost or retaken, a nation wiped, the Christmas Truce). Each is posted once, at most 5 a run.</li>
+    <li><b>Dry</b> records what it would post without posting. <b>On</b> refuses to post while the war feed is still sample data.</li></ul>
+    <form method="POST" action="/admin/front-posts" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <% ['off', 'dry', 'on'].forEach(m => { %><button class="fp-btn <%= mode === m ? 'on' : '' %>" name="mode" value="<%= m %>"><%= m === 'off' ? 'Off' : m === 'dry' ? 'Dry run' : 'On' %></button><% }) %>
+    </form>
+    <form method="POST" action="/admin/front-posts" style="margin-top:12px"><label style="color:#e8e9ee;font:700 14px 'Baloo 2',sans-serif">Channel id </label><input name="channel" value="<%= channel %>" placeholder="channel id"> <button class="fp-btn" type="submit">Save</button></form></div>
+  <div class="fp-box"><h2>Waiting to post (<%= due.length %>)</h2><% if (!due.length) { %><p>Nothing.</p><% } %><ul><% due.slice(0, 20).forEach(d => { %><li><code><%= d.key %></code> <%= d.embed.title %></li><% }) %></ul></div>
+  <div class="fp-box"><h2>Posted</h2><% if (!posted.length) { %><p>Nothing yet.</p><% } else { %><table class="fp-log"><% posted.forEach(p => { %><tr><td><%= new Date(p.ts * 1000).toISOString().slice(5, 16).replace('T', ' ') %></td><td><%= p.mode %></td><td><%= p.title %></td><td><%= p.error || '' %></td></tr><% }) %></table><% } %></div>
+</div></main>
+<%- include('partials/foot') %>
