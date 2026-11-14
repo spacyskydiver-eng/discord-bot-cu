@@ -81,6 +81,7 @@ module.exports = function startServer() {
   app.use('/', require('./routes/gw-apply').router);
   app.use('/', require('./routes/bug-report'));
   app.use('/', require('./routes/staff-dashboard'));
+  app.use('/', require('./routes/war-office'));
   app.use('/', require('./routes/staff-apply'));
   app.use('/', require('./routes/vip'));
   app.use('/', require('./routes/campaign-map-share'));

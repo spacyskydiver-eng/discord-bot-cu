@@ -1,0 +1,51 @@
+<%- include('partials/head', { pageTitle: 'The War Office', pageDescription: 'Your war on your phone: your nation, the next war window, your orders, jobs and mail.' }) %>
+<%- include('partials/header') %>
+<%# The War Office on your phone (S30): the player's own, read-only view. Private: no-store, per signed-in player. %>
+<style>
+.wo-wrap { max-width: 640px; margin: 0 auto; padding-bottom: 70px; }
+.wo-box { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; margin-bottom: 12px; }
+.wo-box h2 { font: 800 15px 'Baloo 2', sans-serif; color: #9aa0ad; letter-spacing: .06em; text-transform: uppercase; margin: 0 0 8px; }
+.wo-me { display: flex; align-items: center; gap: 14px; }
+.wo-me img { width: 60px; height: 40px; image-rendering: pixelated; border: 2px solid #0c0e11; border-radius: 3px; }
+.wo-me b { display: block; font: 800 22px 'Baloo 2', sans-serif; color: #fff; }
+.wo-me span { font: 600 14px 'Baloo 2', sans-serif; color: #c4c8d2; }
+.wo-big { font: 800 24px 'Baloo 2', sans-serif; color: #fff; }
+.wo-row { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.06); font: 600 14.5px/1.45 'Baloo 2', sans-serif; color: #e3e5ec; }
+.wo-row:last-child { border-bottom: 0; }
+.wo-row small { display: block; color: #9aa0ad; font-weight: 600; }
+.wo-sample { margin: 0 0 12px; padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(251,191,36,.35); background: rgba(251,191,36,.08); color: #f4e3b5; font: 700 13.5px 'Baloo 2', sans-serif; }
+.wo-err { margin: 0 0 12px; padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(248,113,113,.45); background: rgba(248,113,113,.1); color: #fecaca; font: 700 14px 'Baloo 2', sans-serif; }
+.wo-wrap input { width: 100%; box-sizing: border-box; padding: 13px 14px; border-radius: 12px; border: 1px solid var(--line); background: rgba(0,0,0,.3); color: #fff; font: 800 20px ui-monospace, Menlo, monospace; letter-spacing: .2em; text-transform: uppercase; text-align: center; }
+.wo-wrap .wo-btn { display: inline-block; margin-top: 10px; padding: 11px 16px; border-radius: 12px; border: 0; background: #5be38f; color: #0c1a12; font: 800 15px 'Baloo 2', sans-serif; cursor: pointer; text-decoration: none; }
+.wo-wrap .wo-plain { background: none; border: 1px solid var(--line); color: #c4c8d2; }
+.wo-box a { color: #74c0fc; }
+.wo-box p { font: 600 14.5px/1.6 'Baloo 2', sans-serif; color: #c4c8d2; margin: 0 0 8px; }
+</style>
+<main class="wrap"><div class="wo-wrap">
+  <div class="page-head"><div><h1 class="page-title">The War Office</h1><p class="page-sub">Your war, on your phone. Read-only.</p></div></div>
+<% if (!locals.user) { %>
+  <div class="wo-box"><p>Sign in with Discord, then link your Minecraft account once with a code from the game.</p><a class="wo-btn" href="/auth/discord?return=/war-office">Sign in with Discord</a></div>
+<% } else if (!v) { %>
+  <% if (error) { %><div class="wo-err"><%= error %></div><% } %>
+  <form class="wo-box" method="POST" action="/war-office/link">
+    <h2>Link your account</h2>
+    <p>In the game, type <b>/link</b>. You get an 8-character code that lasts 10 minutes: type it here.</p>
+    <input name="code" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCD1234" required>
+    <button class="wo-btn" type="submit">Link</button>
+    <p style="margin-top:10px">You can cut the link any time, here or in the game with <b>/link revoke</b>.</p>
+  </form>
+<% } else { const m = v.me || {}; %>
+  <% if (v.sample) { %><div class="wo-sample">The war server isn't connected yet: this is a sample of what you'll see.</div><% } %>
+  <div class="wo-box"><div class="wo-me"><% if (nation && nation.flag) { %><img src="/img/flags/<%= nation.flag %>.png" alt=""><% } %><div><b><%= m.name %></b><span><%= nation ? nation.name.replace(/^The /, '') : 'Nationless' %><%= m.rank ? ' · ' + m.rank : '' %><%= m.class ? ' · ' + m.class : '' %> · <%= m.alive === false ? 'waiting to respawn' : 'alive' %></span></div></div></div>
+  <div class="wo-box"><h2>Next war window</h2><% if (next) { %><div class="wo-big"><time data-ts="<%= next.start %>"></time></div><p>for three hours</p><% } else { %><p>No more windows this event.</p><% } %></div>
+  <div class="wo-box"><h2>Orders</h2><% if (v.orders && v.orders.length) { v.orders.forEach(o => { %><div class="wo-row"><%= o.text %></div><% }) } else { %><p><%= v.orders ? 'No orders right now.' : 'Orders show here once the game sends them.' %></p><% } %></div>
+  <div class="wo-box"><h2>Open jobs</h2><% if (v.jobs && v.jobs.length) { v.jobs.forEach(j => { %><div class="wo-row"><%= j.title %><small><%= [j.pay, j.left].filter(Boolean).join(' · ') %></small></div><% }) } else { %><p><%= v.jobs ? 'No open jobs.' : 'Jobs show here once the game sends them.' %></p><% } %></div>
+  <div class="wo-box"><h2>Mail</h2><% if (v.mail && v.mail.length) { v.mail.forEach(l => { %><div class="wo-row"><%= l.subject %><small><%= l.from %></small></div><% }) } else { %><p><%= v.mail ? 'No letters.' : 'Your nation\'s mail shows here if you hold a seat that reads it.' %></p><% } %></div>
+  <div class="wo-box"><h2>For you</h2><% if (v.inbox && v.inbox.length) { v.inbox.slice(0, 8).forEach(n => { %><div class="wo-row"><%= n.text || n.message %></div><% }) } else { %><p>Nothing new.</p><% } %></div>
+  <div class="wo-box"><h2>The Daily Front</h2><% if (front) { %><div class="wo-row"><%= front.headline %><small>Day <%= front.day %></small></div><% } %><a href="/daily-front">Read the paper</a></div>
+  <div class="wo-box"><h2>The front</h2><% if (standing) { %><p><%= nation.name.replace(/^The /, '') %> holds <b><%= standing.nodes %></b> nodes<%= standing.captured24h ? ', took ' + standing.captured24h + ' today' : '' %><%= standing.lost24h ? ', lost ' + standing.lost24h : '' %>.</p><% } %><a href="/map">The map</a> · <a href="/war">The War Report</a></div>
+  <% if (!v.sample) { %><form method="POST" action="/war-office/unlink" onsubmit="return confirm('Cut the link to your game account?')"><button class="wo-btn wo-plain" type="submit">Unlink</button></form><% } %>
+<% } %>
+</div></main>
+<script>document.querySelectorAll('time[data-ts]').forEach(t => { t.textContent = new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' }).format(+t.dataset.ts * 1000).replace(/\b(GMT|UTC)\+0$/, '$1'); });</script>
+<%- include('partials/foot') %>
