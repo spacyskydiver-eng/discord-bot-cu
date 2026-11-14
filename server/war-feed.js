@@ -70,6 +70,27 @@ async function sample() {
   return { report, front };
 }
 
-async function report() { return LIVE ? live('/api/public/report') : (await sample()).report; }
-async function front() { return LIVE ? live('/api/public/front?days=7') : (await sample()).front; }
-module.exports = { report, front, isLive: () => !!LIVE };
+// ---------------------------------------------------------------- the game's ids
+// The game names nations by its own ids ('germany', 'austria_hungary', ...; Windows, W08), the site by two letters
+// ('de', 'ah'). Live answers are turned into the site's ids here, once, so every page reads one kind. Region ids are the
+// map's node ids on both sides and pass through as they are.
+const GAME_IDS = {};
+for (const n of require('./nations').NATIONS) { GAME_IDS[n.flag] = n.id; GAME_IDS[n.id] = n.id; }
+Object.assign(GAME_IDS, { britain: 'gb', british: 'gb', austria: 'ah', ottoman: 'ot', none: 'none' });
+const nid = v => (typeof v === 'string' && GAME_IDS[v.toLowerCase()]) || v;
+function siteIds(r) {
+  if (!r || typeof r !== 'object') return r;
+  const out = { ...r };
+  if (Array.isArray(r.nations)) out.nations = r.nations.map(n => ({ ...n, id: nid(n.id) }));
+  if (r.owners && typeof r.owners === 'object') out.owners = Object.fromEntries(Object.entries(r.owners).map(([k, v]) => [k, nid(v)]));
+  if (Array.isArray(r.relations)) out.relations = r.relations.map(x => ({ ...x, a: nid(x.a), b: nid(x.b) }));
+  const each = x => { const y = { ...x }; for (const k of ['a', 'b', 'from', 'to', 'attacker', 'defender', 'nation']) if (k in y) y[k] = nid(y[k]); return y; };
+  if (Array.isArray(r.events)) out.events = r.events.map(each);
+  if (Array.isArray(r.battles)) out.battles = r.battles.map(each);
+  if (Array.isArray(r.editions)) out.editions = r.editions.map(e => ({ ...e, articles: (e.articles || []).map(each) }));
+  return out;
+}
+
+async function report() { return LIVE ? siteIds(await live('/api/public/report')) : (await sample()).report; }
+async function front() { return LIVE ? siteIds(await live('/api/public/front?days=7')) : (await sample()).front; }
+module.exports = { report, front, isLive: () => !!LIVE, siteIds };

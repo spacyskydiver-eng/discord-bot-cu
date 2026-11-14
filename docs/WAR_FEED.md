@@ -8,6 +8,10 @@ never call the game.
 Nothing in either may carry node values, coordinates, player positions, or anything a scout would have to earn (living
 players per node, troop counts). Battle sizes are only published once the window they happened in has closed.
 
+> **Nation ids (14 Nov, W08):** the game answers with its own ids (`germany`, `austria_hungary`, `british_empire`,
+> `ottoman_empire`...). `server/war-feed.js` (`siteIds`) turns them into the two-letter ids below as each answer arrives,
+> so the examples here use the site's ids. Either kind is accepted. Node ids are the map's region ids on both sides.
+
 ## `GET /api/public/report` (header `X-Greatwar-Secret`)
 ```json
 {
