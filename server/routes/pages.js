@@ -688,6 +688,33 @@ router.get('/the-great-war', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// public service records: /soldier?name=X redirects to /soldier/X
+router.get('/soldier', (req, res) => {
+  const q = String(req.query.name || '').trim();
+  if (q) return res.redirect('/soldier/' + encodeURIComponent(q));
+  res.render('new/soldier', { rec: null, account: null, fights: [] });
+});
+router.get('/soldier/:name', async (req, res, next) => {
+  const q = String(req.params.name || '').trim();
+  try {
+    const found = await require('../service-records').lookup(q);
+    if (!found) return res.status(404).render('new/soldier', { q, rec: null, notice: `"${q}" isn't a Minecraft Java account.`, fights: [] });
+    if (!found.record) return res.status(404).render('new/soldier', { q, rec: null, notice: `${found.account.name} hasn't served in The Great War yet.`, fights: [] });
+    // notable fights: Daily Front stories that name them
+    let fights = [];
+    try {
+      const front = await require('../war-feed').front();
+      const re = new RegExp('\\b' + found.account.name.replace(/[^\w]/g, '') + '\\b', 'i');
+      (front.editions || []).forEach(ed => (ed.articles || []).forEach(a => { if (re.test(a.title + ' ' + a.body)) fights.push({ day: ed.day, title: a.title, body: a.body }); }));
+    } catch (e) { /* the paper isn't there: no fights listed */ }
+    res.set('Cache-Control', 'public, max-age=60');
+    res.render('new/soldier', { q: found.account.name, rec: found.record, account: found.account, fights: fights.slice(0, 8) });
+  } catch (e) {
+    if (/Mojang/.test(e.message)) return res.status(503).render('new/soldier', { q, rec: null, notice: "We couldn't look that name up just now. Please try again in a minute.", fights: [] });
+    next(e);
+  }
+});
+
 // the eight nations' public pages
 router.get('/nations', async (req, res, next) => {
   try { res.render('new/nations', { nations: await require('../nations').withMap(), nation: null }); } catch (e) { next(e); }
