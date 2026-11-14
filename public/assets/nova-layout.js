@@ -209,6 +209,7 @@ function showHome(view) {
     </section>
     <section class="nv-sec nv-live">
       <div class="nv-sec-head"><h2>Today</h2></div>
+      ${C.onThisDay ? `<p class="nv-otd"><b>On this day in 1914:</b> ${esc(C.onThisDay)}</p>` : ''}
       <div class="nv-live-grid">
         <div class="nv-ms-col nv-todo-col"><div class="nv-ms-colhead"><span class="nv-kicker">Upcoming events</span><button class="nv-ms-all" data-go="events">Open ${icon('chevron-right')}</button></div>
           <div class="nv-ms-list">${events.length ? events.map(e => `<button class="nv-ms-item" data-go="${esc(e.wiki && B.exists(e.wiki) ? e.wiki : 'events')}"><span class="nv-ms-when">${esc(fmtDate(e.date))}</span><b>${esc(e.title)}</b><small>${esc(e.setting)} · up to ${esc(e.players)} players</small></button>`).join('') : '<div class="nv-empty">No events announced yet.</div>'}</div></div>

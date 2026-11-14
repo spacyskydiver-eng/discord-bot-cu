@@ -94,6 +94,8 @@ async function renderApp(req, res) {
     arsenal,
     discord: 'https://discord.gg/tF5hWxaQQj',
     events: upcomingEvents(),
+    // "on this day in 1914": today's UK date
+    onThisDay: require('../on-this-day').onThisDay(new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(new Date())),
     pack: await require('../pack-release').publicInfo(),
     applications,
     team,
@@ -655,7 +657,7 @@ async function warPage(req, res, next, page) {
       alliance: () => `${nat(e.a).short} and ${nat(e.b).short} became allies`,
       alliance_broken: () => `The alliance of ${nat(e.a).short} and ${nat(e.b).short} ended`,
     }[e.kind] || (() => e.kind))();
-    res.render('new/war', { page, report, front, sample: !!report.sample, nat, nodeName, said });
+    res.render('new/war', { page, report, front, sample: !!report.sample, nat, nodeName, said, onThisDay: require('../on-this-day').onThisDay });
   } catch (e) { next(e); }
 }
 router.get('/war', (req, res, next) => warPage(req, res, next, 'report'));
@@ -733,7 +735,13 @@ router.get('/map/data.json', async (req, res) => {
     // once the game's war feed is live, the public map shows who holds each node now (never with sample data)
     const feed = require('../war-feed');
     if (feed.isLive()) {
-      try { const own = (await feed.report()).owners || {}, m = JSON.parse(body); m.territories.forEach(t => { if (own[t.id]) t.owner = own[t.id]; }); body = JSON.stringify(m); }
+      try {
+        const r = await feed.report(), own = Object.assign({}, r.owners || {}), m = JSON.parse(body);
+        // no free intel: while a window is open, a capture only shows 10 minutes after it happened (or at the close)
+        if (r.windowOpen) (r.events || []).filter(e => e.kind === 'capture' && e.at > (r.now || Date.now()) - 10 * 60 * 1000).sort((x, y) => y.at - x.at).forEach(e => { own[e.node] = e.from; });
+        m.territories.forEach(t => { if (own[t.id]) t.owner = own[t.id]; });
+        body = JSON.stringify(m);
+      }
       catch (e) { console.error('[map] war feed', e.message); }
     }
     res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=86400').type('application/json').send(body);

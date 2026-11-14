@@ -31,6 +31,7 @@
 .df-mast b { display: block; font: 900 clamp(30px, 6vw, 46px)/1 'Fraunces', Georgia, serif; letter-spacing: .02em; }
 .df-mast small { font: 600 12px Georgia, serif; letter-spacing: .1em; text-transform: uppercase; }
 .df-head { font: 800 clamp(24px, 4vw, 32px)/1.15 'Fraunces', Georgia, serif; margin: 6px 0 16px; text-align: center; }
+.df-otd { font: italic 14.5px/1.5 Georgia, serif; text-align: center; color: #4a4437; border-bottom: 1px solid #b8ad94; padding: 0 0 12px; margin: -6px 0 16px; }
 .df-cols { columns: 2 300px; column-gap: 28px; }
 .df-art { break-inside: avoid; margin-bottom: 16px; }
 .df-art h3 { font: 800 17px/1.25 Georgia, serif; margin: 0 0 4px; }
@@ -48,6 +49,7 @@
   <article class="df-paper">
     <div class="df-mast"><b>THE DAILY FRONT</b><small>Day <%= ed.day %> · <%= new Date(ed.date + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) %></small></div>
     <h2 class="df-head"><%= ed.headline %></h2>
+    <% const otd = onThisDay(ed.date); if (otd) { %><p class="df-otd"><b>On this day in 1914:</b> <%= otd %></p><% } %>
     <div class="df-cols"><% ed.articles.forEach(a => { %><div class="df-art"><h3><%= a.title %></h3><p><%= a.body %></p><% if (a.kind === 'press') { %><p class="by">From <%= nat(a.nation).name %><%= a.author ? ', ' + a.author : '' %></p><% } %></div><% }) %></div>
   </article>
   <% }) %>

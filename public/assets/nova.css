@@ -1506,3 +1506,5 @@ body.ui-nova .fh-step .nv-lec-body small a { color: var(--mod); }
 body.ui-nova .fh-step .nv-lec-side a { text-decoration: none; }
 body.ui-nova .tst-next a { color: #a78bfa; }
 body.ui-nova .pk-sha { display: block; margin-top: 4px; font: 500 11px var(--font-monospace-theme, monospace); color: var(--text-faint); overflow-wrap: anywhere; }
+body.ui-nova .nv-otd { margin: -4px 0 14px; color: var(--text-muted); font-size: 14px; line-height: 1.55; }
+body.ui-nova .nv-otd b { color: var(--text-normal); }
