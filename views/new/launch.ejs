@@ -23,6 +23,10 @@
 .ln-type h3 { font: 800 18px 'Baloo 2', sans-serif; color: #fff; margin: 0 0 6px; }
 .ln-type p { font: 600 14.5px/1.6 'Baloo 2', sans-serif; color: #c4c8d2; margin: 0; }
 .ln-type a { color: #74c0fc; }
+.ln-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+.ln-gallery figure { margin: 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--panel); }
+.ln-gallery img { display: block; width: 100%; height: auto; }
+.ln-gallery figcaption { padding: 8px 12px; font: 700 13.5px 'Baloo 2', sans-serif; color: #c4c8d2; }
 .ln-flags { display: flex; flex-wrap: wrap; gap: 10px; }
 .ln-flags a { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: #fff; text-decoration: none; font: 700 14px 'Baloo 2', sans-serif; }
 .ln-flags img { width: 30px; height: 20px; image-rendering: pixelated; border: 1px solid #0c0e11; }
@@ -63,6 +67,14 @@
     <div class="ln-type"><h3>Explorers</h3><p>An 11,500-block Europe, built by hand: the Alps and the Caucasus, the Sahara and the Arctic, the Pripyat marshes. Scouts cross enemy lines between windows to see what's coming.</p></div>
     <div class="ln-type"><h3>New players</h3><p>Never played modded Minecraft? <a href="/first-hour">Your first hour</a> takes you from installing to your first fight in eleven steps, and you're paid for every active minute from day one.</p></div>
     <div class="ln-type"><h3>An hour a night</h3><p>Death costs your kit, not your character: you respawn at your capital. Take a job from your leaders, do something useful, and follow the war on the <a href="/war">War Report</a> when you're away.</p></div>
+  </div>
+
+  <h2 class="ln-h2">From the front</h2>
+  <p class="ln-sub">Rendered from the event's own models.</p>
+  <div class="ln-gallery">
+    <figure><img src="/img/showcase/tank_crossing.webp" width="1280" height="720" loading="lazy" alt="A British Mark V tank nosing down into a trench line at dusk, in the smoke"><figcaption>A Mark V crossing the trench line</figcaption></figure>
+    <figure><img src="/img/showcase/capture_point.webp" width="1280" height="720" loading="lazy" alt="A French command post on a shelled field: map table, field telephone and pennant, inside its taped ring"><figcaption>A French command post: the heart of a node</figcaption></figure>
+    <figure><img src="/img/showcase/eight_flags.webp" width="1280" height="720" loading="lazy" alt="The eight nations' 1914 flags along a sandbagged parapet, receding into the haze"><figcaption>Eight flags along the parapet</figcaption></figure>
   </div>
 
   <h2 class="ln-h2">The eight nations</h2>
