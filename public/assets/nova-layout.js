@@ -416,6 +416,36 @@ B.registerView('leaders-handbook', {
   },
 });
 
+/* ---------------------------------------------------------------- the builders' catalogue
+   Every decor block and the eight national building styles, grouped like the creative tabs, searchable. The data and
+   pictures are static files (/img/catalogue/), made from the pack's own textures. */
+B.registerView('builders', {
+  title: () => 'Builders\' catalogue', icon: 'library', cls: 'nv-view',
+  show(view) {
+    pageView(view, {
+      color: '#A3E635', kicker: 'The Great War · for builders', title: 'Builders\' catalogue',
+      lede: 'Every decor block in the pack and the eight national building styles, with what each is for. Search by name or use.',
+      body: `<section class="nv-sec"><input class="bc-search" type="search" placeholder="Search: sandbag, lamp, French..." aria-label="Search the catalogue"><p class="bc-count"></p></section><div class="bc-groups"><div class="nv-empty">Loading the catalogue&hellip;</div></div>`,
+    });
+    const box = $('.bc-groups', view), input = $('.bc-search', view), count = $('.bc-count', view);
+    let groups = [];
+    const draw = () => {
+      const q = input.value.trim().toLowerCase();
+      let shown = 0;
+      box.innerHTML = groups.map(g => {
+        const hits = g.blocks.filter(b => !q || (b.name + ' ' + b.use + ' ' + g.title).toLowerCase().includes(q));
+        shown += hits.length;
+        return hits.length ? `<section class="nv-sec"><div class="nv-sec-head"><h2>${esc(g.title)}</h2><span>${hits.length}${g.inGame ? '' : ' · coming in a later release'}</span></div>${g.blurb ? `<p class="bc-blurb">${esc(g.blurb)}</p>` : ''}
+          <div class="bc-grid">${hits.map(b => `<div class="bc-item">${b.image ? `<img src="/img/catalogue/${esc(b.image)}" width="64" height="64" loading="lazy" alt="">` : '<span class="bc-noimg"></span>'}<span><b>${esc(b.name)}</b><small>${esc(b.use || '')}</small></span></div>`).join('')}</div></section>` : '';
+      }).join('') || '<div class="nv-empty">Nothing matches that.</div>';
+      count.textContent = `${shown} block${shown === 1 ? '' : 's'}`;
+    };
+    fetch('/img/catalogue/catalogue.json').then(r => r.json()).then(d => { groups = d; draw(); }).catch(() => { box.innerHTML = '<div class="nv-empty">The catalogue couldn\'t be loaded. Try again in a moment.</div>'; });
+    input.addEventListener('input', draw);
+    return leaving('/builders');
+  },
+});
+
 /* ---------------------------------------------------------------- the modpack: download, install, FAQ */
 const steps = list => `<ol class="pk-steps">${list.map(s => `<li>${s}</li>`).join('')}</ol>`;
 const qa = list => `<div class="pk-qa">${list.map(([q, a]) => `<details><summary>${esc(q)}</summary><div>${a}</div></details>`).join('')}</div>`;

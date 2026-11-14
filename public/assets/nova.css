@@ -1514,3 +1514,12 @@ body.ui-nova .lh-body p { margin: 0 0 10px; }
 body.ui-nova .lh-body ul { margin: 0 0 10px; padding-left: 20px; display: grid; gap: 6px; }
 body.ui-nova .lh-body b { color: var(--text-normal); }
 body.ui-nova .lh-body a { color: var(--mod); }
+/* the builders' catalogue */
+body.ui-nova .bc-search { width: 100%; max-width: 520px; box-sizing: border-box; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--background-modifier-border); background: var(--background-secondary); color: var(--text-normal); font: inherit; font-size: 15px; }
+body.ui-nova .bc-count { margin: 8px 0 0; color: var(--text-faint); font-size: 13px; }
+body.ui-nova .bc-blurb { margin: -4px 0 12px; color: var(--text-muted); font-size: 14px; max-width: 76ch; }
+body.ui-nova .bc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; }
+body.ui-nova .bc-item { display: flex; gap: 12px; align-items: center; padding: 10px; border-radius: 12px; border: 1px solid var(--background-modifier-border); background: var(--background-secondary); }
+body.ui-nova .bc-item img, body.ui-nova .bc-noimg { width: 48px; height: 48px; flex: none; image-rendering: pixelated; border-radius: 6px; background: rgba(255,255,255,.04); }
+body.ui-nova .bc-item b { display: block; font-size: 14px; }
+body.ui-nova .bc-item small { display: block; color: var(--text-muted); font-size: 12.5px; line-height: 1.4; }

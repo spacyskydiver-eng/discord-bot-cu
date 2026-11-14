@@ -41,6 +41,7 @@ const VAULT_PATH = path.join(__dirname, '../vault/vault.json');
 const APP_META = {
   '/wiki': ['The Great War: Field Manual', 'The player handbook for The Great War: nations, war windows, capturing nodes, money, gear and tanks.'],
   '/great-war-in-2-minutes': ['The Great War in 2 minutes', 'Everything you need to start playing The Great War, on one page: 8 nations, 174 nodes, six war windows and a Christmas Truce.'],
+  '/builders': ['Builders\' catalogue: The Great War', 'Every decor block and the eight national building styles in The Great War, with what each is for.'],
   '/leaders-handbook': ['The Leader\'s handbook: The Great War', 'How to run a nation in The Great War: seats, alliances, war windows, orders, the treasury, incidents and research.'],
   '/first-hour': ['Your first hour: The Great War', 'New to The Great War? From installing the pack to your first fight, in eleven short steps.', '/img/pack/cover.jpg'],
   '/pack': ['Get the modpack: The Great War', 'Download The Great War modpack and install it on Windows or Mac in a few minutes.', '/img/pack/cover.jpg'],
@@ -136,6 +137,7 @@ router.get('/great-war/windows.ics', (req, res) => {
 router.get('/pack', renderApp);
 router.get('/first-hour', renderApp);
 router.get('/leaders-handbook', renderApp);
+router.get('/builders', renderApp);
 router.get('/pack-faq', renderApp);
 router.get('/download/:file', (req, res, next) => require('../pack-release').serve(req, res, next));
 router.get('/leaders', renderApp);

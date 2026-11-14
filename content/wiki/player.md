@@ -276,6 +276,8 @@ The budget is set aside when the job is posted, and whatever's left goes back to
 
 #### 2.5.3 Fortify a node
 
+Looking for the right block? The [builders' catalogue](/builders) has every decor block and the eight national building styles.
+
 The Leader, or a seat with *Orders & jobs*, posts a Fortify job by picking one of the nation's own nodes, a block budget and a rate of pay per block. It pays for sandbags, planks, stone, cobblestone, bricks and barbed wire placed in that node. The pay goes to whoever placed the block, but only if the block is still standing 10 minutes later. If you break your own block inside those 10 minutes, it doesn't count.
 
 You're limited by the job's budget and by 256 paid blocks per player per day. Builders get 25% more per block (4.6.7).
