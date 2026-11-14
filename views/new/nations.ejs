@@ -1,0 +1,65 @@
+<% const one = locals.nation; %>
+<%- include('partials/head', { pageTitle: one ? one.name + ' in 1914' : 'The nations of The Great War', pageDescription: one ? one.history[0].slice(0, 180) : 'The eight nations of The Great War, Europe in 1914: their flags, capitals, allies and where they stand at the start.' }) %>
+<%- include('partials/header') %>
+<style>
+.na-wrap { max-width: 860px; margin: 0 auto; padding-bottom: 80px; }
+.na-flag { image-rendering: pixelated; image-rendering: crisp-edges; border: 2px solid #0c0e11; border-radius: 4px; box-shadow: 0 6px 18px rgba(0,0,0,.4); display: block; }
+.na-head { display: flex; align-items: center; gap: 22px; margin-bottom: 26px; }
+.na-head .na-flag { width: 144px; height: 96px; flex: none; }
+.na-kicker { font: 700 12px Inter, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #9aa0ad; margin: 0 0 6px; }
+.na-box { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 20px; }
+.na-box h2 { font-family: 'Baloo 2'; font-weight: 800; font-size: 18px; color: #fff; margin: 0 0 10px; }
+.na-box p { font-family: 'Baloo 2'; font-weight: 600; font-size: 15px; color: #b9bdc8; line-height: 1.75; margin: 0 0 12px; }
+.na-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
+.na-fact { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.na-fact b { display: block; font: 800 22px 'Baloo 2', sans-serif; color: #fff; }
+.na-fact span { font: 700 11px Inter, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #9aa0ad; }
+.na-th { display: flex; flex-wrap: wrap; gap: 8px; }
+.na-th span { padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,.04); font: 700 13px 'Baloo 2', sans-serif; color: #e8e9ee; }
+.na-th small { color: #9aa0ad; margin-left: 4px; }
+.na-note { font-size: 13.5px !important; color: #9aa0ad !important; }
+.na-links { display: flex; flex-wrap: wrap; gap: 10px; }
+.na-btn { padding: 9px 14px; border-radius: 10px; border: 1px solid var(--line); color: #e8e9ee; text-decoration: none; font: 700 14px 'Baloo 2', sans-serif; }
+.na-btn:hover { border-color: rgba(255,255,255,.3); }
+.na-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.na-card { display: flex; align-items: center; gap: 16px; padding: 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel); text-decoration: none; color: #e8e9ee; }
+.na-card:hover { border-color: rgba(255,255,255,.28); }
+.na-card .na-flag { width: 72px; height: 48px; flex: none; }
+.na-card b { display: block; font: 800 17px 'Baloo 2', sans-serif; color: #fff; }
+.na-card small { font: 600 13px 'Baloo 2', sans-serif; color: #9aa0ad; }
+@media (max-width: 700px) {
+  .na-head { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .na-head .na-flag { width: 120px; height: 80px; }
+  .na-facts { grid-template-columns: 1fr 1fr; }
+  .na-grid { grid-template-columns: 1fr; }
+}
+</style>
+<main class="wrap"><div class="na-wrap">
+<% if (one) { %>
+  <div class="na-head">
+    <img class="na-flag" src="/img/flags/<%= one.flag %>.png" width="24" height="16" alt="The flag of <%= one.name.replace(/^The /, 'the ') %> in 1914">
+    <div><p class="na-kicker">The Great War · Europe, 1914</p><h1 class="page-title"><%= one.name %></h1></div>
+  </div>
+  <div class="na-facts">
+    <div class="na-fact"><span>Capital</span><b><%= one.capital || '—' %></b></div>
+    <div class="na-fact"><span>Nodes at the start</span><b><%= one.nodes %></b></div>
+    <div class="na-fact"><span>Theatres</span><b><%= one.theatres.length %></b></div>
+  </div>
+  <div class="na-box"><h2>In 1914</h2><% one.history.forEach(p => { %><p><%= p %></p><% }) %></div>
+  <div class="na-box"><h2>Allies at the start</h2>
+    <p>In 1914: <%= one.allies1914 %>.</p>
+    <p class="na-note">In the game every nation starts neutral to every other. Alliances and wars are made by the players, so history is only a guide.</p>
+  </div>
+  <div class="na-box"><h2>Where it starts</h2>
+    <div class="na-th"><% one.theatres.forEach(t => { %><span><%= t.name %><small><%= t.count %></small></span><% }) %></div>
+  </div>
+  <div class="na-links"><a class="na-btn" href="/map">See it on the map</a><a class="na-btn" href="/nations">All eight nations</a><a class="na-btn" href="/great-war-in-2-minutes">The Great War in 2 minutes</a></div>
+<% } else { %>
+  <div class="page-head"><div><p class="na-kicker">The Great War · Europe, 1914</p><h1 class="page-title">The nations</h1>
+    <p class="page-sub">Eight powers of 1914. Everyone starts neutral; the players decide who fights whom.</p></div></div>
+  <div class="na-grid">
+    <% nations.forEach(n => { %><a class="na-card" href="/nations/<%= n.slug %>"><img class="na-flag" src="/img/flags/<%= n.flag %>.png" width="24" height="16" alt=""><span><b><%= n.name %></b><small><%= n.capital %> · <%= n.nodes %> nodes</small></span></a><% }) %>
+  </div>
+<% } %>
+</div></main>
+<%- include('partials/foot') %>

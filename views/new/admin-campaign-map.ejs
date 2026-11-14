@@ -202,6 +202,8 @@
   const PUB = <%= pub ? 'true' : 'false' %>;
   const W_T = PUB ? 'node' : 'territory', W_TS = PUB ? 'nodes' : 'territories', W_C = PUB ? 'theatre' : 'continent', W_CS = PUB ? 'theatres' : 'continents';
   const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+  // each nation's public page (/nations/<slug>), from the public map
+  const NATION_PAGE = PUB ? { gb: 'british-empire', fr: 'france', de: 'germany', ah: 'austria-hungary', ru: 'russia', it: 'italy', ot: 'ottoman-empire', bg: 'bulgaria' } : {};
   const $ = id => document.getElementById(id);
   const stage = $('cm-stage'), hud = $('cm-board'), sharp = $('cm-sharp'), baseC = $('cm-base');
   const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
@@ -632,7 +634,7 @@
 <% if (!pub) { %><span class="cm-badge gold">+${c.bonus} continent bonus</span><% } %>
       ${held && held !== 'none' ? `<p>${esc(c.name)} is held whole by ${esc((NAT[held] || {}).name || held)}.</p>` : ''}
       <h3>Owner</h3>
-      <span class="cm-badge"><span class="lg-sw" style="background:${esc(n.color)}"></span>${esc(n.name)}</span>
+      ${NATION_PAGE[t.owner] ? `<a class="cm-badge" href="/nations/${NATION_PAGE[t.owner]}" style="text-decoration:none">` : '<span class="cm-badge">'}<span class="lg-sw" style="background:${esc(n.color)}"></span>${esc(n.name)}${NATION_PAGE[t.owner] ? ' &rsaquo;</a>' : '</span>'}
       ${caps.map(x => `<span class="cm-badge gold">&#9733; ${esc(x.name)}, capital</span>`).join('')}
       ${here.map(x => `<h3>${esc(x.label)}</h3><div class="rule">${esc(x.rule)}</div>`).join('')}
       <h3>Neighbours (${nbs.length})</h3>
@@ -652,7 +654,8 @@
         <p>Europe in August 1914: ${M.territories.length} nodes across ${M.continents.length} theatres, held by ${M.nations.filter(n => n.id !== 'none').length} nations. Every node gives its owner income and resources; take more and your nation grows stronger.</p>
         <p>Nodes are grouped into ${M.continents.length} theatres: the big regions of the war, such as the Western Front, the Balkans or North Africa. Switch <b>Colour</b> to theatre to see them.</p>
         <p>Tap a node to see who holds it and what borders it. Drag to move, scroll or pinch to zoom.</p>
-        <h3>Nations</h3>${M.nations.filter(n => n.id !== 'none').map(n => `<span class="cm-badge"><span class="lg-sw" style="background:${esc(n.color)}"></span>${esc(n.name)}</span>`).join('')}`;
+        <h3>Nations</h3>${M.nations.filter(n => n.id !== 'none').map(n => `<a class="cm-badge" href="/nations/${NATION_PAGE[n.id] || ''}" style="text-decoration:none"><span class="lg-sw" style="background:${esc(n.color)}"></span>${esc(n.name)}</a>`).join('')}
+        <p><a href="/nations" style="color:#ffd666">About the eight nations in 1914 &rsaquo;</a></p>`;
       return;
     }
 <% if (!pub) { %>    $('cm-info').innerHTML = html || `<h1>${esc(M.meta.name)}</h1>
@@ -693,7 +696,9 @@
       <h4><% if (pub) { %>Theatres<% } else { %>Continents &middot; bonus<% } %></h4>
       ${M.continents.map(c => { const o = heldBy(c); return `<div class="lg-row btn" data-c="${esc(c.id)}"><span class="lg-sw" style="background:${esc(c.color)}"></span><span class="n">${esc(c.name)}${o && o !== 'none' ? ' <span class="c">(' + esc((NAT[o] || {}).name || o) + ')</span>' : ''}</span><% if (pub) { %><span class="c">${c.territories.length}</span><% } else { %><span class="v">+${c.bonus}</span><% } %></div>`; }).join('')}
       <h4>${PUB ? 'Nations' : 'Owners'}</h4>
-      ${M.nations.filter(n => count[n.id]).map(n => `<div class="lg-row"><span class="lg-sw" style="background:${esc(n.color)}"></span><span class="n">${esc(n.name)}</span><span class="c">${count[n.id]}</span></div>`).join('')}
+      ${M.nations.filter(n => count[n.id]).map(n => NATION_PAGE[n.id]
+        ? `<a class="lg-row btn" href="/nations/${NATION_PAGE[n.id]}" style="color:inherit;text-decoration:none" title="About ${esc(n.name)} in 1914"><span class="lg-sw" style="background:${esc(n.color)}"></span><span class="n">${esc(n.name)}</span><span class="c">${count[n.id]} &rsaquo;</span></a>`
+        : `<div class="lg-row"><span class="lg-sw" style="background:${esc(n.color)}"></span><span class="n">${esc(n.name)}</span><span class="c">${count[n.id]}</span></div>`).join('')}
       <h4>Terrain</h4>
       ${terrTypes.map(t => `<div class="lg-row" title="${esc(t.rule)}"><span class="lg-sw" style="${sw(t)}"></span><span class="n">${esc(t.label)}</span><span class="c">${esc(t.rule.split('.')[0])}</span></div>`).join('')}
       <div class="lg-row"><span class="lg-sw" style="background:#8f918c"></span><span class="n">Other land</span><span class="c">Not playable</span></div>

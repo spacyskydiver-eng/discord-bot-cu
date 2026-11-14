@@ -1498,3 +1498,5 @@ body.ui-nova .pk-qa details[open] summary::after { content: '−'; }
 body.ui-nova .pk-qa details > div { padding: 0 16px 12px; color: var(--text-muted); line-height: 1.6; }
 body.ui-nova .pk-qa p { margin: 0 0 8px; }
 body.ui-nova .pk-cover { display: block; width: 100%; max-width: 960px; height: auto; border-radius: 14px; border: 1px solid var(--background-modifier-border); }
+body.ui-nova .gw2-nations a { text-decoration: none; }
+body.ui-nova .gw2-nations a:hover .nv-pill { color: var(--text-normal); border-color: var(--background-modifier-border-hover); }

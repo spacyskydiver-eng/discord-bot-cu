@@ -284,7 +284,7 @@ B.registerView('events', {
    For people who won't read the wiki: the event on one page, every point linking to its wiki section. */
 const GW_SHORT = {
   facts: [['2 weeks', 'Event length', '1-1-3'], ['8', 'Nations', '1-2-1'], ['500', 'Players, up to', '1-1-1'], ['174', 'Nodes to hold', '3-3-1']],
-  nations: ['British Empire', 'France', 'Russia', 'Italy', 'Germany', 'Austria-Hungary', 'Ottoman Empire', 'Bulgaria'],
+  nations: [['British Empire', 'british-empire'], ['France', 'france'], ['Russia', 'russia'], ['Italy', 'italy'], ['Germany', 'germany'], ['Austria-Hungary', 'austria-hungary'], ['Ottoman Empire', 'ottoman-empire'], ['Bulgaria', 'bulgaria']],
   orders: [
     ["There's no winner", "It's a sandbox. The story is whatever the nations make of it.", '1-1-3'],
     ['Hold nodes', 'The map is split into nodes. Each one pays its owner money and resources, so more nodes means better gear and more tanks.', '3-3-1'],
@@ -308,7 +308,7 @@ B.registerView('great-war-short', {
       color: '#F87171', kicker: 'The Great War · Europe, 1914', title: 'The Great War in 2 minutes',
       lede: 'A two-week World War One event on custom-made mods. Here is everything you need to start playing. The full rules are in the wiki.',
       body: `<section class="nv-sec"><div class="gw2-facts">${G.facts.map(([b, k, id]) => `<a class="nv-today-cell" ${toWiki(id)}><b>${esc(b)}</b><span class="nv-today-k">${esc(k)}</span></a>`).join('')}</div></section>`
-        + sec('Pick a side', `<a class="gw2-nations" ${toWiki('1-2-1')}>${G.nations.map(pill).join('')}</a>`)
+        + sec('Pick a side', `<div class="gw2-nations">${G.nations.map(([n, slug]) => `<a href="/nations/${slug}">${pill(n)}</a>`).join('')}</div>`)
         + `<section class="nv-sec"><a class="gw2-window" ${toWiki('3-2-2')}><b>19:00–22:00</b><span><strong>War windows, every 2 days, UK time.</strong> Land only changes hands inside a window. The first one opens on day 3.<small>Plan your evenings around these</small></span></a></section>`
         + sec('What to know', `<div class="nv-timeline">${G.orders.map(([h, p, id], i) => card(String(i + 1).padStart(2, '0'), esc(h), esc(p), wikiPill(id), toWiki(id))).join('')}</div>`)
         + `<section class="nv-sec"><p class="nv-lede">Times, numbers and the start date may change before the event. <a ${toWiki('')}>Read the full wiki</a> for the details.</p></section>`,
