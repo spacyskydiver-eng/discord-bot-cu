@@ -175,6 +175,7 @@ function mountDock() {
     { id: 'events', label: 'Events', ic: 'calendar' },
     { id: 'wiki', label: 'Wiki', ic: 'book-open' },
     { href: '/map', label: 'Map', ic: 'map' },
+    { id: 'pack', label: 'Modpack', ic: 'download' },
     { id: 'store', label: 'Store', ic: 'cart' },
     { id: 'Arsenal', label: 'Arsenal', ic: 'flame' },
     { id: 'team', label: 'Team', ic: 'users' },

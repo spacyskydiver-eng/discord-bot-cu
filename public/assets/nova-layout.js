@@ -116,6 +116,8 @@ function navPane(root) {
     ${modules.map(modRow).join('')}
     ${PAGES().filter(p => !model().modules.some(m => m.id === p.id)).map(pageRow).join('')}
     <div class="nv-nav-mod" style="--mod:#5EB0E5"><div class="nv-nav-modrow"><button class="nv-nav-caret" style="visibility:hidden" tabindex="-1" aria-hidden="true">${icon('chevron-right')}</button><a class="nv-nav-modname" href="/map" style="text-decoration:none"><i></i><span>Campaign map</span></a></div></div>
+    <div class="nv-nav-mod" style="--mod:#5EB0E5"><div class="nv-nav-modrow"><button class="nv-nav-caret" style="visibility:hidden" tabindex="-1" aria-hidden="true">${icon('chevron-right')}</button><a class="nv-nav-modname" href="/great-war-in-2-minutes" style="text-decoration:none"><i></i><span>The Great War in 2 minutes</span></a></div></div>
+    <div class="nv-nav-mod" style="--mod:#5EB0E5"><div class="nv-nav-modrow"><button class="nv-nav-caret" style="visibility:hidden" tabindex="-1" aria-hidden="true">${icon('chevron-right')}</button><a class="nv-nav-modname" href="/pack" style="text-decoration:none"><i></i><span>Get the modpack</span></a></div></div>
     ${CUE().isAdmin ? `<div class="nv-nav-mod" style="--mod:#8B9CFF"><div class="nv-nav-modrow"><button class="nv-nav-caret" style="visibility:hidden" tabindex="-1" aria-hidden="true">${icon('chevron-right')}</button><a class="nv-nav-modname" href="/admin" style="text-decoration:none"><i></i><span>Admin panel</span></a></div></div>` : ''}
     <div class="nv-nav-label nv-docked">Library</div>
     <button class="nv-nav-item nv-docked" data-navmap>${icon('graph')}<span>Neural map</span></button>
@@ -197,6 +199,8 @@ function showHome(view) {
         ${next ? `<button class="nv-today-cell nv-today-wide" data-go="${esc(next.wiki && B.exists(next.wiki) ? next.wiki : 'events')}"><span class="nv-today-k">Next event</span><b class="nv-today-title">${esc(next.title)}</b><small>${esc(fmtDate(next.date, true))} · ${esc(next.setting)}</small></button>` : ''}
         <button class="nv-today-cell" data-go="events"><span class="nv-today-k">Days to go</span><b>${next ? daysTo(next.date) : 0}</b><small>${next ? 'Up to ' + esc(next.players) + ' players' : 'Upcoming events'}</small></button>
         <a class="nv-today-cell" href="/map" style="grid-column: 1 / -1; text-decoration: none"><span class="nv-today-k">Campaign map</span><b class="nv-today-title">Europe, August 1914</b><small>Every node, its nation and its neighbours</small></a>
+        <a class="nv-today-cell" href="/great-war-in-2-minutes" style="grid-column: 1 / -1; text-decoration: none"><span class="nv-today-k">New here?</span><b class="nv-today-title">The Great War in 2 minutes</b><small>The whole event on one page</small></a>
+        <a class="nv-today-cell" href="/pack" style="grid-column: 1 / -1; text-decoration: none"><span class="nv-today-k">Play</span><b class="nv-today-title">Get the modpack</b><small>Install it on Windows or Mac</small></a>
       </div>
     </section>
     <section class="nv-sec nv-live">

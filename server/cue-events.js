@@ -5,7 +5,7 @@ const EVENTS = [
     title: 'The Great War',
     date: '2026-12-17',
     setting: '1914 Europe',
-    players: 300,
+    players: 500,
     type: 'Modded event',
     status: 'Applications opening soon',
     wiki: 'wiki',
