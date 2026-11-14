@@ -106,6 +106,19 @@
     </table>
     <% } %>
   </div>
+  <div class="vw-card">
+    <h2>Shared Minecraft accounts <span class="muted" style="font-size:14px">(<%= shared.length %>)</span></h2>
+    <p class="muted">Minecraft accounts given by more than one Discord account, in the links or on any tester, leader or staff application. Possible alts, a shared account, or a typo: worth a look before the event. Nothing here is refused or changed.</p>
+    <% if (shared.length) { %>
+    <table>
+      <tr><th>Minecraft</th><th>Discord accounts</th></tr>
+      <% for (const s of shared) { %>
+      <tr><td><%= s.mc_name || '' %> <code class="muted"><%= s.uuid %></code></td>
+        <td><% for (const p of s.people) { %><div><%= p.discord_name || '' %> <code class="muted"><%= p.discord_id %></code> <span class="muted">(<%= p.sources.join(', ') %>)</span></div><% } %></td></tr>
+      <% } %>
+    </table>
+    <% } %>
+  </div>
 </main>
 <script>
 document.querySelectorAll('time[data-ts]').forEach(t => { t.textContent = new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', second: '2-digit', timeZoneName: 'short' }).format(+t.dataset.ts * 1000).replace(/\b(GMT|UTC)\+0$/, '$1'); });

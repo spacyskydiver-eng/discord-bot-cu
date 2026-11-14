@@ -97,4 +97,24 @@ function start() {
   setInterval(run, 10 * 60 * 1000);
 }
 
-module.exports = { LinkError, ready, plainUuid, isUuid, dashed, ofDiscord, ofUuid, link, remove, copyFromApplications, start };
+// Minecraft accounts given by more than one Discord account, anywhere the site has them (the links and every kind of
+// application): possible alts, or a shared or mistyped account, for staff to look at. Read-only.
+async function shared() {
+  await ready;
+  const rows = [];
+  const add = async (source, q) => {
+    try { (await db.query(`SELECT discord_id, discord_name, lower(replace(mc_uuid, '-', '')) AS uuid, mc_name FROM (${q}) s WHERE mc_uuid IS NOT NULL`)).rows.forEach(r => rows.push(Object.assign(r, { source }))); }
+    catch (e) { /* that feature's table doesn't exist yet */ }
+  };
+  await add('linked', `SELECT discord_id, discord_name, mc_uuid, mc_name FROM minecraft_links`);
+  for (const [source, q] of SOURCES) await add(source, q);
+  const byUuid = new Map();
+  rows.forEach(r => { if (!byUuid.has(r.uuid)) byUuid.set(r.uuid, []); byUuid.get(r.uuid).push(r); });
+  return [...byUuid.entries()].filter(([, rs]) => new Set(rs.map(r => r.discord_id)).size > 1).map(([uuid, rs]) => {
+    const people = new Map();
+    rs.forEach(r => { const p = people.get(r.discord_id) || { discord_id: r.discord_id, discord_name: r.discord_name, sources: new Set() }; p.sources.add(r.source); people.set(r.discord_id, p); });
+    return { uuid, mc_name: rs[0].mc_name, people: [...people.values()].map(p => Object.assign(p, { sources: [...p.sources] })) };
+  });
+}
+
+module.exports = { LinkError, ready, plainUuid, isUuid, dashed, ofDiscord, ofUuid, link, remove, copyFromApplications, start, shared };

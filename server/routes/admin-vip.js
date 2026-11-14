@@ -46,7 +46,7 @@ router.get('/', wrap(async (req, res) => {
   } else if (r) result = r;
   res.render('new/admin-vip', {
     q, result, msg: req.query.msg || null, C: vip.C, TIER_NAME: vip.TIER_NAME,
-    log: await vip.recentNotifications(100), members: await vip.vipMembers(),
+    log: await vip.recentNotifications(100), members: await vip.vipMembers(), shared: await links.shared(),
   });
 }));
 
