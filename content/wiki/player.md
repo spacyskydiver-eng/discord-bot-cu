@@ -856,6 +856,10 @@ Each piece upgrades from ★ to ★★★★★ at the Armory. Buffs stack per p
 
 Damage is body / head on 40 health. Rifles, pistols and scoped rifles are national; the semi-auto, submachine gun, shotgun and machine guns are the same for every nation.
 
+With progression, rank and cost decide which guns you can use, not your class. Classes stay, for pay and your role. (Until then, the class rules in section 4.6.6 apply.)
+
+The light and heavy machine guns do the same damage on purpose: both are the machine-gun class. They differ in rate of fire and handling, and both fire only from a mount.
+
 | Tier | Gun class | Damage (body / head) | Notes | Rank needed | Cost |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Service rifle (bolt) | 26 / 32 | National rifle | None | Starting kit (usable from day 3) |
@@ -883,7 +887,7 @@ Stamina bar: 100 points, shown above the food bar only while not full. Replaces 
 
 | Rule | Value |
 | --- | --- |
-| Sprinting | −10 stamina per second |
+| Sprinting | −6.67 stamina per second (about 15 s from full) |
 | Jumping | −15 stamina per jump |
 | Stamina empty | No sprinting or jumping until it refills to 30 |
 | Refill while walking | +12 per second, after 1 s without sprinting or jumping |
@@ -906,7 +910,7 @@ Stamina bar: 100 points, shown above the food bar only while not full. Replaces 
 | Assault | ×1.6 |
 | Elite | ×1.0 |
 
-Gun and armour drains multiply: a rifle in Assault armour drains ×1.9 (about 5 s of sprinting from full).
+Gun and armour drains multiply: a rifle in Assault armour drains ×1.9 (about 8 s of sprinting from full).
 
 #### 4.8.6 Ammunition
 
