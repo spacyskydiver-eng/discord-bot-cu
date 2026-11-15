@@ -9,6 +9,9 @@ const { GAME_IDS } = require('./nation-roles');
 
 const LIVE = process.env.PROFILE_URL ? process.env.PROFILE_URL.replace(/\/$/, '') : null;
 const RANKS = ['Private', 'Corporal', 'Sergeant', 'Lieutenant', 'Captain'];
+// A medal shows its icon only when the art exists (gallantry has none yet), never a broken image.
+const fs = require('fs'), path = require('path');
+const hasIcon = id => fs.existsSync(path.join(__dirname, '..', 'public', 'img', 'career', 'medal_' + id + '.png'));
 // Progress.MEDALS: id -> name, and what each is for
 const MEDALS = [
   ['first_in', 'First In', 'First into a captured node'],
@@ -67,7 +70,7 @@ async function lookup(name) {
     record = Object.assign({}, record, {
       nationPage: n ? n.slug : null, flag: n ? n.flag : null, nationName: record.nationName || (n ? n.name.replace(/^The /, '') : null),
       rankIcon: record.rank && RANKS.includes(record.rank) ? 'rank_' + record.rank.toLowerCase() : null,
-      medalList: (record.medals || []).map(x => medalOf(x)).filter(Boolean).map(([id, title, why]) => ({ id, title, why })),
+      medalList: (record.medals || []).map(x => medalOf(x)).filter(Boolean).map(([id, title, why]) => ({ id, title, why, icon: hasIcon(id) })),
     });
   }
   return { account: { name: acc.name, uuid }, record };

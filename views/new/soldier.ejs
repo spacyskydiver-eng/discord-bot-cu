@@ -20,6 +20,7 @@
 .sr-h { font: 800 13px Georgia, serif; letter-spacing: .12em; text-transform: uppercase; margin: 18px 0 8px; }
 .sr-medal { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font: 15px Georgia, serif; }
 .sr-medal small { color: #6a6252; }
+.sr-noicon { display: inline-block; width: 32px; height: 32px; margin-right: 6px; flex: none; }
 .sr-paper p { font: 15px/1.55 Georgia, serif; margin: 0 0 8px; }
 .sr-paper a { color: #2a4c8a; }
 .sr-none { font: 600 15px 'Baloo 2', sans-serif; color: #c4c8d2; }
@@ -49,7 +50,7 @@
         <% if (r.regiment) { %><div><span>Regiment</span><b>[<%= r.regiment %>]</b></div><% } %>
       </div>
       <div class="sr-h">Medals</div>
-      <% if (r.medalList.length) { r.medalList.forEach(m => { %><div class="sr-medal"><img src="/img/career/medal_<%= m.id %>.png" alt=""><span><b><%= m.title %></b> <small><%= m.why %></small></span></div><% }) } else { %><p>None yet.</p><% } %>
+      <% if (r.medalList.length) { r.medalList.forEach(m => { %><div class="sr-medal"><% if (m.icon) { %><img src="/img/career/medal_<%= m.id %>.png" alt=""><% } else { %><span class="sr-noicon"></span><% } %><span><b><%= m.title %></b> <small><%= m.why %></small></span></div><% }) } else { %><p>None yet.</p><% } %>
       <p><a href="/night/<%= encodeURIComponent(acc.name) %>">Their last night at the front</a></p>
       <div class="sr-h">In the Daily Front</div>
       <% if (fights.length) { fights.forEach(f => { %><p><b><%= f.title %></b> (day <%= f.day %>). <%= f.body %></p><% }) } else { %><p>Not in the paper yet.</p><% } %>
