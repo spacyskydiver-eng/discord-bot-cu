@@ -794,14 +794,14 @@ router.get('/welcome/:slug', async (req, res, next) => {
 
 // the eight nations' public pages
 router.get('/nations', async (req, res, next) => {
-  try { res.render('new/nations', { nations: await require('../nations').withMap(), nation: null }); } catch (e) { next(e); }
+  try { res.render('new/nations', { nations: await require('../nations').withMap(), nation: null, rallying: await require('../comeback').rallying() }); } catch (e) { next(e); }
 });
 router.get('/nations/:slug', async (req, res, next) => {
   try {
     const all = await require('../nations').withMap();
     const nation = all.find(n => n.slug === req.params.slug || n.id === req.params.slug);
     if (!nation) return res.redirect('/nations');
-    res.render('new/nations', { nations: all, nation });
+    res.render('new/nations', { nations: all, nation, rallying: await require('../comeback').rallying() });
   } catch (e) { next(e); }
 });
 router.get('/map/data.json', async (req, res) => {

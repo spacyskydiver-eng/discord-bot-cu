@@ -33,7 +33,12 @@
   .na-facts { grid-template-columns: 1fr 1fr; }
   .na-grid { grid-template-columns: 1fr; }
 }
+/* S59: a nation rallying after two windows of losses */
+.na-rally { margin: 0 0 18px; padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(224,176,80,.45); background: rgba(224,176,80,.1); color: #f4e3b5; font: 700 14.5px/1.5 'Baloo 2', sans-serif; }
+.na-rally a { color: #ffd98a; }
+.na-tag { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: rgba(224,176,80,.18); color: #ffd98a; font: 800 11px 'Baloo 2', sans-serif; letter-spacing: .04em; vertical-align: middle; }
 </style>
+<% const rally = locals.rallying || []; const rallyNations = nations.filter(n => rally.includes(n.id)); %>
 <main class="wrap"><div class="na-wrap">
   <%- include('partials/home-link') %>
 <% if (one) { %>
@@ -41,6 +46,7 @@
     <img class="na-flag" src="/img/flags/<%= one.flag %>.png" width="24" height="16" alt="The flag of <%= one.name.replace(/^The /, 'the ') %> in 1914">
     <div><p class="na-kicker">The Great War · Europe, 1914</p><h1 class="page-title"><%= one.name %></h1></div>
   </div>
+  <% if (rally.includes(one.id)) { %><div class="na-rally"><%= one.name.replace(/^The /, '') %> is rallying: it has lost ground two windows running and needs soldiers. Its men's daily orders count double toward promotion until it takes a node back.</div><% } %>
   <div class="na-facts">
     <div class="na-fact"><span>Capital</span><b><%= one.capital || '—' %></b></div>
     <div class="na-fact"><span>Nodes at the start</span><b><%= one.nodes %></b></div>
@@ -58,8 +64,9 @@
 <% } else { %>
   <div class="page-head"><div><p class="na-kicker">The Great War · Europe, 1914</p><h1 class="page-title">The nations</h1>
     <p class="page-sub">Eight powers of 1914. Everyone starts neutral; the players decide who fights whom.</p></div></div>
+  <% if (rallyNations.length) { %><div class="na-rally"><%- rallyNations.map(n => '<a href="/nations/' + n.slug + '">' + n.name.replace(/^The /, '').replace(/[<>&]/g, '') + '</a>').join(' and ') %> <%= rallyNations.length === 1 ? 'is' : 'are' %> rallying after losing ground two windows running, and need<%= rallyNations.length === 1 ? 's' : '' %> soldiers: join, and your daily orders count double toward promotion while the rally lasts.</div><% } %>
   <div class="na-grid">
-    <% nations.forEach(n => { %><a class="na-card" href="/nations/<%= n.slug %>"><img class="na-flag" src="/img/flags/<%= n.flag %>.png" width="24" height="16" alt=""><span><b><%= n.name %></b><small><%= n.capital %> · <%= n.nodes %> nodes</small></span></a><% }) %>
+    <% nations.forEach(n => { %><a class="na-card" href="/nations/<%= n.slug %>"><img class="na-flag" src="/img/flags/<%= n.flag %>.png" width="24" height="16" alt=""><span><b><%= n.name %><% if (rally.includes(n.id)) { %><span class="na-tag">RALLYING</span><% } %></b><small><%= n.capital %> · <%= n.nodes %> nodes</small></span></a><% }) %>
   </div>
 <% } %>
 </div></main>
