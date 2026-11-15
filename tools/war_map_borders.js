@@ -1,15 +1,18 @@
 // Builds the war map's placeholder region data from the game map's territory polygons (nodes.json, block coordinates):
-//   server/data/war-map-borders.json  the same shape the game will serve at GET /api/public/borders:
-//                                     { version, levels, lines: [{ a, b, pts: { "<level>": [[x, z], ...] } }] }
-//                                     (a line between two regions, or b null for a coast or the map's edge)
+//   server/data/war-map-borders.json  the same shape the game serves at GET /api/public/borders (S76):
+//                                     { version, levels, lines: [{ a, b, pts: { "<level>": [x0, z0, dx1, dz1, ...] } }] }
+//                                     a < b; no b for a coast or the map's edge; points a flat array of whole blocks,
+//                                     the first pair absolute, each later pair a step (public/js/war-map-lines.js)
 //   server/data/war-map-regions.json  what the borders don't carry yet: each region's fill polygons, its label spot,
 //                                     and the capitals. Ids, shapes and names only: no node values, bonuses or notes.
 // The site uses the game's borders when its war feed is live, and these files until then (and always for the fills,
 // until the fills are built from the traced lines).
 //
 //   node tools/war_map_borders.js path/to/nodes.json
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const { encode } = require('../public/js/war-map-lines');
 
 const LEVELS = [1, 2, 4, 8, 16, 32, 64]; // blocks per pixel, as the terrain tiles
 const TOL = 4;                            // blocks: two outlines this close count as one border
@@ -95,18 +98,19 @@ for (const self of terr) {
 
 let total = 0;
 const out = lines.map(l => {
-  const pts = {}; let prev = null;
+  const pts = {};
   for (const L of LEVELS) {
-    const s = simplify(l.raw, L * 0.6).map(p => [Math.round(p[0]), Math.round(p[1])]);
-    const key = JSON.stringify(s);
-    if (key !== prev) { pts[L] = s; total += s.length; } // a level that's the same as the finer one is left out
-    prev = key;
+    // whole blocks, without the repeats rounding makes (a closed ring keeps its repeated first point at the end)
+    const s = simplify(l.raw, L * 0.6).map(p => [Math.round(p[0]), Math.round(p[1])])
+      .filter((p, i, all) => !i || p[0] !== all[i - 1][0] || p[1] !== all[i - 1][1]);
+    pts[L] = encode(s); total += s.length;
   }
-  return { a: l.a, b: l.b, pts };
+  return l.b ? { a: l.a, b: l.b, pts } : { a: l.a, pts };
 });
 
 const dir = path.join(__dirname, '../server/data');
-const borders = { version: 'placeholder-' + (src.meta && src.meta.version), levels: LEVELS, lines: out };
+const version = crypto.createHash('sha256').update(JSON.stringify(out)).digest('hex').slice(0, 16);
+const borders = { version, levels: LEVELS, lines: out };
 fs.writeFileSync(path.join(dir, 'war-map-borders.json'), JSON.stringify(borders));
 const regions = {
   version: borders.version,

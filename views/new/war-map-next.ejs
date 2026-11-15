@@ -111,6 +111,7 @@ const j = v => JSON.stringify(v).replace(/</g, '\\u003c');
     <div class="wm-info" id="wm-info" aria-live="polite"><p class="wm-hint">Tap or click a region.</p></div>
   </div>
 </div></main>
+<script src="/js/war-map-lines.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
 (function () {
@@ -199,14 +200,12 @@ const j = v => JSON.stringify(v).replace(/</g, '\\u003c');
     if (k === 'inner') return { color: '#ffffff', weight: 1 * s, opacity: dim ? 0.15 : 0.5, lineCap: 'round', lineJoin: 'round' };
     return { color: TONE[byId[l.a] ? byId[l.a].owner : 'none'] || TONE.none, weight: 1.4 * s, opacity: dim ? 0.15 : 0.7, lineCap: 'round', lineJoin: 'round' };
   }
-  // the level of a border to draw: the coarsest one that's still finer than a screen pixel
-  function pickLevel(pts) {
-    var have = Object.keys(pts).map(Number).sort(function (a, b) { return a - b; }), want = bpp(), best = have[0];
-    for (var i = 0; i < have.length; i++) if (have[i] <= want) best = have[i];
-    return best;
-  }
+  // a border is drawn at its level nearest the view's blocks a pixel; each level is decoded from the game's flat steps
+  // (public/js/war-map-lines.js) the first time it's wanted, then kept
+  function pickLevel(l) { return WarMapLines.nearestLevel(l.have, bpp()); }
+  function pointsAt(l, lv) { return l.dec[lv] || (l.dec[lv] = WarMapLines.decode(l.pts[lv]).map(ll)); }
   function relevel() {
-    lines.forEach(function (l) { var lv = pickLevel(l.pts); if (lv !== l.level) { l.level = lv; l.layer.setLatLngs(l.pts[lv].map(ll)); } });
+    lines.forEach(function (l) { var lv = pickLevel(l); if (lv !== l.level) { l.level = lv; l.layer.setLatLngs(pointsAt(l, lv)); } });
   }
 
   function paint() {
@@ -279,11 +278,12 @@ const j = v => JSON.stringify(v).replace(/</g, '\\u003c');
     // a region the game's map doesn't have (cut off at its edge) has no fill, no label, no search entry and no link here
     REG.forEach(function (r) { r.onMap = !!fills[r.id]; });
     (data.borders.lines || []).forEach(function (l) {
-      if (!l.pts || !Object.keys(l.pts).length) return;
-      var o = { a: l.a, b: l.b || null, pts: l.pts, level: null };
-      o.level = pickLevel(o.pts);
+      var have = l.pts ? Object.keys(l.pts).filter(function (k) { return Array.isArray(l.pts[k]) && l.pts[k].length >= 4; }) : [];
+      if (!have.length) return;
+      var o = { a: l.a, b: l.b || null, pts: l.pts, have: have.map(Number), dec: {}, level: null };
+      o.level = pickLevel(o);
       if (o.b) { (adj[o.a] = adj[o.a] || []).push(o.b); (adj[o.b] = adj[o.b] || []).push(o.a); }
-      o.layer = L.polyline(o.pts[o.level].map(ll), Object.assign({ renderer: lineR, pane: 'lines', interactive: false, smoothFactor: 0.5 }, lineStyle(o))).addTo(map);
+      o.layer = L.polyline(pointsAt(o, o.level), Object.assign({ renderer: lineR, pane: 'lines', interactive: false, smoothFactor: 0.5 }, lineStyle(o))).addTo(map);
       lines.push(o);
     });
     // fronts over nation borders over region borders
