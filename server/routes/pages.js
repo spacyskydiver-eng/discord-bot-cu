@@ -780,6 +780,50 @@ router.post('/front/public', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// Who holds each node now, from the game's public war feed, or null until the feed is live (never sample data). No free
+// intel: while a window is open, a capture only shows 10 minutes after it happened (or at the close).
+async function delayedOwners() {
+  const feed = require('../war-feed');
+  if (!feed.isLive()) return null;
+  try {
+    const r = await feed.report(), own = Object.assign({}, r.owners || {});
+    if (r.windowOpen) (r.events || []).filter(e => e.kind === 'capture' && e.at > (r.now || Date.now()) - 10 * 60 * 1000).sort((x, y) => y.at - x.at).forEach(e => { own[e.node] = e.from; });
+    return own;
+  } catch (e) { console.error('[map] war feed', e.message); return null; }
+}
+
+// S72: the war map: the 174 regions coloured by owner (1914 until the war feed is live, then who holds what, delayed as
+// above), nation filters, each region linking to The Front while that is visible. Hidden, owner-only until war_map_public.
+async function warMapVisible(res) { return res.locals.isOwner || (await access.getSetting('war_map_public')) === 'on'; }
+router.get('/war-map', async (req, res, next) => {
+  try {
+    if (!(await warMapVisible(res))) return next();
+    const isPublic = (await access.getSetting('war_map_public')) === 'on';
+    const frontOn = res.locals.isOwner || (await access.getSetting('front_public')) === 'on';
+    const regions = FRONT.regions.map(r => ({ id: r.id, name: r.name, owner: r.owner, theatre: r.theatre, capital: !!r.capital, shape: r.shape }));
+    res.set('Cache-Control', isPublic ? 'public, max-age=300' : 'private, no-store');
+    res.render('new/war-map', { isPublic, frontOn, regions, width: FRONT.width, height: FRONT.height, nations: require('../nations').NATIONS });
+  } catch (e) { next(e); }
+});
+router.get('/war-map/owners.json', async (req, res, next) => {
+  try {
+    if (!(await warMapVisible(res))) return next();
+    const own = await delayedOwners();
+    const owners = {};
+    if (own) FRONT.regions.forEach(r => { if (own[r.id]) owners[r.id] = String(own[r.id]); });
+    res.set('Cache-Control', 'private, max-age=60').json({ live: !!own, owners, at: Date.now() });
+  } catch (e) { next(e); }
+});
+router.post('/war-map/public', async (req, res, next) => {
+  try {
+    if (!res.locals.isOwner) return res.status(403).end();
+    const o = req.get('origin');
+    if (o && o !== `${req.protocol}://${req.get('host')}` && o !== `https://${req.get('host')}`) return res.status(403).end();
+    await access.setSetting('war_map_public', req.body.public === 'on' ? 'on' : null);
+    res.redirect('/war-map');
+  } catch (e) { next(e); }
+});
+
 // public service records: /soldier?name=X redirects to /soldier/X
 router.get('/soldier', (req, res) => {
   const q = String(req.query.name || '').trim();
@@ -877,17 +921,8 @@ router.get('/map/data.json', async (req, res) => {
   try {
     let body = await require('../campaign-map').loadPublic();
     // once the game's war feed is live, the public map shows who holds each node now (never with sample data)
-    const feed = require('../war-feed');
-    if (feed.isLive()) {
-      try {
-        const r = await feed.report(), own = Object.assign({}, r.owners || {}), m = JSON.parse(body);
-        // no free intel: while a window is open, a capture only shows 10 minutes after it happened (or at the close)
-        if (r.windowOpen) (r.events || []).filter(e => e.kind === 'capture' && e.at > (r.now || Date.now()) - 10 * 60 * 1000).sort((x, y) => y.at - x.at).forEach(e => { own[e.node] = e.from; });
-        m.territories.forEach(t => { if (own[t.id]) t.owner = own[t.id]; });
-        body = JSON.stringify(m);
-      }
-      catch (e) { console.error('[map] war feed', e.message); }
-    }
+    const own = await delayedOwners();
+    if (own) { const m = JSON.parse(body); m.territories.forEach(t => { if (own[t.id]) t.owner = own[t.id]; }); body = JSON.stringify(m); }
     res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=86400').type('application/json').send(body);
   }
   catch (e) { res.status(503).json({ error: 'The map is not available right now.' }); }

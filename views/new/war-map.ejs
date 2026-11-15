@@ -1,0 +1,163 @@
+<%
+const TONE = { gb: '#d9483b', fr: '#4f7fd9', de: '#8a8f99', ah: '#e0b33a', ru: '#3f9b6b', it: '#7fbf4d', ot: '#b5533c', bg: '#9b6bd1', none: '#5b6170' };
+const NAT = nations.map(n => ({ id: n.id, name: n.name, flag: n.flag, slug: n.slug }));
+%>
+<%- include('partials/head', { publicBg: true, _url: '/war-map', pageTitle: 'The war map', pageDescription: 'The map of Europe in The Great War, region by region: who holds what, coloured by nation.' }) %>
+<%- include('partials/header') %>
+<style>
+.wm-wrap { max-width: 1100px; margin: 0 auto; padding-bottom: 80px; }
+.wm-draft { margin: 0 0 18px; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(251,191,36,.35); background: rgba(251,191,36,.08); color: #f4e3b5; font: 700 14px 'Baloo 2', sans-serif; }
+.wm-status { font: 700 14px 'Baloo 2', sans-serif; color: #c4c8d2; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
+.wm-dot { width: 9px; height: 9px; border-radius: 50%; background: #5b6170; flex: none; }
+.wm-dot.on { background: #5be38f; box-shadow: 0 0 0 4px rgba(91,227,143,.18); }
+.wm-filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.wm-filters .wm-f { display: inline-flex; align-items: center; gap: 7px; padding: 6px 11px; border-radius: 9px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.08); color: #e6e8ee; font: 700 14px 'Baloo 2', sans-serif; cursor: pointer; min-height: 36px; }
+.wm-f i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); flex: none; }
+.wm-f small { color: #9aa0ad; font-weight: 700; }
+.wm-filters .wm-f[aria-pressed="true"] { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.5); }
+.wm-stage { position: relative; background: rgba(10,12,18,.72); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; touch-action: none; }
+.wm-svg { width: 100%; height: auto; display: block; cursor: grab; user-select: none; -webkit-user-select: none; }
+.wm-svg.drag { cursor: grabbing; }
+.wm-svg path { stroke: #0c0e11; stroke-width: 1.1; vector-effect: non-scaling-stroke; transition: opacity .15s, fill .4s; cursor: pointer; }
+.wm-svg path.dim { opacity: .18; }
+.wm-svg path.sel { stroke: #fff; stroke-width: 2.4; }
+.wm-svg path:hover { stroke: #fff; }
+.wm-zoom { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.wm-zoom button { width: 38px; height: 38px; border-radius: 9px; border: 1px solid var(--line); background: rgba(12,14,20,.9); color: #fff; font: 800 18px 'Baloo 2', sans-serif; cursor: pointer; }
+.wm-info { margin: 12px 0 0; background: rgba(10,12,18,.72); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: flex; gap: 14px; align-items: center; min-height: 56px; }
+.wm-info img { width: 54px; height: 36px; image-rendering: pixelated; border: 2px solid #0c0e11; border-radius: 4px; flex: none; }
+.wm-info h2 { font: 800 18px 'Baloo 2', sans-serif; color: #fff; margin: 0; }
+.wm-info p { font: 600 14.5px/1.5 'Baloo 2', sans-serif; color: #c4c8d2; margin: 2px 0 0; }
+.wm-info a { color: #8fb8ff; font-weight: 700; }
+.wm-hint { color: #9aa0ad; }
+@media (min-width: 900px) {
+  .wm-body { display: grid; grid-template-columns: 1fr 260px; gap: 12px; align-items: start; }
+  .wm-info { margin: 0; position: sticky; top: 76px; flex-direction: column; align-items: flex-start; }
+}
+</style>
+<main class="wrap"><div class="wm-wrap">
+  <%- include('partials/home-link') %>
+  <% if (!isPublic) { %><div class="wm-draft">Hidden: only the owner sees the war map until it's made public (site setting war_map_public).</div><% } %>
+  <% if (locals.isOwner) { %><form method="POST" action="/war-map/public" style="margin:0 0 18px"><input type="hidden" name="public" value="<%= isPublic ? 'off' : 'on' %>"><button type="submit" style="padding:9px 14px;border-radius:10px;border:0;background:<%= isPublic ? 'rgba(255,255,255,.12)' : '#5be38f' %>;color:<%= isPublic ? '#fff' : '#0c1a12' %>;font:800 14px 'Baloo 2',sans-serif;cursor:pointer"><%= isPublic ? 'Hide again (owner only)' : 'Make the war map public' %></button></form><% } %>
+  <div class="page-head"><div><h1 class="page-title">The war map</h1><p class="page-sub">Europe region by region, coloured by who holds it. Pick a nation to see its lands, or a region to see who holds it<%= frontOn ? ' and read about it' : '' %>.</p></div></div>
+  <p class="wm-status"><span class="wm-dot" id="wm-dot"></span><span id="wm-status">Europe at the start, 1914.</span></p>
+  <div class="wm-filters" id="wm-filters">
+    <button class="wm-f" type="button" data-n="" aria-pressed="true">All nations</button>
+    <% NAT.forEach(n => { %><button class="wm-f" type="button" data-n="<%= n.id %>" aria-pressed="false" style="--c:<%= TONE[n.id] %>"><i></i><%= n.name.replace(/^The /, '') %> <small data-count="<%= n.id %>"></small></button><% }) %>
+    <button class="wm-f" type="button" data-n="none" aria-pressed="false" style="--c:<%= TONE.none %>"><i></i>Neutral <small data-count="none"></small></button>
+  </div>
+  <div class="wm-body"><div class="wm-stage">
+    <svg class="wm-svg" id="wm-svg" viewBox="0 0 <%= width %> <%= height %>" role="img" aria-label="The war map of Europe">
+      <% regions.forEach(r => { %><path d="<%= r.shape %>" data-id="<%= r.id %>" fill="<%= TONE[r.owner] || TONE.none %>"><title><%= r.name %></title></path><% }) %>
+    </svg>
+    <div class="wm-zoom"><button type="button" id="wm-in" aria-label="Zoom in">+</button><button type="button" id="wm-out" aria-label="Zoom out">&minus;</button><button type="button" id="wm-reset" aria-label="Show all of Europe" style="font-size:13px">All</button></div>
+  </div>
+  <div class="wm-info" id="wm-info" aria-live="polite"><p class="wm-hint">Tap or click a region.</p></div></div>
+</div></main>
+<script>
+(function () {
+  var TONE = <%- JSON.stringify(TONE) %>;
+  var NAT = <%- JSON.stringify(NAT).replace(/</g, '\\u003c') %>;
+  var REG = <%- JSON.stringify(regions.map(r => ({ id: r.id, name: r.name, owner: r.owner, theatre: r.theatre, capital: r.capital }))).replace(/</g, '\\u003c') %>;
+  var FRONT_ON = <%= frontOn ? 'true' : 'false' %>, W = <%= width %>, H = <%= height %>;
+  var byId = {}; REG.forEach(function (r) { r.start = r.owner; byId[r.id] = r; });
+  var nat = {}; NAT.forEach(function (n) { nat[n.id] = n; });
+  var svg = document.getElementById('wm-svg'), info = document.getElementById('wm-info');
+  var paths = Array.prototype.slice.call(svg.querySelectorAll('path'));
+  var filter = '', selected = null;
+
+  function el(tag, text, attrs) { var e = document.createElement(tag); if (text) e.textContent = text; for (var k in (attrs || {})) e.setAttribute(k, attrs[k]); return e; }
+  function ownerName(id) { return nat[id] ? nat[id].name : 'Neutral'; }
+  function paint() {
+    var counts = {};
+    paths.forEach(function (p) {
+      var r = byId[p.dataset.id], o = r.owner;
+      counts[o] = (counts[o] || 0) + 1;
+      p.setAttribute('fill', TONE[o] || TONE.none);
+      p.classList.toggle('dim', !!filter && o !== filter);
+      p.classList.toggle('sel', p.dataset.id === selected);
+    });
+    document.querySelectorAll('[data-count]').forEach(function (s) { s.textContent = counts[s.dataset.count] || 0; });
+  }
+  function show(id) {
+    selected = id; paint();
+    var r = byId[id]; info.textContent = '';
+    if (nat[r.owner]) info.appendChild(el('img', '', { src: '/img/flags/' + nat[r.owner].flag + '.png', alt: '' }));
+    var d = el('div'); d.appendChild(el('h2', r.name + (r.capital ? ' (capital)' : '')));
+    var line = el('p', 'Held by ' + ownerName(r.owner) + ' · ' + r.theatre + (r.owner !== r.start ? ' · ' + ownerName(r.start) + "'s in 1914" : ''));
+    d.appendChild(line);
+    if (FRONT_ON) { var p = el('p'); p.appendChild(el('a', 'Read about ' + r.name, { href: '/front/' + r.id })); d.appendChild(p); }
+    info.appendChild(d);
+    try { history.replaceState(null, '', '#' + id); } catch (e) {}
+  }
+  document.getElementById('wm-filters').addEventListener('click', function (e) {
+    var b = e.target.closest('.wm-f'); if (!b) return;
+    filter = b.dataset.n;
+    document.querySelectorAll('.wm-f').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    paint();
+  });
+
+  // pan and zoom by the viewBox: drag (mouse or one finger), the buttons, the wheel, two-finger pinch
+  var vb = { x: 0, y: 0, w: W, h: H };
+  function apply() { svg.setAttribute('viewBox', vb.x + ' ' + vb.y + ' ' + vb.w + ' ' + vb.h); }
+  function clamp() {
+    vb.w = Math.max(W / 8, Math.min(W, vb.w)); vb.h = vb.w * H / W;
+    vb.x = Math.max(0, Math.min(W - vb.w, vb.x)); vb.y = Math.max(0, Math.min(H - vb.h, vb.y));
+  }
+  function zoom(f, cx, cy) {
+    if (cx === undefined) { cx = vb.x + vb.w / 2; cy = vb.y + vb.h / 2; }
+    var nw = vb.w * f; nw = Math.max(W / 8, Math.min(W, nw)); var k = nw / vb.w;
+    vb.x = cx - (cx - vb.x) * k; vb.y = cy - (cy - vb.y) * k; vb.w = nw; clamp(); apply();
+  }
+  function toMap(clientX, clientY) { var b = svg.getBoundingClientRect(); return { x: vb.x + (clientX - b.left) / b.width * vb.w, y: vb.y + (clientY - b.top) / b.height * vb.h }; }
+  document.getElementById('wm-in').onclick = function () { zoom(0.66); };
+  document.getElementById('wm-out').onclick = function () { zoom(1.5); };
+  document.getElementById('wm-reset').onclick = function () { vb = { x: 0, y: 0, w: W, h: H }; apply(); };
+  svg.addEventListener('wheel', function (e) { e.preventDefault(); var m = toMap(e.clientX, e.clientY); zoom(e.deltaY > 0 ? 1.2 : 0.83, m.x, m.y); }, { passive: false });
+  var pts = {}, start = null, moved = false, pinch = null;
+  svg.addEventListener('pointerdown', function (e) {
+    pts[e.pointerId] = { x: e.clientX, y: e.clientY }; svg.setPointerCapture(e.pointerId);
+    var ids = Object.keys(pts);
+    if (ids.length === 1) { start = { cx: e.clientX, cy: e.clientY, x: vb.x, y: vb.y }; moved = false; }
+    if (ids.length === 2) { var a = pts[ids[0]], b = pts[ids[1]]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), w: vb.w }; moved = true; }
+  });
+  svg.addEventListener('pointermove', function (e) {
+    if (!pts[e.pointerId]) return; pts[e.pointerId] = { x: e.clientX, y: e.clientY };
+    var ids = Object.keys(pts), r = svg.getBoundingClientRect();
+    if (ids.length === 2 && pinch) {
+      var a = pts[ids[0]], b = pts[ids[1]], d = Math.hypot(a.x - b.x, a.y - b.y), m = toMap((a.x + b.x) / 2, (a.y + b.y) / 2);
+      zoom(pinch.w * pinch.d / Math.max(d, 1) / vb.w, m.x, m.y); return;
+    }
+    if (!start) return;
+    var dx = e.clientX - start.cx, dy = e.clientY - start.cy;
+    if (Math.abs(dx) + Math.abs(dy) > 6) { moved = true; svg.classList.add('drag'); }
+    if (moved) { vb.x = start.x - dx / r.width * vb.w; vb.y = start.y - dy / r.height * vb.h; clamp(); apply(); }
+  });
+  function up(e) {
+    var tap = !moved && start && Object.keys(pts).length === 1;
+    delete pts[e.pointerId];
+    if (Object.keys(pts).length < 2) pinch = null;
+    if (!Object.keys(pts).length) { svg.classList.remove('drag'); start = null; }
+    if (tap && e.type === 'pointerup') {
+      var t = document.elementFromPoint(e.clientX, e.clientY);
+      if (t && t.dataset && t.dataset.id) show(t.dataset.id);
+    }
+  }
+  svg.addEventListener('pointerup', up); svg.addEventListener('pointercancel', up);
+
+  // who holds what now, once the game's war feed is live (captures during a window show 10 minutes late)
+  function refresh() {
+    fetch('/war-map/owners.json', { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+      if (!j || !j.live) return;
+      Object.keys(j.owners).forEach(function (id) { if (byId[id]) byId[id].owner = j.owners[id]; });
+      document.getElementById('wm-dot').classList.add('on');
+      var t = new Date(j.at);
+      document.getElementById('wm-status').textContent = 'Who holds what now, as of ' + String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0') + '. During a battle window, captures show 10 minutes late.';
+      paint(); if (selected) show(selected);
+    }).catch(function () {});
+  }
+  paint(); var h = location.hash.slice(1); if (byId[h]) show(h);
+  refresh(); setInterval(refresh, 60000);
+})();
+</script>
+<%- include('partials/foot') %>
