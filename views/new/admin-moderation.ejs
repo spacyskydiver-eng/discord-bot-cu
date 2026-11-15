@@ -564,10 +564,10 @@
             <% if(ev.evidence_type==='file'){
               const isVid=['.mp4','.webm','.mov','.avi'].some(x=>(ev.filename||'').toLowerCase().endsWith(x)); %>
               <% if(isVid){ %>
-                <video src="/img/uploads/evidence/<%= ev.filename %>" class="ev-thumb" muted preload="metadata"></video>
+                <video src="/admin/evidence/<%= ev.filename %>" class="ev-thumb" muted preload="metadata"></video>
               <% } else { %>
-                <a href="/img/uploads/evidence/<%= ev.filename %>" target="_blank">
-                  <img src="/img/uploads/evidence/<%= ev.filename %>" class="ev-thumb" alt="" onerror="this.style.display='none'">
+                <a href="/admin/evidence/<%= ev.filename %>" target="_blank">
+                  <img src="/admin/evidence/<%= ev.filename %>" class="ev-thumb" alt="" onerror="this.style.display='none'">
                 </a>
               <% } %>
             <% } else if(ev.evidence_type==='url'){ %>
@@ -580,7 +580,7 @@
               <div class="ev-meta">
                 <% if(ev.evidence_type==='url'){ %><a href="<%= ev.url %>" target="_blank" style="color:var(--mod-accent)"><%= ev.url %></a>
                 <% } else if(ev.evidence_type==='snippet'){ %>Chat snippet<% if(ev.snippet_id){ %> · <button type="button" class="btn btn-success btn-sm" onclick="viewSnippet(<%= ev.snippet_id %>)">View</button><% } %>
-                <% } else { %>File · <a href="/img/uploads/evidence/<%= ev.filename %>" target="_blank" style="color:var(--mod-accent)">Open</a><% } %>
+                <% } else { %>File · <a href="/admin/evidence/<%= ev.filename %>" target="_blank" style="color:var(--mod-accent)">Open</a><% } %>
               </div>
             </div>
             <form method="POST" action="/admin/moderation/reports/evidence/<%= ev.id %>/delete" class="inline-form" onsubmit="return confirm('Remove evidence?')">

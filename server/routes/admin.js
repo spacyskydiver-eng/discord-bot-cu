@@ -365,9 +365,25 @@ router.post('/news-reporter/:id/delete', async (req, res) => {
 
 // ── Moderation ────────────────────────────────────────────────────────────────
 
+// Evidence (bans, tickets, reports) is kept outside public/ and served only by the owner-only route below (S74 review:
+// as files under public/ anyone could fetch them by guessing the name). Anything left in the old public folder moves here.
+const EVIDENCE_DIR = path.join(__dirname, '../uploads/evidence');
+const OLD_EVIDENCE_DIR = path.join(__dirname, '../../public/img/uploads/evidence');
+{
+  const fs = require('fs');
+  fs.mkdirSync(EVIDENCE_DIR, { recursive: true });
+  try { for (const f of fs.readdirSync(OLD_EVIDENCE_DIR)) fs.renameSync(path.join(OLD_EVIDENCE_DIR, f), path.join(EVIDENCE_DIR, f)); fs.rmdirSync(OLD_EVIDENCE_DIR); }
+  catch (e) { if (e.code !== 'ENOENT') console.error('[evidence] move', e.message); }
+}
+router.get('/evidence/:file', (req, res, next) => {
+  if (!/^ev-\d+\.[A-Za-z0-9]{1,8}$/.test(req.params.file)) return next();
+  res.set('Cache-Control', 'private, no-store');
+  res.sendFile(path.join(EVIDENCE_DIR, req.params.file), err => { if (err) next(); });
+});
+
 const evidenceUpload = multer({
   storage: multer.diskStorage({
-    destination: path.join(__dirname, '../../public/img/uploads/evidence'),
+    destination: EVIDENCE_DIR,
     filename: (req, file, cb) => {
       const ext = path.extname(file.originalname) || '.bin';
       cb(null, `ev-${Date.now()}${ext}`);
@@ -506,7 +522,7 @@ router.post('/moderation/bans/:id/evidence/flag', async (req, res) => {
 router.post('/moderation/bans/:id/evidence/:evId/delete', async (req, res) => {
   const ev = (await db.query(`SELECT * FROM ban_evidence WHERE id=$1 AND ban_id=$2`, [req.params.evId, req.params.id])).rows[0];
   if (ev?.filename) {
-    const fp = path.join(__dirname, '../../public/img/uploads/evidence', ev.filename);
+    const fp = path.join(EVIDENCE_DIR, ev.filename);
     require('fs').unlink(fp, () => {});
   }
   await db.query(`DELETE FROM ban_evidence WHERE id=$1`, [req.params.evId]);
@@ -1040,7 +1056,7 @@ router.post('/moderation/reports/evidence/:id/delete', async (req, res) => {
   const ev = (await db.query(`SELECT * FROM report_evidence WHERE id=$1`, [req.params.id])).rows[0];
   if (!ev) return res.redirect('/admin/moderation');
   if (ev.evidence_type === 'file' && ev.filename) {
-    try { require('fs').unlinkSync(path.join(__dirname, '../../public/img/uploads/evidence', ev.filename)); } catch (_) {}
+    try { require('fs').unlinkSync(path.join(EVIDENCE_DIR, ev.filename)); } catch (_) {}
   }
   await db.query(`DELETE FROM report_evidence WHERE id=$1`, [req.params.id]);
   const anchor = ev.report_type === 'player' ? 'player-report' : ev.report_type;
@@ -1135,7 +1151,7 @@ router.post('/moderation/player-reports/:id/delete', async (req, res) => {
   // Delete associated file evidence from disk
   const evRes = await db.query(`SELECT * FROM report_evidence WHERE report_type='player' AND report_id=$1 AND evidence_type='file'`, [req.params.id]);
   for (const ev of evRes.rows) {
-    try { require('fs').unlinkSync(path.join(__dirname, '../../public/img/uploads/evidence', ev.filename)); } catch (_) {}
+    try { require('fs').unlinkSync(path.join(EVIDENCE_DIR, ev.filename)); } catch (_) {}
   }
   await db.query(`DELETE FROM report_evidence WHERE report_type='player' AND report_id=$1`, [req.params.id]);
   await db.query(`DELETE FROM player_reports WHERE id=$1`, [req.params.id]);

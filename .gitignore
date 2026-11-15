@@ -11,3 +11,4 @@ server/data/greatwar_map.json
 
 # old applicants' personal data: never in this public repo (S74)
 archive/
+server/uploads/

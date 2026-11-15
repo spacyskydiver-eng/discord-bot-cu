@@ -26,15 +26,15 @@ const evList = Array.isArray(evidence) ? evidence : [];
       const isVideo = ['.mp4','.webm','.mov','.avi'].some(x => (ev.filename||'').toLowerCase().endsWith(x));
     %>
       <% if (isVideo) { %>
-        <video src="/img/uploads/evidence/<%= ev.filename %>" class="ev-thumb" muted preload="metadata"></video>
+        <video src="/admin/evidence/<%= ev.filename %>" class="ev-thumb" muted preload="metadata"></video>
       <% } else { %>
-        <a href="/img/uploads/evidence/<%= ev.filename %>" target="_blank">
-          <img src="/img/uploads/evidence/<%= ev.filename %>" class="ev-thumb">
+        <a href="/admin/evidence/<%= ev.filename %>" target="_blank">
+          <img src="/admin/evidence/<%= ev.filename %>" class="ev-thumb">
         </a>
       <% } %>
       <div class="ev-info">
         <div class="ev-label"><%= ev.label || ev.filename %></div>
-        <div class="ev-meta">File · <a href="/img/uploads/evidence/<%= ev.filename %>" target="_blank" style="color:#74c0fc">Open</a></div>
+        <div class="ev-meta">File · <a href="/admin/evidence/<%= ev.filename %>" target="_blank" style="color:#74c0fc">Open</a></div>
       </div>
     <% } else if (ev.evidence_type === 'url') { %>
       <span class="ev-icon">🔗</span>

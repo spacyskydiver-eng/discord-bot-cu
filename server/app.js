@@ -25,8 +25,6 @@ module.exports = function startServer() {
     saveUninitialized: false,
     cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
   });
-  // moderation evidence uploads (bans, tickets, reports) are the owner's: never served as plain public files (S74 review)
-  app.use('/img/uploads/evidence', sessions, (req, res, next) => access.isOwner(req.session.user) ? next() : res.status(404).end());
   app.use(express.static(path.join(__dirname, '../public')));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
