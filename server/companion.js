@@ -54,7 +54,7 @@ async function view(discordId) {
   try {
     const [me, inbox, orders, mail, away] = await Promise.all([get('/api/me'), get('/api/inbox'), get('/api/orders').catch(() => null), get('/api/mail').catch(() => null),
       get('/api/away').catch(() => null)]); // S58: since you were away (a game without it: none)
-    return { sample: false, me, inbox: ((inbox && inbox.items) || []).map(n => ({ text: n.body ? `${n.title}: ${n.body}` : n.title, at: n.time, read: !!n.read })), // the game's WebStore.Item (S-own-20) orders: orders && orders.orders, jobs: orders && orders.jobs, mail: mail && mail.letters,
+    return { sample: false, me, inbox: ((inbox && inbox.items) || []).map(n => ({ text: [n.title, n.body].filter(Boolean).join(': '), at: n.time, read: !!n.read })).filter(n => n.text), /* the game's WebStore.Item (S-own-20) */ orders: orders && orders.orders, jobs: orders && orders.jobs, mail: mail && mail.letters,
       away: away && !away.off ? (away.lines || []) : [] };
   } catch (e) {
     if (e.message === 'revoked') { await db.query(`DELETE FROM game_tokens WHERE discord_id = $1`, [discordId]); return null; }
