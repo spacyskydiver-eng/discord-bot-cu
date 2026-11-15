@@ -700,6 +700,24 @@ router.get('/soldier', (req, res) => {
   if (q) return res.redirect('/soldier/' + encodeURIComponent(q));
   res.render('new/soldier', { rec: null, account: null, fights: [] });
 });
+// S40: a soldier's night as a shareable card: /night/<name> (the latest window) or /night/<name>/<window>
+async function nightPage(req, res, next) {
+  const q = String(req.params.name || '').trim(), w = Math.max(0, Math.min(60, parseInt(req.params.window, 10) || 0));
+  try {
+    const nc = require('../night-card');
+    const found = await nc.lookup(q, w, req.session && req.session.user ? req.session.user.id : null);
+    if (!found) return res.status(404).render('new/night', { q, card: null, notice: `"${q}" isn't a Minecraft Java account.` });
+    if (!found.card) return res.status(404).render('new/night', { q, card: null, notice: `No card yet for ${found.account.name}${w ? ' in window ' + w : ''}.` });
+    res.set('Cache-Control', found.card.own ? 'private, no-store' : 'public, max-age=60');
+    res.render('new/night', { q: found.account.name, card: found.card, summary: nc.summary(found.card), path: req.path });
+  } catch (e) {
+    if (/Mojang/.test(e.message)) return res.status(503).render('new/night', { q, card: null, notice: "We couldn't look that name up just now. Please try again in a minute." });
+    next(e);
+  }
+}
+router.get('/night/:name', nightPage);
+router.get('/night/:name/:window', nightPage);
+
 router.get('/soldier/:name', async (req, res, next) => {
   const q = String(req.params.name || '').trim();
   try {

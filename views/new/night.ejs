@@ -1,0 +1,45 @@
+<% const c = locals.card; %>
+<%- include('partials/head', { publicBg: true, _url: locals.path, pageTitle: c ? `${q}'s night, window ${c.window}` : 'A night at the front', pageDescription: c ? `${q}${c.nationName ? ' of ' + c.nationName : ''}, The Great War. ${locals.summary}` : 'A soldier\'s night in The Great War.' }) %>
+<%- include('partials/header') %>
+<style>
+.nc-wrap { max-width: 640px; margin: 0 auto; padding-bottom: 80px; }
+.nc-sample { margin: 0 0 18px; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(251,191,36,.35); background: rgba(251,191,36,.08); color: #f4e3b5; font: 700 14px 'Baloo 2', sans-serif; }
+.nc-card { background: #ebe4d1; color: #23201a; border-radius: 6px; padding: 26px 28px; box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+.nc-mast { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; border-bottom: 2px solid #23201a; padding-bottom: 12px; margin-bottom: 14px; }
+.nc-mast small { display: block; font: 700 11px Georgia, serif; letter-spacing: .14em; text-transform: uppercase; color: #6a6252; }
+.nc-mast h1 { font: 800 clamp(24px, 5vw, 34px)/1.1 'Fraunces', Georgia, serif; margin: 4px 0 0; }
+.nc-mast img { width: 66px; height: 44px; image-rendering: pixelated; border: 2px solid #23201a; flex: none; }
+.nc-line { font: 17px/1.55 Georgia, serif; margin: 0 0 10px; }
+.nc-line b { font-weight: 700; }
+.nc-own { margin-top: 14px; padding-top: 10px; border-top: 1px dotted #8a8170; font: italic 14px Georgia, serif; color: #6a6252; }
+.nc-share { display: flex; gap: 10px; margin: 18px 0 0; flex-wrap: wrap; }
+.nc-share button, .nc-share a { padding: 10px 16px; border-radius: 12px; border: 0; background: #5be38f; color: #0c1a12; font: 800 15px 'Baloo 2', sans-serif; cursor: pointer; text-decoration: none; }
+.nc-share a { background: rgba(255,255,255,.1); color: #fff; }
+.nc-none { font: 600 15px 'Baloo 2', sans-serif; color: #c4c8d2; }
+@media (max-width: 640px) { .nc-card { padding: 18px 16px; } }
+</style>
+<main class="wrap"><div class="nc-wrap">
+  <%- include('partials/home-link') %>
+  <% if (locals.notice) { %><p class="nc-none"><%= notice %></p><% } %>
+  <% if (c) { %>
+    <% if (c.sample) { %><div class="nc-sample">The war hasn't started yet: this is a sample card, to show what each soldier gets after a war window from 17 December.</div><% } %>
+    <article class="nc-card">
+      <div class="nc-mast"><div><small>The Great War · window <%= c.window %><%= c.from ? ' · ' + new Date(c.from).toUTCString().slice(5, 16) : '' %></small>
+        <h1><%= q %><%= c.regiment ? ' [' + c.regiment + ']' : '' %></h1>
+        <small><%= [c.rank, c.nationName].filter(Boolean).join(' · ') %></small></div>
+        <% if (c.flag) { %><img src="/img/flags/<%= c.flag %>.png" alt="The flag of <%= c.nationName %>"><% } %></div>
+      <% if (c.foughtAt && c.foughtAt.length) { %><p class="nc-line">Fought at <b><%= c.foughtAt.join(', ') %></b>.</p><% } %>
+      <% if (c.helpedTake && c.helpedTake.length) { %><p class="nc-line">Helped take <b><%= c.helpedTake.join(', ') %></b>.</p><% } %>
+      <% if (c.kills) { %><p class="nc-line"><b><%= c.kills %></b> of the enemy accounted for.</p><% } %>
+      <% if (c.medals && c.medals.length) { %><p class="nc-line">Decorated: <b><%= c.medals.join(', ') %></b>.</p><% } %>
+      <% if (!(c.foughtAt && c.foughtAt.length) && !c.kills) { %><p class="nc-line">Answered the call in window <%= c.window %>.</p><% } %>
+      <% if (c.own) { %><p class="nc-own">Only you see this: you fell <%= c.deaths %> <%= c.deaths === 1 ? 'time' : 'times' %> this window.</p><% } %>
+    </article>
+    <div class="nc-share">
+      <button type="button" onclick="navigator.clipboard && navigator.clipboard.writeText(location.href).then(() => { this.textContent = 'Link copied'; })">Copy the link</button>
+      <a href="/soldier/<%= encodeURIComponent(q) %>">Full service record</a>
+      <% if (c.window > 1) { %><a href="/night/<%= encodeURIComponent(q) %>/<%= c.window - 1 %>">Window <%= c.window - 1 %></a><% } %>
+    </div>
+  <% } %>
+</div></main>
+<%- include('partials/foot') %>
