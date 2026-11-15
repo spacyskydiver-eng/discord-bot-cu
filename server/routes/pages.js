@@ -864,7 +864,7 @@ async function wmnTileConfig() {
     if (meta && Array.isArray(meta.levels) && meta.levels.length && typeof meta.levels[0] === 'object') {
       const wb = meta.world_bounds || {};
       const zByL = Object.fromEntries(meta.levels.map(l => [String(+l.blocks_per_pixel), +l.z]));
-      cfg = { base: dev ? '/war-map-next/dev-tiles' : base, bounds: [+wb.min_x, +wb.min_z, +wb.max_x + 1, +wb.max_z + 1], tileSize: +meta.tile_size || 256,
+      cfg = { base: dev ? '/war-map-next/dev-tiles' : '/map-tiles', bounds: [+wb.min_x, +wb.min_z, +wb.max_x + 1, +wb.max_z + 1], tileSize: +meta.tile_size || 256,
         levels: meta.levels.map(l => +l.blocks_per_pixel).sort((a, b) => a - b), origin: Array.isArray(meta.origin) ? meta.origin.map(Number) : [0, 0],
         template: '{R}/{x}/{y}.webp', zByL, version: String(meta.render_hash || '') };
     } else if (meta && Array.isArray(meta.bounds) && Array.isArray(meta.levels) && meta.levels.length) {
@@ -876,6 +876,23 @@ async function wmnTileConfig() {
   wmnTiles = { at: Date.now(), key, cfg };
   return cfg;
 }
+// The terrain tiles, served from the site's own domain (S75): the storage bucket's public address is rate-limited and not
+// for production, so each tile is fetched from it once (the site setting map_tiles_url holds that address, never this
+// repo) and handed on with a year's cache, which Cloudflare's edge in front of the site keeps. The URL carries the
+// render's version (?v=), so a new render is a new URL. Terrain only: nothing private.
+router.get(/^\/map-tiles\/(\d)\/(\d{1,3})\/(\d{1,3})\.webp$/, async (req, res, next) => {
+  try {
+    const base = String((await access.getSetting('map_tiles_url')) || '').trim().replace(/\/$/, '');
+    if (!base) return next();
+    const [z, x, y] = [req.params[0], req.params[1], req.params[2]].map(Number);
+    if (z > 6 || x >= 2 ** z || y >= 2 ** z) return next();
+    const r = await fetch(`${base}/${z}/${x}/${y}.webp`, { signal: AbortSignal.timeout(8000) });
+    if (r.status === 404) { res.set('Cache-Control', 'public, max-age=86400'); return res.status(404).end(); } // a fully empty tile is never written
+    if (!r.ok) { res.set('Cache-Control', 'no-store'); return res.status(502).end(); }
+    res.set({ 'Content-Type': 'image/webp', 'Cache-Control': 'public, max-age=31536000, immutable' });
+    res.send(Buffer.from(await r.arrayBuffer()));
+  } catch (e) { res.set('Cache-Control', 'no-store'); res.status(502).end(); }
+});
 router.get('/war-map-next', async (req, res, next) => {
   try {
     if (!res.locals.isOwner) return next();
