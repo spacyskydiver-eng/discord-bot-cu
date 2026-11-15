@@ -77,6 +77,7 @@ module.exports = function startServer() {
   });
 
   app.use('/', require('./routes/pages'));
+  app.use('/', require('./routes/updates'));
   app.use('/', require('./routes/testers'));
   app.use('/', require('./routes/leaders'));
   app.use('/', require('./routes/gw-apply').router);

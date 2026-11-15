@@ -1,0 +1,515 @@
+{
+ "sections": [
+  {
+   "title": "Coming next",
+   "date": "",
+   "items": [
+    "Smoother play: saving the map's territory no longer freezes the server for a moment, which caused two crashes on the test front."
+   ],
+   "id": "coming-next"
+  },
+  {
+   "title": "v0.22.1",
+   "date": "15 Nov 2026",
+   "items": [
+    "New blocks from the old pale forests: pale oak logs, wood, planks and leaves, pale moss, hanging moss and eyeblossoms, for the new world map.",
+    "Dressing stations, dugouts, observation posts, shrines, village houses and supply dumps can now hold what soldiers left behind.",
+    "Loot never includes ammunition or medical kits: those still come from the Armory.",
+    "Your first day of daily orders now reads \"a streak has begun\" instead of \"1 days in a row\".",
+    "A server restart during the Christmas Truce no longer announces the truce twice, and everyone is still sent home when it ends.",
+    "The \"In combat\" timer no longer shows after you die."
+   ],
+   "id": "v0-22-1"
+  },
+  {
+   "title": "v0.22",
+   "date": "15 Nov 2026",
+   "items": [
+    "War windows: set evenings when nodes can be taken, so nobody loses land while asleep.",
+    "Front-line weather: each war window has its own forecast, rain or light mist, printed in the paper the day before.",
+    "Tanks lose some grip in the rain.",
+    "The Christmas Truce on 25 December: no fighting, football in no man's land, parcels across the wire and carols.",
+    "Truce parcels leave the other soldier a keepsake with both your names on it.",
+    "After-action reports in the paper when a war window closes, naming the best soldiers and the costliest fight.",
+    "A nation that has lost ground two windows running rallies: its soldiers' daily orders count double toward promotion.",
+    "Daily orders: three small jobs a day from what your nation needs, with a bonus for days in a row.",
+    "Regiments of 3 to 10 soldiers with a name, a tag and a banner.",
+    "Mentors: experienced soldiers can take a new recruit under their wing and earn a ribbon when the recruit is promoted.",
+    "Medals and ribbons you can see, on your uniform and your service record.",
+    "Your rank shows on your sleeve, and officers wear their own cap and belt.",
+    "Ottoman soldiers have their own full set of uniforms for every class.",
+    "Your uniform gets dirtier the longer you survive, and is clean again after a death.",
+    "Medics are paid for healing wounds the enemy dealt.",
+    "The death recap: when you fall, a card shows who got you, with what, from how far, and how your life went.",
+    "Your issued kit is yours: it can't be dropped, sold or handed over.",
+    "Killing a soldier who carries only the free kit pays nothing.",
+    "Spawn protection now ends the moment you fire a weapon or hit a tank.",
+    "A fair start for late joiners, who no longer begin far behind everyone else.",
+    "The Field Service Pocket Book: a new soldier's first hour in eight illustrated pages, always in your pocket.",
+    "Winter greatcoats for every army, plus a knitted balaclava and gloves, as cosmetics.",
+    "Army rations and a field kitchen: cooked rations leave you well fed and refill your stamina.",
+    "Dog tags drop from the fallen, and memorials keep their names.",
+    "Field post: write cards and letters to your comrades, delivered as postcards when they next log in.",
+    "Trench art: carve spent tank shell cases into brass keepsakes that carry your name.",
+    "New dugout furniture, from a wire bed to a dartboard and a looted armchair.",
+    "Builders' commissions: buildings your nation commissions and you build, with your name on a brass plaque.",
+    "The fallen who can't return can write for the paper as war correspondents and call the front in the wager.",
+    "Since you were away: after an hour or more offline, a few lines at login tell you what changed.",
+    "Ores no longer grow in ordinary ground: resources come from the mines.",
+    "Large furniture and double doors now place as one block.",
+    "New field signs at nodes, showing the holder's flag.",
+    "Tank interiors cleaned up, with new fittings inside.",
+    "No more advancement pop-ups for every gun, and no movement tutorial on your first join.",
+    "Joining with nothing on now gives you your nation's uniform.",
+    "Pay rebalanced so nations' treasuries no longer run dry on the first day.",
+    "Many fixes from the testers and our own checks: kill pay, combat logging, protected property, crossings, the shop and more."
+   ],
+   "id": "v0-22"
+  },
+  {
+   "title": "v0.21",
+   "date": "14 Nov 2026",
+   "items": [
+    "Ranks and gear: you start as a Private with a cap, a uniform and your nation's rifle, and rank up to unlock better gear.",
+    "Armour, guns and melee weapons are made at your nation's Armory from materials and money.",
+    "Five armour tiers, with star upgrades on each piece.",
+    "Stamina: running with a gun tires you, and heavier guns and armour tire you faster.",
+    "Machine guns on mounts: set one up on the ground, man it and feed it belts; explosives can destroy a mount.",
+    "Every gun now has hip fire, recoil and aim sway.",
+    "Eight national grenades: hold to prime and cook them, release to throw.",
+    "New materials: steel from the steel furnace, plus copper, salt, cotton, saltpetre, rubber and elite plate.",
+    "The recipe book shows where every material comes from.",
+    "Uniforms and armour get dirtier, scratched and torn as they wear down.",
+    "Thousands of new blocks for trenches, bunkers, dugouts, towns, hospitals and mines.",
+    "Doors, gates, shutters and trapdoors that open.",
+    "Blocks now blend into the blocks beside them, so ground and walls no longer show hard edges.",
+    "Barbed wire, stakes and other defences now hurt those who cross them.",
+    "No names showing through walls.",
+    "The tester session runs as short rounds, with a bar at the top of your screen showing the round, the score and the time left."
+   ],
+   "id": "v0-21"
+  },
+  {
+   "title": "v0.20 beta 21",
+   "date": "4 Nov 2026",
+   "items": [
+    "Dying is now a short wait: the death screen shows for a few seconds, then you watch a living teammate until you respawn.",
+    "Click to switch which teammate you watch; with nobody to watch you see a timer.",
+    "You respawn at your capital after about 2 minutes, or about 5 during a war window.",
+    "If your capital is held by the enemy, nobody respawns until it is retaken.",
+    "After 24 hours without its capital, a Leader can move the capital to another node the nation holds.",
+    "A nation now lives as long as it holds at least one node.",
+    "A nation that can't pay its upkeep loses its least valuable nodes first, never its last.",
+    "War windows: nodes can only be captured during scheduled windows.",
+    "Borders between enemies are shut between windows, and anyone left in enemy land is sent home when a window ends.",
+    "Contested zones close during war windows.",
+    "Nations now mark each other as ally, neutral or enemy from one screen in the Cabinet.",
+    "Justice is simpler: a killing leads to forgiveness, compensation, a fine or expulsion instead of long trials.",
+    "Income and upkeep now depend on how valuable each node is.",
+    "Research can unlock extra respawn points, and you come back at the nearest one to where you fell.",
+    "The Arctic and the desert hurt you and can't be built on.",
+    "Tanks can't enter mountains or marshes, and neutral countries are closed.",
+    "Scouts can't attack while across a shut border, and must stay inside a node for a while to gather intel.",
+    "Fixed: joining a single server could fail with a broken command list.",
+    "Beta 21.2: each tank crew seat can only look along its own arc again; the tank camera stays free.",
+    "Beta 21.2: with the visor shut, the driver's view narrows to the slit.",
+    "Beta 21.3: fixed your controls not working after a respawn until you rejoined."
+   ],
+   "id": "v0-20-beta-21"
+  },
+  {
+   "title": "v0.20 beta 20",
+   "date": "30 Oct 2026",
+   "items": [
+    "Behind-the-scenes tidying only; nothing changes in game."
+   ],
+   "id": "v0-20-beta-20"
+  },
+  {
+   "title": "v0.20 beta 19",
+   "date": "30 Oct 2026",
+   "items": [
+    "The server now checks your mods and resource packs when you join: only the official pack gets in.",
+    "If something doesn't match, the message tells you exactly what to remove or reinstall."
+   ],
+   "id": "v0-20-beta-19"
+  },
+  {
+   "title": "v0.20 beta 18",
+   "date": "30 Oct 2026",
+   "items": [
+    "New Fast mode in Settings for big battles or weaker computers.",
+    "Fast mode shortens view distance, cuts particles and clouds, and skips cosmetics, ragdolls and long deaths.",
+    "Turning Fast mode off puts your old settings back.",
+    "The servers were tested with hundreds of players and tuned so busy fights don't drop everyone."
+   ],
+   "id": "v0-20-beta-18"
+  },
+  {
+   "title": "v0.20 beta 17",
+   "date": "30 Oct 2026",
+   "items": [
+    "VIP and VIP+ now come from your Discord roles."
+   ],
+   "id": "v0-20-beta-17"
+  },
+  {
+   "title": "v0.20 beta 16",
+   "date": "30 Oct 2026",
+   "items": [
+    "VIP+ kills now end in a ragdoll: the body falls loose and is thrown by whatever killed it.",
+    "Only a few bodies stay at once; the oldest sinks away first.",
+    "Reduced effects keeps the old ending.",
+    "Your death screen now waits until your death camera has finished."
+   ],
+   "id": "v0-20-beta-16"
+  },
+  {
+   "title": "v0.20 beta 15",
+   "date": "30 Oct 2026",
+   "items": [
+    "Server-side work only; nothing changes in game."
+   ],
+   "id": "v0-20-beta-15"
+  },
+  {
+   "title": "v0.20 beta 14",
+   "date": "30 Oct 2026",
+   "items": [
+    "Regions now yield what the map says: coal, iron, gold, diamond, oil or farmland.",
+    "Your nation is paid for its land every hour again.",
+    "Farmland grows crops faster and harvests more, up to each region's limit.",
+    "Oil derricks with a working pump fill barrels in oil land.",
+    "Tanks need fuel again: refuel them with oil barrels or fuel cans.",
+    "Mines are built into the map: their ore comes back over time, up to an allowance each session.",
+    "Only the region's own nation, or an enemy at war, can mine there."
+   ],
+   "id": "v0-20-beta-14"
+  },
+  {
+   "title": "v0.20 beta 13",
+   "date": "30 Oct 2026",
+   "items": [
+    "The front is now one server per nation plus one for neutral lands, all at the same address.",
+    "Crossing into another nation's land shows a short \"Crossing into...\" card and brings your kit, wounds, money and tank along.",
+    "During war preparation the border between the two sides closes, except to Scouts.",
+    "Wars are fought on their own war servers, and captured land stays with whoever took it.",
+    "Chat, the tab list, news and notices work across every server."
+   ],
+   "id": "v0-20-beta-13"
+  },
+  {
+   "title": "v0.20 beta 12",
+   "date": "29 Oct 2026",
+   "items": [
+    "VIP and VIP+ cosmetics, open them with /cosmetics, from War Office Settings or from the title screen.",
+    "Uniform trims, shield crests, personal items like a pipe, scarf, whistle or medals, and kill effects.",
+    "Each tank can wear a paint scheme, a unit emblem and your own or an ally's flag.",
+    "VIP+ adds cinematic deaths for the players you kill, a death effect and a kill message.",
+    "[VIP] and [VIP+] badges in chat, the tab list and name tags.",
+    "New settings: blood on or off, hide other players' cosmetics, and reduced effects.",
+    "Everything is cosmetic: nothing sold changes how you fight."
+   ],
+   "id": "v0-20-beta-12"
+  },
+  {
+   "title": "v0.20 beta 11",
+   "date": "29 Oct 2026",
+   "items": [
+    "Everyone now has 40 health, twice the hearts.",
+    "Natural healing is slow, so bandages matter more, and Medics heal more.",
+    "Guns now hit by type, not by model; a rifleman at full health always survives one body shot.",
+    "A gun takes a moment to raise after sprinting or switching.",
+    "Machine guns only fire when you are lying down or braced on sandbags, and they are heavy.",
+    "Armour is one simple table, and the most it can ever stop is 30 %.",
+    "Armour pieces wear out after a number of hits, and can be upgraded at a crafting table or an anvil.",
+    "New body armour: padded vest, steel body shield and heavy trench armour, worn over your uniform.",
+    "Iron, chainmail and diamond armour are gone, and villagers no longer sell them.",
+    "New melee weapons: trench knife, bayonet, cavalry sabre, entrenching tool and trench club.",
+    "New trench shield that blocks a set number of blows and can be mended at an anvil.",
+    "Vanilla swords and shields are gone, and axes hit like pickaxes.",
+    "New /recipes book shows everything you can craft or buy, its price and the research it needs.",
+    "Tanks hurt people twice as much to match the bigger health bar."
+   ],
+   "id": "v0-20-beta-11"
+  },
+  {
+   "title": "v0.20 beta 10",
+   "date": "29 Oct 2026",
+   "items": [
+    "Before an update restart you get a minute of warnings and a countdown on screen.",
+    "The HUD tells you when a session is about to begin, has just begun or is ending.",
+    "The War Office now lists the rule that logging out in a fight counts as death.",
+    "The Armory can sell several of one item in a single purchase.",
+    "Backups now run every hour and before every update."
+   ],
+   "id": "v0-20-beta-10"
+  },
+  {
+   "title": "v0.20 beta 9",
+   "date": "29 Oct 2026",
+   "items": [
+    "The shops follow the session: counters can be closed, and the Armory sells only up to the session's tier.",
+    "Crops grow slower in hot and cold lands, and melons, pumpkins and bamboo grow faster in the jungle.",
+    "Hot or cold water hurts you after a few seconds."
+   ],
+   "id": "v0-20-beta-9"
+  },
+  {
+   "title": "v0.20 beta 8",
+   "date": "29 Oct 2026",
+   "items": [
+    "Logging out during a fight now counts as dying; a timer under your money shows when you are in combat.",
+    "Staff show a badge and are listed first.",
+    "Fewer mobs: hostile mobs are capped and none spawn in caves.",
+    "Creepers and zombie villagers don't spawn at all.",
+    "Fewer animals spawn, and each player can breed a limited number per session.",
+    "Enchantments are capped at sensible levels.",
+    "TNT can no longer be crafted.",
+    "Fixed rifle bullets passing through the Fiat 2000 and the A7V in some spots."
+   ],
+   "id": "v0-20-beta-8"
+  },
+  {
+   "title": "v0.20 beta 7",
+   "date": "28 Oct 2026",
+   "items": [
+    "The war now runs in sessions, shown in the War Office with a calendar.",
+    "Some sessions can be ceasefires with fighting switched off.",
+    "New players start on safe ground inside their nation's spawn area.",
+    "Contested zones: protected areas that open and close with the session, where nobody can build or break."
+   ],
+   "id": "v0-20-beta-7"
+  },
+  {
+   "title": "v0.20 beta 6",
+   "date": "28 Oct 2026",
+   "items": [
+    "You can no longer raise a shield with a gun in hand, and bullets pass straight through raised shields.",
+    "Helmets that look like steel helmets now protect like steel helmets.",
+    "The server handles big battles better, with faster saving.",
+    "Region resources, oil and tank fuel arrived briefly, then were taken out again in beta 6.1 until the map was ready."
+   ],
+   "id": "v0-20-beta-6"
+  },
+  {
+   "title": "v0.20 beta 5",
+   "date": "27 Oct 2026",
+   "items": [
+    "The bell-like chime on tank reloads is gone; reloads now sound like a heavy breech.",
+    "The pay coin sound no longer plays while you are in a tank.",
+    "Tanks now have the real shape of their models: stand on the roof, fall through gaps, no more getting stuck on corners.",
+    "Where you hit a tank matters: the front is toughest, the rear and engine weakest.",
+    "Armour was rebalanced: uniforms show your side, helmets and body armour stop part of the damage.",
+    "An unused add-on was removed, so the pack is smaller and starts faster."
+   ],
+   "id": "v0-20-beta-5"
+  },
+  {
+   "title": "v0.20 beta 4",
+   "date": "27 Oct 2026",
+   "items": [
+    "The intro plays once each time you start the game, and leaving a server takes you straight back to the menu.",
+    "Only the war's own items exist in the game; everything else is hidden and can't be crafted or kept.",
+    "The game you install is a client-only build and can't host a singleplayer world."
+   ],
+   "id": "v0-20-beta-4"
+  },
+  {
+   "title": "v0.20 beta 3",
+   "date": "27 Oct 2026",
+   "items": [
+    "The inside of a tank no longer jumps against the walls while the hull turns.",
+    "The flat sheets in front of the Mark V gunners' eyes are gone.",
+    "The \"xylophone\" sound of moving tanks is gone: tracks clank and the turret cranks.",
+    "Engines and tracks can be heard much further away, and a cannon's boom carries far.",
+    "Inside a tank, outside sound is muffled.",
+    "Rifles and machine guns are now inaccurate unless you aim, and you can't fire while sprinting."
+   ],
+   "id": "v0-20-beta-3"
+  },
+  {
+   "title": "v0.20 beta 2",
+   "date": "27 Oct 2026",
+   "items": [
+    "Guns hold, aim, reload and fire properly again, and the purple shot is gone.",
+    "Modern guns stay out of the war and are taken away if anyone has one."
+   ],
+   "id": "v0-20-beta-2"
+  },
+  {
+   "title": "v0.20 beta 1",
+   "date": "27 Oct 2026",
+   "items": [
+    "Tanks arrive: the British Mark V, the German A7V, the Italian Fiat 2000 and the French Renault FT.",
+    "Each crew seat has its own view, with the driver, gunners and a loader who speeds up reloads.",
+    "Right-click to board, Shift to get out, Left Alt to change seat, R to reload, and the comma key for hints.",
+    "Hold right click for the gun sight, and press F5 for the tank camera.",
+    "Guns turn only within their own arcs, and shells fly with real drop.",
+    "Tanks need ammunition: restock at the Motor Pool or with a tank ammunition crate.",
+    "Big firing effects: smoke, dust, shaking ground, layered sound, and hits that look different on earth, stone, wood, water and armour.",
+    "Tank shells never break blocks.",
+    "Nations build tanks at their Motor Pool, with limits on how many each can have.",
+    "Repair kits mend tanks, and Assault soldiers can stick a Bundle Charge on an enemy tank.",
+    "Two new nations join the war: the Ottoman Empire and Bulgaria, making eight.",
+    "Some nations build tanks under licence from their allies at a higher cost.",
+    "Name tags now update straight away when someone changes nation."
+   ],
+   "id": "v0-20-beta-1"
+  },
+  {
+   "title": "v0.19",
+   "date": "25 Oct 2026",
+   "items": [
+    "Keybinds sorted out: the event's controls no longer fight each other, and your own changes are kept.",
+    "The War Office opens on P and the Cabinet on I.",
+    "The game window is now called The Great War and has its own icon.",
+    "If you are disconnected after playing, you see Minecraft's usual screen again.",
+    "Minecraft's own menus and screens stay as you know them."
+   ],
+   "id": "v0-19"
+  },
+  {
+   "title": "v0.18",
+   "date": "25 Oct 2026",
+   "items": [
+    "A new title screen with a Join the war button that takes you straight to the front.",
+    "The title screen shows whether the front is online and a public record of your soldier.",
+    "If joining fails, a clear message tells you why.",
+    "A new opening intro with a dark bunker atmosphere, which you can skip or watch again.",
+    "A moving background behind the main menu.",
+    "Choose a class; your first choice is free and comes with an issued kit.",
+    "Some classes are limited in number per nation.",
+    "Medics heal much better with bandages.",
+    "Pick a specialisation: Miner, Farmer or Builder.",
+    "Earn pay for time served and for fighting, and rise through the ranks.",
+    "Your rank is shown before your name.",
+    "Win medals that make the newspaper.",
+    "Your record keeps your kills, captures, defences, earnings and days survived.",
+    "Land now produces resources and money for the nation that holds it.",
+    "Ore only comes from ore veins in mining regions, and veins grow back.",
+    "Farms are limited by the land a nation holds.",
+    "Sell resources to your nation at the Supply Office in your capital.",
+    "Buy weapons, ammunition and your nation's uniforms at the Armory.",
+    "Nations can order production of weapons and gear.",
+    "Each class can only fire its own guns; pistols work for everyone.",
+    "Armour now stops bullets depending on the piece and your class.",
+    "A steel helmet can save you from one deadly headshot.",
+    "A healthy soldier in a tunic can't be killed by a single body shot.",
+    "Weapons can only come from the Armory; other sources are blocked.",
+    "Run your own stall from a chest to sell items to other players.",
+    "Your buildings and chests are protected from other nations, at peace and at war.",
+    "Lock your own chests and containers.",
+    "Sandbags and barbed wire can be crafted and placed; the wire slows and hurts anyone caught in it.",
+    "Gas masks are now for sale.",
+    "Nations can post Fortify jobs that pay you for building defences in their land.",
+    "Coal can now be traded between nations.",
+    "Land upkeep for nations is now switched on.",
+    "Our screens hide chat and the HUD while open."
+   ],
+   "id": "v0-18"
+  },
+  {
+   "title": "Early development, phase 17",
+   "date": "24 Oct 2026",
+   "items": [
+    "A new look for every screen, with sounds and motion you can turn down in Settings.",
+    "The Leader's screen is now called the Cabinet.",
+    "Button results now show inside the screen.",
+    "The pause screen is back to normal."
+   ],
+   "id": "early-development-phase-17"
+  },
+  {
+   "title": "Early development, phase 16",
+   "date": "24 Oct 2026",
+   "items": [
+    "One Leader runs each nation, helped by eight seats with their own powers.",
+    "The War Office: your own page with your standing, orders, the newspaper, the wanted list and the map.",
+    "The four rules of the war are shown when you first join.",
+    "Nations send each other mail: alliances, peace, calls to arms, trade and demands for justice.",
+    "Nations can trade money and resources.",
+    "The Daily Front newspaper reports the war, with one article per nation per day.",
+    "Rallies and paid jobs from your nation.",
+    "Leave your nation, or ask to join another."
+   ],
+   "id": "early-development-phase-16"
+  },
+  {
+   "title": "Early development, phase 15",
+   "date": "24 Oct 2026",
+   "items": [
+    "All deadlines now run on plain real time.",
+    "War requests now need a reason."
+   ],
+   "id": "early-development-phase-15"
+  },
+  {
+   "title": "Early development, phases 13 to 14",
+   "date": "23 to 24 Oct 2026",
+   "items": [
+    "Incidents, charges, settlements, exile and full trials with verdicts.",
+    "Link your account to the companion website."
+   ],
+   "id": "early-development-phases-13-to-14"
+  },
+  {
+   "title": "Early development, phases 11 to 12",
+   "date": "23 Oct 2026",
+   "items": [
+    "Nations have leadership with powers and a line of succession.",
+    "Wars now start from a request, then a preparation period, then open war.",
+    "Allies can never hurt each other."
+   ],
+   "id": "early-development-phases-11-to-12"
+  },
+  {
+   "title": "Early development, phases 9 to 10",
+   "date": "23 Oct 2026",
+   "items": [
+    "Killing your own countrymen is treason and leads to fines or outlaw status.",
+    "Outlaws lose their nation and can be hunted.",
+    "Post bounties on outlaws and enemies; the killer claims them.",
+    "A justice screen with the wanted list and trial boards.",
+    "Nations must pay upkeep for their land or lose it, and can go bankrupt.",
+    "Players deep in debt feel it."
+   ],
+   "id": "early-development-phases-9-to-10"
+  },
+  {
+   "title": "Early development, phases 5 to 7",
+   "date": "23 Oct 2026",
+   "items": [
+    "Everyone has a money balance, shown in the corner and above name tags.",
+    "Nations have a treasury and set their own income tax.",
+    "A shared research tree that members fund by donating resources."
+   ],
+   "id": "early-development-phases-5-to-7"
+  },
+  {
+   "title": "Early development, phases 3 to 4",
+   "date": "22 to 23 Oct 2026",
+   "items": [
+    "The land is divided into natural regions, each with an unbreakable core.",
+    "Capture a region by holding its core with more living soldiers than the defenders.",
+    "Capitals are harder to take, and losing one ends the nation.",
+    "Rival nations block each other when claiming neutral land.",
+    "A full-screen war map drawn from the real terrain.",
+    "Scouts can spy on enemy regions for a while."
+   ],
+   "id": "early-development-phases-3-to-4"
+  },
+  {
+   "title": "Early development, phases 1 to 2",
+   "date": "22 Oct 2026",
+   "items": [
+    "You join one of the fixed nations, balanced so no side is crowded.",
+    "Death is permanent: the dead become spectators.",
+    "Your nation tag shows in chat and the player list.",
+    "You can only hurt players of nations you are at war with.",
+    "Wars end only when both sides agree to peace."
+   ],
+   "id": "early-development-phases-1-to-2"
+  }
+ ]
+}
