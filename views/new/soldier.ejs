@@ -30,6 +30,7 @@
   <div class="page-head"><div><h1 class="page-title">Service records</h1><p class="page-sub">The Great War · every soldier's record</p></div></div>
   <form class="sr-search" method="GET" action="/soldier"><input name="name" maxlength="16" placeholder="A Minecraft name" value="<%= locals.q || '' %>" autocomplete="off" spellcheck="false"><button class="sr-btn" type="submit">Look up</button></form>
   <% if (locals.notice) { %><p class="sr-none"><%= notice %></p><% } %>
+  <% if (locals.like && like.length) { %><p class="sr-none">Did you mean: <%- like.slice(0, 8).map(p => `<a href="/soldier/${encodeURIComponent(p.name)}" style="color:#8fb8ff">${p.name.replace(/[<>&"]/g, '')}</a>`).join(', ') %></p><% } %>
   <% if (r) { %>
     <% if (r.sample) { %><div class="sr-sample">The war hasn't started yet: this is a sample record, to show what the page will look like from 17 December.</div><% } %>
     <article class="sr-paper">
@@ -45,6 +46,7 @@
         <div><span>Kills</span><b><%= r.kills %></b></div>
         <div><span>Captures</span><b><%= r.captures %></b></div>
         <% if (r.deaths != null) { %><div><span>Deaths</span><b><%= r.deaths %></b></div><% } %>
+        <% if (r.regiment) { %><div><span>Regiment</span><b>[<%= r.regiment %>]</b></div><% } %>
       </div>
       <div class="sr-h">Medals</div>
       <% if (r.medalList.length) { r.medalList.forEach(m => { %><div class="sr-medal"><img src="/img/career/medal_<%= m.id %>.png" alt=""><span><b><%= m.title %></b> <small><%= m.why %></small></span></div><% }) } else { %><p>None yet.</p><% } %>

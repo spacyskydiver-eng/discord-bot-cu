@@ -752,7 +752,10 @@ router.get('/soldier/:name', async (req, res, next) => {
   try {
     const found = await require('../service-records').lookup(q);
     if (!found) return res.status(404).render('new/soldier', { q, rec: null, notice: `"${q}" isn't a Minecraft Java account.`, fights: [] });
-    if (!found.record) return res.status(404).render('new/soldier', { q, rec: null, notice: `${found.account.name} hasn't served in The Great War yet.`, fights: [] });
+    if (!found.record) {
+      const like = await require('../service-records').search(q); // S-own-12: soldiers with names like it
+      return res.status(404).render('new/soldier', { q, rec: null, notice: `${found.account.name} hasn't served in The Great War yet.`, fights: [], like });
+    }
     // notable fights: Daily Front stories that name them
     let fights = [];
     try {
