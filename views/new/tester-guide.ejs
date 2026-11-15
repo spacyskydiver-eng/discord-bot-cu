@@ -1,0 +1,51 @@
+<%- include('partials/head', { publicBg: true, _url: '/tester-guide', pageTitle: "Testers' guide: Saturday 21 November", pageDescription: 'How to get ready for The Great War tester session, what we want tested, and how to tell us what you find.' }) %>
+<%- include('partials/header') %>
+<style>
+.tg-wrap { max-width: 780px; margin: 0 auto; padding-bottom: 80px; }
+.tg-draft { margin: 0 0 18px; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(251,191,36,.35); background: rgba(251,191,36,.08); color: #f4e3b5; font: 700 14px 'Baloo 2', sans-serif; }
+.tg-box { background: rgba(10,12,18,.72); border: 1px solid var(--line); border-radius: 14px; padding: 15px 18px; margin: 0 0 12px; }
+.tg-box h2 { font: 800 17px 'Baloo 2', sans-serif; color: #fff; margin: 0 0 8px; }
+.tg-box p, .tg-box li { font: 600 14.5px/1.6 'Baloo 2', sans-serif; color: #c4c8d2; }
+.tg-box p { margin: 0 0 8px; }
+.tg-box ol, .tg-box ul { margin: 0 0 6px; padding-left: 20px; }
+.tg-box li { margin: 0 0 5px; }
+.tg-box a { color: #8fb8ff; }
+.tg-box code { background: rgba(255,255,255,.08); padding: 1px 6px; border-radius: 5px; color: #e8e9ee; }
+</style>
+<main class="wrap"><div class="tg-wrap">
+  <%- include('partials/home-link') %>
+  <div class="page-head"><div><h1 class="page-title">Testers' guide</h1><p class="page-sub">Saturday 21 November · one hour · thank you for helping</p></div></div>
+  <% if (!isPublic) { %><div class="tg-draft">Hidden: only the owner sees this page until it's made public (site setting testers_guide_public). Check the "not in yet" list against the build before publishing.</div><% } %>
+  <% if (locals.isOwner) { %><form method="POST" action="/tester-guide/public" style="margin:0 0 18px"><input type="hidden" name="public" value="<%= isPublic ? 'off' : 'on' %>"><button type="submit" style="padding:9px 14px;border-radius:10px;border:0;background:<%= isPublic ? 'rgba(255,255,255,.12)' : '#5be38f' %>;color:<%= isPublic ? '#fff' : '#0c1a12' %>;font:800 14px 'Baloo 2',sans-serif;cursor:pointer"><%= isPublic ? 'Hide again (owner only)' : 'Make this page public' %></button></form><% } %>
+
+  <div class="tg-box"><h2>Before the day</h2><ol>
+    <li>Download the modpack from <a href="/pack">the pack page</a>. It must say <b>v0.22</b>.</li>
+    <li>Install it as a <b>new instance</b> (the <a href="/first-hour">first-hour guide</a> shows how). Don't update an old one in place.</li>
+    <li>Launch it once and join the server, so anything that goes wrong turns up before Saturday, not during it.</li>
+  </ol><p>The old v0.21 pack won't have the new features, so please update even if it still starts.</p></div>
+
+  <div class="tg-box"><h2>On the day</h2>
+    <p>It starts at <b>19:00 UK time</b> (GMT). Be in the game a few minutes early if you can. The session lasts about an hour. Staff run it as a series of short battles: you'll be put on a side, everything resets between rounds, and nobody can be hurt between them.</p></div>
+
+  <div class="tg-box"><h2>What we most want tested, in this order</h2><ol>
+    <li><b>A war window with weather.</b> Fight in the rain and mist. Does it look right? Can you still see and aim?</li>
+    <li><b>The death recap.</b> When you fall, is it clear who got you, with what, and from how far?</li>
+    <li><b>Daily orders</b> (War Office, Orders, Daily). Do your three orders make sense, and do they tick off when done?</li>
+    <li><b>Builders' commissions.</b> If staff post one, help build it from the outline and report it done.</li>
+    <li><b>Field post.</b> Write a postcard to a comrade at a runner's post box. Does it arrive?</li>
+    <li><b>The market.</b> Set up a stall, sell something, buy from someone else's.</li>
+    <li><b>The dead's wager.</b> If you're out of the fight for good, call the front from the War Office (Front, The wager).</li>
+  </ol></div>
+
+  <div class="tg-box"><h2>Tell us what you find</h2><ul>
+    <li><code>/bug</code> followed by what happened, in game, the moment it happens (it records where you are).</li>
+    <li><code>/balance</code> followed by what feels too strong or too weak.</li>
+    <li>Anything else, or after the session: <a href="/report">the report form</a>.</li>
+  </ul><p>"I didn't understand what to do" is a useful report too.</p></div>
+
+  <div class="tg-box"><h2>What isn't in yet</h2><ul>
+    <li><b>The real map.</b> The session is fought on a test area; the map of Europe for December is still being prepared.</li>
+    <li>Numbers like prices and pay may still change before 17 December.</li>
+  </ul></div>
+</div></main>
+<%- include('partials/foot') %>

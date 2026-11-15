@@ -714,6 +714,26 @@ router.post('/whats-new/public', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// S67: the testers' guide for 21 Nov: hidden, owner-only until the site setting testers_guide_public is 'on'
+router.get('/tester-guide', async (req, res, next) => {
+  try {
+    const isPublic = (await access.getSetting('testers_guide_public')) === 'on';
+    if (!isPublic && !res.locals.isOwner) return next();
+    res.set('Cache-Control', isPublic ? 'public, max-age=300' : 'private, no-store');
+    res.render('new/tester-guide', { isPublic });
+  } catch (e) { next(e); }
+});
+
+router.post('/tester-guide/public', async (req, res, next) => {
+  try {
+    if (!res.locals.isOwner) return res.status(403).end();
+    const o = req.get('origin');
+    if (o && o !== `${req.protocol}://${req.get('host')}` && o !== `https://${req.get('host')}`) return res.status(403).end();
+    await access.setSetting('testers_guide_public', req.body.public === 'on' ? 'on' : null);
+    res.redirect('/tester-guide');
+  } catch (e) { next(e); }
+});
+
 // S66: credits (the map's author, Mojang's textures, the carol): hidden, owner-only until the site setting credits_public is 'on'
 router.get('/credits', async (req, res, next) => {
   try {
