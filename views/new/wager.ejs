@@ -1,0 +1,35 @@
+<%- include('partials/head', { publicBg: true, _url: '/wager', pageTitle: 'The front-line wager', pageDescription: 'The fallen of The Great War call the front: who holds each contested node when the war window closes. The season\'s table.' }) %>
+<%- include('partials/header') %>
+<style>
+.wg-wrap { max-width: 820px; margin: 0 auto; padding-bottom: 80px; }
+.wg-sample { margin: 0 0 18px; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(251,191,36,.35); background: rgba(251,191,36,.08); color: #f4e3b5; font: 700 14px 'Baloo 2', sans-serif; }
+.wg-paper { background: #ebe4d1; color: #23201a; border-radius: 6px; padding: 26px 28px; box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+.wg-paper h2 { font: 800 clamp(22px, 4vw, 30px)/1.1 'Fraunces', Georgia, serif; margin: 0 0 6px; }
+.wg-paper p { font: 15px/1.5 Georgia, serif; margin: 0 0 14px; }
+.wg-h { font: 700 12px Georgia, serif; letter-spacing: .14em; text-transform: uppercase; color: #6a6252; border-bottom: 2px solid #23201a; padding-bottom: 6px; margin: 22px 0 8px; }
+.wg-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dotted #a89f88; font: 15px Georgia, serif; }
+.wg-row img { width: 30px; height: 20px; image-rendering: pixelated; border: 1px solid #23201a; flex: none; }
+.wg-row .pl { width: 26px; font-weight: 800; color: #6a6252; flex: none; }
+.wg-row .nm { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.wg-row .nm a { color: #23201a; }
+.wg-row small { color: #6a6252; }
+.wg-row .pt { font-weight: 800; white-space: nowrap; }
+.wg-row.top .pt, .wg-row.top .pl { color: #8a6a12; }
+.wg-taken { color: #8a2a1e; font-weight: 700; }
+</style>
+<main class="wrap"><div class="wg-wrap">
+  <%- include('partials/home-link') %>
+  <div class="page-head"><div><h1 class="page-title">The front-line wager</h1><p class="page-sub">The fallen call the front &middot; season <%= season %></p></div></div>
+  <% if (sample) { %><div class="wg-sample">The war hasn't started yet: this is a sample table, to show what the wager will look like from 17 December.</div><% } %>
+  <article class="wg-paper">
+    <h2>Season <%= season %></h2>
+    <p>The dead don't leave the war. Before each war window the fallen call who will hold each contested node when it closes: one point for a hold called right, three for calling a capture. Calls lock when the window opens. No money and nothing the living can use: only the honour, and the Old Sweat's Ribbon for the season's best.</p>
+    <p><%= locked ? 'A window is being fought now: calls are closed until it ends.' : nodes + ' contested node' + (nodes === 1 ? '' : 's') + ' on the card for the next window.' %></p>
+    <div class="wg-h">The table</div>
+    <% if (!table.length) { %><p>Nobody has called a window yet.</p><% } %>
+    <% table.forEach((t, i) => { %><div class="wg-row<%= i === 0 ? ' top' : '' %>"><span class="pl"><%= i + 1 %>.</span><% if (t.nation.flag) { %><img src="/img/flags/<%= t.nation.flag %>.png" alt=""><% } %><span class="nm"><a href="/soldier/<%= encodeURIComponent(t.name) %>"><%= t.name %></a> <small>formerly of <%= t.nation.name %> &middot; <%= t.right %> right over <%= t.rounds %> window<%= t.rounds === 1 ? '' : 's' %></small></span><span class="pt"><%= t.points %> pts</span></div><% }) %>
+    <% if (last.length) { %><div class="wg-h">The last window</div>
+    <% last.forEach(l => { %><div class="wg-row"><% if ((l.held ? l.before : l.after).flag) { %><img src="/img/flags/<%= (l.held ? l.before : l.after).flag %>.png" alt=""><% } %><span class="nm"><b><%= l.node %></b> <small><% if (l.held) { %>held by <%= l.before.name %><% } else { %><span class="wg-taken">taken by <%= l.after.name %></span> from <%= l.before.name %><% } %></small></span></div><% }) %><% } %>
+  </article>
+</div></main>
+<%- include('partials/foot') %>

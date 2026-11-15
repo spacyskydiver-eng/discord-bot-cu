@@ -51,7 +51,7 @@
     <div class="df-mast"><b>THE DAILY FRONT</b><small>Day <%= ed.day %> · <%= new Date(ed.date + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) %></small></div>
     <h2 class="df-head"><%= ed.headline %></h2>
     <% const otd = onThisDay(ed.date); if (otd) { %><p class="df-otd"><b>On this day in 1914:</b> <%= otd %></p><% } %>
-    <div class="df-cols"><% ed.articles.forEach(a => { %><div class="df-art"><h3><%= a.title %></h3><p><%= a.body %></p><% if (a.kind === 'press') { %><p class="by">From <%= nat(a.nation).name %><%= a.author ? ', ' + a.author : '' %></p><% } %></div><% }) %></div>
+    <div class="df-cols"><% ed.articles.forEach(a => { %><div class="df-art"><h3><%= a.title %></h3><p><%= a.body %></p><% if (a.kind === 'press') { %><p class="by">From <%= nat(a.nation).name %><%= a.author ? ', ' + a.author : '' %></p><% } else if (a.kind === 'dispatch') { %><p class="by">Correspondent, formerly <%= a.rank || '' %> <%= a.author %></p><% } %></div><% }) %></div>
   </article>
   <% }) %>
   <div class="wr-btns"><a class="wr-btn" href="/war">War Report</a><a class="wr-btn" href="/map">The map</a></div>

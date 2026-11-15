@@ -720,6 +720,14 @@ router.get('/soldier', (req, res) => {
   if (q) return res.redirect('/soldier/' + encodeURIComponent(q));
   res.render('new/soldier', { rec: null, account: null, fights: [] });
 });
+// S52: the front-line wager: the fallen's season table and the last window (nobody's calls)
+router.get('/wager', async (req, res, next) => {
+  try {
+    const v = await require('../wager').view();
+    res.set('Cache-Control', 'public, max-age=60');
+    res.render('new/wager', v);
+  } catch (e) { next(e); }
+});
 // S45: the market board: open stalls by nation (no coordinates)
 router.get('/market', async (req, res, next) => {
   try {

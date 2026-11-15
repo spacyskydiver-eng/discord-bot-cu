@@ -62,6 +62,7 @@ async function sample() {
         ...caps.slice(0, 3).map(e => ({ kind: 'auto', title: `${name[e.node]} falls to ${nat(e.to)}`, body: `After a hard fight in the war window, ${nat(e.to)} took ${name[e.node]} from ${nat(e.from)}. The front moves.` })),
         { kind: 'auto', title: 'Britain marks the Ottoman Empire as an enemy', body: 'The war begins at the next window, at least a day from now. Constantinople has until then to dig in.' },
         { kind: 'press', nation: 'fr', author: 'The Minister of War', title: 'Not one step back', body: 'Every Frenchman to the Marne. Fortify jobs pay double tonight.' },
+        { kind: 'dispatch', nation: 'gb', author: 'Tommy_1914', rank: 'Cpl.', title: 'What the wire saw', body: 'From up here the line is a grey thread. Last night it moved forty yards, and it cost what it always costs.' },
       ] },
     { day: 3, date: '2026-12-19', headline: 'The first war window opens',
       articles: [{ kind: 'auto', title: 'Europe at war', body: 'Germany is at war with France and Russia, and Austria-Hungary with Russia. Guns are out for the first time.' },

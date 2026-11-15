@@ -20,6 +20,7 @@ const MEDALS = [
   ['longest_survivor', 'Longest Survivor', 'The longest-lived soldier of a nation'],
   ['gallantry', 'Gallantry Medal', 'Awarded by the nation\'s Leader, with a citation'],
   ['mentor', 'Mentor\'s Ribbon', 'Brought a new soldier up to Corporal'],
+  ['old_sweat', 'Old Sweat\'s Ribbon', 'The best caller of a season\'s front-line wager'],
 ];
 const GALLANTRY_NAMES = ['Military Cross', 'Croix de Guerre', 'Cross of St. George', 'Medal for Military Valour', 'Iron Cross', 'Bravery Medal', 'War Medal', 'Order of Bravery'];
 const medalOf = nameOrId => MEDALS.find(m => m[0] === nameOrId || m[1] === nameOrId) || (GALLANTRY_NAMES.includes(nameOrId) ? ['gallantry', nameOrId, MEDALS.find(m => m[0] === 'gallantry')[2]] : null);

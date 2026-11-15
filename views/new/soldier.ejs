@@ -51,6 +51,7 @@
       </div>
       <div class="sr-h">Medals</div>
       <% if (r.medalList.length) { r.medalList.forEach(m => { %><div class="sr-medal"><% if (m.icon) { %><img src="/img/career/medal_<%= m.id %>.png" alt=""><% } else { %><span class="sr-noicon"></span><% } %><span><b><%= m.title %></b> <small><%= m.why %></small></span></div><% }) } else { %><p>None yet.</p><% } %>
+      <% if (r.wager && r.wager.rounds) { %><div class="sr-h">The front-line wager</div><p><%= r.wager.points %> points in season <%= r.wager.season %>: <%= r.wager.right %> called right over <%= r.wager.rounds %> window<%= r.wager.rounds === 1 ? '' : 's' %>. <a href="/wager">The table</a></p><% } %>
       <p><a href="/night/<%= encodeURIComponent(acc.name) %>">Their last night at the front</a></p>
       <div class="sr-h">In the Daily Front</div>
       <% if (fights.length) { fights.forEach(f => { %><p><b><%= f.title %></b> (day <%= f.day %>). <%= f.body %></p><% }) } else { %><p>Not in the paper yet.</p><% } %>
