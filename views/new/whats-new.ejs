@@ -1,0 +1,60 @@
+<%- include('partials/head', { publicBg: true, _url: '/whats-new', pageTitle: "What's new for 17 December", pageDescription: 'The Great War returns on 17 December with regiments, war windows and a Christmas truce, dog tags and memorials, daily orders and more.' }) %>
+<%- include('partials/header') %>
+<style>
+.wn-wrap { max-width: 820px; margin: 0 auto; padding-bottom: 80px; }
+.wn-draft { margin: 0 0 18px; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(251,191,36,.35); background: rgba(251,191,36,.08); color: #f4e3b5; font: 700 14px 'Baloo 2', sans-serif; }
+.wn-lead { font: 600 17px/1.55 'Baloo 2', sans-serif; color: #dfe3ea; margin: 0 0 22px; }
+.wn-sec { margin: 0 0 26px; }
+.wn-sec h2 { font: 800 15px 'Baloo 2', sans-serif; color: #9aa0ad; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 10px; }
+.wn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.wn-item { background: rgba(10,12,18,.72); border: 1px solid var(--line); border-radius: 14px; padding: 13px 15px; }
+.wn-item h3 { font: 800 16px 'Baloo 2', sans-serif; color: #fff; margin: 0 0 4px; }
+.wn-item p { font: 600 14px/1.5 'Baloo 2', sans-serif; color: #c4c8d2; margin: 0; }
+.wn-item a { color: #8fb8ff; }
+.wn-foot { font: 600 14px/1.5 'Baloo 2', sans-serif; color: #9aa0ad; }
+</style>
+<main class="wrap"><div class="wn-wrap">
+  <%- include('partials/home-link') %>
+  <div class="page-head"><div><h1 class="page-title">What's new for 17 December</h1><p class="page-sub">The Great War · two weeks, eight nations, one front</p></div></div>
+  <% if (!isPublic) { %><div class="wn-draft">Draft: only the owner sees this page until it's made public (site setting whats_new_public). Check every line against the build before publishing.</div><% } %>
+  <% if (locals.isOwner) { %><form method="POST" action="/whats-new/public" style="margin:0 0 18px"><input type="hidden" name="public" value="<%= isPublic ? 'off' : 'on' %>"><button type="submit" style="padding:9px 14px;border-radius:10px;border:0;background:<%= isPublic ? 'rgba(255,255,255,.12)' : '#5be38f' %>;color:<%= isPublic ? '#fff' : '#0c1a12' %>;font:800 14px 'Baloo 2',sans-serif;cursor:pointer"><%= isPublic ? 'Back to draft (owner only)' : 'Make this page public' %></button></form><% } %>
+  <p class="wn-lead">After the tester event on 21 November, the war comes back bigger. Here is what's new, all of it built on custom-made mods for this event.</p>
+
+  <section class="wn-sec"><h2>The war</h2><div class="wn-grid">
+    <div class="wn-item"><h3>War windows</h3><p>Nodes can be taken only in the evening war windows, 19:00 to 22:00 UK time, on a fixed schedule. Outside them the borders are closed, so nobody loses land while asleep. <a href="/great-war-in-2-minutes">The schedule</a></p></div>
+    <div class="wn-item"><h3>The Christmas Truce</h3><p>On 25 December there is no war window. The guns fall silent along the whole front for the evening.</p></div>
+    <div class="wn-item"><h3>Front-line weather</h3><p>Each war window has its own forecast, rain or light mist, printed in the Daily Front the day before.</p></div>
+    <div class="wn-item"><h3>After-action reports</h3><p>When a window closes, the paper reports what happened: nodes taken and lost, the fallen, the finest soldiers. In game it's on the War Office's front page.</p></div>
+  </div></section>
+
+  <section class="wn-sec"><h2>Soldiers</h2><div class="wn-grid">
+    <div class="wn-item"><h3>Regiments</h3><p>Raise a regiment of 3 to 10 soldiers of your nation with a name, a short tag and a banner. Its tag shows next to your name, and it can be mentioned in dispatches.</p></div>
+    <div class="wn-item"><h3>Daily orders</h3><p>Three small orders a day from what your nation needs: stand guard, fortify a node, cook rations, or fight while at war. Paid, with a bonus for days in a row.</p></div>
+    <div class="wn-item"><h3>Medics are paid</h3><p>A Medic can now treat a wounded comrade with a bandage or kit, and is paid for healing the wounds the enemy dealt.</p></div>
+    <div class="wn-item"><h3>Gallantry medals</h3><p>Each nation's Leader can award a few gallantry medals a week, each with a citation, shown on the uniform and the service record.</p></div>
+    <div class="wn-item"><h3>A fair start for late joiners</h3><p>From day 5 a new soldier starts near his nation's rank, never above Corporal, so nobody joins as a Private facing Lieutenants.</p></div>
+    <div class="wn-item"><h3>Uniforms that show it</h3><p>Your uniform wears with every day you survive: clean on your first, battered after a week. Rank and medals show on it too.</p></div>
+  </div></section>
+
+  <section class="wn-sec"><h2>Remembrance</h2><div class="wn-grid">
+    <div class="wn-item"><h3>Dog tags and memorials</h3><p>Every fallen soldier drops his army's dog tag. Bring your own side's tags to your capital's memorial and the names are carved there. Enemy tags are trophies.</p></div>
+    <div class="wn-item"><h3>Death recap</h3><p>When you fall you see who got you, with what and from how far, and how your life went.</p></div>
+    <div class="wn-item"><h3>Field post and trench art</h3><p>(Being built.) Write field postcards to your comrades, and turn spent shell cases into trench art that keeps your name.</p></div>
+  </div></section>
+
+  <section class="wn-sec"><h2>Supply and trade</h2><div class="wn-grid">
+    <div class="wn-item"><h3>Rations and the field kitchen</h3><p>Each army has its own rations, cooked at a field kitchen from farm food. A good meal keeps your stamina up.</p></div>
+    <div class="wn-item"><h3>The market board</h3><p>See what every nation's stalls are selling, and for how much, on the website. <a href="/market">The market</a></p></div>
+    <div class="wn-item"><h3>Winter kit</h3><p>Greatcoats, balaclavas and gloves for every army, for the December cold.</p></div>
+  </div></section>
+
+  <section class="wn-sec"><h2>On the website</h2><div class="wn-grid">
+    <div class="wn-item"><h3>Your night, as a card</h3><p>After each window, a card of what you did, ready to share on Discord. <a href="/soldier">Service records</a></p></div>
+    <div class="wn-item"><h3>Call to the line</h3><p>Turn it on in the War Office and you get a Discord message when one of your nation's nodes is under attack and you're not online. Never at night your time.</p></div>
+    <div class="wn-item"><h3>The War Office on your phone</h3><p>Orders, jobs, mail and the front, wherever you are. <a href="/war-office">The War Office</a></p></div>
+    <div class="wn-item"><h3>New players</h3><p>A Field Service Pocket Book in game, and <a href="/first-hour">your first hour</a> and <a href="/pack-faq">the modpack FAQ</a> here.</p></div>
+  </div></section>
+
+  <p class="wn-foot">Numbers may still change before 17 December. <a href="/wiki">The Field Manual</a> has the details.</p>
+</div></main>
+<%- include('partials/foot') %>

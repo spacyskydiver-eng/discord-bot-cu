@@ -694,6 +694,26 @@ router.get('/the-great-war', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// S46: what's new for 17 December: a draft, owner-only until the site setting whats_new_public is 'on'
+router.get('/whats-new', async (req, res, next) => {
+  try {
+    const isPublic = (await access.getSetting('whats_new_public')) === 'on';
+    if (!isPublic && !res.locals.isOwner) return next();
+    res.set('Cache-Control', isPublic ? 'public, max-age=300' : 'private, no-store');
+    res.render('new/whats-new', { isPublic });
+  } catch (e) { next(e); }
+});
+
+router.post('/whats-new/public', async (req, res, next) => {
+  try {
+    if (!res.locals.isOwner) return res.status(403).end();
+    const o = req.get('origin');
+    if (o && o !== `${req.protocol}://${req.get('host')}` && o !== `https://${req.get('host')}`) return res.status(403).end();
+    await access.setSetting('whats_new_public', req.body.public === 'on' ? 'on' : null);
+    res.redirect('/whats-new');
+  } catch (e) { next(e); }
+});
+
 // public service records: /soldier?name=X redirects to /soldier/X
 router.get('/soldier', (req, res) => {
   const q = String(req.query.name || '').trim();
