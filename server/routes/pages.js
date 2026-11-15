@@ -204,11 +204,12 @@ router.post('/snake/score', async (req, res) => {
 
 router.get('/snake/leaderboard', async (req, res) => {
   const rows = (await db.query(`
-    SELECT DISTINCT ON (discord_id) discord_id, discord_tag, discord_avatar, score, saved_at
+    SELECT DISTINCT ON (discord_id) discord_id, discord_tag, score, saved_at
     FROM snake_scores ORDER BY discord_id, score DESC
   `)).rows;
   rows.sort((a, b) => b.score - a.score);
-  res.json(rows.slice(0, 10));
+  // names and scores only: no Discord ids or avatar links (which carry the id) for anyone who asks (S74)
+  res.json(rows.slice(0, 10).map(r => ({ discord_tag: r.discord_tag, score: r.score, saved_at: r.saved_at })));
 });
 
 router.get('/staff', (req, res) => res.redirect('/#/team'));
@@ -482,8 +483,12 @@ router.get('/design-preview/off', (req, res) => {
 });
 
 // Experimental internal tool — accessible only via direct link
-router.get('/tools/mining-regions', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../public/tools/mining-regions.html'));
+// The warmup event's mining-region spec (S74): it gives each region's world coordinates, so staff only (it was public
+// from 18 Aug to 15 Nov 2026, and also as a static file). Anyone else gets the same 404 as an unknown URL.
+router.get('/tools/mining-regions', (req, res, next) => {
+  if (!res.locals.isStaff) return next();
+  res.set('Cache-Control', 'private, no-store');
+  res.sendFile(path.join(__dirname, '../staff-assets/mining-regions.html'));
 });
 
 // ── 150 Player Event: session availability (no login required, linked via DM) ──

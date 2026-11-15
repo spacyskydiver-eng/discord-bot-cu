@@ -23,7 +23,8 @@ module.exports = function startServer() {
 
   app.use(session({
     store: new pgSession({ pool, tableName: 'sessions' }),
-    secret: process.env.SESSION_SECRET || 'fallback-secret',
+    // never a known fallback: without SESSION_SECRET each start gets its own random secret (everyone signs in again)
+    secret: process.env.SESSION_SECRET || (console.error('[session] SESSION_SECRET is not set; using a random one for this run'), require('crypto').randomBytes(32).toString('hex')),
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
@@ -93,8 +94,10 @@ module.exports = function startServer() {
   app.use('/admin', require('./routes/admin'));
 
   // Show actual errors instead of blank 500 page
+  // the details (a stack trace names files, queries and settings) are for staff only; everyone else gets a plain page (S74)
   app.use((err, req, res, next) => {
     console.error('[ERROR]', req.method, req.path, err);
+    if (!res.locals.isStaff) return res.status(500).send('<pre style="padding:20px;font-family:monospace">Something went wrong on our side. Please try again in a minute.</pre>');
     res.status(500).send('<pre style="padding:20px;font-family:monospace">' +
       '<b>Server Error</b>\n' + req.method + ' ' + req.path + '\n\n' +
       (err && err.stack ? err.stack : String(err)) + '</pre>');
