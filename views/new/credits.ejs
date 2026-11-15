@@ -1,0 +1,29 @@
+<%- include('partials/head', { publicBg: true, _url: '/credits', pageTitle: 'Credits', pageDescription: 'The people and works The Great War is built on: the map of Europe, the blocks and the music.' }) %>
+<%- include('partials/header') %>
+<style>
+.cr-wrap { max-width: 760px; margin: 0 auto; padding-bottom: 80px; }
+.cr-draft { margin: 0 0 18px; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(251,191,36,.35); background: rgba(251,191,36,.08); color: #f4e3b5; font: 700 14px 'Baloo 2', sans-serif; }
+.cr-item { background: rgba(10,12,18,.72); border: 1px solid var(--line); border-radius: 14px; padding: 15px 17px; margin: 0 0 12px; }
+.cr-item h2 { font: 800 17px 'Baloo 2', sans-serif; color: #fff; margin: 0 0 6px; }
+.cr-item p { font: 600 14.5px/1.6 'Baloo 2', sans-serif; color: #c4c8d2; margin: 0 0 6px; }
+.cr-item a { color: #8fb8ff; }
+.cr-foot { font: 600 13.5px/1.6 'Baloo 2', sans-serif; color: #9aa0ad; }
+</style>
+<main class="wrap"><div class="cr-wrap">
+  <%- include('partials/home-link') %>
+  <div class="page-head"><div><h1 class="page-title">Credits</h1><p class="page-sub">The Great War is built on other people's work. Thank you.</p></div></div>
+  <% if (!isPublic) { %><div class="cr-draft">Hidden: only the owner sees this page until it's made public (site setting credits_public). Publish it once the map's author has said they're happy to be credited this way.</div><% } %>
+  <% if (locals.isOwner) { %><form method="POST" action="/credits/public" style="margin:0 0 18px"><input type="hidden" name="public" value="<%= isPublic ? 'off' : 'on' %>"><button type="submit" style="padding:9px 14px;border-radius:10px;border:0;background:<%= isPublic ? 'rgba(255,255,255,.12)' : '#5be38f' %>;color:<%= isPublic ? '#fff' : '#0c1a12' %>;font:800 14px 'Baloo 2',sans-serif;cursor:pointer"><%= isPublic ? 'Hide again (owner only)' : 'Make this page public' %></button></form><% } %>
+
+  <div class="cr-item"><h2>The map of Europe</h2>
+    <p>The war is fought over an Earth map of Europe made by <b>MattiBorchers</b>, from <a href="https://earth.motfe.net" rel="noopener">earth.motfe.net</a>. We converted it to our game's version without changing it, and we use it with the author's kind permission.</p></div>
+
+  <div class="cr-item"><h2>Minecraft's blocks</h2>
+    <p>A few blocks from a newer version of Minecraft (the pale garden's) are brought back into our version with Mojang's own textures. They remain Mojang's work.</p></div>
+
+  <div class="cr-item"><h2>The Christmas Truce carol</h2>
+    <p>The carol heard over the line on Christmas night is <i>Stille Nacht</i> ("Silent Night"), composed by Franz Xaver Gruber in 1818, long in the public domain, in our own arrangement.</p></div>
+
+  <p class="cr-foot">Minecraft is a trademark of Mojang Studios. The Great War is a fan-made community event, not affiliated with or endorsed by Mojang or Microsoft.</p>
+</div></main>
+<%- include('partials/foot') %>
