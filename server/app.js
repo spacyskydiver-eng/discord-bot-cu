@@ -17,18 +17,20 @@ module.exports = function startServer() {
 
   app.set('view engine', 'ejs');
   app.set('views', path.join(__dirname, '../views'));
-  app.use(express.static(path.join(__dirname, '../public')));
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
-
-  app.use(session({
+  const sessions = session({
     store: new pgSession({ pool, tableName: 'sessions' }),
     // never a known fallback: without SESSION_SECRET each start gets its own random secret (everyone signs in again)
     secret: process.env.SESSION_SECRET || (console.error('[session] SESSION_SECRET is not set; using a random one for this run'), require('crypto').randomBytes(32).toString('hex')),
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
-  }));
+  });
+  // moderation evidence uploads (bans, tickets, reports) are the owner's: never served as plain public files (S74 review)
+  app.use('/img/uploads/evidence', sessions, (req, res, next) => access.isOwner(req.session.user) ? next() : res.status(404).end());
+  app.use(express.static(path.join(__dirname, '../public')));
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(sessions);
 
   // Language is determined SOLELY by URL prefix.
   // /fr/... → French, everything else → English.

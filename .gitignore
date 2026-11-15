@@ -8,3 +8,6 @@ content/wiki/staff.md
 
 # the campaign map lives in the database (campaign_map table): this repo is public
 server/data/greatwar_map.json
+
+# old applicants' personal data: never in this public repo (S74)
+archive/

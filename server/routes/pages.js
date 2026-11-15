@@ -469,32 +469,38 @@ router.post('/store/checkout', async (req, res) => {
   }
 });
 
+// only a path on this site (no //host or scheme), so the toggle can't send people elsewhere (S74 review)
+const localPath = r => { const s = String(r || ''); return /^\/(?!\/)[^\\]*$/.test(s) ? s : '/'; };
+
 // Design preview toggle — only works for admins
 router.get('/design-preview/on', (req, res) => {
   if (access.isOwner(req.session.user)) {
     req.session.designPreview = true;
   }
-  res.redirect(req.query.return || '/');
+  res.redirect(localPath(req.query.return));
 });
 
 router.get('/design-preview/off', (req, res) => {
   req.session.designPreview = false;
-  res.redirect(req.query.return || '/');
+  res.redirect(localPath(req.query.return));
 });
 
 // Experimental internal tool — accessible only via direct link
-// The warmup event's mining-region spec (S74): it gives each region's world coordinates, so staff only (it was public
-// from 18 Aug to 15 Nov 2026, and also as a static file). Anyone else gets the same 404 as an unknown URL.
-router.get('/tools/mining-regions', (req, res, next) => {
-  if (!res.locals.isStaff) return next();
-  res.set('Cache-Control', 'private, no-store');
-  res.sendFile(path.join(__dirname, '../staff-assets/mining-regions.html'));
-});
+// /tools/mining-regions (the warmup's ore-region spec with world coordinates) was public from 18 Aug to 15 Nov 2026; it is
+// gone from the site and the repo (S74). A copy is kept off git in archive/.
 
-// ── 150 Player Event: session availability (no login required, linked via DM) ──
+// ── 150 Player Event: session availability (linked via DM) ──
+// S74 (review): these pages used to trust a ?uid= in the link, so anyone with someone's Discord id could read and change
+// their application. Now they are for the signed-in person only; the old DM links still work, after a Discord sign-in.
+function eventUser(req, res, page) {
+  if (req.session.user) return req.session.user.id;
+  res.redirect('/auth/discord?return=' + page);
+  return null;
+}
 
 router.get('/150-availability', async (req, res) => {
-  const uid = req.query.uid || null;
+  const uid = eventUser(req, res, '/150-availability');
+  if (!uid) return;
   let app = null;
   if (uid) {
     const r = await db.query(
@@ -507,7 +513,8 @@ router.get('/150-availability', async (req, res) => {
 });
 
 router.post('/150-availability/submit', async (req, res) => {
-  const uid = req.body.uid;
+  if (!req.session.user) return res.status(401).end();
+  const uid = req.session.user.id;
   if (!uid) return res.redirect('/150-availability?error=invalid');
   let sessions = req.body.sessions;
   try { sessions = JSON.parse(sessions); } catch(_) { sessions = []; }
@@ -521,7 +528,8 @@ router.post('/150-availability/submit', async (req, res) => {
 });
 
 router.post('/150-availability/withdraw', async (req, res) => {
-  const uid = req.body.uid;
+  if (!req.session.user) return res.status(401).end();
+  const uid = req.session.user.id;
   if (!uid) return res.redirect('/150-availability?error=invalid');
   await db.query(
     `UPDATE hundred_applications SET status='withdrawn', session_availability='[]'::jsonb WHERE discord_id=$1`,
@@ -530,10 +538,11 @@ router.post('/150-availability/withdraw', async (req, res) => {
   res.redirect('/my-application-hundred');
 });
 
-// ── 150 Player Event: IGN verification (no login required, linked via DM) ──
+// ── 150 Player Event: IGN verification (linked via DM; the signed-in person only, see above) ──
 
 router.get('/150-verify-ign', async (req, res) => {
-  const uid = req.query.uid || null;
+  const uid = eventUser(req, res, '/150-verify-ign');
+  if (!uid) return;
   let app = null;
   let appSource = null;
   if (uid) {
@@ -548,7 +557,8 @@ router.get('/150-verify-ign', async (req, res) => {
 });
 
 router.post('/150-verify-ign/submit', async (req, res) => {
-  const uid = req.body.uid;
+  if (!req.session.user) return res.status(401).end();
+  const uid = req.session.user.id;
   const appSource = req.body.app_source;
   const ign = (req.body.ign || '').trim();
   if (!uid || !ign) return res.redirect('/150-verify-ign?uid=' + encodeURIComponent(uid || '') + '&error=invalid');
