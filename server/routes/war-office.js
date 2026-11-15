@@ -23,7 +23,8 @@ async function page(req, res, error) {
   let front = null, standing = null;
   try { const f = await require('../war-feed').front(); front = (f.editions || [])[0] || null; } catch (e) { /* no paper */ }
   try { const r = await require('../war-feed').report(); standing = nation ? (r.nations || []).find(n => n.id === nation.id) || null : null; } catch (e) { /* no report */ }
-  res.render('new/war-office', { v, nation, next, front, standing, error: error || null });
+  const alerts = user && v && !v.sample ? await require('../call-to-line').settings(user.id) : null; // S39
+  res.render('new/war-office', { v, nation, next, front, standing, alerts, error: error || null });
 }
 router.get('/war-office', wrap((req, res) => page(req, res)));
 router.post('/war-office/link', origin, wrap(async (req, res) => {
@@ -33,6 +34,14 @@ router.post('/war-office/link', origin, wrap(async (req, res) => {
 }));
 router.post('/war-office/unlink', origin, wrap(async (req, res) => {
   if (req.session.user) await comp.unlink(req.session.user.id);
+  res.redirect('/war-office');
+}));
+
+// S39: call to the line, opt-in (only for a linked player); the browser's own time zone for quiet hours.
+router.post('/war-office/alerts', origin, wrap(async (req, res) => {
+  if (!req.session.user) return res.redirect('/auth/discord?return=/war-office');
+  if (!(await comp.linked(req.session.user.id))) return res.redirect('/war-office');
+  await require('../call-to-line').set(req.session.user.id, req.body.enabled === 'on', String(req.body.tz || ''));
   res.redirect('/war-office');
 }));
 

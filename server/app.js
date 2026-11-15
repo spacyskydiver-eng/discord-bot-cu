@@ -102,6 +102,7 @@ module.exports = function startServer() {
 
   require('./testers').startSweeps();
   require('./front-poster').start();   // does nothing while site setting front_post is off
+  require('./call-to-line').start();   // S39: does nothing while site setting call_to_line is off
   require('./nation-roles').start();   // does nothing while site setting nation_roles is off
   require('./leaders').startAutoExport();
   require('./minecraft-links').start();

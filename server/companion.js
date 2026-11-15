@@ -67,4 +67,20 @@ function sample() {
     inbox: [{ text: 'You were paid for 40 minutes of service.', at: now - 25 * 60e3 }, { text: 'Germany has marked France as an enemy: war from the next window.', at: now - 5 * 3600e3 }] };
 }
 
-module.exports = { CompanionError, linked, link, unlink, view, isLive: () => !!API() };
+// S39: a linked player's own /api/me (nation, uuid), and the web API's public part (the secret alone).
+async function me(discordId) {
+  await ready;
+  if (!API()) return null;
+  const row = (await db.query(`SELECT token FROM game_tokens WHERE discord_id = $1`, [discordId])).rows[0];
+  if (!row) return null;
+  const r = await call('/api/me', {}, open(row.token));
+  return r.ok ? r.json() : null;
+}
+async function publicGet(path) {
+  if (!API()) return null;
+  const r = await call(path, {});
+  if (!r.ok) throw new Error('game API ' + r.status);
+  return r.json();
+}
+
+module.exports = { CompanionError, linked, link, unlink, view, me, publicGet, isLive: () => !!API() };

@@ -22,6 +22,8 @@
     </form>
     <form method="POST" action="/admin/front-posts" style="margin-top:12px"><label style="color:#e8e9ee;font:700 14px 'Baloo 2',sans-serif">Channel id </label><input name="channel" value="<%= channel %>" placeholder="channel id"> <button class="fp-btn" type="submit">Save</button></form></div>
   <div class="fp-box"><h2>Waiting to post (<%= due.length %>)</h2><% if (!due.length) { %><p>Nothing.</p><% } %><ul><% due.slice(0, 20).forEach(d => { %><li><code><%= d.key %></code> <%= d.embed.title %></li><% }) %></ul></div>
+  <div class="fp-box"><h2>Call to the line</h2><p>Opt-in Discord messages to linked players when one of their nation's nodes is under attack in a war window (only the node's name; never 22:00-08:00 their time; one per 20 minutes). Dry run logs who would be told. Now: <b><%= ctl %></b>.</p>
+    <form method="POST" action="/admin/front-posts" style="display:flex;gap:8px;flex-wrap:wrap"><% ['off', 'dry', 'on'].forEach(m => { %><button class="fp-btn <%= ctl === m ? 'on' : '' %>" name="ctl" value="<%= m %>"><%= m === 'off' ? 'Off' : m === 'dry' ? 'Dry run' : 'On' %></button><% }) %></form></div>
   <div class="fp-box"><h2>Posted</h2><% if (!posted.length) { %><p>Nothing yet.</p><% } else { %><table class="fp-log"><% posted.forEach(p => { %><tr><td><%= new Date(p.ts * 1000).toISOString().slice(5, 16).replace('T', ' ') %></td><td><%= p.mode %></td><td><%= p.title %></td><td><%= p.error || '' %></td></tr><% }) %></table><% } %></div>
 </div></main>
 <%- include('partials/foot') %>
