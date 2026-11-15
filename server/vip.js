@@ -94,7 +94,8 @@ async function logAttempt(row) {
 async function sendOnce(server, uuid) {
   try {
     const r = await fetch(server + '/api/vip/changed', {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CUE-Secret': C.secret },
+      // the game's web API checks X-Greatwar-Secret on every call (WebApi.handle); X-CUE-Secret is kept for older servers (S-own-20)
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Greatwar-Secret': process.env.GAME_API_SECRET || process.env.WAR_FEED_SECRET || '', 'X-CUE-Secret': C.secret },
       body: JSON.stringify({ uuid: links.dashed(uuid) }), signal: AbortSignal.timeout(8000),
     });
     return { ok: r.ok, status: r.status, response: (await r.text().catch(() => '')).slice(0, 500) };

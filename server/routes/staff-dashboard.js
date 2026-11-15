@@ -14,7 +14,7 @@ async function game() {
   const url = process.env.GAME_CONTROL_URL;
   if (url) {
     try {
-      const r = await fetch(url.replace(/\/$/, '') + '/control/v1/dashboard', { headers: { 'X-Greatwar-Secret': process.env.WAR_FEED_SECRET || '' }, signal: AbortSignal.timeout(5000) });
+      const r = await fetch(url.replace(/\/$/, '') + '/control/v1/dashboard', { headers: { 'X-Greatwar-Control': process.env.GAME_CONTROL_SECRET || '' } /* the control API's own header and secret (ControlApi), not the web API's (S-own-20) */, signal: AbortSignal.timeout(5000) });
       if (r.ok) return Object.assign({ sample: false }, await r.json());
       return { sample: false, error: 'game feed ' + r.status, nations: [], shards: [], modlock: [] };
     } catch (e) { return { sample: false, error: e.message, nations: [], shards: [], modlock: [] }; }

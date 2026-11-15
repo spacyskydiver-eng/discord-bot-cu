@@ -76,6 +76,14 @@ module.exports = function startServer() {
     res.status(503).render('maintenance', { user: res.locals.user });
   });
 
+  // same-origin check for every POST (S-own-20): a browser sending a form from another site carries its Origin and is
+  // refused; server-to-server calls (the game's VIP lookup) send no Origin and are unaffected
+  app.use((req, res, next) => {
+    if (req.method !== 'POST') return next();
+    const o = req.get('origin');
+    if (!o || o === `${req.protocol}://${req.get('host')}` || o === `https://${req.get('host')}`) return next();
+    res.status(403).send('Cross-site request refused.');
+  });
   app.use('/', require('./routes/pages'));
   app.use('/', require('./routes/updates'));
   app.use('/', require('./routes/testers'));
