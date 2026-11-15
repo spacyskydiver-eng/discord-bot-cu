@@ -23,7 +23,7 @@
   <% if (sample) { %><div class="wg-sample">The war hasn't started yet: this is a sample table, to show what the wager will look like from 17 December.</div><% } %>
   <article class="wg-paper">
     <h2>Season <%= season %></h2>
-    <p>The dead don't leave the war. Before each war window the fallen call who will hold each contested node when it closes: one point for a hold called right, three for calling a capture. Calls lock when the window opens. No money and nothing the living can use: only the honour, and the Old Sweat's Ribbon for the season's best.</p>
+    <p>The dead don't leave the war. Soldiers whose army can't bring them back, because it has fallen or lost its capital, call before each war window who will hold each contested node when it closes: one point for a hold called right, three for calling a capture. Calls lock when the window opens. No money and nothing the living can use: only the honour, and the Old Sweat's Ribbon for the season's best.</p>
     <p><%= locked ? 'A window is being fought now: calls are closed until it ends.' : nodes + ' contested node' + (nodes === 1 ? '' : 's') + ' on the card for the next window.' %></p>
     <div class="wg-h">The table</div>
     <% if (!table.length) { %><p>Nobody has called a window yet.</p><% } %>
