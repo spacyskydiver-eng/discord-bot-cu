@@ -49,8 +49,10 @@ async function view(discordId) {
   if (!row) return null;
   const token = open(row.token), get = async p => { const r = await call(p, {}, token); if (r.status === 401) throw new CompanionError('revoked'); return r.ok ? r.json() : null; };
   try {
-    const [me, inbox, orders, mail] = await Promise.all([get('/api/me'), get('/api/inbox'), get('/api/orders').catch(() => null), get('/api/mail').catch(() => null)]);
-    return { sample: false, me, inbox: (inbox && inbox.notices) || [], orders: orders && orders.orders, jobs: orders && orders.jobs, mail: mail && mail.letters };
+    const [me, inbox, orders, mail, away] = await Promise.all([get('/api/me'), get('/api/inbox'), get('/api/orders').catch(() => null), get('/api/mail').catch(() => null),
+      get('/api/away').catch(() => null)]); // S58: since you were away (a game without it: none)
+    return { sample: false, me, inbox: (inbox && inbox.notices) || [], orders: orders && orders.orders, jobs: orders && orders.jobs, mail: mail && mail.letters,
+      away: away && !away.off ? (away.lines || []) : [] };
   } catch (e) {
     if (e.message === 'revoked') { await db.query(`DELETE FROM game_tokens WHERE discord_id = $1`, [discordId]); return null; }
     throw e;
@@ -64,7 +66,8 @@ function sample() {
     orders: [{ text: 'Defend Verdun, 19:00', at: now + 3 * 3600e3 }],
     jobs: [{ title: 'Fortify Verdun', pay: 'paid per block', left: '160 blocks left' }, { title: 'Donate iron to Field Artillery', pay: 'paid per item', left: 'open' }],
     mail: [{ from: 'Germany · Foreign Secretary', subject: 'On the matter of Lorraine', at: now - 2 * 3600e3 }],
-    inbox: [{ text: 'You were paid for 40 minutes of service.', at: now - 25 * 60e3 }, { text: 'Germany has marked France as an enemy: war from the next window.', at: now - 5 * 3600e3 }] };
+    inbox: [{ text: 'You were paid for 40 minutes of service.', at: now - 25 * 60e3 }, { text: 'Germany has marked France as an enemy: war from the next window.', at: now - 5 * 3600e3 }],
+    away: ['France took 1 node and lost Verdun to Germany.', 'The Daily Front: Verdun falls at dusk.', '2 letters wait in the War Office.', "Today's orders: 1 of 3 done (War Office, Orders, Daily)."] };
 }
 
 // S39: a linked player's own /api/me (nation, uuid), and the web API's public part (the secret alone).
