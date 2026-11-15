@@ -1,0 +1,85 @@
+<%
+const byId = Object.fromEntries(front.regions.map(r => [r.id, r]));
+const nat = Object.fromEntries(nations.map(n => [n.id, n]));
+const TONE = { gb: '#d9483b', fr: '#4f7fd9', de: '#8a8f99', ah: '#e0b33a', ru: '#3f9b6b', it: '#7fbf4d', ot: '#b5533c', bg: '#9b6bd1', none: '#5b6170' };
+const ownerName = r => r.owner === 'none' ? (r.country1914 ? r.country1914 + ', neutral in 1914' : 'Neutral in 1914') : (nat[r.owner] ? nat[r.owner].name : r.owner);
+const BY = { land: 'by land', pass: 'over a mountain pass', sea: 'by sea' };
+const list = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+const pageTitle = region ? region.name + ', 1914' : 'The Front';
+const pageDescription = region ? region.history.slice(0, 180) : 'Every region of The Great War\'s map of Europe in 1914: who held it, what happened there in the war, and what it is known for.';
+%>
+<%- include('partials/head', { publicBg: true, _url: region ? '/front/' + region.id : '/front', pageTitle, pageDescription }) %>
+<%- include('partials/header') %>
+<style>
+.fr-wrap { max-width: 980px; margin: 0 auto; padding-bottom: 80px; }
+.fr-draft { margin: 0 0 18px; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(251,191,36,.35); background: rgba(251,191,36,.08); color: #f4e3b5; font: 700 14px 'Baloo 2', sans-serif; }
+.fr-card { background: rgba(10,12,18,.72); border: 1px solid var(--line); border-radius: 14px; padding: 15px 17px; margin: 0 0 14px; }
+.fr-card h2 { font: 800 17px 'Baloo 2', sans-serif; color: #fff; margin: 0 0 8px; }
+.fr-card p { font: 600 15px/1.6 'Baloo 2', sans-serif; color: #c4c8d2; margin: 0 0 6px; }
+.fr-map { width: 100%; height: auto; display: block; }
+.fr-map a path { stroke: #0c0e11; stroke-width: 1.2; opacity: .82; transition: opacity .12s; }
+.fr-map a:hover path, .fr-map a:focus path { opacity: 1; stroke: #fff; stroke-width: 2; }
+.fr-map path.fr-here { opacity: 1; stroke: #fff; stroke-width: 2.4; }
+.fr-key { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 10px 0 0; font: 700 13px 'Baloo 2', sans-serif; color: #c4c8d2; }
+.fr-key span::before { content: ''; display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; background: var(--c); }
+.fr-th { font: 800 15px 'Baloo 2', sans-serif; color: #fff; margin: 14px 0 8px; }
+.fr-th { margin-top: 0; }
+.fr-group + .fr-group { margin-top: 18px; }
+.fr-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.fr-chip { display: inline-flex; align-items: center; gap: 7px; padding: 5px 10px; border-radius: 9px; background: rgba(255,255,255,.06); border: 1px solid var(--line); color: #e6e8ee; text-decoration: none; font: 700 14px 'Baloo 2', sans-serif; }
+.fr-chip:hover, .fr-chip:focus { background: rgba(255,255,255,.12); }
+.fr-chip i { width: 9px; height: 9px; border-radius: 50%; background: var(--c); flex: none; }
+.fr-head { display: flex; gap: 16px; align-items: center; margin: 0 0 14px; }
+.fr-flag { width: 72px; height: 48px; image-rendering: pixelated; border: 2px solid #0c0e11; border-radius: 4px; flex: none; }
+.fr-facts { display: grid; grid-template-columns: 150px 1fr; gap: 8px 14px; font: 600 15px/1.5 'Baloo 2', sans-serif; color: #c4c8d2; }
+.fr-facts b { color: #9aa0ad; font-weight: 700; }
+.fr-search { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: rgba(0,0,0,.35); color: #fff; font: 600 15px 'Baloo 2', sans-serif; margin: 0 0 12px; }
+@media (max-width: 640px) { .fr-facts { grid-template-columns: 1fr; gap: 2px; } .fr-facts b { margin-top: 8px; } .fr-head { align-items: flex-start; } }
+</style>
+<main class="wrap"><div class="fr-wrap">
+  <%- include('partials/home-link') %>
+  <% if (!isPublic) { %><div class="fr-draft">Hidden: only the owner sees The Front until it's made public (site setting front_public).</div><% } %>
+  <% if (locals.isOwner && !region) { %><form method="POST" action="/front/public" style="margin:0 0 18px"><input type="hidden" name="public" value="<%= isPublic ? 'off' : 'on' %>"><button type="submit" style="padding:9px 14px;border-radius:10px;border:0;background:<%= isPublic ? 'rgba(255,255,255,.12)' : '#5be38f' %>;color:<%= isPublic ? '#fff' : '#0c1a12' %>;font:800 14px 'Baloo 2',sans-serif;cursor:pointer"><%= isPublic ? 'Hide again (owner only)' : 'Make The Front public' %></button></form><% } %>
+
+  <% if (region) { const n = nat[region.owner]; %>
+    <p style="margin:0 0 10px"><a href="/front" style="color:#8fb8ff;font:700 14px 'Baloo 2',sans-serif">All regions</a></p>
+    <div class="fr-head">
+      <% if (n) { %><img class="fr-flag" src="/img/flags/<%= n.flag %>.png" alt="<%= n.name %>"><% } %>
+      <div><h1 class="page-title" style="margin:0"><%= region.name %></h1><p class="page-sub" style="margin:2px 0 0"><%= region.theatre %><%= region.capital ? ' · the capital, ' + region.capital : '' %></p></div>
+    </div>
+    <div class="fr-card"><h2>In the war</h2><p><%= region.history %></p></div>
+    <div class="fr-card"><div class="fr-facts">
+      <b>Held in 1914 by</b><span><% if (n) { %><a href="/nations/<%= n.slug %>" style="color:#8fb8ff"><%= n.name %></a><% } else { %><%= ownerName(region) %><% } %></span>
+      <b>Known for</b><span><%= region.known.length ? list(region.known).replace(/^./, c => c.toUpperCase()) : 'Nothing in particular' %></span>
+      <b>Borders</b><span><% region.neighbours.forEach((x, i) => { %><a href="/front/<%= x.id %>" style="color:#8fb8ff"><%= x.name %></a><%= x.by !== 'land' ? ' (' + BY[x.by] + ')' : '' %><%= i < region.neighbours.length - 1 ? ', ' : '' %><% }) %></span>
+    </div></div>
+    <div class="fr-card"><svg class="fr-map" viewBox="0 0 <%= front.width %> <%= front.height %>" role="img" aria-label="<%= region.name %> on the map of Europe">
+      <% front.regions.forEach(r => { %><a href="/front/<%= r.id %>"><title><%= r.name %></title><path d="<%= r.shape %>" fill="<%= TONE[r.owner] %>" class="<%= r.id === region.id ? 'fr-here' : '' %>" style="<%= r.id === region.id ? '' : 'opacity:.35' %>"/></a><% }) %>
+    </svg></div>
+  <% } else { %>
+    <div class="page-head"><div><h1 class="page-title">The Front</h1><p class="page-sub">Every region of the war's map of Europe as it stood in 1914: who held it, what happened there in the real war, and what it is known for. Pick one on the map or below.</p></div></div>
+    <div class="fr-card"><svg class="fr-map" viewBox="0 0 <%= front.width %> <%= front.height %>" role="img" aria-label="The map of Europe in 1914, by region">
+      <% front.regions.forEach(r => { %><a href="/front/<%= r.id %>"><title><%= r.name %> (<%= ownerName(r) %>)</title><path d="<%= r.shape %>" fill="<%= TONE[r.owner] %>"/></a><% }) %>
+    </svg>
+    <div class="fr-key"><% nations.forEach(n => { %><span style="--c:<%= TONE[n.id] %>"><%= n.name %></span><% }) %><span style="--c:<%= TONE.none %>">Neutral in 1914</span></div></div>
+    <input class="fr-search" id="fr-search" type="search" placeholder="Find a region" aria-label="Find a region">
+    <div class="fr-card">
+      <% front.theatres.forEach(th => { const rs = front.regions.filter(r => r.theatre === th).sort((a, b) => a.name.localeCompare(b.name)); if (!rs.length) return; %>
+        <div class="fr-group"><div class="fr-th"><%= th %></div><div class="fr-chips">
+          <% rs.forEach(r => { %><a class="fr-chip" href="/front/<%= r.id %>" data-name="<%= r.name.toLowerCase() %>" style="--c:<%= TONE[r.owner] %>"><i></i><%= r.name %></a><% }) %>
+        </div></div>
+      <% }) %>
+    </div>
+    <script>
+    document.getElementById('fr-search').addEventListener('input', function () {
+      var q = this.value.trim().toLowerCase();
+      document.querySelectorAll('.fr-group').forEach(function (g) {
+        var any = false;
+        g.querySelectorAll('.fr-chip').forEach(function (c) { var on = !q || c.dataset.name.indexOf(q) >= 0; c.style.display = on ? '' : 'none'; if (on) any = true; });
+        g.style.display = any ? '' : 'none';
+      });
+    });
+    </script>
+  <% } %>
+</div></main>
+<%- include('partials/foot') %>

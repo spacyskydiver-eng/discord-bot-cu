@@ -754,6 +754,32 @@ router.post('/credits/public', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// S71: The Front, a page per 1914 region of the war map (history, owner, neighbours, what it's known for; no values or
+// coordinates): hidden, owner-only until the site setting front_public is 'on'
+const FRONT = require('../data/front-regions.json');
+async function renderFront(req, res, next) {
+  try {
+    const isPublic = (await access.getSetting('front_public')) === 'on';
+    if (!isPublic && !res.locals.isOwner) return next();
+    const region = req.params.id ? FRONT.regions.find(r => r.id === req.params.id) : null;
+    if (req.params.id && !region) return res.redirect('/front');
+    res.set('Cache-Control', isPublic ? 'public, max-age=300' : 'private, no-store');
+    const nations = require('../nations').NATIONS;
+    res.render('new/front', { isPublic, front: FRONT, region, nations });
+  } catch (e) { next(e); }
+}
+router.get('/front', renderFront);
+router.get('/front/:id', renderFront);
+router.post('/front/public', async (req, res, next) => {
+  try {
+    if (!res.locals.isOwner) return res.status(403).end();
+    const o = req.get('origin');
+    if (o && o !== `${req.protocol}://${req.get('host')}` && o !== `https://${req.get('host')}`) return res.status(403).end();
+    await access.setSetting('front_public', req.body.public === 'on' ? 'on' : null);
+    res.redirect('/front');
+  } catch (e) { next(e); }
+});
+
 // public service records: /soldier?name=X redirects to /soldier/X
 router.get('/soldier', (req, res) => {
   const q = String(req.query.name || '').trim();
