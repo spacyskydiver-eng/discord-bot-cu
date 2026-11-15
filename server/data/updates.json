@@ -4,7 +4,7 @@
    "title": "Coming next",
    "date": "",
    "items": [
-    "Smoother play: saving the map's territory no longer freezes the server for a moment, which caused two crashes on the test front."
+    "Smoother play: saving the map's territory no longer freezes the server for a moment, which caused two crashes on the test server."
    ],
    "id": "coming-next"
   },
@@ -15,7 +15,6 @@
     "New blocks from the old pale forests: pale oak logs, wood, planks and leaves, pale moss, hanging moss and eyeblossoms, for the new world map.",
     "Dressing stations, dugouts, observation posts, shrines, village houses and supply dumps can now hold what soldiers left behind.",
     "Loot never includes ammunition or medical kits: those still come from the Armory.",
-    "Your first day of daily orders now reads \"a streak has begun\" instead of \"1 days in a row\".",
     "A server restart during the Christmas Truce no longer announces the truce twice, and everyone is still sent home when it ends.",
     "The \"In combat\" timer no longer shows after you die."
    ],
@@ -25,7 +24,8 @@
    "title": "v0.22",
    "date": "15 Nov 2026",
    "items": [
-    "War windows: set evenings when nodes can be taken, so nobody loses land while asleep.",
+    "Your first day of daily orders now reads \"a streak has begun\" instead of \"1 days in a row\".",
+    "War windows now follow a fixed schedule of evenings, known in advance, so nobody loses land while asleep.",
     "Front-line weather: each war window has its own forecast, rain or light mist, printed in the paper the day before.",
     "Tanks lose some grip in the rain.",
     "The Christmas Truce on 25 December: no fighting, football in no man's land, parcels across the wire and carols.",
@@ -91,7 +91,7 @@
   },
   {
    "title": "v0.20 beta 21",
-   "date": "4 Nov 2026",
+   "date": "4-5 Nov 2026",
    "items": [
     "Dying is now a short wait: the death screen shows for a few seconds, then you watch a living teammate until you respawn.",
     "Click to switch which teammate you watch; with nobody to watch you see a timer.",
@@ -110,7 +110,6 @@
     "The Arctic and the desert hurt you and can't be built on.",
     "Tanks can't enter mountains or marshes, and neutral countries are closed.",
     "Scouts can't attack while across a shut border, and must stay inside a node for a while to gather intel.",
-    "Fixed: joining a single server could fail with a broken command list.",
     "Beta 21.2: each tank crew seat can only look along its own arc again; the tank camera stays free.",
     "Beta 21.2: with the visor shut, the driver's view narrows to the slit.",
     "Beta 21.3: fixed your controls not working after a respawn until you rejoined."
@@ -141,7 +140,7 @@
     "New Fast mode in Settings for big battles or weaker computers.",
     "Fast mode shortens view distance, cuts particles and clouds, and skips cosmetics, ragdolls and long deaths.",
     "Turning Fast mode off puts your old settings back.",
-    "The servers were tested with hundreds of players and tuned so busy fights don't drop everyone."
+    "The servers were tested with 300 test bots and tuned so busy fights don't drop everyone."
    ],
    "id": "v0-20-beta-18"
   },
