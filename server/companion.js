@@ -7,7 +7,10 @@ const crypto = require('crypto');
 const db = require('../db');
 
 const API = () => process.env.GAME_API_URL ? process.env.GAME_API_URL.replace(/\/$/, '') : null;
-const KEY = crypto.createHash('sha256').update('war-office:' + (process.env.SESSION_SECRET || 'dev')).digest();
+// the key that encrypts players' game tokens: never a known fallback (S74 review); without SESSION_SECRET each start gets a
+// random key, so stored tokens can't be read after a restart and players link again
+const KEY = crypto.createHash('sha256').update('war-office:' + (process.env.SESSION_SECRET
+  || (console.error('[war-office] SESSION_SECRET is not set; game tokens use a random key for this run'), crypto.randomBytes(32).toString('hex')))).digest();
 class CompanionError extends Error {}
 
 const ready = (async () => {
