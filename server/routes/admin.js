@@ -377,7 +377,7 @@ const OLD_EVIDENCE_DIR = path.join(__dirname, '../../public/img/uploads/evidence
 }
 router.get('/evidence/:file', (req, res, next) => {
   if (!/^ev-\d+\.[A-Za-z0-9]{1,8}$/.test(req.params.file)) return next();
-  res.set('Cache-Control', 'private, no-store');
+  res.set({ 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' });
   res.sendFile(path.join(EVIDENCE_DIR, req.params.file), err => { if (err) next(); });
 });
 
