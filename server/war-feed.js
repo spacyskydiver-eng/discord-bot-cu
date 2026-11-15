@@ -87,6 +87,9 @@ function siteIds(r) {
   const each = x => { const y = { ...x }; for (const k of ['a', 'b', 'from', 'to', 'attacker', 'defender', 'nation']) if (k in y) y[k] = nid(y[k]); return y; };
   if (Array.isArray(r.events)) out.events = r.events.map(each);
   if (Array.isArray(r.battles)) out.battles = r.battles.map(each);
+  // S49: the after-action reports (W11 #4): their nations, top soldiers and battles in the site's ids too.
+  if (Array.isArray(r.reports)) out.reports = r.reports.map(x => ({ ...x, nations: (x.nations || []).map(n => ({ ...n, id: nid(n.id) })),
+    top: (x.top || []).map(each), battles: (x.battles || []).map(each) }));
   if (Array.isArray(r.editions)) out.editions = r.editions.map(e => ({ ...e, articles: (e.articles || []).map(each) }));
   return out;
 }

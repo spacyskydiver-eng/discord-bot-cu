@@ -19,17 +19,41 @@ const mode = async () => { const m = await access.getSetting('front_post'); retu
 const nat = id => { const n = NATIONS.find(x => x.id === id); return n ? n.name.replace(/^The /, '') : id; };
 const COLOUR = 0xC9A84C;
 
+/** 08:00 UK time on a date "YYYY-MM-DD", in ms (UK is UTC in December; GMT/BST handled by the offset of that day). */
+function morningOf(date) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) return null;
+  const guess = Date.parse(date + 'T08:00:00Z');
+  const ukHour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', hour: '2-digit', hourCycle: 'h23' }).format(guess));
+  return guess - (ukHour - 8) * 3600 * 1000;
+}
+
 // what should be posted now, oldest first: [{ key, embed }]
 async function due() {
   const [report, front, m] = await Promise.all([feed.report(), feed.front(), require('./campaign-map').loadPublic().then(JSON.parse)]);
   const names = Object.fromEntries(m.territories.map(t => [t.id, t.name])), node = id => names[id] || id;
   const out = [];
+  // S49: the paper is a morning paper: each edition goes out from 08:00 UK time on its own date, and an edition more
+  // than a day and a half past that is stale and skipped (turning the poster on never floods the channel with old papers).
+  const now = Date.now();
   for (const ed of (front.editions || []).slice().reverse()) {
+    const at = morningOf(ed.date);
+    if (at == null || now < at || now - at > 36 * 3600 * 1000) continue;
     const lines = (ed.articles || []).slice(0, 4).map(a => `**${a.title}**\n${a.body}`.slice(0, 300));
     out.push({ key: `edition:${ed.day}`, embed: { title: `The Daily Front · Day ${ed.day}: ${ed.headline}`, url: `${SITE}/daily-front`, color: COLOUR,
       description: lines.join('\n\n').slice(0, 3800), footer: { text: 'The Great War · the full paper and the map at cuevents.xyz' } } });
   }
+  // S49: the after-action report as the game writes it (W11 #4) when the feed has it: nations, the finest, the battles.
+  for (const r of (report.reports || []).slice().reverse()) {
+    const sides = (r.nations || []).filter(n => n.taken || n.lost || n.deaths).sort((a, b) => (b.taken - b.lost) - (a.taken - a.lost))
+      .map(n => `**${nat(n.id)}**: ${n.taken} taken, ${n.lost} lost, ${n.deaths} dead`);
+    const top = (r.top || []).slice(0, 3).map(t => `${t.name} (${t.kills})`);
+    const fights = (r.battles || []).slice(0, 3).map(f => `${node(f.node)}: ${f.deaths} dead, ${f.result === 'captured' ? 'taken' : 'held'}`);
+    out.push({ key: `after-action:${r.window}`, embed: { title: `After-action report · war window ${r.window}`, url: `${SITE}/war`, color: 0x8E3D12,
+      description: [sides.join('\n') || 'A quiet window: no captures and no deaths.', top.length ? `Mentioned in dispatches: ${top.join(', ')}` : '',
+        fights.length ? fights.join('\n') : '', `[The War Report](${SITE}/war) · [The map](${SITE}/map)`].filter(Boolean).join('\n\n').slice(0, 3800) } });
+  }
   const byWindow = {};
+  if ((report.reports || []).length) report.battles = []; // the game's own reports above replace the battle-only summary
   (report.battles || []).forEach(b => { (byWindow[b.window] = byWindow[b.window] || []).push(b); });
   for (const w of Object.keys(byWindow).map(Number).sort((a, b) => a - b)) {
     const fights = byWindow[w].sort((a, b) => b.deaths - a.deaths).slice(0, 5);
@@ -78,4 +102,4 @@ function start() {
 }
 async function recent() { await ready; return (await db.query(`SELECT *, extract(epoch from posted_at)::bigint AS ts FROM front_posts ORDER BY posted_at DESC LIMIT 60`)).rows; }
 
-module.exports = { mode, due, run, start, recent, ready };
+module.exports = { morningOf, mode, due, run, start, recent, ready };

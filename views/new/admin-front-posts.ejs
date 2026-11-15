@@ -12,7 +12,7 @@
 .fp-log { width: 100%; border-collapse: collapse; font: 12.5px ui-monospace, Menlo, monospace; color: #dfe2ea; } .fp-log td { padding: 4px 6px; border-bottom: 1px solid rgba(255,255,255,.05); }
 </style>
 <main class="wrap"><div class="fp-wrap">
-  <div class="page-head"><div><h1 class="page-title">The Daily Front on Discord</h1><p class="page-sub">Editions, after-action reports and breaking news, posted by the bot. Now: <b><%= mode %></b>.</p></div></div>
+  <div class="page-head"><div><h1 class="page-title">The Daily Front on Discord</h1><p class="page-sub">Each morning's edition (from 08:00 UK time), after-action reports and breaking news, posted by the bot. Now: <b><%= mode %></b>.</p></div></div>
   <% if (msg) { %><div class="fp-msg"><%= msg %></div><% } %>
   <div class="fp-box"><h2>How it works</h2><ul>
     <li>Every 5 minutes it reads the war feed and posts what's new to one channel: each Daily Front edition, each war window's after-action report, and breaking news (a capital lost or retaken, a nation wiped, the Christmas Truce). Each is posted once, at most 5 a run.</li>
