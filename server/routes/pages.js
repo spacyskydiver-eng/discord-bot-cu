@@ -839,6 +839,74 @@ router.post('/war-map/public', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// S77: the next war map, a tiled one: terrain tiles from all of Europe down to single blocks, the region borders drawn
+// over them, regions tinted by who holds them. Hidden, owner-only, beside /war-map until it replaces it.
+// Tiles: site setting map_tiles_url, the base URL of a tile set with a meta.json ({ bounds, tileSize, levels, and
+// optionally origin [x, z] of tile 0,0 and template, default '{L}/{x}/{y}.webp', L the level in blocks per pixel}).
+// With no setting, MAP_TILES_DEV_DIR (a local folder of dev tiles, never on the server) is served below; else no terrain.
+// The placeholder shapes (block coordinates) are local files, never in this public repo, so they may be missing: the
+// page then has no borders or fills until the game's feed serves them.
+function wmnOptional(file, empty) { try { return require(file); } catch (e) { return empty; } }
+const WMN_REGIONS = wmnOptional('../data/war-map-regions.json', { regions: [], capitals: [] });
+const WMN_PLACEHOLDER = wmnOptional('../data/war-map-borders.json', { version: 'none', levels: [], lines: [] });
+let wmnTiles = { at: 0, key: null, cfg: null };
+async function wmnTileConfig() {
+  const base = String((await access.getSetting('map_tiles_url')) || '').trim().replace(/\/$/, '');
+  const dev = !base && process.env.MAP_TILES_DEV_DIR;
+  const key = base || (dev ? 'dev' : '');
+  if (wmnTiles.key === key && Date.now() - wmnTiles.at < 10 * 60 * 1000) return wmnTiles.cfg;
+  let cfg = null;
+  try {
+    const meta = dev ? JSON.parse(fs.readFileSync(path.join(process.env.MAP_TILES_DEV_DIR, 'meta.json'), 'utf8'))
+      : base ? await (await fetch(base + '/meta.json', { signal: AbortSignal.timeout(6000) })).json() : null;
+    if (meta && Array.isArray(meta.bounds) && Array.isArray(meta.levels) && meta.levels.length) {
+      cfg = { base: dev ? '/war-map-next/dev-tiles' : base, bounds: meta.bounds.map(Number), tileSize: +meta.tileSize || 256,
+        levels: meta.levels.map(Number).sort((a, b) => a - b), origin: Array.isArray(meta.origin) ? meta.origin.map(Number) : [0, 0],
+        template: typeof meta.template === 'string' ? meta.template : '{L}/{x}/{y}.webp' };
+    }
+  } catch (e) { console.error('[war-map-next] tiles meta', e.message); }
+  wmnTiles = { at: Date.now(), key, cfg };
+  return cfg;
+}
+router.get('/war-map-next', async (req, res, next) => {
+  try {
+    if (!res.locals.isOwner) return next();
+    const regions = FRONT.regions.map(r => ({ id: r.id, name: r.name, owner: r.owner, theatre: r.theatre, capital: r.capital || null }));
+    res.set('Cache-Control', 'private, no-store');
+    const frontOn = res.locals.isOwner || (await access.getSetting('front_public')) === 'on';
+    res.render('new/war-map-next', { frontOn, regions, tiles: await wmnTileConfig(), nations: require('../nations').NATIONS });
+  } catch (e) { next(e); }
+});
+router.get('/war-map-next/dev-tiles/*', (req, res, next) => {
+  const dir = process.env.MAP_TILES_DEV_DIR;
+  if (!res.locals.isOwner || !dir) return next();
+  const rel = String(req.params[0] || '');
+  if (!/^[\w.-]+(\/[\w.-]+)*$/.test(rel) || rel.split('/').includes('..')) return next();
+  res.sendFile(path.join(path.resolve(dir), rel), { maxAge: 3600 * 1000 }, e => e && next());
+});
+// the shapes: the game's traced borders when its feed is live, else the placeholder from tools/war_map_borders.js;
+// the fills, label spots and capitals from the placeholder until the fills are built from the traced lines
+router.get('/war-map-next/shapes.json', async (req, res, next) => {
+  try {
+    if (!res.locals.isOwner) return next();
+    let borders = null;
+    try { const b = await require('../war-feed').borders(); if (b && Array.isArray(b.lines)) borders = b; } catch (e) { console.error('[war-map-next] borders', e.message); }
+    res.set('Cache-Control', 'private, max-age=300').json({ live: !!borders, borders: borders || WMN_PLACEHOLDER, regions: WMN_REGIONS.regions, capitals: WMN_REGIONS.capitals });
+  } catch (e) { next(e); }
+});
+// who holds what (delayed as for /war-map) and which nations are at war, for the fronts
+router.get('/war-map-next/owners.json', async (req, res, next) => {
+  try {
+    if (!res.locals.isOwner) return next();
+    const own = await delayedOwners();
+    const owners = {};
+    if (own) FRONT.regions.forEach(r => { if (own[r.id]) owners[r.id] = String(own[r.id]); });
+    let wars = [];
+    if (own) try { wars = ((await require('../war-feed').report()).relations || []).filter(x => x.state === 'war').map(x => [String(x.a), String(x.b)]); } catch (e) { /* no fronts shown */ }
+    res.set('Cache-Control', 'private, max-age=60').json({ live: !!own, owners, wars, at: Date.now() });
+  } catch (e) { next(e); }
+});
+
 // public service records: /soldier?name=X redirects to /soldier/X
 router.get('/soldier', (req, res) => {
   const q = String(req.query.name || '').trim();

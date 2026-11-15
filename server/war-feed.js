@@ -96,5 +96,8 @@ function siteIds(r) {
 }
 
 async function report() { return LIVE ? siteIds(await live('/api/public/report')) : (await sample()).report; }
+// S77: the region borders the game traced from the world ({ version, levels, lines: [{ a, b, pts: { level: [[x, z]] } }] },
+// block coordinates; region ids as they are). Null until the feed is live: the war map then uses its placeholder.
+async function borders() { return LIVE ? live('/api/public/borders') : null; }
 async function front() { return LIVE ? siteIds(await live('/api/public/front?days=7')) : (await sample()).front; }
-module.exports = { report, front, isLive: () => !!LIVE, siteIds };
+module.exports = { report, front, borders, isLive: () => !!LIVE, siteIds };

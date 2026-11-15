@@ -1,0 +1,426 @@
+<%
+const TONE = { gb: '#d9483b', fr: '#4f7fd9', de: '#8a8f99', ah: '#e0b33a', ru: '#3f9b6b', it: '#7fbf4d', ot: '#b5533c', bg: '#9b6bd1', none: '#5b6170' };
+const NAT = nations.map(n => ({ id: n.id, name: n.name, flag: n.flag, slug: n.slug }));
+const j = v => JSON.stringify(v).replace(/</g, '\\u003c');
+%>
+<%- include('partials/head', { publicBg: true, _url: '/war-map-next', pageTitle: 'The war map', pageDescription: 'The map of Europe in The Great War, region by region: who holds what, coloured by nation.' }) %>
+<%- include('partials/header') %>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer">
+<style>
+.wm-wrap { max-width: 1320px; margin: 0 auto; padding-bottom: 60px; }
+.wm-draft { margin: 0 0 14px; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(251,191,36,.35); background: rgba(251,191,36,.08); color: #f4e3b5; font: 700 14px 'Baloo 2', sans-serif; }
+.wm-draft a { color: #ffe08a; }
+.wm-status { font: 700 14px 'Baloo 2', sans-serif; color: #c4c8d2; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
+.wm-dot { width: 9px; height: 9px; border-radius: 50%; background: #5b6170; flex: none; }
+.wm-dot.on { background: #5be38f; box-shadow: 0 0 0 4px rgba(91,227,143,.18); }
+.wm-filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.wm-filters .wm-f { display: inline-flex; align-items: center; gap: 7px; padding: 6px 11px; border-radius: 9px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.08); color: #e6e8ee; font: 700 14px 'Baloo 2', sans-serif; cursor: pointer; min-height: 36px; }
+.wm-f i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); flex: none; }
+.wm-f small { color: #9aa0ad; font-weight: 700; }
+.wm-filters .wm-f[aria-pressed="true"] { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.5); }
+@media (max-width: 640px) {
+  /* on a phone the chips scroll sideways in one row, so the map stays near the top */
+  .wm-filters { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-right: -16px; padding-right: 16px; }
+  .wm-filters::-webkit-scrollbar { display: none; }
+  .wm-filters .wm-f { flex: none; }
+}
+
+.wm-body { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.wm-stage { position: relative; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: #0b1220; }
+#wm-map { height: min(72vh, 760px); min-height: 380px; background: #0b1220; font-family: 'Baloo 2', sans-serif; }
+#wm-map.no-tiles { background: radial-gradient(ellipse at 50% 40%, #1a2333, #0b1220 75%); }
+/* past the finest tiles each block is drawn as a hard-edged square; between levels the tiles are scaled smoothly
+   (nearest-neighbour there leaves bright seams along tile edges) */
+#wm-map.px .leaflet-tile { image-rendering: pixelated; image-rendering: crisp-edges; }
+#wm-map .leaflet-tile-container img { -webkit-user-drag: none; }
+.leaflet-container a.leaflet-popup-close-button { color: #fff; }
+.leaflet-touch .leaflet-bar, .leaflet-bar { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; box-shadow: none; }
+.leaflet-bar a, .leaflet-bar a:hover { width: 38px; height: 38px; line-height: 38px; background: rgba(12,14,20,.9); color: #fff; border-bottom-color: var(--line); font: 800 18px/38px 'Baloo 2', sans-serif; }
+.leaflet-bar a:hover { background: rgba(40,44,56,.95); }
+.leaflet-bar a.leaflet-disabled { background: rgba(12,14,20,.7); color: #555b68; }
+.wm-allbtn { font-size: 13px !important; }
+
+/* the search, over the map's top-left corner */
+.wm-search { position: absolute; z-index: 1000; left: 10px; top: 10px; width: min(320px, calc(100% - 70px)); }
+.wm-search input { width: 100%; box-sizing: border-box; height: 40px; padding: 0 12px 0 34px; border-radius: 10px; border: 1px solid var(--line); background: rgba(12,14,20,.92) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239aa0ad' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") 11px 50% no-repeat; color: #fff; font: 600 15px 'Baloo 2', sans-serif; outline: none; -webkit-appearance: none; appearance: none; }
+.wm-search input:focus { border-color: rgba(143,184,255,.7); }
+.wm-search ul { list-style: none; margin: 6px 0 0; padding: 4px; border-radius: 10px; border: 1px solid var(--line); background: rgba(12,14,20,.96); max-height: 50vh; overflow-y: auto; }
+.wm-search ul:empty { display: none; }
+.wm-search li { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 7px; cursor: pointer; color: #e6e8ee; font: 700 15px 'Baloo 2', sans-serif; }
+.wm-search li i { width: 9px; height: 9px; border-radius: 50%; background: var(--c); flex: none; }
+.wm-search li small { margin-left: auto; color: #9aa0ad; font-weight: 600; font-size: 13px; white-space: nowrap; }
+.wm-search li[aria-selected="true"], .wm-search li:hover { background: rgba(255,255,255,.1); }
+.wm-search li.none { color: #9aa0ad; cursor: default; background: none; }
+
+/* labels: nation names far out, region names nearer in, capitals marked */
+.wm-lbl { pointer-events: none; }
+.wm-lbl span { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); white-space: nowrap; color: #fff; text-align: center;
+  text-shadow: 0 0 3px #000, 0 0 2px #000, 0 1px 2px #000; }
+.wm-lbl.nation span { font: 800 17px/1 'Baloo 2', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #fff8e6; }
+.wm-lbl.region span { font: 700 13px/1 'Baloo 2', sans-serif; color: #f2f3f7; }
+.wm-lbl.region.cap span { font-weight: 800; font-size: 14px; color: #ffe9a8; transform: translate(-50%, 9px); }
+.wm-lbl.hide { display: none; }
+.wm-cap { pointer-events: none; }
+.wm-cap svg { position: absolute; left: -8px; top: -8px; width: 16px; height: 16px; filter: drop-shadow(0 0 2px #000) drop-shadow(0 0 1px #000); }
+#wm-map.far .wm-lbl.region { display: none; }
+#wm-map:not(.far) .wm-lbl.nation { display: none; }
+#wm-map.far .wm-cap svg { left: -6px; top: -6px; width: 12px; height: 12px; }
+
+.wm-info { background: rgba(10,12,18,.72); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: flex; gap: 14px; align-items: center; min-height: 56px; }
+.wm-info img { width: 54px; height: 36px; image-rendering: pixelated; border: 2px solid #0c0e11; border-radius: 4px; flex: none; }
+.wm-info h2 { font: 800 18px 'Baloo 2', sans-serif; color: #fff; margin: 0; }
+.wm-info p { font: 600 14.5px/1.5 'Baloo 2', sans-serif; color: #c4c8d2; margin: 2px 0 0; }
+.wm-info a { color: #8fb8ff; font-weight: 700; }
+.wm-hint { color: #9aa0ad; }
+.wm-key { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0 0; font: 700 13px 'Baloo 2', sans-serif; color: #9aa0ad; }
+.wm-key span { display: inline-flex; align-items: center; gap: 6px; }
+.wm-key b { display: inline-block; width: 20px; height: 0; border-top: var(--w) solid var(--c); border-radius: 2px; }
+@media (min-width: 900px) {
+  .wm-body { grid-template-columns: 1fr 270px; align-items: start; }
+  .wm-info { position: sticky; top: 76px; flex-direction: column; align-items: flex-start; }
+  #wm-map { height: max(460px, calc(100vh - 250px)); }
+}
+@media (max-width: 640px) {
+  .wm-wrap .page-sub { font-size: 14px; }
+  #wm-map { height: 64vh; min-height: 360px; }
+  .wm-lbl.nation span { font-size: 13px; letter-spacing: .1em; }
+  .wm-lbl.region span { font-size: 12px; }
+}
+</style>
+<main class="wrap"><div class="wm-wrap">
+  <%- include('partials/home-link') %>
+  <div class="wm-draft">Preview: only the owner sees this page. The war map everyone will see is still <a href="/war-map">/war-map</a>.</div>
+  <div class="page-head"><div><h1 class="page-title">The war map</h1><p class="page-sub">Europe region by region, from the whole continent down to single blocks. Pick a nation to see its lands, search for a place, or tap a region to see who holds it<%= frontOn ? ' and read about it' : '' %>.</p></div></div>
+  <p class="wm-status"><span class="wm-dot" id="wm-dot"></span><span id="wm-status">Europe at the start, 1914.</span></p>
+  <div class="wm-filters" id="wm-filters">
+    <button class="wm-f" type="button" data-n="" aria-pressed="true">All nations</button>
+    <% NAT.forEach(n => { %><button class="wm-f" type="button" data-n="<%= n.id %>" aria-pressed="false" style="--c:<%= TONE[n.id] %>"><i></i><%= n.name.replace(/^The /, '') %> <small data-count="<%= n.id %>"></small></button><% }) %>
+    <button class="wm-f" type="button" data-n="none" aria-pressed="false" style="--c:<%= TONE.none %>"><i></i>Neutral <small data-count="none"></small></button>
+  </div>
+  <div class="wm-body">
+    <div>
+      <div class="wm-stage">
+        <div id="wm-map" class="far<%= tiles ? '' : ' no-tiles' %>" role="application" aria-label="The war map of Europe"></div>
+        <div class="wm-search" id="wm-search">
+          <input type="search" id="wm-q" placeholder="Find a region or capital" aria-label="Find a region or capital" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="wm-results">
+          <ul id="wm-results" role="listbox"></ul>
+        </div>
+      </div>
+      <div class="wm-key"><span><b style="--c:#ff4b3e;--w:4px"></b>Front line (nations at war)</span><span><b style="--c:#f4efe2;--w:2.5px"></b>Nation border</span><span><b style="--c:rgba(255,255,255,.55);--w:1px"></b>Region border</span></div>
+    </div>
+    <div class="wm-info" id="wm-info" aria-live="polite"><p class="wm-hint">Tap or click a region.</p></div>
+  </div>
+</div></main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+(function () {
+  var TONE = <%- j(TONE) %>;
+  var NAT = <%- j(NAT) %>;
+  var REG = <%- j(regions) %>;
+  var TILES = <%- j(tiles) %>; // { base, template, levels, bounds, tileSize, origin } or null (no terrain yet)
+  var FRONT_ON = <%= frontOn ? 'true' : 'false' %>;
+  var byId = {}; REG.forEach(function (r) { r.start = r.owner; byId[r.id] = r; });
+  var nat = {}; NAT.forEach(function (n) { nat[n.id] = n; });
+  var info = document.getElementById('wm-info'), mapEl = document.getElementById('wm-map');
+  var filter = '', selected = null, wars = {};
+  function warKey(a, b) { return a < b ? a + '|' + b : b + '|' + a; }
+  function el(tag, text, attrs) { var e = document.createElement(tag); if (text) e.textContent = text; for (var k in (attrs || {})) e.setAttribute(k, attrs[k]); return e; }
+  function ownerName(id) { return nat[id] ? nat[id].name : 'Neutral'; }
+
+  // ---------------------------------------------------------------- the map
+  // Leaflet's lat/lng are Minecraft z/x here; zoom z shows 2^-z blocks a pixel, so zoom 0 is one block a pixel and
+  // each tile level L (blocks a pixel) is zoom -log2(L). The tile set's origin (tile 0,0's corner) is pixel 0,0.
+  var levels = TILES ? TILES.levels : [1, 2, 4, 8, 16, 32, 64];
+  var origin = TILES ? TILES.origin : [0, 0];
+  var bounds = TILES ? TILES.bounds : [-4800, -5000, 8800, 6500];
+  var CRS = L.extend({}, L.CRS.Simple, { transformation: new L.Transformation(1, -origin[0], 1, -origin[1]) });
+  var nativeMax = -Math.log2(levels[0]), nativeMin = -Math.log2(levels[levels.length - 1]);
+  var worldBox = L.latLngBounds([bounds[1], bounds[0]], [bounds[3], bounds[2]]);
+  var map = L.map(mapEl, {
+    crs: CRS, minZoom: nativeMin - 1, maxZoom: Math.max(nativeMax, 0) + 1, zoomSnap: 1, zoomDelta: 1, wheelPxPerZoomLevel: 110, wheelDebounceTime: 30,
+    attributionControl: false, zoomControl: false, preferCanvas: true, maxBounds: worldBox.pad(0.15), maxBoundsViscosity: 0.85,
+    bounceAtZoomLimits: false,
+  });
+  L.control.zoom({ position: 'topright', zoomInTitle: 'Zoom in', zoomOutTitle: 'Zoom out' }).addTo(map);
+  var All = L.Control.extend({ options: { position: 'topright' }, onAdd: function () {
+    var d = L.DomUtil.create('div', 'leaflet-bar'), a = L.DomUtil.create('a', 'wm-allbtn', d);
+    a.href = '#'; a.textContent = 'All'; a.title = 'Show all of Europe'; a.setAttribute('role', 'button');
+    L.DomEvent.on(a, 'click', function (e) { L.DomEvent.preventDefault(e); fitAll(); }); L.DomEvent.disableClickPropagation(d);
+    return d;
+  } });
+  map.addControl(new All());
+
+  if (TILES) {
+    var Tiles = L.TileLayer.extend({ getTileUrl: function (c) {
+      return TILES.base + '/' + TILES.template.replace('{L}', Math.pow(2, -c.z)).replace('{z}', c.z).replace('{x}', c.x).replace('{y}', c.y);
+    } });
+    new Tiles('', { tileSize: TILES.tileSize, minNativeZoom: nativeMin, maxNativeZoom: nativeMax, minZoom: nativeMin - 1, maxZoom: Math.max(nativeMax, 0) + 1,
+      bounds: worldBox, noWrap: true, keepBuffer: 3, updateWhenZooming: false, className: 'wm-tiles' }).addTo(map);
+  }
+  map.createPane('fills').style.zIndex = 390;
+  map.createPane('lines').style.zIndex = 410;
+  map.getPane('lines').style.pointerEvents = 'none';
+  var fillR = L.canvas({ pane: 'fills', padding: 0.4, tolerance: 0 }), lineR = L.canvas({ pane: 'lines', padding: 0.4 });
+  // all of Europe; when it only just misses the next level in (a phone), that level, the far east and the desert cut
+  function fitAll(still) {
+    var box = regionBox || worldBox, z = map.getBoundsZoom(box, false, L.point(16, 16)), c = box.getCenter();
+    if (z - Math.floor(z) > 0.6) { z = Math.ceil(z); c = L.latLng(c.lat, c.lng - (box.getEast() - box.getWest()) * 0.08); } else z = Math.floor(z);
+    map.setView(c, Math.max(map.getMinZoom(), z), { animate: !still });
+  }
+
+  // ---------------------------------------------------------------- shapes, borders, labels
+  var adj = {}, capOf = {};
+  var fills = {}, regionBoxes = {}, regionBox = null, lines = [], labels = [], nationLabels = {}, area = {}, labelAt = {};
+  var CAP_SVG = '<svg viewBox="0 0 24 24"><path d="M12 1.8l3.1 6.6 7.2.9-5.3 5 1.4 7.1L12 17.9l-6.4 3.5 1.4-7.1-5.3-5 7.2-.9z" fill="#ffd34d" stroke="#2a1d00" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+  function ll(p) { return [p[1], p[0]]; }
+  function ringArea(r) { var s = 0; for (var i = 0, n = r.length; i < n; i++) { var a = r[i], b = r[(i + 1) % n]; s += a[0] * b[1] - b[0] * a[1]; } return Math.abs(s / 2); }
+  function bpp() { return Math.pow(2, -map.getZoom()); }
+  // the tint is stronger far out, where the nations matter, and lighter close in, where the ground does
+  function tint() { var b = bpp(); return !TILES ? 0.55 : b > 13 ? 0.46 : b > 3 ? 0.38 : 0.2; }
+
+  function fillStyle(id) {
+    var r = byId[id], o = r.owner, dim = filter && o !== filter, tinted = tint();
+    return { fillColor: TONE[o] || TONE.none, fillOpacity: id === selected ? tinted + 0.15 : dim ? 0.04 : tinted,
+      color: '#ffffff', weight: id === selected ? 3 : 0, opacity: 1, stroke: id === selected };
+  }
+  function lineKind(l) {
+    if (!l.b || !byId[l.b] || !byId[l.a]) return 'coast';
+    var oa = byId[l.a].owner, ob = byId[l.b].owner;
+    if (oa === ob) return 'inner';
+    return wars[warKey(oa, ob)] ? 'front' : 'nation';
+  }
+  function lineStyle(l) {
+    var k = lineKind(l), z = map.getZoom(), s = z < nativeMin + 1.5 ? 0.75 : z > -2 ? 1.35 : 1;
+    var dim = filter && !((byId[l.a] && byId[l.a].owner === filter) || (l.b && byId[l.b] && byId[l.b].owner === filter));
+    if (k === 'front') return { color: '#ff4b3e', weight: 4 * s, opacity: dim ? 0.4 : 1, lineCap: 'round', lineJoin: 'round' };
+    if (k === 'nation') return { color: '#f4efe2', weight: 2.4 * s, opacity: dim ? 0.3 : 0.92, lineCap: 'round', lineJoin: 'round' };
+    if (k === 'inner') return { color: '#ffffff', weight: 1 * s, opacity: dim ? 0.15 : 0.5, lineCap: 'round', lineJoin: 'round' };
+    return { color: TONE[byId[l.a] ? byId[l.a].owner : 'none'] || TONE.none, weight: 1.4 * s, opacity: dim ? 0.15 : 0.7, lineCap: 'round', lineJoin: 'round' };
+  }
+  // the level of a border to draw: the coarsest one that's still finer than a screen pixel
+  function pickLevel(pts) {
+    var have = Object.keys(pts).map(Number).sort(function (a, b) { return a - b; }), want = bpp(), best = have[0];
+    for (var i = 0; i < have.length; i++) if (have[i] <= want) best = have[i];
+    return best;
+  }
+  function relevel() {
+    lines.forEach(function (l) { var lv = pickLevel(l.pts); if (lv !== l.level) { l.level = lv; l.layer.setLatLngs(l.pts[lv].map(ll)); } });
+  }
+
+  function paint() {
+    var counts = {};
+    REG.forEach(function (r) { if (!fills[r.id]) return; counts[r.owner] = (counts[r.owner] || 0) + 1; fills[r.id].setStyle(fillStyle(r.id)); });
+    lines.forEach(function (l) { l.layer.setStyle(lineStyle(l)); });
+    if (fills[selected]) fills[selected].bringToFront();
+    document.querySelectorAll('[data-count]').forEach(function (s) { s.textContent = counts[s.dataset.count] || 0; });
+    placeNations(); declutter();
+  }
+
+  // a nation's name sits on its region nearest the middle (by area) of its main block of land: the lands joined to its
+  // capital, or its biggest block if the capital is lost, so it moves as the front does and never floats off to a colony
+  function placeNations() {
+    var acc = {}, seen = {};
+    REG.forEach(function (r) {
+      if (!labelAt[r.id] || r.owner === 'none' || seen[r.id]) return;
+      var group = [r.id], w = 0, x = 0, z = 0, cap = false; seen[r.id] = 1;
+      for (var i = 0; i < group.length; i++) (adj[group[i]] || []).forEach(function (n) { if (!seen[n] && labelAt[n] && byId[n].owner === r.owner) { seen[n] = 1; group.push(n); } });
+      group.forEach(function (id) { var a = area[id] || 1; w += a; x += labelAt[id][0] * a; z += labelAt[id][1] * a; if (capOf[id] && capOf[id].nation === r.owner) cap = true; });
+      var best = acc[r.owner], score = w + (cap ? 1e15 : 0);
+      if (!best || score > best.score) acc[r.owner] = { score: score, x: x, z: z, w: w, ids: group };
+    });
+    NAT.forEach(function (n) {
+      var a = acc[n.id], m = nationLabels[n.id];
+      if (!a) { if (m) m.remove(); return; }
+      var cx = a.x / a.w, cz = a.z / a.w, best = null, bd = Infinity;
+      a.ids.forEach(function (id) { var p = labelAt[id], d = (p[0] - cx) * (p[0] - cx) + (p[1] - cz) * (p[1] - cz); if (d < bd) { bd = d; best = p; } });
+      if (!m) {
+        m = nationLabels[n.id] = L.marker(ll(best), { interactive: false, keyboard: false,
+          icon: L.divIcon({ className: 'wm-lbl nation', html: '<span></span>', iconSize: null }) });
+        m.addTo(map); m.getElement().firstChild.textContent = n.name.replace(/^The /, '');
+      } else m.setLatLng(ll(best));
+      m.getElement().classList.toggle('hide', !!filter && filter !== n.id);
+    });
+  }
+
+  // region names only where they fit: the bigger regions and the capitals first, overlapping names left out
+  function declutter() {
+    var far = bpp() > 13;
+    mapEl.classList.toggle('far', far);
+    if (far) return;
+    var size = map.getSize(), taken = [];
+    labels.forEach(function (lb) {
+      var e = lb.marker.getElement(); if (!e) return;
+      var p = map.latLngToContainerPoint(lb.marker.getLatLng());
+      if (!lb.w) { lb.w = e.firstChild.offsetWidth || lb.name.length * 7; lb.h = e.firstChild.offsetHeight || 14; }
+      if (lb.cap) { taken.push([p.x - 7, p.y - 7, p.x + 7, p.y + 6]); p = L.point(p.x, p.y + 9 + lb.h / 2); } // its star, then its name below
+      var box = [p.x - lb.w / 2 - 4, p.y - lb.h / 2 - 2, p.x + lb.w / 2 + 4, p.y + lb.h / 2 + 2];
+      var ok = box[2] > 0 && box[0] < size.x && box[3] > 0 && box[1] < size.y && !(filter && byId[lb.id].owner !== filter);
+      for (var i = 0; ok && i < taken.length; i++) { var t = taken[i]; if (box[0] < t[2] && box[2] > t[0] && box[1] < t[3] && box[3] > t[1]) ok = false; }
+      if (ok) taken.push(box);
+      e.classList.toggle('hide', !ok);
+    });
+  }
+
+  function build(data) {
+    var R = data.regions || {};
+    REG.forEach(function (r) {
+      var g = R[r.id]; if (!g || !g.polygons) return;
+      var latlngs = g.polygons.map(function (poly) { return poly.map(function (ring) { return ring.map(ll); }); });
+      area[r.id] = g.polygons.reduce(function (s, poly) { return s + ringArea(poly[0]); }, 0);
+      labelAt[r.id] = g.label;
+      var f = L.polygon(latlngs, Object.assign({ renderer: fillR, pane: 'fills', bubblingMouseEvents: false }, fillStyle(r.id))).addTo(map);
+      f.on('click', function () { show(r.id); });
+      fills[r.id] = f;
+      regionBoxes[r.id] = f.getBounds();
+      regionBox = regionBox ? regionBox.extend(regionBoxes[r.id]) : L.latLngBounds(regionBoxes[r.id].getSouthWest(), regionBoxes[r.id].getNorthEast());
+    });
+    // a region the game's map doesn't have (cut off at its edge) has no fill, no label, no search entry and no link here
+    REG.forEach(function (r) { r.onMap = !!fills[r.id]; });
+    (data.borders.lines || []).forEach(function (l) {
+      if (!l.pts || !Object.keys(l.pts).length) return;
+      var o = { a: l.a, b: l.b || null, pts: l.pts, level: null };
+      o.level = pickLevel(o.pts);
+      if (o.b) { (adj[o.a] = adj[o.a] || []).push(o.b); (adj[o.b] = adj[o.b] || []).push(o.a); }
+      o.layer = L.polyline(o.pts[o.level].map(ll), Object.assign({ renderer: lineR, pane: 'lines', interactive: false, smoothFactor: 0.5 }, lineStyle(o))).addTo(map);
+      lines.push(o);
+    });
+    // fronts over nation borders over region borders
+    ['inner', 'coast', 'nation', 'front'].forEach(function (k) { lines.forEach(function (l) { if (lineKind(l) === k) l.layer.bringToFront(); }); });
+    (data.capitals || []).forEach(function (c) {
+      capOf[c.territory] = c;
+      L.marker(ll(c.pos), { interactive: false, keyboard: false, icon: L.divIcon({ className: 'wm-cap', html: CAP_SVG, iconSize: null }) }).addTo(map);
+    });
+    REG.forEach(function (r) {
+      if (!labelAt[r.id]) return;
+      var cap = capOf[r.id];
+      var m = L.marker(ll(cap ? cap.pos : labelAt[r.id]), { interactive: false, keyboard: false,
+        icon: L.divIcon({ className: 'wm-lbl region' + (cap ? ' cap' : ''), html: '<span></span>', iconSize: null }) }).addTo(map);
+      // a capital region's name sits just under its star
+      m.getElement().firstChild.textContent = r.name;
+      labels.push({ id: r.id, name: r.name, marker: m, cap: !!cap, prio: (cap ? 1e12 : 0) + (area[r.id] || 0) });
+    });
+    labels.sort(function (a, b) { return b.prio - a.prio; });
+  }
+
+  // ---------------------------------------------------------------- selecting
+  function show(id, fly) {
+    var r = byId[id]; if (!r || !r.onMap) return;
+    var prev = selected; selected = id;
+    if (fills[prev]) fills[prev].setStyle(fillStyle(prev));
+    if (fills[id]) { fills[id].setStyle(fillStyle(id)); fills[id].bringToFront(); }
+    info.textContent = '';
+    if (nat[r.owner]) info.appendChild(el('img', '', { src: '/img/flags/' + nat[r.owner].flag + '.png', alt: '' }));
+    var d = el('div'); d.appendChild(el('h2', r.name + (r.capital ? ' (capital)' : '')));
+    d.appendChild(el('p', 'Held by ' + ownerName(r.owner) + ' · ' + r.theatre + (r.owner !== r.start ? ' · ' + ownerName(r.start) + "'s in 1914" : '')));
+    if (FRONT_ON) { var p = el('p'); p.appendChild(el('a', 'Read about ' + r.name, { href: '/front/' + r.id })); d.appendChild(p); }
+    info.appendChild(d);
+    try { history.replaceState(null, '', location.pathname + location.search + '#' + id); } catch (e) {}
+    if (fly && regionBoxes[id]) map.flyToBounds(regionBoxes[id], { padding: [40, 40], maxZoom: -2, duration: 0.8 });
+  }
+  window.addEventListener('hashchange', function () { var h = decodeURIComponent(location.hash.slice(1)); if (byId[h] && h !== selected) show(h, true); });
+
+  document.getElementById('wm-filters').addEventListener('click', function (e) {
+    var b = e.target.closest('.wm-f'); if (!b) return;
+    filter = b.dataset.n;
+    document.querySelectorAll('.wm-f').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    paint();
+  });
+
+  // ---------------------------------------------------------------- search: regions and capitals, forgiving of typos
+  var q = document.getElementById('wm-q'), list = document.getElementById('wm-results'), hits = [], cur = -1;
+  var fold = function (s) { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); };
+  var ITEMS = REG.map(function (r) { return { id: r.id, name: r.name, sub: r.theatre }; })
+    .concat(REG.filter(function (r) { return r.capital && fold(r.capital) !== fold(r.name); }).map(function (r) { return { id: r.id, name: r.capital, sub: 'capital, ' + r.name }; }));
+  ITEMS.forEach(function (it) { it.key = fold(it.name); });
+  function lev(a, b) { // edit distance, for typos
+    var m = []; for (var i = 0; i <= a.length; i++) { m[i] = [i]; for (var k = 1; k <= b.length; k++) m[i][k] = i ? Math.min(m[i - 1][k] + 1, m[i][k - 1] + 1, m[i - 1][k - 1] + (a[i - 1] === b[k - 1] ? 0 : 1)) : k; }
+    return m[a.length][b.length];
+  }
+  function score(key, s) {
+    if (key === s) return 0;
+    if (key.indexOf(s) === 0) return 1;
+    if (key.split(/[\s-]+/).some(function (w) { return w.indexOf(s) === 0; })) return 2;
+    if (key.indexOf(s) >= 0) return 3;
+    // letters in order (stb -> st petersburg, schleswig...)
+    var i = 0; for (var k = 0; k < key.length && i < s.length; k++) if (key[k] === s[i]) i++;
+    if (i === s.length && s.length >= 3) return 4 + (key.length - s.length) / 40;
+    // a typo or two against the start of the name or one of its words
+    if (s.length >= 4) {
+      var best = Math.min.apply(null, [key].concat(key.split(/[\s-]+/)).map(function (w) { return lev(w.slice(0, s.length), s); }));
+      if (best <= (s.length >= 7 ? 2 : 1)) return 6 + best;
+    }
+    return -1;
+  }
+  function render() {
+    list.textContent = ''; cur = hits.length ? 0 : -1;
+    hits.forEach(function (h, i) {
+      var li = el('li', '', { role: 'option', 'aria-selected': i === cur ? 'true' : 'false' }), r = byId[h.id];
+      li.style.setProperty('--c', TONE[r.owner] || TONE.none);
+      li.appendChild(el('i')); li.appendChild(document.createTextNode(h.name)); li.appendChild(el('small', h.sub));
+      li.addEventListener('mousedown', function (e) { e.preventDefault(); pick(i); });
+      list.appendChild(li);
+    });
+    if (!hits.length && q.value.trim()) list.appendChild(el('li', 'Nowhere by that name', { class: 'none' }));
+    q.setAttribute('aria-expanded', list.children.length ? 'true' : 'false');
+  }
+  function search() {
+    var s = fold(q.value.trim());
+    if (!s) { hits = []; return render(); }
+    var seen = {};
+    hits = ITEMS.filter(function (it) { return byId[it.id].onMap; }).map(function (it) { return { it: it, s: score(it.key, s) }; }).filter(function (x) { return x.s >= 0; })
+      .sort(function (a, b) { return a.s - b.s || a.it.name.length - b.it.name.length; })
+      .map(function (x) { return x.it; }).filter(function (it) { var k = it.id + '|' + it.name; if (seen[k]) return false; seen[k] = 1; return true; }).slice(0, 8);
+    render();
+  }
+  function pick(i) { var h = hits[i]; if (!h) return; q.value = h.name; hits = []; list.textContent = ''; q.setAttribute('aria-expanded', 'false'); q.blur(); show(h.id, true); }
+  q.addEventListener('input', search);
+  q.addEventListener('focus', function () { if (q.value.trim()) search(); });
+  q.addEventListener('blur', function () { setTimeout(function () { hits = []; list.textContent = ''; q.setAttribute('aria-expanded', 'false'); }, 120); });
+  q.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault(); if (!hits.length) return;
+      cur = (cur + (e.key === 'ArrowDown' ? 1 : hits.length - 1)) % hits.length;
+      Array.prototype.forEach.call(list.children, function (li, i) { li.setAttribute('aria-selected', i === cur ? 'true' : 'false'); });
+    } else if (e.key === 'Enter') { e.preventDefault(); pick(cur < 0 ? 0 : cur); }
+    else if (e.key === 'Escape') { q.value = ''; search(); q.blur(); }
+  });
+  L.DomEvent.disableClickPropagation(document.getElementById('wm-search'));
+  L.DomEvent.disableScrollPropagation(document.getElementById('wm-search'));
+
+  // ---------------------------------------------------------------- who holds what now
+  // once the game's war feed is live (captures during a window show 10 minutes late); a capture only restyles what's
+  // drawn, nothing is fetched again but this small list
+  function refresh() {
+    fetch('/war-map-next/owners.json', { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+      if (!j || !j.live) return;
+      Object.keys(j.owners).forEach(function (id) { if (byId[id]) byId[id].owner = j.owners[id]; });
+      wars = {}; (j.wars || []).forEach(function (w) { wars[warKey(w[0], w[1])] = true; });
+      document.getElementById('wm-dot').classList.add('on');
+      var t = new Date(j.at);
+      document.getElementById('wm-status').textContent = 'Who holds what now, as of ' + String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0') + '. During a battle window, captures show 10 minutes late.';
+      paint(); if (selected) show(selected);
+    }).catch(function () {});
+  }
+
+  map.on('zoomend', function () { mapEl.classList.toggle('px', map.getZoom() > nativeMax + 0.01); relevel(); paint(); });
+  map.on('moveend', declutter);
+  map.on('resize', declutter);
+
+  // Zoom rests on whole levels (a pinch or the wheel glides between them and settles): at a level the tiles are drawn
+  // 1:1 or as whole-pixel blocks, where between levels scaled tiles leave hairline seams and blur the blocks.
+  // the first view: a #region link centres on it (?z=N: at N blocks a pixel, for testing), else all of Europe
+  fitAll(true);
+  fetch('/war-map-next/shapes.json', { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (data) {
+    build(data); fitAll(true);
+    var h = decodeURIComponent(location.hash.slice(1)), z = parseFloat(new URLSearchParams(location.search).get('z'));
+    if (byId[h]) {
+      if (z > 0) map.setView(regionBoxes[h] ? regionBoxes[h].getCenter() : map.getCenter(), Math.round(-Math.log2(z)), { animate: false });
+      else if (regionBoxes[h]) map.fitBounds(regionBoxes[h], { padding: [40, 40], maxZoom: -2, animate: false });
+      show(h);
+    } else if (z > 0) map.setZoom(Math.round(-Math.log2(z)), { animate: false });
+    paint();
+    refresh(); setInterval(refresh, 60000);
+  }).catch(function () { document.getElementById('wm-status').textContent = "The map's borders couldn't be loaded. Please try again in a minute."; });
+})();
+</script>
+<%- include('partials/foot') %>

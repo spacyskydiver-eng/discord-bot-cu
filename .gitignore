@@ -12,3 +12,6 @@ server/data/greatwar_map.json
 # old applicants' personal data: never in this public repo (S74)
 archive/
 server/uploads/
+# the map's region shapes in block coordinates: never in this public repo; the game serves borders (S77)
+server/data/war-map-regions.json
+server/data/war-map-borders.json
