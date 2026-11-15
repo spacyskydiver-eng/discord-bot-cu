@@ -152,7 +152,9 @@ const j = v => JSON.stringify(v).replace(/</g, '\\u003c');
 
   if (TILES) {
     var Tiles = L.TileLayer.extend({ getTileUrl: function (c) {
-      return TILES.base + '/' + TILES.template.replace('{L}', Math.pow(2, -c.z)).replace('{z}', c.z).replace('{x}', c.x).replace('{y}', c.y);
+      var bpp = Math.pow(2, -c.z);
+      return TILES.base + '/' + TILES.template.replace('{L}', bpp).replace('{R}', TILES.zByL ? TILES.zByL[String(bpp)] : c.z).replace('{z}', c.z).replace('{x}', c.x).replace('{y}', c.y)
+        + (TILES.version ? '?v=' + TILES.version : '');
     } });
     new Tiles('', { tileSize: TILES.tileSize, minNativeZoom: nativeMin, maxNativeZoom: nativeMax, minZoom: nativeMin - 1, maxZoom: Math.max(nativeMax, 0) + 1,
       bounds: worldBox, noWrap: true, keepBuffer: 3, updateWhenZooming: false, className: 'wm-tiles' }).addTo(map);

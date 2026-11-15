@@ -859,7 +859,15 @@ async function wmnTileConfig() {
   try {
     const meta = dev ? JSON.parse(fs.readFileSync(path.join(process.env.MAP_TILES_DEV_DIR, 'meta.json'), 'utf8'))
       : base ? await (await fetch(base + '/meta.json', { signal: AbortSignal.timeout(6000) })).json() : null;
-    if (meta && Array.isArray(meta.bounds) && Array.isArray(meta.levels) && meta.levels.length) {
+    // the renderer's (S75) meta.json: levels as {blocks_per_pixel, z}, world_bounds {min_x..max_z} (max inclusive),
+    // tile_size, origin, files at {z}/{x}/{y}.webp with ITS z (6 = 1 block per pixel); the older dev shape is still read
+    if (meta && Array.isArray(meta.levels) && meta.levels.length && typeof meta.levels[0] === 'object') {
+      const wb = meta.world_bounds || {};
+      const zByL = Object.fromEntries(meta.levels.map(l => [String(+l.blocks_per_pixel), +l.z]));
+      cfg = { base: dev ? '/war-map-next/dev-tiles' : base, bounds: [+wb.min_x, +wb.min_z, +wb.max_x + 1, +wb.max_z + 1], tileSize: +meta.tile_size || 256,
+        levels: meta.levels.map(l => +l.blocks_per_pixel).sort((a, b) => a - b), origin: Array.isArray(meta.origin) ? meta.origin.map(Number) : [0, 0],
+        template: '{R}/{x}/{y}.webp', zByL, version: String(meta.render_hash || '') };
+    } else if (meta && Array.isArray(meta.bounds) && Array.isArray(meta.levels) && meta.levels.length) {
       cfg = { base: dev ? '/war-map-next/dev-tiles' : base, bounds: meta.bounds.map(Number), tileSize: +meta.tileSize || 256,
         levels: meta.levels.map(Number).sort((a, b) => a - b), origin: Array.isArray(meta.origin) ? meta.origin.map(Number) : [0, 0],
         template: typeof meta.template === 'string' ? meta.template : '{L}/{x}/{y}.webp' };
