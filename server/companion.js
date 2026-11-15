@@ -86,4 +86,12 @@ async function publicGet(path) {
   return r.json();
 }
 
-module.exports = { CompanionError, linked, link, unlink, view, me, publicGet, isLive: () => !!API() };
+// S69: a server-to-server POST with the secret alone (the testers' reports to the staff panel's Feedback page)
+async function publicPost(path, body) {
+  if (!API()) return null;
+  const r = await call(path, { method: 'POST', body: JSON.stringify(body) });
+  if (!r.ok) throw new Error('game API ' + r.status);
+  return r.json();
+}
+
+module.exports = { CompanionError, linked, link, unlink, view, me, publicGet, publicPost, isLive: () => !!API() };

@@ -41,7 +41,18 @@ async function submit(user, f, files) {
   for (const file of (files || []).slice(0, MAX_FILES))
     await db.query(`INSERT INTO bug_report_files (report_id, name, mime, size, gz) VALUES ($1, $2, $3, $4, $5)`,
       [r.id, String(file.originalname || 'file').slice(0, 120), file.mimetype || null, file.size, zlib.gzipSync(file.buffer)]);
+  forward(r.id, user, f, happened);
   return r.id;
+}
+
+// S69: a copy to the game for the staff panel's Feedback page (with /bug and /balance); best effort, never in the way of
+// the report itself, which stays here on /staff/bug-reports either way.
+function forward(id, user, f, happened) {
+  const expected = String(f.expected || '').trim().slice(0, 1000);
+  require('./companion').publicPost('/api/feedback', {
+    id: String(id), name: String(f.mc_name || '').trim().slice(0, 16) || user.username, title: '',
+    text: happened + (expected ? ' (Expected: ' + expected + ')' : ''), at: Date.now(), version: String(f.version || '').slice(0, 40),
+  }).catch(e => console.error('[bug-reports] forward to the game', e.message));
 }
 
 async function list() {
@@ -60,4 +71,4 @@ async function setStatus(id, status) {
   await db.query(`UPDATE bug_reports SET status = $2 WHERE id = $1`, [id, status]);
 }
 
-module.exports = { BugReportError, submit, list, file, setStatus, MAX_FILES, MAX_BYTES, ready };
+module.exports = { BugReportError, submit, list, file, setStatus, MAX_FILES, MAX_BYTES, ready, forward };
