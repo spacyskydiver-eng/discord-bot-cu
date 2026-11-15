@@ -60,6 +60,9 @@
   <div class="na-box"><h2>Where it starts</h2>
     <div class="na-th"><% one.theatres.forEach(t => { %><span><%= t.name %><small><%= t.count %></small></span><% }) %></div>
   </div>
+  <% if ((locals.frontRegions || []).length) { %><div class="na-box"><h2>Its regions in 1914</h2>
+    <p><% frontRegions.forEach((r, i) => { %><a href="/front/<%= r.id %>" style="color:#8fb8ff"><%= r.name %></a><%= i < frontRegions.length - 1 ? ', ' : '' %><% }) %></p>
+    <p class="na-note">What happened in each in the real war, its neighbours and what it is known for: <a href="/front" style="color:#8fb8ff">The Front</a>.</p></div><% } %>
   <div class="na-links"><a class="na-btn" href="/map">See it on the map</a><a class="na-btn" href="/nations">All eight nations</a><a class="na-btn" href="/great-war-in-2-minutes">The Great War in 2 minutes</a></div>
 <% } else { %>
   <div class="page-head"><div><p class="na-kicker">The Great War · Europe, 1914</p><h1 class="page-title">The nations</h1>

@@ -867,7 +867,10 @@ router.get('/nations/:slug', async (req, res, next) => {
     const all = await require('../nations').withMap();
     const nation = all.find(n => n.slug === req.params.slug || n.id === req.params.slug);
     if (!nation) return res.redirect('/nations');
-    res.render('new/nations', { nations: all, nation, rallying: await require('../comeback').rallying() });
+    // S-own-19: the nation's 1914 regions, linked to The Front, only while The Front is visible to this viewer
+    const frontOn = res.locals.isOwner || (await access.getSetting('front_public')) === 'on';
+    const frontRegions = frontOn ? FRONT.regions.filter(r => r.owner === nation.id).map(r => ({ id: r.id, name: r.name })).sort((x, y) => x.name.localeCompare(y.name)) : [];
+    res.render('new/nations', { nations: all, nation, frontRegions, rallying: await require('../comeback').rallying() });
   } catch (e) { next(e); }
 });
 router.get('/map/data.json', async (req, res) => {
