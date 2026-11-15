@@ -1,0 +1,44 @@
+<%- include('partials/head', { publicBg: true, _url: '/market', pageTitle: 'The market', pageDescription: 'What every nation\'s soldiers are selling in their stalls in The Great War: goods, prices and where.' }) %>
+<%- include('partials/header') %>
+<style>
+.mk-wrap { max-width: 900px; margin: 0 auto; padding-bottom: 80px; }
+.mk-sample { margin: 0 0 18px; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(251,191,36,.35); background: rgba(251,191,36,.08); color: #f4e3b5; font: 700 14px 'Baloo 2', sans-serif; }
+.mk-search { width: 100%; box-sizing: border-box; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line); background: rgba(0,0,0,.25); color: #fff; font: 600 15px 'Baloo 2', sans-serif; margin: 0 0 18px; }
+.mk-nation { margin: 0 0 22px; }
+.mk-nation h2 { display: flex; align-items: center; gap: 10px; font: 800 20px 'Baloo 2', sans-serif; color: #fff; margin: 0 0 10px; }
+.mk-nation h2 img { width: 36px; height: 24px; image-rendering: pixelated; border-radius: 3px; }
+.mk-stalls { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.mk-stall { background: rgba(10,12,18,.72); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+.mk-stall header { display: flex; justify-content: space-between; gap: 8px; font: 800 15px 'Baloo 2', sans-serif; color: #fff; margin-bottom: 6px; }
+.mk-stall header small { color: #9aa0ad; font-weight: 700; }
+.mk-lot { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-top: 1px solid rgba(255,255,255,.06); font: 600 14px 'Baloo 2', sans-serif; color: #dfe3ea; }
+.mk-lot b { color: #5be38f; white-space: nowrap; }
+.mk-lot small { color: #9aa0ad; margin-left: 6px; }
+.mk-none { font: 600 15px 'Baloo 2', sans-serif; color: #c4c8d2; }
+</style>
+<main class="wrap"><div class="mk-wrap">
+  <%- include('partials/home-link') %>
+  <div class="page-head"><div><h1 class="page-title">The market</h1><p class="page-sub">Every open stall, by nation · <%= lots %> goods for sale</p></div></div>
+  <% if (sample) { %><div class="mk-sample">The war hasn't started yet: these are sample stalls, to show what the board will look like from 17 December.</div><% } %>
+  <p class="mk-none" style="margin:0 0 12px">Stalls sell only in their owner's own land. Walk to the node to buy; prices are in the game's dollars.</p>
+  <input class="mk-search" type="search" placeholder="Find goods or a seller" aria-label="Find goods or a seller" oninput="mkFilter(this.value)">
+  <% if (!nations.length) { %><p class="mk-none">No stall is open right now.</p><% } %>
+  <% nations.forEach(n => { %><section class="mk-nation" data-nation>
+    <h2><% if (n.flag) { %><img src="/img/flags/<%= n.flag %>.png" alt=""><% } %><% if (n.slug) { %><a href="/nations/<%= n.slug %>" style="color:inherit"><%= n.name %></a><% } else { %><%= n.name %><% } %></h2>
+    <div class="mk-stalls"><% n.stalls.forEach(s => { %><article class="mk-stall" data-text="<%= (s.seller + ' ' + s.node + ' ' + s.lots.map(l => l.name).join(' ')).toLowerCase() %>">
+      <header><span><%= s.seller %></span><small><%= s.node || 'their land' %></small></header>
+      <% s.lots.forEach(l => { %><div class="mk-lot"><span><%= l.name %><% if (l.stock != null) { %><small><%= l.stock %> left</small><% } %></span><b>$<%= l.price %></b></div><% }) %>
+    </article><% }) %></div>
+  </section><% }) %>
+</div></main>
+<script>
+function mkFilter(q) {
+  q = q.trim().toLowerCase();
+  document.querySelectorAll('[data-nation]').forEach(sec => {
+    let any = false;
+    sec.querySelectorAll('.mk-stall').forEach(st => { const hit = !q || st.dataset.text.includes(q); st.style.display = hit ? '' : 'none'; if (hit) any = true; });
+    sec.style.display = any ? '' : 'none';
+  });
+}
+</script>
+<%- include('partials/foot') %>

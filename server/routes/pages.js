@@ -700,6 +700,15 @@ router.get('/soldier', (req, res) => {
   if (q) return res.redirect('/soldier/' + encodeURIComponent(q));
   res.render('new/soldier', { rec: null, account: null, fights: [] });
 });
+// S45: the market board: open stalls by nation (no coordinates)
+router.get('/market', async (req, res, next) => {
+  try {
+    const v = await require('../market').view();
+    res.set('Cache-Control', 'public, max-age=60');
+    res.render('new/market', v);
+  } catch (e) { next(e); }
+});
+
 // S40: a soldier's night as a shareable card: /night/<name> (the latest window) or /night/<name>/<window>
 async function nightPage(req, res, next) {
   const q = String(req.params.name || '').trim(), w = Math.max(0, Math.min(60, parseInt(req.params.window, 10) || 0));
