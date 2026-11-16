@@ -796,13 +796,14 @@ router.post('/front/public', async (req, res, next) => {
 });
 
 // Who holds each node now, from the game's public war feed, or null until the feed is live (never sample data). No free
-// intel: while a window is open, a capture only shows 10 minutes after it happened (or at the close).
+// intel: a capture only shows 10 minutes after it happened, whether or not its window has closed since (a capture in a
+// window's last minutes isn't shown at the close).
 async function delayedOwners() {
   const feed = require('../war-feed');
   if (!feed.isLive()) return null;
   try {
     const r = await feed.report(), own = Object.assign({}, r.owners || {});
-    if (r.windowOpen) (r.events || []).filter(e => e.kind === 'capture' && e.at > (r.now || Date.now()) - 10 * 60 * 1000).sort((x, y) => y.at - x.at).forEach(e => { own[e.node] = e.from; });
+    (r.events || []).filter(e => e.kind === 'capture' && e.at > (r.now || Date.now()) - 10 * 60 * 1000).sort((x, y) => y.at - x.at).forEach(e => { own[e.node] = e.from; });
     return own;
   } catch (e) { console.error('[map] war feed', e.message); return null; }
 }
@@ -844,11 +845,36 @@ router.post('/war-map/public', async (req, res, next) => {
 // Tiles: site setting map_tiles_url, the base URL of a tile set with a meta.json ({ bounds, tileSize, levels, and
 // optionally origin [x, z] of tile 0,0 and template, default '{L}/{x}/{y}.webp', L the level in blocks per pixel}).
 // With no setting, MAP_TILES_DEV_DIR (a local folder of dev tiles, never on the server) is served below; else no terrain.
-// The placeholder shapes (block coordinates) are local files, never in this public repo, so they may be missing: the
-// page then has no borders or fills until the game's feed serves them.
+// The region shapes (fills, label spots, capitals) and the placeholder borders are in block coordinates, so never in this
+// public repo: the server fetches them from the URLs in the site settings map_regions_url and map_borders_url (cached
+// 10 minutes), with local files from tools/war_map_borders.js as the fallback (development). The placeholder borders
+// are only used while the game's /api/public/borders can't be reached.
 function wmnOptional(file, empty) { try { return require(file); } catch (e) { return empty; } }
-const WMN_REGIONS = wmnOptional('../data/war-map-regions.json', { regions: [], capitals: [] });
-const WMN_PLACEHOLDER = wmnOptional('../data/war-map-borders.json', { version: 'none', levels: [], lines: [] });
+const WMN_LOCAL = {
+  map_regions_url: wmnOptional('../data/war-map-regions.json', { regions: {}, capitals: [] }),
+  map_borders_url: wmnOptional('../data/war-map-borders.json', { version: 'none', levels: [], lines: [] }),
+};
+const wmnRemote = {};
+async function wmnShapes(key, valid) {
+  const url = String((await access.getSetting(key)) || '').trim();
+  const hit = wmnRemote[key];
+  if (hit && hit.url === url && Date.now() - hit.at < 10 * 60 * 1000) return hit.body;
+  let body = hit && hit.url === url ? hit.body : null; // a failed fetch keeps the last good copy
+  if (url) {
+    try {
+      const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      if (!valid(j)) throw new Error('not the expected shape');
+      body = j;
+    } catch (e) { console.error('[war-map-next]', key, e.message); }
+  }
+  body = body || WMN_LOCAL[key];
+  wmnRemote[key] = { url, at: Date.now(), body };
+  return body;
+}
+const wmnRegions = () => wmnShapes('map_regions_url', j => j && typeof j.regions === 'object' && j.regions && !Array.isArray(j.regions));
+const wmnBorders = () => wmnShapes('map_borders_url', j => j && Array.isArray(j.lines));
 let wmnTiles = { at: 0, key: null, cfg: null };
 async function wmnTileConfig() {
   const base = String((await access.getSetting('map_tiles_url')) || '').trim().replace(/\/$/, '');
@@ -880,17 +906,31 @@ async function wmnTileConfig() {
 // for production, so each tile is fetched from it once (the site setting map_tiles_url holds that address, never this
 // repo) and handed on with a year's cache, which Cloudflare's edge in front of the site keeps. The URL carries the
 // render's version (?v=), so a new render is a new URL. Terrain only: nothing private.
-router.get(/^\/map-tiles\/(\d)\/(\d{1,3})\/(\d{1,3})\.webp$/, async (req, res, next) => {
+// Only one spelling of each tile reaches the bucket: no leading zeros (/6/030/34 is refused), no query but the current
+// render's v, and the last few hundred tiles are kept in memory, so repeats that miss the edge's cache don't either.
+const TILE_LRU = new Map(), TILE_LRU_MAX = 400;
+function tileRemember(key, val) { TILE_LRU.delete(key); TILE_LRU.set(key, val); if (TILE_LRU.size > TILE_LRU_MAX) TILE_LRU.delete(TILE_LRU.keys().next().value); }
+router.get(/^\/map-tiles\/(\d)\/(0|[1-9]\d{0,2})\/(0|[1-9]\d{0,2})\.webp$/, async (req, res, next) => {
   try {
     const base = String((await access.getSetting('map_tiles_url')) || '').trim().replace(/\/$/, '');
     if (!base) return next();
     const [z, x, y] = [req.params[0], req.params[1], req.params[2]].map(Number);
     if (z > 6 || x >= 2 ** z || y >= 2 ** z) return next();
-    const r = await fetch(`${base}/${z}/${x}/${y}.webp`, { signal: AbortSignal.timeout(8000) });
-    if (r.status === 404) { res.set('Cache-Control', 'public, max-age=86400'); return res.status(404).end(); } // a fully empty tile is never written
-    if (!r.ok) { res.set('Cache-Control', 'no-store'); return res.status(502).end(); }
+    const q = Object.keys(req.query), cfg = await wmnTileConfig();
+    if (q.some(k => k !== 'v') || (q.length && (Array.isArray(req.query.v) || !cfg || !cfg.version || req.query.v !== cfg.version))) return next();
+    const key = `${z}/${x}/${y}`;
+    let hit = TILE_LRU.get(key);
+    if (hit) tileRemember(key, hit);
+    else {
+      const r = await fetch(`${base}/${key}.webp`, { signal: AbortSignal.timeout(8000) });
+      if (r.status === 404) hit = { missing: true }; // a fully empty tile is never written
+      else if (!r.ok) { res.set('Cache-Control', 'no-store'); return res.status(502).end(); }
+      else hit = { body: Buffer.from(await r.arrayBuffer()) };
+      tileRemember(key, hit);
+    }
+    if (hit.missing) { res.set('Cache-Control', 'public, max-age=86400'); return res.status(404).end(); }
     res.set({ 'Content-Type': 'image/webp', 'Cache-Control': 'public, max-age=31536000, immutable' });
-    res.send(Buffer.from(await r.arrayBuffer()));
+    res.send(hit.body);
   } catch (e) { res.set('Cache-Control', 'no-store'); res.status(502).end(); }
 });
 router.get('/war-map-next', async (req, res, next) => {
@@ -916,7 +956,8 @@ router.get('/war-map-next/shapes.json', async (req, res, next) => {
     if (!res.locals.isOwner) return next();
     let borders = null;
     try { const b = await require('../war-feed').borders(); if (b && Array.isArray(b.lines)) borders = b; } catch (e) { console.error('[war-map-next] borders', e.message); }
-    res.set('Cache-Control', 'private, max-age=300').json({ live: !!borders, borders: borders || WMN_PLACEHOLDER, regions: WMN_REGIONS.regions, capitals: WMN_REGIONS.capitals });
+    const shapes = await wmnRegions();
+    res.set('Cache-Control', 'private, max-age=300').json({ live: !!borders, borders: borders || await wmnBorders(), regions: shapes.regions || {}, capitals: shapes.capitals || [] });
   } catch (e) { next(e); }
 });
 // who holds what (delayed as for /war-map) and which nations are at war, for the fronts

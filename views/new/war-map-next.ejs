@@ -1,5 +1,6 @@
 <%
-const TONE = { gb: '#d9483b', fr: '#4f7fd9', de: '#8a8f99', ah: '#e0b33a', ru: '#3f9b6b', it: '#7fbf4d', ot: '#b5533c', bg: '#9b6bd1', none: '#5b6170' };
+// Germany is a dark field-grey, well apart from neutral's grey; neutral regions get no tint on the map at all
+const TONE = { gb: '#d9483b', fr: '#4f7fd9', de: '#454d59', ah: '#e0b33a', ru: '#3f9b6b', it: '#7fbf4d', ot: '#b5533c', bg: '#9b6bd1', none: '#5b6170' };
 const NAT = nations.map(n => ({ id: n.id, name: n.name, flag: n.flag, slug: n.slug }));
 const j = v => JSON.stringify(v).replace(/</g, '\\u003c');
 %>
@@ -20,7 +21,7 @@ const j = v => JSON.stringify(v).replace(/</g, '\\u003c');
 .wm-filters .wm-f[aria-pressed="true"] { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.5); }
 @media (max-width: 640px) {
   /* on a phone the chips scroll sideways in one row, so the map stays near the top */
-  .wm-filters { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-right: -16px; padding-right: 16px; }
+  .wm-filters { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .wm-filters::-webkit-scrollbar { display: none; }
   .wm-filters .wm-f { flex: none; }
 }
@@ -62,7 +63,7 @@ const j = v => JSON.stringify(v).replace(/</g, '\\u003c');
 .wm-lbl.hide { display: none; }
 .wm-cap { pointer-events: none; }
 .wm-cap svg { position: absolute; left: -8px; top: -8px; width: 16px; height: 16px; filter: drop-shadow(0 0 2px #000) drop-shadow(0 0 1px #000); }
-#wm-map.far .wm-lbl.region { display: none; }
+#wm-map.far .wm-lbl.region:not(.sel) { display: none; }
 #wm-map:not(.far) .wm-lbl.nation { display: none; }
 #wm-map.far .wm-cap svg { left: -6px; top: -6px; width: 12px; height: 12px; }
 
@@ -72,16 +73,30 @@ const j = v => JSON.stringify(v).replace(/</g, '\\u003c');
 .wm-info p { font: 600 14.5px/1.5 'Baloo 2', sans-serif; color: #c4c8d2; margin: 2px 0 0; }
 .wm-info a { color: #8fb8ff; font-weight: 700; }
 .wm-hint { color: #9aa0ad; }
+.wm-x { display: none; }
+/* on a phone (and anything narrower than the side panel needs) the selected region's card sits over the map's foot */
+.wm-stage > .wm-info { position: absolute; z-index: 1000; left: 10px; right: 10px; bottom: 10px; min-height: 0; padding: 10px 44px 10px 12px; gap: 10px;
+  background: rgba(10,12,18,.94); box-shadow: 0 6px 24px rgba(0,0,0,.45); }
+.wm-stage > .wm-info.empty { display: none; }
+.wm-stage > .wm-info img { width: 42px; height: 28px; }
+.wm-stage > .wm-info h2 { font-size: 16px; }
+.wm-stage > .wm-info p { font-size: 13.5px; line-height: 1.4; }
+.wm-stage > .wm-info .wm-x { display: block; position: absolute; right: 6px; top: 6px; width: 34px; height: 34px; border: 0; border-radius: 8px; background: transparent; color: #c4c8d2; font: 800 20px/34px 'Baloo 2', sans-serif; cursor: pointer; }
 .wm-key { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0 0; font: 700 13px 'Baloo 2', sans-serif; color: #9aa0ad; }
 .wm-key span { display: inline-flex; align-items: center; gap: 6px; }
 .wm-key b { display: inline-block; width: 20px; height: 0; border-top: var(--w) solid var(--c); border-radius: 2px; }
 @media (min-width: 900px) {
   .wm-body { grid-template-columns: 1fr 270px; align-items: start; }
+  .wm-body > .wm-info.empty { display: flex; }
   .wm-info { position: sticky; top: 76px; flex-direction: column; align-items: flex-start; }
   #wm-map { height: max(460px, calc(100vh - 250px)); }
 }
 @media (max-width: 640px) {
-  .wm-wrap .page-sub { font-size: 14px; }
+  /* the map starts higher on a phone: the page's blurb moves below it */
+  .wm-wrap .page-head .page-sub, .wm-wrap .page-head { margin-bottom: 4px; }
+  .wm-wrap .page-head .page-sub { display: none; }
+  .wm-sub-low { display: block !important; font: 600 14px/1.5 Inter, sans-serif; color: #c4c8d2; margin: 12px 0 0; }
+  .wm-draft { padding: 8px 12px; font-size: 13px; margin-bottom: 10px; }
   #wm-map { height: 64vh; min-height: 360px; }
   .wm-lbl.nation span { font-size: 13px; letter-spacing: .1em; }
   .wm-lbl.region span { font-size: 12px; }
@@ -95,7 +110,7 @@ const j = v => JSON.stringify(v).replace(/</g, '\\u003c');
   <div class="wm-filters" id="wm-filters">
     <button class="wm-f" type="button" data-n="" aria-pressed="true">All nations</button>
     <% NAT.forEach(n => { %><button class="wm-f" type="button" data-n="<%= n.id %>" aria-pressed="false" style="--c:<%= TONE[n.id] %>"><i></i><%= n.name.replace(/^The /, '') %> <small data-count="<%= n.id %>"></small></button><% }) %>
-    <button class="wm-f" type="button" data-n="none" aria-pressed="false" style="--c:<%= TONE.none %>"><i></i>Neutral <small data-count="none"></small></button>
+    <button class="wm-f" type="button" data-n="none" aria-pressed="false" style="--c:transparent"><i style="box-shadow:inset 0 0 0 1.5px #c4c8d2"></i>Neutral <small data-count="none"></small></button>
   </div>
   <div class="wm-body">
     <div>
@@ -106,9 +121,10 @@ const j = v => JSON.stringify(v).replace(/</g, '\\u003c');
           <ul id="wm-results" role="listbox"></ul>
         </div>
       </div>
+      <p class="wm-sub-low" style="display:none">Europe region by region, from the whole continent down to single blocks. Pick a nation to see its lands, search for a place, or tap a region to see who holds it<%= frontOn ? ' and read about it' : '' %>.</p>
       <div class="wm-key"><span><b style="--c:#ff4b3e;--w:4px"></b>Front line (nations at war)</span><span><b style="--c:#f4efe2;--w:2.5px"></b>Nation border</span><span><b style="--c:rgba(255,255,255,.55);--w:1px"></b>Region border</span></div>
     </div>
-    <div class="wm-info" id="wm-info" aria-live="polite"><p class="wm-hint">Tap or click a region.</p></div>
+    <div class="wm-info empty" id="wm-info" aria-live="polite"><p class="wm-hint">Tap or click a region.</p></div>
   </div>
 </div></main>
 <script src="/js/war-map-lines.js"></script>
@@ -158,7 +174,13 @@ const j = v => JSON.stringify(v).replace(/</g, '\\u003c');
         + (TILES.version ? '?v=' + TILES.version : '');
     } });
     new Tiles('', { tileSize: TILES.tileSize, minNativeZoom: nativeMin, maxNativeZoom: nativeMax, minZoom: nativeMin - 1, maxZoom: Math.max(nativeMax, 0) + 1,
-      bounds: worldBox, noWrap: true, keepBuffer: 3, updateWhenZooming: false, className: 'wm-tiles' }).addTo(map);
+      bounds: worldBox, noWrap: true, keepBuffer: 3, updateWhenZooming: false, className: 'wm-tiles' })
+      // a tile that fails (the bucket busy, a 502) is asked for again, twice at most, a little later each time
+      .on('tileerror', function (e) {
+        var t = e.tile, n = +(t.dataset.retry || 0); if (n >= 2) return;
+        t.dataset.retry = n + 1; var src = t.src;
+        setTimeout(function () { t.src = src; }, 1500 * (n + 1));
+      }).addTo(map);
   }
   map.createPane('fills').style.zIndex = 390;
   map.createPane('lines').style.zIndex = 410;
@@ -172,18 +194,35 @@ const j = v => JSON.stringify(v).replace(/</g, '\\u003c');
   }
 
   // ---------------------------------------------------------------- shapes, borders, labels
-  var adj = {}, capOf = {};
+  var adj = {}, capOf = {}, nationScore = {};
   var fills = {}, regionBoxes = {}, regionBox = null, lines = [], labels = [], nationLabels = {}, area = {}, labelAt = {};
   var CAP_SVG = '<svg viewBox="0 0 24 24"><path d="M12 1.8l3.1 6.6 7.2.9-5.3 5 1.4 7.1L12 17.9l-6.4 3.5 1.4-7.1-5.3-5 7.2-.9z" fill="#ffd34d" stroke="#2a1d00" stroke-width="1.6" stroke-linejoin="round"/></svg>';
   function ll(p) { return [p[1], p[0]]; }
   function ringArea(r) { var s = 0; for (var i = 0, n = r.length; i < n; i++) { var a = r[i], b = r[(i + 1) % n]; s += a[0] * b[1] - b[0] * a[1]; } return Math.abs(s / 2); }
+  // Sutherland-Hodgman against the tiles' world bounds
+  function clipRing(ring) {
+    var out = ring;
+    [[0, bounds[0], 1], [0, bounds[2], -1], [1, bounds[1], 1], [1, bounds[3], -1]].forEach(function (e) {
+      var k = e[0], v = e[1], sgn = e[2], inp = out; out = [];
+      var inside = function (p) { return (p[k] - v) * sgn >= 0; };
+      for (var i = 0; i < inp.length; i++) {
+        var a = inp[i], b = inp[(i + 1) % inp.length], ia = inside(a), ib = inside(b);
+        if (ia) out.push(a);
+        if (ia !== ib) { var t = (v - a[k]) / (b[k] - a[k]), q = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; q[k] = v; out.push(q); }
+      }
+    });
+    return out;
+  }
   function bpp() { return Math.pow(2, -map.getZoom()); }
   // the tint is stronger far out, where the nations matter, and lighter close in, where the ground does
   function tint() { var b = bpp(); return !TILES ? 0.55 : b > 13 ? 0.46 : b > 3 ? 0.38 : 0.2; }
 
   function fillStyle(id) {
     var r = byId[id], o = r.owner, dim = filter && o !== filter, tinted = tint();
-    return { fillColor: TONE[o] || TONE.none, fillOpacity: id === selected ? tinted + 0.15 : dim ? 0.04 : tinted,
+    // neutral land isn't tinted (border only), so every tint is a nation; dark Germany gets a little more to show
+    if (o === 'none' || !TONE[o]) tinted = id === selected ? 0.12 : 0;
+    else if (o === 'de') tinted += 0.12;
+    return { fillColor: o === 'none' ? '#ffffff' : TONE[o], fillOpacity: id === selected ? tinted + 0.15 : dim ? Math.min(tinted, 0.04) : tinted,
       color: '#ffffff', weight: id === selected ? 3 : 0, opacity: 1, stroke: id === selected };
   }
   function lineKind(l) {
@@ -231,7 +270,8 @@ const j = v => JSON.stringify(v).replace(/</g, '\\u003c');
     });
     NAT.forEach(function (n) {
       var a = acc[n.id], m = nationLabels[n.id];
-      if (!a) { if (m) m.remove(); return; }
+      if (!a) { if (m) { m.remove(); delete nationLabels[n.id]; } return; }
+      nationScore[n.id] = a.w;
       var cx = a.x / a.w, cz = a.z / a.w, best = null, bd = Infinity;
       a.ids.forEach(function (id) { var p = labelAt[id], d = (p[0] - cx) * (p[0] - cx) + (p[1] - cz) * (p[1] - cz); if (d < bd) { bd = d; best = p; } });
       if (!m) {
@@ -239,34 +279,59 @@ const j = v => JSON.stringify(v).replace(/</g, '\\u003c');
           icon: L.divIcon({ className: 'wm-lbl nation', html: '<span></span>', iconSize: null }) });
         m.addTo(map); m.getElement().firstChild.textContent = n.name.replace(/^The /, '');
       } else m.setLatLng(ll(best));
-      m.getElement().classList.toggle('hide', !!filter && filter !== n.id);
     });
   }
 
-  // region names only where they fit: the bigger regions and the capitals first, overlapping names left out
+  // Labels only where they fit: wholly inside the map (never cut at its edge) and not over another. Far out the nation
+  // names, the biggest first; nearer in the region names, the capitals and bigger regions first. The selected region's
+  // own name is always shown.
   function declutter() {
     var far = bpp() > 13;
     mapEl.classList.toggle('far', far);
-    if (far) return;
     var size = map.getSize(), taken = [];
-    labels.forEach(function (lb) {
-      var e = lb.marker.getElement(); if (!e) return;
-      var p = map.latLngToContainerPoint(lb.marker.getLatLng());
-      if (!lb.w) { lb.w = e.firstChild.offsetWidth || lb.name.length * 7; lb.h = e.firstChild.offsetHeight || 14; }
-      if (lb.cap) { taken.push([p.x - 7, p.y - 7, p.x + 7, p.y + 6]); p = L.point(p.x, p.y + 9 + lb.h / 2); } // its star, then its name below
-      var box = [p.x - lb.w / 2 - 4, p.y - lb.h / 2 - 2, p.x + lb.w / 2 + 4, p.y + lb.h / 2 + 2];
-      var ok = box[2] > 0 && box[0] < size.x && box[3] > 0 && box[1] < size.y && !(filter && byId[lb.id].owner !== filter);
-      for (var i = 0; ok && i < taken.length; i++) { var t = taken[i]; if (box[0] < t[2] && box[2] > t[0] && box[1] < t[3] && box[3] > t[1]) ok = false; }
+    function place(e, p, w, h, force) {
+      var box = [p.x - w / 2 - 4, p.y - h / 2 - 2, p.x + w / 2 + 4, p.y + h / 2 + 2];
+      var ok = force ? box[2] > 0 && box[0] < size.x && box[3] > 0 && box[1] < size.y
+        : box[0] >= 0 && box[1] >= 0 && box[2] <= size.x && box[3] <= size.y;
+      for (var i = 0; ok && !force && i < taken.length; i++) { var t = taken[i]; if (box[0] < t[2] && box[2] > t[0] && box[1] < t[3] && box[3] > t[1]) ok = false; }
       if (ok) taken.push(box);
       e.classList.toggle('hide', !ok);
-    });
+    }
+    function region(lb, force) {
+      var e = lb.marker.getElement(); if (!e) return;
+      e.classList.toggle('sel', lb.id === selected);
+      var p = map.latLngToContainerPoint(lb.marker.getLatLng());
+      if (!lb.w) { lb.w = e.firstChild.offsetWidth; lb.h = e.firstChild.offsetHeight; }
+      var w = lb.w || lb.name.length * 7, h = lb.h || 14;
+      if (lb.cap) { taken.push([p.x - 7, p.y - 7, p.x + 7, p.y + 6]); p = L.point(p.x, p.y + 9 + h / 2); } // its star, then its name below
+      if (!force && filter && byId[lb.id].owner !== filter) return e.classList.add('hide');
+      place(e, p, w, h, force);
+    }
+    var sel = labels.filter(function (lb) { return lb.id === selected; })[0];
+    if (sel) region(sel, true);
+    if (far) {
+      labels.forEach(function (lb) { var e = lb.marker.getElement(); if (lb !== sel && e) e.classList.toggle('sel', false); });
+      Object.keys(nationLabels).sort(function (a, b) { return (nationScore[b] || 0) - (nationScore[a] || 0); }).forEach(function (id) {
+        var m = nationLabels[id], e = m.getElement(); if (!e) return;
+        if (filter && filter !== id) return e.classList.add('hide');
+        e.classList.remove('hide');
+        var w = e.firstChild.offsetWidth || 120, h = e.firstChild.offsetHeight || 18;
+        place(e, map.latLngToContainerPoint(m.getLatLng()), w, h, false);
+      });
+      return;
+    }
+    labels.forEach(function (lb) { if (lb !== sel) region(lb, false); });
   }
 
   function build(data) {
     var R = data.regions || {};
     REG.forEach(function (r) {
       var g = R[r.id]; if (!g || !g.polygons) return;
-      var latlngs = g.polygons.map(function (poly) { return poly.map(function (ring) { return ring.map(ll); }); });
+      // fills are cut at the world's edge, so a region drawn past it never tints the dark beyond
+      var polys = TILES ? g.polygons.map(function (poly) { return poly.map(clipRing).filter(function (r) { return r.length >= 3; }); })
+        .filter(function (poly) { return poly.length && poly[0].length >= 3; }) : g.polygons;
+      if (!polys.length) return;
+      var latlngs = polys.map(function (poly) { return poly.map(function (ring) { return ring.map(ll); }); });
       area[r.id] = g.polygons.reduce(function (s, poly) { return s + ringArea(poly[0]); }, 0);
       labelAt[r.id] = g.label;
       var f = L.polygon(latlngs, Object.assign({ renderer: fillR, pane: 'fills', bubblingMouseEvents: false }, fillStyle(r.id))).addTo(map);
@@ -316,9 +381,25 @@ const j = v => JSON.stringify(v).replace(/</g, '\\u003c');
     d.appendChild(el('p', 'Held by ' + ownerName(r.owner) + ' · ' + r.theatre + (r.owner !== r.start ? ' · ' + ownerName(r.start) + "'s in 1914" : '')));
     if (FRONT_ON) { var p = el('p'); p.appendChild(el('a', 'Read about ' + r.name, { href: '/front/' + r.id })); d.appendChild(p); }
     info.appendChild(d);
+    var x = el('button', '\u00d7', { type: 'button', class: 'wm-x', 'aria-label': 'Close' });
+    x.addEventListener('click', unselect); info.appendChild(x);
+    info.classList.remove('empty');
+    declutter();
     try { history.replaceState(null, '', location.pathname + location.search + '#' + id); } catch (e) {}
     if (fly && regionBoxes[id]) map.flyToBounds(regionBoxes[id], { padding: [40, 40], maxZoom: -2, duration: 0.8 });
   }
+  function unselect() {
+    var prev = selected; selected = null;
+    if (fills[prev]) fills[prev].setStyle(fillStyle(prev));
+    info.textContent = ''; info.appendChild(el('p', 'Tap or click a region.', { class: 'wm-hint' })); info.classList.add('empty');
+    declutter();
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  }
+  // the info panel: beside the map when there's room, else a card over the map's foot
+  var narrow = window.matchMedia('(max-width: 899px)'), infoHome = info.parentNode, stage = document.querySelector('.wm-stage');
+  function placeInfo() { if (narrow.matches) stage.appendChild(info); else infoHome.appendChild(info); }
+  if (narrow.addEventListener) narrow.addEventListener('change', placeInfo); else narrow.addListener(placeInfo);
+  placeInfo();
   window.addEventListener('hashchange', function () { var h = decodeURIComponent(location.hash.slice(1)); if (byId[h] && h !== selected) show(h, true); });
 
   document.getElementById('wm-filters').addEventListener('click', function (e) {
