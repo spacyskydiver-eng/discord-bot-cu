@@ -11,10 +11,12 @@ const NATIONS = require('../nations').NATIONS;
 
 // the game's side: { nations: [{ id, online, shard }], shards: [{ name, online, tps }], modlock: [{ at, player, reason }] }
 async function game() {
-  const url = process.env.GAME_CONTROL_URL;
+  // the game's web API (behind its secret), not the control API: that one stays private to the server's network (Windows,
+  // 16 Nov); GET /api/staff/dashboard is the same view as the panel's /control/v1/dashboard
+  const url = process.env.WAR_FEED_URL;
   if (url) {
     try {
-      const r = await fetch(url.replace(/\/$/, '') + '/control/v1/dashboard', { headers: { 'X-Greatwar-Control': process.env.GAME_CONTROL_SECRET || '' } /* the control API's own header and secret (ControlApi), not the web API's (S-own-20) */, signal: AbortSignal.timeout(5000) });
+      const r = await fetch(url.replace(/\/$/, '') + '/api/staff/dashboard', { headers: { 'X-Greatwar-Secret': process.env.WAR_FEED_SECRET || '' }, signal: AbortSignal.timeout(5000) });
       if (r.ok) return Object.assign({ sample: false }, await r.json());
       return { sample: false, error: 'game feed ' + r.status, nations: [], shards: [], modlock: [] };
     } catch (e) { return { sample: false, error: e.message, nations: [], shards: [], modlock: [] }; }
