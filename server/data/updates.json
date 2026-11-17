@@ -1,6 +1,15 @@
 {
  "sections": [
   {
+   "title": "v0.23.1",
+   "date": "17 Nov 2026",
+   "items": [
+    "A server-only fix, no new pack: keep using v0.23.",
+    "Fixed a rare problem where part of the map could be replaced by random new terrain when it was saved and loaded at almost the same moment. The whole map was checked afterwards and nothing was damaged."
+   ],
+   "id": "v0-23-1"
+  },
+  {
    "title": "v0.23",
    "date": "16 Nov 2026",
    "items": [
