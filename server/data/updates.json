@@ -1,12 +1,20 @@
 {
  "sections": [
   {
-   "title": "Coming next",
-   "date": "",
+   "title": "v0.23",
+   "date": "16 Nov 2026",
    "items": [
-    "Smoother play: saving the map's territory no longer freezes the server for a moment, which caused two crashes on the test server."
+    "The war map is new: press K to open it (J stays with the machine-gun mount). It shows the real terrain of the whole front.",
+    "Zoom smoothly from all of Europe down to single regions, with borders drawn at every zoom.",
+    "Search the map for a region or a capital, and hover over a region to see its owner and capital.",
+    "The far-out map views come with the pack; close-up views load as you look at them and are kept on your computer, so the second time is instant.",
+    "What your map shows depends on who you are: scouts and their leadership see what a scouting run revealed, while it lasts.",
+    "The world isn't drawn behind the map while it's open, so the map runs smoothly; the game carries on around you.",
+    "Uniform wear after a revive now counts from the revive, not from your first day in the war.",
+    "Smoother server: saving the map's regions and placing region cores no longer stalls the server.",
+    "Older packs (v0.22.1 and before) can no longer join, and your key bindings reset to the pack's defaults once."
    ],
-   "id": "coming-next"
+   "id": "v0-23"
   },
   {
    "title": "v0.22.1",
