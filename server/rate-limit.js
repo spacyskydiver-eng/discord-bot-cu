@@ -24,13 +24,33 @@ function isCloudflare(addr) {
 }
 const HOPS = () => { const h = parseInt(process.env.TRUST_PROXY_HOPS, 10); return Number.isFinite(h) && h >= 0 ? h : (process.env.RENDER ? 1 : 0); };
 
+function isPrivate(addr) {
+  const a = plain(addr);
+  if (net.isIPv4(a)) { const [x, y] = a.split('.').map(Number); return x === 10 || x === 127 || (x === 172 && y >= 16 && y <= 31) || (x === 192 && y === 168) || (x === 100 && y >= 64 && y <= 127) || (x === 169 && y === 254); }
+  if (net.isIPv6(a)) { const l = a.toLowerCase(); return l === '::1' || l.startsWith('fc') || l.startsWith('fd') || l.startsWith('fe80'); }
+  return true; // not an address at all: don't treat it as a visitor
+}
+// once per start, in production, the chain's shape without any address (e.g. 'public,cloudflare,private'), to confirm
+// the proxy assumption on Render; addresses are never logged
+let shapeLogged = false;
+function logShapeOnce(chain) {
+  if (shapeLogged || !process.env.RENDER) return;
+  shapeLogged = true;
+  console.log('[rate-limit] forwarded chain shape:', chain.map(x => !x ? 'none' : isPrivate(x) ? 'private' : isCloudflare(x) ? 'cloudflare' : 'public').join(','));
+}
+
 /** The visitor's address: the peer that reached our proxy, or Cloudflare's word for who reached Cloudflare. */
 function visitor(req, hops = HOPS()) {
   const header = name => (req.headers && req.headers[name]) || (req.get && req.get(name)) || '';
   const chain = String(header('x-forwarded-for')).split(',').map(plain).filter(Boolean);
   chain.push(plain((req.socket && req.socket.remoteAddress) || req.ip || ''));
-  // the last `hops` entries are our own proxies; the one before them is who connected to the first of them
-  const peer = chain[Math.max(0, chain.length - 1 - hops)];
+  // the last `hops` entries are our own proxies; the one before them is who connected to the first of them. Render's
+  // internal hops may be more than one, so keep walking left past private/internal addresses (S82 review): a visitor
+  // is never a 10.x address, and treating one as a visitor would put everyone in one bucket
+  let i = Math.max(0, chain.length - 1 - hops);
+  while (i > 0 && isPrivate(chain[i])) i--;
+  const peer = chain[i];
+  logShapeOnce(chain);
   const cf = plain(header('cf-connecting-ip'));
   if (cf && net.isIP(cf) && isCloudflare(peer)) return cf;
   return peer || '?';
@@ -60,4 +80,4 @@ function limit({ perMinute = 30, allPerMinute = 600, now = () => Date.now() } = 
   };
 }
 
-module.exports = { limit, visitor, isCloudflare };
+module.exports = { isPrivate, limit, visitor, isCloudflare };
