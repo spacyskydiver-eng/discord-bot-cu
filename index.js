@@ -525,7 +525,8 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
-startServer();
+// the game's address and secret may come from site settings (S81); fill them before any module reads them
+require('./server/game-conn').hydrate().finally(() => startServer());
 
 client.login(process.env.DISCORD_TOKEN).catch(err => {
   console.error('Discord login failed:', err.message);
