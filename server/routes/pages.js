@@ -816,7 +816,9 @@ router.get('/war-map', async (req, res, next) => {
     if (!(await warMapVisible(res))) return next();
     const isPublic = (await access.getSetting('war_map_public')) === 'on';
     const frontOn = res.locals.isOwner || (await access.getSetting('front_public')) === 'on';
-    const regions = FRONT.regions.map(r => ({ id: r.id, name: r.name, owner: r.owner, theatre: r.theatre, capital: !!r.capital, shape: r.shape }));
+    // once the game is live, only the regions it reports (the event map has 173: erivan lies off the generated world)
+    const own = await delayedOwners();
+    const regions = FRONT.regions.filter(r => !own || own[r.id]).map(r => ({ id: r.id, name: r.name, owner: r.owner, theatre: r.theatre, capital: !!r.capital, shape: r.shape }));
     res.set('Cache-Control', isPublic ? 'public, max-age=300' : 'private, no-store');
     res.render('new/war-map', { isPublic, frontOn, regions, width: FRONT.width, height: FRONT.height, nations: require('../nations').NATIONS });
   } catch (e) { next(e); }

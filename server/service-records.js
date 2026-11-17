@@ -7,7 +7,8 @@ const NATIONS = require('./nations').NATIONS;
 const companion = require('./companion');
 const { GAME_IDS } = require('./nation-roles');
 
-const LIVE = process.env.PROFILE_URL ? process.env.PROFILE_URL.replace(/\/$/, '') : null;
+// read when needed, not at load: the address may be filled from site settings at start (server/game-conn.js)
+const liveBase = () => process.env.PROFILE_URL ? process.env.PROFILE_URL.replace(/\/$/, '') : null;
 const RANKS = ['Private', 'Corporal', 'Sergeant', 'Lieutenant', 'Captain'];
 // A medal shows its icon only when the art exists (gallantry has none yet), never a broken image.
 const fs = require('fs'), path = require('path');
@@ -30,7 +31,7 @@ const cache = new Map();
 async function live(uuid) {
   const hit = cache.get(uuid);
   if (hit && Date.now() - hit.at < 60 * 1000) return hit.body;
-  const r = await fetch(`${LIVE}/profile/${dashed(uuid)}`, { signal: AbortSignal.timeout(5000) });
+  const r = await fetch(`${liveBase()}/profile/${dashed(uuid)}`, { signal: AbortSignal.timeout(5000) });
   const body = r.status === 404 ? null : r.ok ? await r.json() : Promise.reject(new Error('profile ' + r.status));
   cache.set(uuid, { at: Date.now(), body });
   return body;
@@ -63,7 +64,7 @@ async function lookup(name) {
     }
     if (record && Array.isArray(record.medalIds)) record = Object.assign({}, record, { medals: record.medalIds });
   } else {
-    record = LIVE ? await live(uuid) : sample(acc.name);
+    record = liveBase() ? await live(uuid) : sample(acc.name);
   }
   if (record) {
     const nid = GAME_IDS[record.nation] || record.nation;
@@ -84,4 +85,4 @@ async function search(q) {
   catch (e) { return []; }
 }
 
-module.exports = { lookup, search, isLive: () => !!LIVE || companion.isLive(), MEDALS, RANKS };
+module.exports = { lookup, search, isLive: () => !!liveBase() || companion.isLive(), MEDALS, RANKS };

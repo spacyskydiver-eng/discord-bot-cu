@@ -3,12 +3,13 @@
 // the pages can be seen and tested. Never node values, coordinates or scouting intel, live or sample.
 const campaignMap = require('./campaign-map');
 
-const LIVE = process.env.WAR_FEED_URL ? process.env.WAR_FEED_URL.replace(/\/$/, '') : null;
+// read when needed, not at load: the address may be filled from site settings at start (server/game-conn.js)
+const liveBase = () => process.env.WAR_FEED_URL ? process.env.WAR_FEED_URL.replace(/\/$/, '') : null;
 const cache = {};
 async function live(path) {
   const hit = cache[path];
   if (hit && Date.now() - hit.at < 60 * 1000) return hit.body;
-  const r = await fetch(LIVE + path, { headers: { 'X-Greatwar-Secret': process.env.WAR_FEED_SECRET || '' }, signal: AbortSignal.timeout(6000) });
+  const r = await fetch(liveBase() + path, { headers: { 'X-Greatwar-Secret': process.env.WAR_FEED_SECRET || '' }, signal: AbortSignal.timeout(6000) });
   if (!r.ok) throw new Error('war feed ' + r.status);
   const body = await r.json();
   cache[path] = { at: Date.now(), body };
@@ -95,9 +96,9 @@ function siteIds(r) {
   return out;
 }
 
-async function report() { return LIVE ? siteIds(await live('/api/public/report')) : (await sample()).report; }
+async function report() { return liveBase() ? siteIds(await live('/api/public/report')) : (await sample()).report; }
 // S77: the region borders the game traced from the world ({ version, levels, lines: [{ a, b, pts: { level: [[x, z]] } }] },
 // block coordinates; region ids as they are). Null until the feed is live: the war map then uses its placeholder.
-async function borders() { return LIVE ? live('/api/public/borders') : null; }
-async function front() { return LIVE ? siteIds(await live('/api/public/front?days=7')) : (await sample()).front; }
-module.exports = { report, front, borders, isLive: () => !!LIVE, siteIds };
+async function borders() { return liveBase() ? live('/api/public/borders') : null; }
+async function front() { return liveBase() ? siteIds(await live('/api/public/front?days=7')) : (await sample()).front; }
+module.exports = { report, front, borders, isLive: () => !!liveBase(), siteIds };
