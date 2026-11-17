@@ -21,9 +21,9 @@ async function page(req, res, error) {
   const ev = require('../cue-events')().find(e => e.windows) || { windows: [] };
   const next = ev.windows.find(w => w.end > Date.now() / 1000) || null;
   let front = null, standing = null;
-  // the paper on the 10-minute hold (server/hold.js); the player's own nation's standing is live, as in game (S82 ruling)
+  // the paper and the player's own nation's standing, both on the 10-minute hold (server/hold.js; the head's ruling on S82 #11)
   try { const f = await require('../hold').holdFront(await require('../war-feed').front()); front = (f.editions || [])[0] || null; } catch (e) { /* no paper */ }
-  try { const r = await require('../war-feed').report(); standing = nation ? (r.nations || []).find(n => n.id === nation.id) || null : null; } catch (e) { /* no report */ }
+  try { const r = await require('../hold').holdReport(await require('../war-feed').report()); standing = nation ? (r.nations || []).find(n => n.id === nation.id) || null : null; } catch (e) { /* no report */ }
   const alerts = user && v && !v.sample ? await require('../call-to-line').settings(user.id) : null; // S39
   res.render('new/war-office', { v, nation, next, front, standing, alerts, error: error || null });
 }
