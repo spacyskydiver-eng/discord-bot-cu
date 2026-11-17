@@ -658,10 +658,45 @@ router.get('/map', (req, res) => {
   res.render('new/admin-campaign-map', { pub: true, v: ASSET_V, dataUrl: '/map/data.json', shareUrl: '', current: {}, msg: '', bad: false });
 });
 // the war for people who aren't online: the War Report and the Daily Front (server/war-feed.js)
+// No free intel (S81 review): what the maps already do, for the War Report and the Daily Front too. Captures and the like
+// newer than 10 minutes are held back (with the counts and owners they changed), battles of a window still being
+// fought are hidden, and so are Daily Front articles newer than 10 minutes. Live data only; the sample is left alone.
+const HOLD_KINDS = new Set(['capture', 'capital_lost', 'capital_retaken', 'wiped']);
+function holdBack(report, front) {
+  if (!report || report.sample) return { report, front };
+  const now = report.now || Date.now(), cutoff = now - 10 * 60 * 1000;
+  const r = Object.assign({}, report), held = (report.events || []).filter(e => HOLD_KINDS.has(e.kind) && (e.at || 0) > cutoff);
+  if (held.length) {
+    r.events = (report.events || []).filter(e => !held.includes(e));
+    r.owners = Object.assign({}, report.owners || {});
+    r.nations = (report.nations || []).map(n => Object.assign({}, n));
+    const byId = Object.fromEntries(r.nations.map(n => [n.id, n]));
+    held.slice().sort((a, b) => b.at - a.at).forEach(e => {
+      if (e.kind !== 'capture') return;
+      if (e.node) r.owners[e.node] = e.from;
+      if (byId[e.to]) { byId[e.to].nodes = (byId[e.to].nodes || 0) - 1; byId[e.to].captured24h = Math.max(0, (byId[e.to].captured24h || 0) - 1); }
+      if (byId[e.from]) { byId[e.from].nodes = (byId[e.from].nodes || 0) + 1; byId[e.from].lost24h = Math.max(0, (byId[e.from].lost24h || 0) - 1); }
+    });
+    held.filter(e => e.kind === 'capital_lost' && byId[e.from]).forEach(e => { byId[e.from].capitalHeld = true; });
+    held.filter(e => e.kind === 'wiped' && byId[e.a]).forEach(e => { byId[e.a].wiped = false; });
+  }
+  if (report.windowOpen && Array.isArray(report.battles) && report.battles.length) {
+    const current = Math.max(...report.battles.map(b => +b.window || 0));
+    r.battles = report.battles.filter(b => (+b.window || 0) < current);
+  }
+  let f = front;
+  if (front && Array.isArray(front.editions)) {
+    f = Object.assign({}, front, { editions: front.editions.map(ed => Array.isArray(ed.articles)
+      ? Object.assign({}, ed, { articles: ed.articles.filter(a => !(a.at > cutoff)) }) : ed).filter(ed => !(ed.at > cutoff)) });
+  }
+  return { report: r, front: f };
+}
+
 async function warPage(req, res, next, page) {
   try {
     const feed = require('../war-feed'), N = require('../nations').NATIONS;
-    const [report, front, m] = await Promise.all([feed.report(), page === 'front' ? feed.front() : null, require('../campaign-map').loadPublic().then(JSON.parse)]);
+    const [rawReport, rawFront, m] = await Promise.all([feed.report(), page === 'front' ? feed.front() : null, require('../campaign-map').loadPublic().then(JSON.parse)]);
+    const { report, front } = holdBack(rawReport, rawFront);
     const names = Object.fromEntries(m.territories.map(t => [t.id, t.name]));
     const nat = id => { const n = N.find(x => x.id === id) || { name: id, slug: '', flag: '' }; return Object.assign({ short: n.name.replace(/^The /, '') }, n); };
     const nodeName = id => names[id] || id;
@@ -818,7 +853,7 @@ router.get('/war-map', async (req, res, next) => {
     const frontOn = res.locals.isOwner || (await access.getSetting('front_public')) === 'on';
     // once the game is live, only the regions it reports (the event map has 173: erivan lies off the generated world)
     const own = await delayedOwners();
-    const regions = FRONT.regions.filter(r => !own || own[r.id]).map(r => ({ id: r.id, name: r.name, owner: r.owner, theatre: r.theatre, capital: !!r.capital, shape: r.shape }));
+    const regions = FRONT.regions.filter(r => !own || own[r.id] !== undefined).map(r => ({ id: r.id, name: r.name, owner: r.owner, theatre: r.theatre, capital: !!r.capital, shape: r.shape }));
     res.set('Cache-Control', isPublic ? 'public, max-age=300' : 'private, no-store');
     res.render('new/war-map', { isPublic, frontOn, regions, width: FRONT.width, height: FRONT.height, nations: require('../nations').NATIONS });
   } catch (e) { next(e); }
