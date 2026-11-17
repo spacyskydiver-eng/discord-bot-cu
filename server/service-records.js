@@ -63,11 +63,9 @@ async function cachedGet(key, get) {
   return body;
 }
 
-async function lookup(name) {
-  const acc = await javaAccount(name);
-  if (!acc) return null;
-  const uuid = acc.uuid.replace(/-/g, '').toLowerCase();
-  // S-own-12: the game's career export when the web API is set (deaths, medal ids, regiment); else the profile address; else a sample
+/** A soldier's record on the hold, by uuid (no dashes, lower case): the held record, { pending, name, nation } when the
+ *  site has none 10 minutes old yet, a sample, or null when he has no record. Also used by the night cards (S82). */
+async function heldRecord(uuid, sampleName) {
   let record;
   if (companion.isLive()) {
     record = await cachedGet('rec:' + uuid, async () => {
@@ -76,12 +74,21 @@ async function lookup(name) {
     });
     if (record && Array.isArray(record.medalIds)) record = Object.assign({}, record, { medals: record.medalIds });
   } else {
-    record = liveBase() ? await live(uuid) : sample(acc.name);
+    record = liveBase() ? await live(uuid) : sampleName ? sample(sampleName) : null;
   }
   if (record && !record.sample) {
     const held = await hold.holdRecord(uuid, record);
     record = held.pending ? { pending: true, name: record.name, nation: record.nation } : held.record;
   }
+  return record;
+}
+
+async function lookup(name) {
+  const acc = await javaAccount(name);
+  if (!acc) return null;
+  const uuid = acc.uuid.replace(/-/g, '').toLowerCase();
+  // S-own-12: the game's career export when the web API is set (deaths, medal ids, regiment); else the profile address; else a sample
+  let record = await heldRecord(uuid, acc.name);
   if (record) {
     const nid = GAME_IDS[record.nation] || record.nation;
     const n = NATIONS.find(x => x.id === nid);
@@ -103,4 +110,4 @@ async function search(q) {
   } catch (e) { return []; }
 }
 
-module.exports = { lookup, search, isLive: () => !!liveBase() || companion.isLive(), MEDALS, RANKS };
+module.exports = { lookup, heldRecord, search, _clearCache: () => gameCache.clear(), isLive: () => !!liveBase() || companion.isLive(), MEDALS, RANKS };

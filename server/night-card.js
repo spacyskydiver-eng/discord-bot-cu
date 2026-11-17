@@ -57,7 +57,17 @@ async function lookup(name, window, viewerDiscordId) {
   }
   const nid = GAME_IDS[card.nation] || card.nation, nation = NATIONS.find(x => x.id === nid) || null;
   const out = Object.assign({}, card, { nationName: nation ? nation.name.replace(/^The /, '') : '', flag: nation ? nation.flag : null, own });
-  if (!own) delete out.deaths; // deaths only on his own view
+  if (!own) {
+    delete out.deaths; // deaths only on his own view
+    // S82: the game writes every card with the soldier's rank and regiment as they are NOW (none once he is dead), so on
+    // anyone else's view they come from his record on the hold (as it was 10 minutes ago), or aren't shown at all
+    if (!card.sample) {
+      delete out.rank; delete out.regiment;
+      let rec = null;
+      try { rec = await require('./service-records').heldRecord(uuid.replace(/-/g, '')); } catch (e) { rec = null; }
+      if (rec && !rec.pending) { if (rec.rank) out.rank = rec.rank; if (rec.regiment) out.regiment = rec.regiment; }
+    }
+  }
   return { account: { name: acc.name, uuid }, card: out };
 }
 
@@ -71,4 +81,4 @@ function summary(c) {
   return parts.length ? parts.join('; ') + '.' : 'Answered the call in window ' + c.window + '.';
 }
 
-module.exports = { lookup, summary, sample };
+module.exports = { lookup, summary, sample, _clearCache: () => cache.clear() };

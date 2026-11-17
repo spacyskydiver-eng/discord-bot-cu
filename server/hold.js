@@ -25,31 +25,46 @@ const hash = v => crypto.createHash('sha256').update(JSON.stringify(v)).digest('
 const isTime = v => typeof v === 'number' && isFinite(v);
 
 // ---------------------------------------------------------------- persistence (the site database; swappable for tests)
-const pgStore = {
-  async init() {
-    const db = require('../db');
-    await db.query(`CREATE TABLE IF NOT EXISTS hold_seen (key TEXT PRIMARY KEY, first_seen BIGINT NOT NULL)`);
-    await db.query(`CREATE TABLE IF NOT EXISTS hold_versions (name TEXT NOT NULL, first_seen BIGINT NOT NULL, hash TEXT NOT NULL, value JSONB,
-      PRIMARY KEY (name, first_seen))`);
-    const old = clock() - 30 * 86400 * 1000;
-    await db.query(`DELETE FROM hold_seen WHERE first_seen < $1`, [old]);
-    return (await db.query(`SELECT key, first_seen FROM hold_seen`)).rows.map(r => [r.key, Number(r.first_seen)]);
-  },
-  async saveSeen(key, at) { await require('../db').query(`INSERT INTO hold_seen (key, first_seen) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING`, [key, at]); },
-  async loadVersions(name) {
-    return (await require('../db').query(`SELECT first_seen, hash, value FROM hold_versions WHERE name = $1 ORDER BY first_seen`, [name])).rows
-      .map(r => ({ first: Number(r.first_seen), hash: r.hash, value: r.value }));
-  },
-  async saveVersion(name, v) { await require('../db').query(`INSERT INTO hold_versions (name, first_seen, hash, value) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING`, [name, v.first, v.hash, JSON.stringify(v.value)]); },
-  async dropVersions(name, before) { await require('../db').query(`DELETE FROM hold_versions WHERE name = $1 AND first_seen < $2`, [name, before]); },
-};
-let store = pgStore;
-let seen = new Map(), versions = new Map(), ready = null;
+// Every query has 2 seconds (the pool has no timeout of its own); a slow or down database fails closed: what isn't
+// known counts as seen now, so it is held.
+const QUERY_MS = 2000;
+function timed(p) {
+  let t;
+  return Promise.race([p, new Promise((_, no) => { t = setTimeout(() => no(new Error('hold store timed out')), QUERY_MS); })]).finally(() => clearTimeout(t));
+}
+/** The store on a database (`db` with query(), default the site's pool); `prefix` names the tables (tests use their own). */
+function makePgStore({ db = null, prefix = '' } = {}) {
+  const q = (sql, params) => timed((db || require('../db')).query(sql, params));
+  const SEEN = prefix + 'hold_seen', VERS = prefix + 'hold_versions';
+  return {
+    async init() {
+      await q(`CREATE TABLE IF NOT EXISTS ${SEEN} (key TEXT PRIMARY KEY, first_seen BIGINT NOT NULL)`);
+      await q(`CREATE TABLE IF NOT EXISTS ${VERS} (name TEXT NOT NULL, first_seen BIGINT NOT NULL, hash TEXT NOT NULL, value JSONB,
+        PRIMARY KEY (name, first_seen))`);
+      await q(`DELETE FROM ${SEEN} WHERE first_seen < $1`, [clock() - 30 * 86400 * 1000]);
+      return (await q(`SELECT key, first_seen FROM ${SEEN}`)).rows.map(r => [r.key, Number(r.first_seen)]);
+    },
+    async saveSeen(key, at) { await q(`INSERT INTO ${SEEN} (key, first_seen) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING`, [key, at]); },
+    async loadVersions(name) {
+      return (await q(`SELECT first_seen, hash, value FROM ${VERS} WHERE name = $1 ORDER BY first_seen`, [name])).rows
+        .map(r => ({ first: Number(r.first_seen), hash: r.hash, value: r.value }));
+    },
+    async saveVersion(name, v) { await q(`INSERT INTO ${VERS} (name, first_seen, hash, value) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING`, [name, v.first, v.hash, JSON.stringify(v.value)]); },
+    async dropVersions(name, before) { await q(`DELETE FROM ${VERS} WHERE name = $1 AND first_seen < $2`, [name, before]); },
+  };
+}
+let store = makePgStore();
+let seen = new Map(), versions = new Map(), ready = null, retryAt = 0;
+// Loaded once; a failure is retried a minute later (meanwhile everything new counts as seen now, i.e. held). Times read
+// later from the database win over the "now" given meanwhile: they are when the site really first saw those things.
 function init() {
-  if (!ready) ready = (async () => {
-    try { for (const [k, at] of await store.init()) seen.set(k, at); }
-    catch (e) { console.error('[hold] first-seen store not loaded; everything counts as seen now:', e.message); }
-  })();
+  if (!ready || (retryAt && clock() >= retryAt)) {
+    retryAt = 0;
+    ready = (async () => {
+      try { for (const [k, at] of await store.init()) { const m = seen.get(k); seen.set(k, m == null ? at : Math.min(m, at)); } }
+      catch (e) { retryAt = clock() + 60 * 1000; console.error('[hold] first-seen store not loaded (retrying in a minute); everything new counts as seen now:', e.message); }
+    })();
+  }
   return ready;
 }
 const quiet = p => Promise.resolve(p).catch(e => console.error('[hold] store', e.message));
@@ -89,6 +104,49 @@ function windowHot(now = clock()) {
   return windowsOf().some(w => now >= w.start * 1000 && now < w.end * 1000 + HOLD_MS);
 }
 
+// ---------------------------------------------------------------- undated events
+// The game dates every event; should one come without a time, the site works out which undated events are new since it
+// last looked. The feed lists newest first and drops what is older than 7 days, so the new list is some new events, then
+// the start of the old list. The site keeps the undated events it saw ({ k: what it says, id, first: first seen }) and
+// lines the new list up with the old: what doesn't line up is new (first seen now). When more than one line-up fits
+// (repeats of the same capture), it takes the one that counts the most as new, so a drop-off can never release a new event.
+let undated = null; // { list: [{ k, id, first }], sig: the nations' counts when last seen }
+function align(oldKeys, newKeys, sameCounts) {
+  const fits = [];
+  for (let n = 0; n < newKeys.length; n++) {
+    const rest = newKeys.length - n;
+    if (rest > oldKeys.length) continue;
+    let same = true;
+    for (let i = 0; i < rest && same; i++) same = newKeys[n + i] === oldKeys[i];
+    if (same) fits.push(n);
+  }
+  if (!fits.length) return newKeys.length; // nothing lines up: all new
+  // the very same list as before, and the nations' counts unchanged: nothing new. (Repeats can make a list that gained
+  // and lost events look the same; the counts, which move with every capture, tell those apart.)
+  if (fits[0] === 0 && newKeys.length === oldKeys.length && sameCounts) return 0;
+  return fits[fits.length - 1];
+}
+async function undatedEntries(list, sig) {
+  await init();
+  if (!undated) {
+    const rows = await store.loadVersions('state:undated').catch(e => { console.error('[hold] undated events', e.message); return []; });
+    const v = rows.length ? rows[rows.length - 1].value : null;
+    if (!undated) undated = v && Array.isArray(v.list) ? v : { list: [], sig: null };
+  }
+  const keys = list.map(e => ['ev', e.kind, e.node, e.from, e.to, e.a, e.b].join(':'));
+  const old = undated.list, n = align(old.map(x => x.k), keys, undated.sig === sig), now = clock();
+  const next = { list: keys.map((k, i) => i < n ? { k, id: 'u:' + now + ':' + i + ':' + crypto.randomBytes(3).toString('hex'), first: now } : old[i - n]), sig };
+  if (hash(next) !== hash(undated)) {
+    undated = next;
+    quiet(store.saveVersion('state:undated', { first: now, hash: hash(next), value: next }).then(() => store.dropVersions('state:undated', now)));
+  }
+  return next.list;
+}
+
+// which hold key an event has (dated: what it says and when; undated: the id the site gave it), for the Discord poster
+const eventKeys = new WeakMap();
+const eventKey = e => eventKeys.get(e) || ['d', e.kind, e.at, e.node, e.from, e.to, e.a, e.b].join(':');
+
 // ---------------------------------------------------------------- the War Report
 /** The report as it was 10 minutes ago, as far as anyone can tell: held events removed, the owners, counts, capitals and
  *  wipes they changed put back; events with no time count as first seen by the site; battles and after-action reports
@@ -97,15 +155,16 @@ async function holdReport(report) {
   if (!report || report.sample) return report;
   const now = isTime(report.now) ? report.now : gameNow(), cutoff = now - HOLD_MS;
   const r = Object.assign({}, report), events = Array.isArray(report.events) ? report.events : [];
-  // an undated event: keyed by what it says and which occurrence of that it is, counted from the oldest
-  const count = {}, held = new Set();
-  for (let i = events.length - 1; i >= 0; i--) {
-    const e = events[i];
+  const held = new Set(), list = [];
+  for (const e of events) {
     if (!e || !HOLD_KINDS.has(e.kind)) continue;
-    if (isTime(e.at)) { if (e.at > cutoff) held.add(e); continue; }
-    const k = ['ev', e.kind, e.node, e.from, e.to, e.a, e.b].join(':');
-    count[k] = (count[k] || 0) + 1;
-    if (!(await released(k + '#' + count[k]))) held.add(e);
+    if (isTime(e.at)) { eventKeys.set(e, eventKey(e)); if (e.at > cutoff) held.add(e); }
+    else list.push(e);
+  }
+  if (list.length || (undated && undated.list.length)) {
+    const sig = hash((report.nations || []).map(n => [n.id, n.nodes, n.captured24h, n.lost24h, n.capitalHeld, n.wiped]));
+    const entries = await undatedEntries(list, sig), siteNow = clock();
+    list.forEach((e, i) => { eventKeys.set(e, entries[i].id); if (siteNow - entries[i].first < HOLD_MS) held.add(e); });
   }
   if (held.size) {
     r.events = events.filter(e => !held.has(e));
@@ -125,14 +184,9 @@ async function holdReport(report) {
       else if (e.kind === 'wiped') { if (byId[e.a]) byId[e.a].wiped = false; }
     }
   }
-  if (Array.isArray(report.battles)) {
-    let battles = report.battles;
-    // the game sends closed windows only; should one still being fought slip in, it never shows while open
-    if (report.windowOpen && battles.length) { const current = Math.max(...battles.map(b => +b.window || 0)); battles = battles.filter(b => (+b.window || 0) < current); }
-    const out = [];
-    for (const b of battles) if (await released('battle:' + hash(b))) out.push(b);
-    r.battles = out;
-  }
+  // the biggest fights (closed windows only, from the game) as one table: the version first seen 10+ minutes ago, so a
+  // window's results show 10 minutes after the site first saw them (at or after its close) and the table never shrinks
+  if (Array.isArray(report.battles)) r.battles = await holdValue('battles', report.battles, []);
   if (Array.isArray(report.reports)) {
     const out = [];
     for (const x of report.reports) if (await released('aar:' + (x && x.window) + ':' + hash(x))) out.push(x);
@@ -192,11 +246,11 @@ async function holdValue(name, value, empty) {
 }
 
 module.exports = {
-  HOLD_MS, holdReport, holdFront, holdRecord, holdNight, holdValue, released, noteGameClock, gameNow, windowHot,
+  HOLD_MS, holdReport, holdFront, eventKey, makePgStore, align, holdRecord, holdNight, holdValue, released, noteGameClock, gameNow, windowHot,
   // tests: swap the store, the clock and the schedule; forget memory (a restart)
   _test: {
-    useStore(s) { store = s; seen = new Map(); versions = new Map(); ready = null; },
-    restart() { seen = new Map(); versions = new Map(); ready = null; },
+    useStore(s) { store = s; seen = new Map(); versions = new Map(); ready = null; undated = null; retryAt = 0; },
+    restart() { seen = new Map(); versions = new Map(); ready = null; undated = null; },
     setClock(fn) { clock = fn; },
     setWindows(fn) { windowsOf = fn; },
     setGameOffset(ms) { gameOffset = ms; },

@@ -69,7 +69,7 @@ async function due() {
   for (const e of (report.events || []).slice().reverse()) {
     const text = e.kind === 'capital_lost' ? `${nat(e.from)} has lost its capital` : e.kind === 'capital_retaken' ? `${nat(e.to)} has retaken its capital`
       : e.kind === 'wiped' ? `${nat(e.a)} has been wiped out` : null;
-    if (text) out.push({ key: `breaking:${e.kind}:${e.at}:${e.from || e.to || e.a}`, embed: { title: `BREAKING · ${text}`, url: `${SITE}/war`, color: 0xB5281C, description: `[The War Report](${SITE}/war) · [The map](${SITE}/map)` } });
+    if (text) out.push({ key: `breaking:${e.kind}:${isFinite(e.at) ? e.at + ':' + (e.from || e.to || e.a) : hold.eventKey(e)}`, embed: { title: `BREAKING · ${text}`, url: `${SITE}/war`, color: 0xB5281C, description: `[The War Report](${SITE}/war) · [The map](${SITE}/map)` } });
   }
   const gw = events().find(e => e.truce);
   if (gw && Date.now() / 1000 >= gw.truce.start - 3600 && Date.now() / 1000 < gw.truce.end)

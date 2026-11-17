@@ -6,6 +6,9 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 // never the real database: a fake db module before anything requires it
 require.cache[require.resolve(path.join(ROOT, 'db'))] = { id: 'db', filename: 'db', loaded: true, exports: { query: async () => ({ rows: [] }) } };
+// Mojang, faked before anything loads it (night-card, service-records and others take javaAccount at load)
+const MOJANG = { notch: { name: 'Notch', uuid: '069a79f444e94726a5befca90e38aaf5' }, jeb_: { name: 'jeb_', uuid: '853c80ef3c3749fdaa49938b674adae6' } };
+require(path.join(ROOT, 'server/minecraft')).javaAccount = async n => MOJANG[String(n).toLowerCase()] || null;
 const hold = require(path.join(ROOT, 'server/hold'));
 const T = hold._test;
 
@@ -64,11 +67,34 @@ function report(now, extra = {}) {
   siteNow += 2 * MIN;
   r = await hold.holdReport(undated());
   ok(r.owners.brittany === 'de' && r.events.length === 1, 'undated capture: shown 11 min after first seen');
-  // the game lists newest first, so a new event is put in front; occurrences are counted from the oldest
+  // the game lists newest first, so a new event is put in front; old ones drop off the end after 7 days
   r = await hold.holdReport(report(siteNow, { events: [{ kind: 'capture', node: 'brittany', from: 'de', to: 'fr' }, { kind: 'capture', node: 'brittany', from: 'fr', to: 'de' }] }));
   ok(r.events.length === 1 && r.events[0].to === 'de' && r.owners.brittany === 'de', 'a newer undated event: held, the older one stays shown');
   r = await hold.holdReport(report(siteNow, { events: [{ kind: 'capture', node: 'brittany', from: 'fr', to: 'de' }, { kind: 'capture', node: 'brittany', from: 'de', to: 'fr' }, { kind: 'capture', node: 'brittany', from: 'fr', to: 'de' }] }));
   ok(r.events.length === 1 && r.owners.brittany === 'de', 'the same undated capture again (a second occurrence): held, not taken for the first');
+
+  console.log('undated events dropping off the 7-day list (reviewer\'s case)');
+  fresh();
+  const A = () => ({ kind: 'capture', node: 'brittany', from: 'fr', to: 'de' }), B = () => ({ kind: 'capture', node: 'brittany', from: 'de', to: 'fr' });
+  const rep7 = (events, de) => report(siteNow, { owners: { brittany: events[0].to, paris: 'fr' }, events,
+    nations: [{ id: 'de', nodes: 11, captured24h: de, lost24h: de, capitalHeld: true }, { id: 'fr', nodes: 9, captured24h: de, lost24h: de, capitalHeld: true }] });
+  await hold.holdReport(rep7([A(), B(), A()], 0)); siteNow += 11 * MIN;
+  r = await hold.holdReport(rep7([A(), B(), A()], 0));
+  ok(r.events.length === 3, 'baseline: three old undated captures shown');
+  r = await hold.holdReport(rep7([A(), B()], 0));
+  ok(r.events.length === 2, 'the oldest drops off, nothing new: nothing is held again');
+  r = await hold.holdReport(rep7([A(), A(), B()], 1));
+  ok(r.events.length === 2 && r.owners.brittany === 'fr', 'old numbering bug: a new capture as an old repeat drops off: the new one is held');
+  siteNow += 11 * MIN;
+  await hold.holdReport(rep7([A(), B(), A()], 0)); siteNow += 11 * MIN;
+  ok((await hold.holdReport(rep7([A(), B(), A()], 0))).events.length === 3, 'steady list released');
+  r = await hold.holdReport(rep7([A(), B(), A()], 2));
+  ok(r.events.length === 1, 'the reviewer\'s poc: two new and two dropped, the list looks the same but the counts moved: the two newest held');
+  r = await hold.holdReport(rep7([A(), B(), A()], 2));
+  ok(r.events.length === 1, '... and they stay held on the next look (not re-released)');
+  siteNow += 11 * MIN;
+  ok((await hold.holdReport(rep7([A(), B(), A()], 2))).events.length === 3, '... shown 11 min later');
+  ok(hold.align(['a', 'b', 'a'], ['a', 'b', 'a'], true) === 0 && hold.align(['a', 'b', 'a'], ['b', 'a', 'b'], true) === 1 && hold.align([], ['a'], true) === 1, 'align: the line-ups');
 
   console.log('battles and after-action reports (no times: first seen)');
   fresh();
@@ -78,8 +104,11 @@ function report(now, extra = {}) {
   siteNow += 10 * MIN;
   r = await hold.holdReport(report(siteNow, { battles: [b4] }));
   ok(r.battles.length === 1, 'battle shown 10 min after first seen');
-  r = await hold.holdReport(report(siteNow, { windowOpen: true, battles: [b4, { window: 5, node: 'paris', attacker: 'de', defender: 'fr', deaths: 3, result: 'held' }] }));
-  ok(r.battles.length === 1 && r.battles[0].window === 4, 'window open: a battle of the current window never shows');
+  const b5 = { window: 5, node: 'paris', attacker: 'de', defender: 'fr', deaths: 300, result: 'held' };
+  r = await hold.holdReport(report(siteNow, { windowOpen: true, battles: [b5, b4] }));
+  ok(r.battles.length === 1 && r.battles[0].window === 4, 'a new window\'s fights: the table stays as it was (no shrink, nothing new)');
+  r = await hold.holdReport(report(siteNow, { windowOpen: true, battles: [b4] }));
+  ok(r.battles.length === 1 && r.battles[0].window === 4, 'window 4 still shown during the next window (the old filter hid it)');
   const aar = { window: 4, nations: [{ id: 'de', taken: 1, lost: 0, deaths: 3 }], top: [], battles: [b4] };
   r = await hold.holdReport(report(siteNow, { reports: [aar] }));
   ok(r.reports.length === 0, 'after-action report: hidden when first seen');
@@ -169,6 +198,144 @@ function report(now, extra = {}) {
   console.log('samples');
   const s = { sample: true, owners: { a: 'de' }, events: [{ at: siteNow, kind: 'capture', node: 'a', from: 'fr', to: 'de' }] };
   ok(await hold.holdReport(s) === s, 'sample report untouched');
+
+  console.log('the rate limiter');
+  {
+    const RL = require(path.join(ROOT, 'server/rate-limit'));
+    let t = 0;
+    const res = () => ({ code: 200, h: {}, set(o) { Object.assign(this.h, o); return this; }, status(c) { this.code = c; return this; }, type() { return this; }, send() { return this; } });
+    const req = (sock, xff, cf) => ({ headers: Object.assign({}, xff ? { 'x-forwarded-for': xff } : {}, cf ? { 'cf-connecting-ip': cf } : {}), socket: { remoteAddress: sock } });
+    const hit = (mw, q) => { const s = res(); let passed = false; mw(q, s, () => { passed = true; }); return passed ? 200 : s.code; };
+    let mw = RL.limit({ perMinute: 30, allPerMinute: 600, now: () => t });
+    const codes = []; for (let i = 0; i < 35; i++) codes.push(hit(mw, req('9.9.9.9')));
+    ok(codes.slice(0, 30).every(c => c === 200) && codes.slice(30).every(c => c === 429), 'per visitor: 30 a minute, then 429');
+    t += 60000; ok(hit(mw, req('9.9.9.9')) === 200, 'a minute later: allowed again');
+    mw = RL.limit({ perMinute: 30, allPerMinute: 600, now: () => t });
+    for (let i = 0; i < 620; i++) hit(mw, req('6.6.6.6'));
+    ok(hit(mw, req('1.2.3.4')) === 200, 'one visitor sending 620 requests doesn\'t lock out anyone else (refused requests don\'t count site-wide)');
+    for (let i = 0; i < 700; i++) hit(mw, req('10.0.' + (i >> 8) + '.' + (i & 255)));
+    ok(hit(mw, req('1.2.3.5')) === 429, 'site-wide cap: 600 allowed requests a minute');
+    // who the visitor is (Render: one proxy hop)
+    ok(RL.visitor(req('10.1.2.3', '203.0.113.7'), 1) === '203.0.113.7', 'behind one proxy: the address that reached it');
+    ok(RL.visitor(req('10.1.2.3', '1.1.1.1, 203.0.113.7'), 1) === '203.0.113.7', 'a made-up X-Forwarded-For entry in front is ignored');
+    ok(RL.visitor(req('10.1.2.3', '203.0.113.7', '5.5.5.5'), 1) === '203.0.113.7', 'a made-up CF-Connecting-IP from a non-Cloudflare peer is ignored');
+    ok(RL.visitor(req('10.1.2.3', '1.1.1.1, 162.158.1.2', '198.51.100.9'), 1) === '198.51.100.9', 'through Cloudflare (peer in its ranges): CF-Connecting-IP');
+    ok(RL.visitor(req('10.1.2.3', '2606:4700::1', '2001:db8::5'), 1) === '2001:db8::5', 'Cloudflare over IPv6 too');
+    ok(RL.visitor(req('::ffff:198.51.100.4', '1.1.1.1', '5.5.5.5'), 0) === '198.51.100.4', 'no proxy (0 hops): the connection itself, headers ignored');
+    mw = RL.limit({ perMinute: 30, now: () => t });
+    for (let i = 0; i < 40; i++) hit(mw, req('10.1.2.3', '203.0.113.7', 'r' + i));
+    const old = process.env.TRUST_PROXY_HOPS; process.env.TRUST_PROXY_HOPS = '1';
+    let n429 = 0; for (let i = 0; i < 40; i++) if (hit(mw, req('10.1.2.3', '203.0.113.8', '7.7.7.' + i)) === 429) n429++;
+    if (old === undefined) delete process.env.TRUST_PROXY_HOPS; else process.env.TRUST_PROXY_HOPS = old;
+    ok(n429 === 10, 'rotating a made-up CF-Connecting-IP doesn\'t get past the per-visitor limit');
+  }
+
+  console.log('Cache-Control for signed-in visitors (app.js)');
+  {
+    const { privateWhenSignedIn } = require(path.join(ROOT, 'server/private-cache'));
+    const mk = () => { const h = {}; return { h, setHeader(n, v) { h[n.toLowerCase()] = v; } }; };
+    let res = mk(); privateWhenSignedIn({ session: { user: { id: 1 } } }, res, () => {}); res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=86400');
+    ok(res.h['cache-control'] === 'private, max-age=60', 'signed in: public becomes private (and no stale-while-revalidate)');
+    res = mk(); privateWhenSignedIn({ session: {} }, res, () => {}); res.setHeader('Cache-Control', 'public, max-age=60');
+    ok(res.h['cache-control'] === 'public, max-age=60', 'signed out: unchanged');
+    res = mk(); privateWhenSignedIn({ session: { user: { id: 1 } } }, res, () => {}); res.setHeader('Content-Type', 'public');
+    ok(res.h['content-type'] === 'public', 'other headers untouched');
+  }
+
+  console.log('war-feed: one fetch at a time, failures remembered, the game\'s clock learned');
+  {
+    fresh();
+    const feed = require(path.join(ROOT, 'server/war-feed'));
+    const realFetch = global.fetch; let fetches = 0, failing = false;
+    const OFFSET = 37 * MIN; // the game's clock 37 minutes ahead of the site's
+    global.fetch = async () => { fetches++; await new Promise(r => setTimeout(r, 20)); if (failing) throw new Error('down');
+      return { ok: true, status: 200, json: async () => ({ ok: true, now: siteNow + OFFSET, nations: [], owners: {}, events: [], battles: [], lines: [] }) }; };
+    process.env.WAR_FEED_URL = 'https://feed.invalid';
+    await Promise.all([feed.report(), feed.report(), feed.report()]);
+    ok(fetches === 1, 'three visitors at once: one fetch');
+    ok(hold.gameNow() === siteNow + OFFSET, 'the game\'s clock learned from the report (offset 37 min)');
+    const card = to => ({ name: 'Notch', nation: 'germany', window: 4, to, kills: 1 });
+    ok(await hold.holdNight('u', card(siteNow + 30 * MIN)) === null, 'a card whose window ended 7 game-minutes ago (30 site-minutes ahead): held');
+    ok(!!(await hold.holdNight('u', card(siteNow + 20 * MIN))), 'ended 17 game-minutes ago: shown');
+    failing = true; fetches = 0;
+    let errs = 0; for (let i = 0; i < 3; i++) { try { await feed.borders(); } catch (e) { errs++; } }
+    ok(fetches === 1 && errs === 3, 'game down: one fetch, then the failure is remembered (15 s)');
+    global.fetch = realFetch; delete process.env.WAR_FEED_URL; T.setGameOffset(0);
+  }
+
+  console.log('service records and night cards, end to end');
+  {
+    fresh();
+    const comp = require(path.join(ROOT, 'server/companion'));
+    const SR = require(path.join(ROOT, 'server/service-records')), NC = require(path.join(ROOT, 'server/night-card'));
+    const clear = () => { SR._clearCache(); NC._clearCache(); };
+    let rec = { name: 'Notch', nation: 'germany', alive: true, rank: 'Corporal', regiment: 'BEF', class: 'Rifleman', kills: 5, captures: 2, deaths: 3, daysSurvived: 3, medalIds: [] };
+    const cardNow = () => ({ name: 'Notch', nation: 'germany', window: 4, from: siteNow - 2 * 86400e3, to: siteNow - 2 * 86400e3 + 180 * MIN,
+      rank: rec.alive ? rec.rank : null, regiment: rec.alive ? rec.regiment : '', foughtAt: ['ypres'], kills: 1, medals: [], deaths: 2 }); // the game: CURRENT rank
+    comp.isLive = () => true;
+    comp.publicGet = async p => p.startsWith('/api/public/records/') ? rec : p.startsWith('/api/public/night/') ? cardNow() : null;
+    comp.me = async id => id === 'owner' ? { uuid: '069a79f4-44e9-4726-a5be-fca90e38aaf5' } : null;
+    let found = await SR.lookup('Notch');
+    ok(found.record.pending && found.record.nationName === 'Germany' && found.record.kills === undefined, 'first lookup: pending, name and nation only');
+    const ejs = require(path.join(ROOT, 'node_modules/ejs'));
+    const html = await ejs.renderFile(path.join(ROOT, 'views/new/soldier.ejs'), { q: 'Notch', rec: found.record, account: found.account, fights: [],
+      t: k => k, lp: '', lang: 'en', user: null, isOwner: false, isAdmin: false, isStaff: false, media: {}, _url: '/soldier/Notch', langSwitchUrl: '/fr/soldier/Notch' });
+    ok(/Records show 10 minutes behind; check back shortly/.test(html) && !/Kills/.test(html) && !/Corporal/.test(html), 'the page: "Records show 10 minutes behind", no stats, no rank');
+    let c = (await NC.lookup('Notch', 4, null)).card;
+    ok(c && c.rank === undefined && c.regiment === undefined, 'someone else\'s card while the record is pending: no rank, no regiment');
+    siteNow += 11 * MIN; clear();
+    c = (await NC.lookup('Notch', 4, null)).card;
+    ok(c.rank === 'Corporal' && c.regiment === 'BEF', '11 min later: rank and regiment from the held record');
+    rec = Object.assign({}, rec, { alive: false, rank: null, regiment: '', deaths: 4 }); // he dies
+    siteNow += 1 * MIN; clear();
+    c = (await NC.lookup('Notch', 4, null)).card;
+    ok(c.rank === 'Corporal' && c.regiment === 'BEF' && c.deaths === undefined, 'he died a minute ago: someone else\'s card still shows his rank (no death signal)');
+    found = await SR.lookup('Notch');
+    ok(found.record.alive === true && found.record.rank === 'Corporal', '... and so does his service record');
+    c = (await NC.lookup('Notch', 4, 'owner')).card;
+    ok(c.own && c.rank === null && c.deaths === 2, 'his own card stays live');
+    siteNow += 11 * MIN; clear();
+    c = (await NC.lookup('Notch', 4, null)).card;
+    ok(c.rank === undefined, '10 min after his death: no rank on the card');
+  }
+
+  console.log('the database store (pg temp tables, dropped with the connection)');
+  if (process.env.DATABASE_URL || require('fs').existsSync(path.join(ROOT, '.env'))) {
+    require(path.join(ROOT, 'node_modules/dotenv')).config({ path: path.join(ROOT, '.env') });
+    const { Client } = require(path.join(ROOT, 'node_modules/pg'));
+    const client = new Client({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+    try {
+      await client.connect();
+      const st = hold.makePgStore({ db: client, prefix: 'pg_temp.s82t_' });
+      T.useStore(st);
+      const t0 = siteNow;
+      ok(!(await hold.released('pg:key')), 'pg: a new key is held');
+      await new Promise(r => setTimeout(r, 200));
+      siteNow += 11 * MIN; T.restart();
+      ok(await hold.released('pg:key'), 'pg: after a "restart", the first-seen time comes back from the table');
+      await hold.holdRecord('pgu', { a: 1 }); await new Promise(r => setTimeout(r, 200));
+      siteNow += 11 * MIN; T.restart();
+      ok((await hold.holdRecord('pgu', { a: 2 })).record.a === 1, 'pg: record versions saved and read back');
+      await new Promise(r => setTimeout(r, 200));
+      const rows = (await client.query(`SELECT count(*)::int AS n FROM pg_temp.s82t_hold_versions WHERE name = 'rec:pgu'`)).rows[0].n;
+      ok(rows === 2, 'pg: versions table holds the released and the newer version');
+      ok(t0 > 0, 'pg: done');
+    } catch (e) { ok(false, 'pg store: ' + e.message); }
+    finally { await client.end().catch(() => {}); }
+    const slow = hold.makePgStore({ db: { query: () => new Promise(() => {}) } });
+    T.useStore(slow);
+    const t1 = Date.now(); const rel = await hold.released('slow:key');
+    ok(!rel && Date.now() - t1 < 3000, 'a hanging database: 2 s timeout, fails closed (held)');
+  } else console.log('  skip (no DATABASE_URL)');
+  {
+    let calls = 0, failing = true;
+    T.useStore({ async init() { calls++; if (failing) throw new Error('down'); return [['k', siteNow - 20 * MIN]]; }, async saveSeen() {}, async loadVersions() { return []; }, async saveVersion() {}, async dropVersions() {} });
+    ok(!(await hold.released('k')), 'store down at start: held');
+    failing = false; siteNow += 30 * 1000;
+    await hold.released('k'); ok(calls === 1, 'not retried before a minute');
+    siteNow += 31 * 1000;
+    ok(await hold.released('k') && calls === 2, 'retried after a minute; the database\'s older first-seen time wins');
+  }
 
   console.log('the Discord poster');
   fresh();
