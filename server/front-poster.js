@@ -6,6 +6,7 @@
 const db = require('../db');
 const access = require('./access');
 const feed = require('./war-feed');
+const hold = require('./hold');
 const NATIONS = require('./nations').NATIONS;
 const events = require('./cue-events');
 
@@ -29,7 +30,11 @@ function morningOf(date) {
 
 // what should be posted now, oldest first: [{ key, embed }]
 async function due() {
-  const [report, front, m] = await Promise.all([feed.report(), feed.front(), require('./campaign-map').loadPublic().then(JSON.parse)]);
+  // S82: the 10-minute hold (server/hold.js), as on the site: a capital falls or a nation is wiped only 10 minutes after
+  // it happened, and a window's after-action report (battles, the game's reports) only 10 minutes after the site first
+  // saw it, which is at or after the window's close, so its last captures are in it and no longer held
+  const [rawReport, rawFront, m] = await Promise.all([feed.report(), feed.front(), require('./campaign-map').loadPublic().then(JSON.parse)]);
+  const [report, front] = await Promise.all([hold.holdReport(rawReport), hold.holdFront(rawFront)]);
   const names = Object.fromEntries(m.territories.map(t => [t.id, t.name])), node = id => names[id] || id;
   const out = [];
   // S49: the paper is a morning paper: each edition goes out from 08:00 UK time on its own date, and an edition more

@@ -5,15 +5,28 @@ const campaignMap = require('./campaign-map');
 
 // read when needed, not at load: the address may be filled from site settings at start (server/game-conn.js)
 const liveBase = () => process.env.WAR_FEED_URL ? process.env.WAR_FEED_URL.replace(/\/$/, '') : null;
-const cache = {};
+const cache = {}, inflight = {}, failed = {};
+// One fetch per path at a time (everyone waiting shares it), a minute's cache, and a failure remembered for 15 seconds
+// so a slow or down game isn't called again for every visitor (S82).
 async function live(path) {
   const hit = cache[path];
   if (hit && Date.now() - hit.at < 60 * 1000) return hit.body;
-  const r = await fetch(liveBase() + path, { headers: { 'X-Greatwar-Secret': process.env.WAR_FEED_SECRET || '' }, signal: AbortSignal.timeout(6000) });
-  if (!r.ok) throw new Error('war feed ' + r.status);
-  const body = await r.json();
-  cache[path] = { at: Date.now(), body };
-  return body;
+  const bad = failed[path];
+  if (bad && Date.now() - bad.at < 15 * 1000) throw bad.error;
+  if (inflight[path]) return inflight[path];
+  inflight[path] = (async () => {
+    try {
+      const r = await fetch(liveBase() + path, { headers: { 'X-Greatwar-Secret': process.env.WAR_FEED_SECRET || '' }, signal: AbortSignal.timeout(6000) });
+      if (!r.ok) throw new Error('war feed ' + r.status);
+      const body = await r.json();
+      if (body && typeof body.now === 'number') require('./hold').noteGameClock(body.now); // the game's clock, for things it dates
+      cache[path] = { at: Date.now(), body };
+      delete failed[path];
+      return body;
+    } catch (e) { failed[path] = { at: Date.now(), error: e }; throw e; }
+    finally { delete inflight[path]; }
+  })();
+  return inflight[path];
 }
 
 // ---------------------------------------------------------------- sample data

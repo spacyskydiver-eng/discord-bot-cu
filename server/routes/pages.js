@@ -658,45 +658,16 @@ router.get('/map', (req, res) => {
   res.render('new/admin-campaign-map', { pub: true, v: ASSET_V, dataUrl: '/map/data.json', shareUrl: '', current: {}, msg: '', bad: false });
 });
 // the war for people who aren't online: the War Report and the Daily Front (server/war-feed.js)
-// No free intel (S81 review): what the maps already do, for the War Report and the Daily Front too. Captures and the like
-// newer than 10 minutes are held back (with the counts and owners they changed), battles of a window still being
-// fought are hidden, and so are Daily Front articles newer than 10 minutes. Live data only; the sample is left alone.
-const HOLD_KINDS = new Set(['capture', 'capital_lost', 'capital_retaken', 'wiped']);
-function holdBack(report, front) {
-  if (!report || report.sample) return { report, front };
-  const now = report.now || Date.now(), cutoff = now - 10 * 60 * 1000;
-  const r = Object.assign({}, report), held = (report.events || []).filter(e => HOLD_KINDS.has(e.kind) && (e.at || 0) > cutoff);
-  if (held.length) {
-    r.events = (report.events || []).filter(e => !held.includes(e));
-    r.owners = Object.assign({}, report.owners || {});
-    r.nations = (report.nations || []).map(n => Object.assign({}, n));
-    const byId = Object.fromEntries(r.nations.map(n => [n.id, n]));
-    held.slice().sort((a, b) => b.at - a.at).forEach(e => {
-      if (e.kind !== 'capture') return;
-      if (e.node) r.owners[e.node] = e.from;
-      if (byId[e.to]) { byId[e.to].nodes = (byId[e.to].nodes || 0) - 1; byId[e.to].captured24h = Math.max(0, (byId[e.to].captured24h || 0) - 1); }
-      if (byId[e.from]) { byId[e.from].nodes = (byId[e.from].nodes || 0) + 1; byId[e.from].lost24h = Math.max(0, (byId[e.from].lost24h || 0) - 1); }
-    });
-    held.filter(e => e.kind === 'capital_lost' && byId[e.from]).forEach(e => { byId[e.from].capitalHeld = true; });
-    held.filter(e => e.kind === 'wiped' && byId[e.a]).forEach(e => { byId[e.a].wiped = false; });
-  }
-  if (report.windowOpen && Array.isArray(report.battles) && report.battles.length) {
-    const current = Math.max(...report.battles.map(b => +b.window || 0));
-    r.battles = report.battles.filter(b => (+b.window || 0) < current);
-  }
-  let f = front;
-  if (front && Array.isArray(front.editions)) {
-    f = Object.assign({}, front, { editions: front.editions.map(ed => Array.isArray(ed.articles)
-      ? Object.assign({}, ed, { articles: ed.articles.filter(a => !(a.at > cutoff)) }) : ed).filter(ed => !(ed.at > cutoff)) });
-  }
-  return { report: r, front: f };
-}
-
+// No free intel (S81 review, S82): the 10-minute hold for the War Report and the Daily Front lives in server/hold.js
+// (holdReport, holdFront), shared with the maps, the War Office and the Discord poster. Live data only; the sample is
+// left alone.
+const hold = require('../hold');
+const limitGame = require('../rate-limit').limit(); // S82: routes that call the game or Mojang for each visitor
 async function warPage(req, res, next, page) {
   try {
     const feed = require('../war-feed'), N = require('../nations').NATIONS;
     const [rawReport, rawFront, m] = await Promise.all([feed.report(), page === 'front' ? feed.front() : null, require('../campaign-map').loadPublic().then(JSON.parse)]);
-    const { report, front } = holdBack(rawReport, rawFront);
+    const [report, front] = await Promise.all([hold.holdReport(rawReport), hold.holdFront(rawFront)]);
     const names = Object.fromEntries(m.territories.map(t => [t.id, t.name]));
     const nat = id => { const n = N.find(x => x.id === id) || { name: id, slug: '', flag: '' }; return Object.assign({ short: n.name.replace(/^The /, '') }, n); };
     const nodeName = id => names[id] || id;
@@ -831,15 +802,14 @@ router.post('/front/public', async (req, res, next) => {
 });
 
 // Who holds each node now, from the game's public war feed, or null until the feed is live (never sample data). No free
-// intel: a capture only shows 10 minutes after it happened, whether or not its window has closed since (a capture in a
+// intel (server/hold.js): a capture only shows 10 minutes after it happened, whether or not its window has closed since (a capture in a
 // window's last minutes isn't shown at the close).
 async function delayedOwners() {
   const feed = require('../war-feed');
   if (!feed.isLive()) return null;
   try {
-    const r = await feed.report(), own = Object.assign({}, r.owners || {});
-    (r.events || []).filter(e => e.kind === 'capture' && e.at > (r.now || Date.now()) - 10 * 60 * 1000).sort((x, y) => y.at - x.at).forEach(e => { own[e.node] = e.from; });
-    return own;
+    const r = await hold.holdReport(await feed.report()); // S82: the one hold (server/hold.js), undated captures included
+    return Object.assign({}, r.owners || {});
   } catch (e) { console.error('[map] war feed', e.message); return null; }
 }
 
@@ -1040,7 +1010,7 @@ async function nightPage(req, res, next) {
     const nc = require('../night-card');
     const found = await nc.lookup(q, w, req.session && req.session.user ? req.session.user.id : null);
     if (!found) return res.status(404).render('new/night', { q, card: null, notice: `"${q}" isn't a Minecraft Java account.` });
-    if (!found.card) return res.status(404).render('new/night', { q, card: null, notice: `No card yet for ${found.account.name}${w ? ' in window ' + w : ''}.` });
+    if (!found.card) return res.status(404).render('new/night', { q, card: null, notice: `No card yet for ${found.account.name}${w ? ' in window ' + w : ''}. Cards show 10 minutes after their war window closes.` });
     res.set('Cache-Control', found.card.own ? 'private, no-store' : 'public, max-age=60');
     res.render('new/night', { q: found.account.name, card: found.card, summary: nc.summary(found.card), path: req.path });
   } catch (e) {
@@ -1048,10 +1018,10 @@ async function nightPage(req, res, next) {
     next(e);
   }
 }
-router.get('/night/:name', nightPage);
-router.get('/night/:name/:window', nightPage);
+router.get('/night/:name', limitGame, nightPage);
+router.get('/night/:name/:window', limitGame, nightPage);
 
-router.get('/soldier/:name', async (req, res, next) => {
+router.get('/soldier/:name', limitGame, async (req, res, next) => {
   const q = String(req.params.name || '').trim();
   try {
     const found = await require('../service-records').lookup(q);
@@ -1063,7 +1033,7 @@ router.get('/soldier/:name', async (req, res, next) => {
     // notable fights: Daily Front stories that name them
     let fights = [];
     try {
-      const front = await require('../war-feed').front();
+      const front = await hold.holdFront(await require('../war-feed').front());
       const re = new RegExp('\\b' + found.account.name.replace(/[^\w]/g, '') + '\\b', 'i');
       (front.editions || []).forEach(ed => (ed.articles || []).forEach(a => { if (re.test(a.title + ' ' + a.body)) fights.push({ day: ed.day, title: a.title, body: a.body }); }));
     } catch (e) { /* the paper isn't there: no fights listed */ }

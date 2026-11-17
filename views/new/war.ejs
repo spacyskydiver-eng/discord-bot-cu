@@ -68,7 +68,7 @@
       <span class="<%= cls %>"><%= nat(r.a).short %> <%= r.state === 'ally' ? '+' : r.state === 'war' ? '×' : '→' %> <%= nat(r.b).short %><%= r.state === 'war_pending' ? ' (war from the next window)' : r.state === 'ally' ? ' (allied)' : ' (at war)' %></span>
     <% }) %><% if (!report.relations.length) { %><span>Every nation is at peace.</span><% } %></div></div>
   <div class="wr-box"><h2>The last few days</h2><ul class="wr-list">
-    <% report.events.slice(0, 12).forEach(e => { %><li><time datetime="<%= new Date(e.at).toISOString() %>"><%= new Date(e.at).toLocaleString('en-GB', { weekday: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' }) %></time><span><%= said(e) %></span></li><% }) %>
+    <% report.events.slice(0, 12).forEach(e => { %><li><% if (typeof e.at === 'number' && isFinite(e.at)) { %><time datetime="<%= new Date(e.at).toISOString() %>"><%= new Date(e.at).toLocaleString('en-GB', { weekday: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' }) %></time><% } else { %><time></time><% } %><span><%= said(e) %></span></li><% }) %>
   </ul></div>
   <% if (report.battles.length) { %><div class="wr-box"><h2>The biggest fights</h2>
     <table class="wr-table"><thead><tr><th>Node</th><th>Attacker</th><th>Defender</th><th>Deaths</th><th class="hide-sm">Result</th></tr></thead><tbody>

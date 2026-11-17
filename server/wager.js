@@ -35,7 +35,9 @@ const nation = id => {
 };
 
 async function view() {
-  const b = await board();
+  let b = await board();
+  // S82: the board changes when a window closes (the last window's results): it shows 10 minutes later (server/hold.js)
+  if (!b.sample) b = await require('./hold').holdValue('wager', b, { season: b.season || 1, table: [], last: [], nodes: 0 });
   return { sample: !!b.sample, season: b.season || 1, locked: !!b.locked, nodes: b.nodes || 0,
     table: (b.table || []).map(t => ({ ...t, nation: nation(t.nation) })),
     last: (b.last || []).map(l => ({ node: l.node, before: nation(l.before), after: nation(l.after), held: l.before === l.after })) };

@@ -1,5 +1,5 @@
 <% const r = locals.rec, acc = locals.account; %>
-<%- include('partials/head', { publicBg: true, pageTitle: r ? acc.name + (r.rank ? ', ' + r.rank : '') + (r.nationName ? ' of ' + r.nationName : '') : 'Service records', pageDescription: r ? `${acc.name}'s service record in The Great War: ${r.kills} kills, ${r.captures} captures, ${r.daysSurvived} days served${r.medalList.length ? ', ' + r.medalList.map(m => m.title).join(', ') : ''}.` : 'Look up any soldier\'s service record in The Great War.' }) %>
+<%- include('partials/head', { publicBg: true, pageTitle: r ? acc.name + (r.rank ? ', ' + r.rank : '') + (r.nationName ? ' of ' + r.nationName : '') : 'Service records', pageDescription: r && r.pending ? `${acc.name}${r.nationName ? ' of ' + r.nationName : ''}, The Great War. Records show 10 minutes behind.` : r ? `${acc.name}'s service record in The Great War: ${r.kills} kills, ${r.captures} captures, ${r.daysSurvived} days served${r.medalList.length ? ', ' + r.medalList.map(m => m.title).join(', ') : ''}.` : 'Look up any soldier\'s service record in The Great War.' }) %>
 <%- include('partials/header') %>
 <style>
 .sr-wrap { max-width: 820px; margin: 0 auto; padding-bottom: 80px; }
@@ -37,6 +37,10 @@
     <article class="sr-paper">
       <div class="sr-mast"><div><small>Service record · The Great War, 1914</small><h1><%= acc.name %></h1></div>
         <% if (r.flag) { %><img class="sr-flag" src="/img/flags/<%= r.flag %>.png" alt="The flag of <%= r.nationName %>"><% } %></div>
+      <% if (r.pending) { %>
+      <div class="sr-grid"><div><span>Nation</span><b><% if (r.nationPage) { %><a href="/nations/<%= r.nationPage %>"><%= r.nationName %></a><% } else { %>None<% } %></b></div></div>
+      <p>Records show 10 minutes behind; check back shortly.</p>
+      <% } else { %>
       <div class="sr-grid">
         <div><span>Nation</span><b><% if (r.nationPage) { %><a href="/nations/<%= r.nationPage %>"><%= r.nationName %></a><% } else { %>None<% } %></b></div>
         <div><span>Rank</span><b><% if (r.rankIcon) { %><img src="/img/career/<%= r.rankIcon %>.png" alt=""><% } %><%= r.rank || (r.alive ? '—' : 'Fallen') %></b></div>
@@ -55,6 +59,7 @@
       <p><a href="/night/<%= encodeURIComponent(acc.name) %>">Their last night at the front</a></p>
       <div class="sr-h">In the Daily Front</div>
       <% if (fights.length) { fights.forEach(f => { %><p><b><%= f.title %></b> (day <%= f.day %>). <%= f.body %></p><% }) } else { %><p>Not in the paper yet.</p><% } %>
+      <% } %>
     </article>
   <% } else if (!locals.notice) { %><p class="sr-none">Look up any soldier by their Minecraft name: nation, rank, medals and their part in the war.</p><% } %>
 </div></main>

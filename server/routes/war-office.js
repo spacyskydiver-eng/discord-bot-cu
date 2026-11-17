@@ -21,13 +21,14 @@ async function page(req, res, error) {
   const ev = require('../cue-events')().find(e => e.windows) || { windows: [] };
   const next = ev.windows.find(w => w.end > Date.now() / 1000) || null;
   let front = null, standing = null;
-  try { const f = await require('../war-feed').front(); front = (f.editions || [])[0] || null; } catch (e) { /* no paper */ }
+  // the paper on the 10-minute hold (server/hold.js); the player's own nation's standing is live, as in game (S82 ruling)
+  try { const f = await require('../hold').holdFront(await require('../war-feed').front()); front = (f.editions || [])[0] || null; } catch (e) { /* no paper */ }
   try { const r = await require('../war-feed').report(); standing = nation ? (r.nations || []).find(n => n.id === nation.id) || null : null; } catch (e) { /* no report */ }
   const alerts = user && v && !v.sample ? await require('../call-to-line').settings(user.id) : null; // S39
   res.render('new/war-office', { v, nation, next, front, standing, alerts, error: error || null });
 }
 router.get('/war-office', wrap((req, res) => page(req, res)));
-router.post('/war-office/link', origin, wrap(async (req, res) => {
+router.post('/war-office/link', origin, require('../rate-limit').limit({ perMinute: 10 }), wrap(async (req, res) => {
   if (!req.session.user) return res.redirect('/auth/discord?return=/war-office');
   try { await comp.link(req.session.user, req.body.code); res.redirect('/war-office'); }
   catch (e) { if (e instanceof comp.CompanionError) return page(req, res, e.message); throw e; }

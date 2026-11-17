@@ -6,6 +6,7 @@ const { javaAccount } = require('./minecraft');
 const NATIONS = require('./nations').NATIONS;
 const companion = require('./companion');
 const { GAME_IDS } = require('./nation-roles');
+const hold = require('./hold');
 
 // read when needed, not at load: the address may be filled from site settings at start (server/game-conn.js)
 const liveBase = () => process.env.PROFILE_URL ? process.env.PROFILE_URL.replace(/\/$/, '') : null;
@@ -49,25 +50,17 @@ function sample(name) {
 }
 
 // the record for a Minecraft name: { account, record } or null when the name isn't a Java account
-// Deaths go public on the same 10-minute hold as the maps and the War Report (head's ruling, 17 Nov): a soldier who died
-// in the last 10 minutes still shows as they were. The game's diedAt (ms) is used when the record has it; otherwise the
-// time this site first saw them dead. The last view of each soldier taken while alive is kept to show meanwhile.
-const HOLD_MS = 10 * 60 * 1000;
-const lastAlive = new Map(), firstSeenDead = new Map();
-function holdDeath(uuid, record) {
-  if (!record || record.sample) return record;
-  const now = Date.now();
-  if (record.alive !== false) {
-    lastAlive.set(uuid, { at: now, record });
-    firstSeenDead.delete(uuid);
-    return record;
-  }
-  if (!firstSeenDead.has(uuid)) firstSeenDead.set(uuid, now);
-  const died = typeof record.diedAt === 'number' ? record.diedAt : firstSeenDead.get(uuid);
-  if (now - died >= HOLD_MS) return record;
-  const prev = lastAlive.get(uuid);
-  // without an earlier view, show the record as alive with what can't have changed (name, nation, medals so far)
-  return prev ? prev.record : Object.assign({}, record, { alive: true, deaths: Math.max(0, (record.deaths || 0) - 1) });
+// S82: the whole record goes public on the 10-minute hold (server/hold.js), not just deaths: the page shows the newest
+// version of the record the site first saw at least 10 minutes ago. With none that old yet (the first lookup), only the
+// name and nation (record.pending) and "check back shortly", never live numbers.
+const gameCache = new Map(), GAME_CACHE_MAX = 5000;
+async function cachedGet(key, get) {
+  const hit = gameCache.get(key);
+  if (hit && Date.now() - hit.at < 60 * 1000) return hit.body;
+  const body = await get();
+  gameCache.delete(key); gameCache.set(key, { at: Date.now(), body });
+  if (gameCache.size > GAME_CACHE_MAX) gameCache.delete(gameCache.keys().next().value);
+  return body;
 }
 
 async function lookup(name) {
@@ -77,16 +70,17 @@ async function lookup(name) {
   // S-own-12: the game's career export when the web API is set (deaths, medal ids, regiment); else the profile address; else a sample
   let record;
   if (companion.isLive()) {
-    try {
-      record = await companion.publicGet(`/api/public/records/${dashed(uuid)}`);
-    } catch (e) {
-      if (!/ 404$/.test(e.message)) throw e;
-      record = null; // no record yet
-    }
+    record = await cachedGet('rec:' + uuid, async () => {
+      try { return await companion.publicGet(`/api/public/records/${dashed(uuid)}`); }
+      catch (e) { if (!/ 404$/.test(e.message)) throw e; return null; } // no record yet
+    });
     if (record && Array.isArray(record.medalIds)) record = Object.assign({}, record, { medals: record.medalIds });
-    record = holdDeath(uuid, record);
   } else {
     record = liveBase() ? await live(uuid) : sample(acc.name);
+  }
+  if (record && !record.sample) {
+    const held = await hold.holdRecord(uuid, record);
+    record = held.pending ? { pending: true, name: record.name, nation: record.nation } : held.record;
   }
   if (record) {
     const nid = GAME_IDS[record.nation] || record.nation;
@@ -103,8 +97,10 @@ async function lookup(name) {
 /** S-own-12: soldiers whose name starts with q, from the game's export (empty until the web API is set). */
 async function search(q) {
   if (!companion.isLive() || !q) return [];
-  try { const r = await companion.publicGet(`/api/public/records?q=${encodeURIComponent(q.slice(0, 16))}&limit=20`); return ((r && r.players) || []).map(p => ({ name: p.name, uuid: p.uuid, nation: p.nation })); } // no rank: the game sends none for the dead, which would show a death at once
-  catch (e) { return []; }
+  try {
+    const r = await cachedGet('q:' + q.slice(0, 16).toLowerCase(), () => companion.publicGet(`/api/public/records?q=${encodeURIComponent(q.slice(0, 16))}&limit=20`));
+    return ((r && r.players) || []).map(p => ({ name: p.name, uuid: p.uuid, nation: p.nation })); // names and nations only: nothing a battle changes
+  } catch (e) { return []; }
 }
 
 module.exports = { lookup, search, isLive: () => !!liveBase() || companion.isLive(), MEDALS, RANKS };

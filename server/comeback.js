@@ -13,6 +13,8 @@ async function rallying() {
   try {
     const b = await companion.publicGet('/api/public/comeback');
     ids = (b.rallying || []).map(r => GAME_IDS[r.nation] || r.nation);
+    // S82: a rally starts when a window closes: shown 10 minutes later (server/hold.js)
+    ids = await require('./hold').holdValue('rallying', ids.slice().sort(), []);
   } catch (e) { ids = []; }
   cache = { at: Date.now(), ids };
   return ids;

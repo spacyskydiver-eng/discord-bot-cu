@@ -7,6 +7,7 @@ const { javaAccount } = require('./minecraft');
 const companion = require('./companion');
 const NATIONS = require('./nations').NATIONS;
 const { GAME_IDS } = require('./nation-roles');
+const hold = require('./hold');
 
 const dashed = u => u.replace(/-/g, '').replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/, '$1-$2-$3-$4-$5');
 const NODES = ['Verdun', 'Ypres', 'the Marne', 'Liège', 'Namur', 'Lille', 'Arras', 'Mons'];
@@ -20,6 +21,22 @@ function sample(name, window) {
     kills: h[6] % 7, medals: h[7] % 3 ? [] : ['Held the Line'], deaths: h[8] % 3 };
 }
 
+// S82: the game's cards and the viewer's own /api/me are kept a minute, so a visitor can't make the site call the game
+// for every request. A card shows only once its window has ended and 10 minutes have passed (server/hold.js); while the
+// latest window's card is held, the one before it shows instead.
+const cache = new Map(), CACHE_MAX = 5000;
+async function cached(key, get) {
+  const hit = cache.get(key);
+  if (hit && Date.now() - hit.at < 60 * 1000) return hit.body;
+  const body = await get();
+  cache.delete(key); cache.set(key, { at: Date.now(), body });
+  if (cache.size > CACHE_MAX) cache.delete(cache.keys().next().value);
+  return body;
+}
+const gameCard = (uuid, window) => cached(`night:${uuid}:${window}`, async () => {
+  try { return await companion.publicGet(`/api/public/night/${uuid}${window ? '?window=' + window : ''}`); } catch (e) { return null; }
+});
+
 /** The card for a Minecraft name and window (0 = the latest), with `own` when the viewer is that soldier. */
 async function lookup(name, window, viewerDiscordId) {
   const acc = await javaAccount(name);
@@ -27,13 +44,16 @@ async function lookup(name, window, viewerDiscordId) {
   const uuid = dashed(acc.uuid.replace(/-/g, '').toLowerCase());
   let card;
   if (companion.isLive()) {
-    try { card = await companion.publicGet(`/api/public/night/${uuid}${window ? '?window=' + window : ''}`); } catch (e) { card = null; }
+    const raw = await gameCard(uuid, window);
+    card = await hold.holdNight(uuid, raw);
+    // the latest window is still being fought (or just closed): the one before it, if that one may show
+    if (!card && raw && !window && +raw.window > 1) card = await hold.holdNight(uuid, await gameCard(uuid, +raw.window - 1));
   } else card = sample(acc.name, window);
   if (!card) return { account: { name: acc.name, uuid }, card: null };
   let own = false;
   if (viewerDiscordId) {
     if (card.sample) own = false;
-    else { try { const me = await companion.me(viewerDiscordId); own = !!(me && String(me.uuid).replace(/-/g, '') === uuid.replace(/-/g, '')); } catch (e) { own = false; } }
+    else { try { const me = await cached('me:' + viewerDiscordId, () => companion.me(viewerDiscordId)); own = !!(me && String(me.uuid).replace(/-/g, '') === uuid.replace(/-/g, '')); } catch (e) { own = false; } }
   }
   const nid = GAME_IDS[card.nation] || card.nation, nation = NATIONS.find(x => x.id === nid) || null;
   const out = Object.assign({}, card, { nationName: nation ? nation.name.replace(/^The /, '') : '', flag: nation ? nation.flag : null, own });
