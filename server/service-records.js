@@ -49,6 +49,27 @@ function sample(name) {
 }
 
 // the record for a Minecraft name: { account, record } or null when the name isn't a Java account
+// Deaths go public on the same 10-minute hold as the maps and the War Report (head's ruling, 17 Nov): a soldier who died
+// in the last 10 minutes still shows as they were. The game's diedAt (ms) is used when the record has it; otherwise the
+// time this site first saw them dead. The last view of each soldier taken while alive is kept to show meanwhile.
+const HOLD_MS = 10 * 60 * 1000;
+const lastAlive = new Map(), firstSeenDead = new Map();
+function holdDeath(uuid, record) {
+  if (!record || record.sample) return record;
+  const now = Date.now();
+  if (record.alive !== false) {
+    lastAlive.set(uuid, { at: now, record });
+    firstSeenDead.delete(uuid);
+    return record;
+  }
+  if (!firstSeenDead.has(uuid)) firstSeenDead.set(uuid, now);
+  const died = typeof record.diedAt === 'number' ? record.diedAt : firstSeenDead.get(uuid);
+  if (now - died >= HOLD_MS) return record;
+  const prev = lastAlive.get(uuid);
+  // without an earlier view, show the record as alive with what can't have changed (name, nation, medals so far)
+  return prev ? prev.record : Object.assign({}, record, { alive: true, deaths: Math.max(0, (record.deaths || 0) - 1) });
+}
+
 async function lookup(name) {
   const acc = await javaAccount(name);
   if (!acc) return null;
@@ -63,6 +84,7 @@ async function lookup(name) {
       record = null; // no record yet
     }
     if (record && Array.isArray(record.medalIds)) record = Object.assign({}, record, { medals: record.medalIds });
+    record = holdDeath(uuid, record);
   } else {
     record = liveBase() ? await live(uuid) : sample(acc.name);
   }
@@ -81,7 +103,7 @@ async function lookup(name) {
 /** S-own-12: soldiers whose name starts with q, from the game's export (empty until the web API is set). */
 async function search(q) {
   if (!companion.isLive() || !q) return [];
-  try { const r = await companion.publicGet(`/api/public/records?q=${encodeURIComponent(q.slice(0, 16))}&limit=20`); return (r && r.players) || []; }
+  try { const r = await companion.publicGet(`/api/public/records?q=${encodeURIComponent(q.slice(0, 16))}&limit=20`); return ((r && r.players) || []).map(p => ({ name: p.name, uuid: p.uuid, nation: p.nation })); } // no rank: the game sends none for the dead, which would show a death at once
   catch (e) { return []; }
 }
 
