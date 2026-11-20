@@ -1,4 +1,5 @@
 require('dotenv').config();
+const messageGate = require('./server/message-gate');   // owner 20 Nov: no messages to players unless player_messages is on
 const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const db = require('./db');
 const fs = require('fs');
@@ -29,6 +30,7 @@ for (const file of commandFiles) {
   client.commands.set(command.data.name, command);
 }
 
+messageGate.gateClient(client);
 botClient.set(client);
 
 client.once('ready', async () => {
