@@ -1,6 +1,37 @@
 {
  "sections": [
   {
+   "title": "v0.25",
+   "date": "20 Nov 2026",
+   "id": "v0-25",
+   "items": [
+    "The pack for the tester event. v0.24 can no longer join: import the new pack, or let the Modrinth App update your instance.",
+    "While a contested zone is open, soldiers of every nation at war can cross the land around it to get in.",
+    "Regions border each other only where the map says they do, not wherever two regions happen to touch.",
+    "Constantinople's and Petrograd's capitals moved into their cities.",
+    "Safer spawns: spawn areas are always on fairly level ground under open sky, never on a cave floor.",
+    "No more freeze when a crowd of soldiers comes back at the same time.",
+    "The map is fairer: a region's name on the map no longer hints at anything hidden, and the map can't be asked for more than the server allows.",
+    "Mountains, the Arctic and the desert no longer claim to be impassable."
+   ]
+  },
+  {
+   "title": "v0.24",
+   "date": "17 Nov 2026",
+   "id": "v0-24",
+   "items": [
+    "v0.23 can no longer join: import the new pack, or let the Modrinth App update your instance.",
+    "Region borders follow real 1914 lines: provinces, governorates and départements where the history is known, rivers and ridges elsewhere. Every region keeps its name, owner and capital, and Kotor now belongs to Dalmatia, as it did in 1914.",
+    "A region's core is now a field command post, the same for every nation.",
+    "Leaders choose where their region's core stands from a few good spots, and can move it; moving costs money and takes time, and a new site starts half fortified.",
+    "Holding a core means standing at it: soldiers swimming, in a boat, flying or dug in underneath don't count.",
+    "Neutral land is slower to claim: anyone else there stands against the claim, and it takes three times as long.",
+    "Nobody comes back into a siege: spawn areas and homes are kept well away from every core.",
+    "The world has an edge: a border stops you at the edge of the map, and beyond it there is nothing.",
+    "The map's borders are drawn from historical sources; their credits are on the map screen."
+   ]
+  },
+  {
    "title": "v0.23.1",
    "date": "17 Nov 2026",
    "items": [
