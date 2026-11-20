@@ -98,7 +98,7 @@ async function renderApp(req, res) {
     events: upcomingEvents(),
     // "on this day in 1914": today's UK date
     onThisDay: require('../on-this-day').onThisDay(new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(new Date())),
-    pack: await require('../pack-release').publicInfo(),
+    pack: await require('../pack-release').publicInfo(req.session.user),
     applications,
     team,
     testSessions,
@@ -139,7 +139,10 @@ router.get('/first-hour', renderApp);
 router.get('/leaders-handbook', renderApp);
 router.get('/builders', renderApp);
 router.get('/pack-faq', renderApp);
-router.get('/download/:file', (req, res, next) => require('../pack-release').serve(req, res, next));
+// S85: the pack only for signed-in testers and staff, through a 2-minute link minted per request; every other /download/ URL is gone
+router.get('/pack/get', (req, res) => require('../pack-release').get(req, res));
+router.get('/download/t/:token', (req, res) => require('../pack-release').serve(req, res));
+router.get('/download/:file', (req, res) => res.set('Cache-Control', 'no-store').status(404).send('Not found.'));
 router.get('/leaders', renderApp);
 router.get('/staff-apply', renderApp);
 router.get('/account', renderApp);

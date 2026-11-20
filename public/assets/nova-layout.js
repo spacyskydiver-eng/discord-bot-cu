@@ -463,8 +463,12 @@ B.registerView('pack', {
   show(view) {
     const P = CUE().pack || {};
     const download = P.url
-      ? card('↓', `The Great War ${esc(P.version)}`, `The modpack file (.mrpack)${P.size ? ' · ' + esc(P.size) : ''}${P.sha256 ? `<span class="pk-sha">SHA-256 ${esc(P.sha256)}</span>` : ''}`, `<span class="store-buy">Download</span>`, `href="${esc(P.url)}" download`)
-      : card('↓', 'The download link is coming soon', 'It goes up here before the tester event on Saturday 21 November. Testers also get it on Discord.', pill('Soon'));
+      ? card('↓', `The Great War ${esc(P.version)}`, `The modpack file (.mrpack)${P.size ? ' · ' + esc(P.size) : ''}${P.sha256 ? `<span class="pk-sha">SHA-256 ${esc(P.sha256)}</span>` : ''}`, `<span class="store-buy">Download</span>`, `href="${esc(P.url)}"`)
+      : P.locked && !P.signedIn
+      ? card('↓', 'Sign in to download', 'The modpack is for testers and staff. Sign in with Discord, and if you hold the GW Testers role the download appears here.', pill('Sign in'), 'href="/pack/get"')
+      : P.locked
+      ? card('↓', 'For testers and staff only', 'Your account doesn\'t have the GW Testers role. If you have a place at a test session and still see this, open a ticket on our Discord.', pill('Testers'))
+      : card('↓', 'The download link is coming soon', 'It goes up here before the next test session.', pill('Soon'));
     pageView(view, {
       color: '#34D399', kicker: 'The Great War', title: 'Get the modpack',
       lede: 'The Great War runs on its own pack of custom-made mods for Minecraft Java Edition 1.20.1. It takes a few minutes to set up, the same way on Windows and Mac.',
@@ -820,7 +824,7 @@ function showTesters(view) {
         ${notIn ? `<div class="tst-warn"><p><b>One more step:</b> you're not in our Discord server yet, so we can't give you the GW Testers role. Join the server, then come back and press the button below. If you join first, the bot gives you the role on its own.</p>
           <div class="tst-row">${discordLink()}<button class="tst-btn" data-act="retry">I've joined, give me the role</button></div></div>` : ''}
         <div class="tst-next"><div class="tst-k">Before Saturday</div>
-          <ul><li><b>Install the pack:</b> ${(CUE().pack || {}).url ? `download it from <a href="/pack">the pack page</a>` : `the download goes up on <a href="/pack">the pack page</a> before the session, and you'll get the link on Discord`}. It takes about 10 minutes.</li>
+          <ul><li><b>Install the pack:</b> download it from <a href="/pack">the pack page</a> (signed in, with the GW Testers role). It takes about 10 minutes.</li>
           <li><b>Launch it once</b> before the day, so anything that goes wrong goes wrong early. Stuck? See <a href="/pack-faq">the pack FAQ</a>.</li>
           <li><b>Report problems</b> at <a href="/report">cuevents.xyz/report</a>, with your log file.</li>
           <li>Be ready at the start time. The session lasts about an hour.</li>
