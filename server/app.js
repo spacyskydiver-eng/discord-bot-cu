@@ -74,7 +74,7 @@ module.exports = function startServer() {
     if (!(await access.maintenanceOn())) return next();
     res.set('Retry-After', '3600');
     if (req.path.startsWith('/api/') || req.path.startsWith('/data/') || req.xhr) return res.status(503).json({ error: 'maintenance' });
-    res.status(503).render('maintenance', { user: res.locals.user });
+    res.status(503).render('maintenance', { user: res.locals.user, v: (process.env.RENDER_GIT_COMMIT || '20261121').slice(0, 10) });
   });
 
   // same-origin check for every POST (S-own-20): a browser sending a form from another site carries its Origin and is

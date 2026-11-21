@@ -2,8 +2,9 @@
 #cue-menubg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; background: #030306; }
 #cue-menubg .mbg-poster, #cue-menubg .mbg-video {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-  /* dark, slightly drained, a little cold: the bunker by candlelight, not a postcard */
-  filter: brightness(.68) saturate(.72) contrast(1.06);
+  /* dark, slightly drained, a little cold: the bunker by lamplight, not a postcard (brightness .85 for the dugout clip,
+     which is dark already; .68 suited the old clip) */
+  filter: brightness(.85) saturate(.72) contrast(1.06);
 }
 #cue-menubg .mbg-poster { background-size: cover; background-position: center; }
 #cue-menubg .mbg-video { opacity: 0; transition: opacity 2.4s ease; }
@@ -12,8 +13,8 @@
 #cue-menubg .mbg-shade {
   position: absolute; inset: 0;
   background:
-    linear-gradient(180deg, rgba(3,3,8,.7) 0%, rgba(3,3,8,.08) 24%, rgba(3,3,8,.06) 64%, rgba(3,3,8,.8) 100%),
-    radial-gradient(ellipse 78% 70% at 42% 46%, rgba(0,0,0,0) 38%, rgba(0,0,0,.5) 74%, #000 100%);
+    linear-gradient(180deg, rgba(3,3,8,.42) 0%, rgba(3,3,8,.06) 24%, rgba(3,3,8,.06) 64%, rgba(3,3,8,.72) 100%),
+    radial-gradient(ellipse 84% 76% at 50% 44%, rgba(0,0,0,0) 44%, rgba(0,0,0,.38) 76%, rgba(0,0,0,.82) 100%);
 }
 #cue-menubg .mbg-breath { position: absolute; inset: 0; background: #000; opacity: .08; animation: mbg-breath 9s ease-in-out infinite; }
 @keyframes mbg-breath { 50% { opacity: .2; } }
