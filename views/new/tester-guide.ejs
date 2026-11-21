@@ -14,25 +14,22 @@
 </style>
 <main class="wrap"><div class="tg-wrap">
   <%- include('partials/home-link') %>
-  <div class="page-head"><div><h1 class="page-title">Testers' guide</h1><p class="page-sub">Saturday 21 November · 19:00 UK time · a 30-minute battle · thank you for helping</p></div></div>
+  <div class="page-head"><div><h1 class="page-title">Testers' guide</h1><p class="page-sub">Saturday's battle is done · a free-for-all test day now · thank you for helping</p></div></div>
   <% if (!isPublic) { %><div class="tg-draft">Hidden: only the owner sees this page until it's made public (site setting testers_guide_public). Check the "not in yet" list against the build before publishing.</div><% } %>
   <% if (locals.isOwner) { %><form method="POST" action="/tester-guide/public" style="margin:0 0 18px"><input type="hidden" name="public" value="<%= isPublic ? 'off' : 'on' %>"><button type="submit" style="padding:9px 14px;border-radius:10px;border:0;background:<%= isPublic ? 'rgba(255,255,255,.12)' : '#5be38f' %>;color:<%= isPublic ? '#fff' : '#0c1a12' %>;font:800 14px 'Baloo 2',sans-serif;cursor:pointer"><%= isPublic ? 'Hide again (owner only)' : 'Make this page public' %></button></form><% } %>
 
   <div class="tg-box"><h2>Before the day</h2><ol>
     <li>Download the modpack from <a href="/pack">the pack page</a>. It must say <b>v0.26.8</b>.</li>
     <li>Install it as a <b>new instance</b> (the <a href="/first-hour">first-hour guide</a> shows how). Don't update an old one in place.</li>
-    <li>Launch it once and join the official server before 19:00, so anything that goes wrong turns up before the battle, not during it.</li>
+    <li>Launch it and join the official server.</li>
   </ol><p>Older packs (v0.26.5 and before) <b>can no longer join</b> the official server, so please update. Your key bindings may reset to the pack's defaults on the first launch of v0.26.3; if you had changed any, check them in Options, Controls. From v0.26.3 on, the pack keeps your settings (video, sound, controls, keys, servers) and brings them to each new version by itself.</p></div>
 
-  <div class="tg-box"><h2>Tonight: France against Germany</h2>
-    <p>It starts at <b>19:00 UK time</b> (GMT) and is <b>one 30-minute battle</b>. Be in the game a few minutes early if you can.</p><ul>
-    <li><b>The field:</b> Lorraine, Lower Alsace and Upper Alsace (German) against Nancy and Verdun (French). A red wall marks the edge of the battlefield.</li>
-    <li><b>Your side</b> is fixed the first time you join, and you stay on it.</li>
-    <li><b>Pick your class</b> when the battle starts: each shows its gun, kit and armour; two of each class per side.</li>
-    <li><b>Press P</b> for the battle screen: the score, your side's objectives, and changing class (it applies from your next respawn).</li>
-    <li><b>Capture the objectives</b> shown in the bars at the top of the screen, with the tickets and the clock.</li>
-    <li><b>When you fall</b> you drop nothing: choose which of your side's regions to come back in, and your class's kit is restored.</li>
-    <li><b>Chat works</b>, including for accounts whose chat is limited by their Minecraft settings.</li>
+  <div class="tg-box"><h2>Now: a free-for-all test day</h2>
+    <p>Saturday's battle is over: thank you. For the next day the server is open as a <b>free-for-all</b> so you can try the guns, tanks and classes as much as you like.</p><ul>
+    <li><b>The field</b> is Lorraine only. A red wall marks its edge.</li>
+    <li><b>Everyone respawns instantly</b> at one shared spawn. There are no objectives, no capture points and no timer.</li>
+    <li><b>Anyone can crew any tank</b>, whatever its nation. A tank rolls out near the spawn every few minutes while there are fewer than two about; chat says when.</li>
+    <li><b>Chat works</b>, and <code>/bug</code> and <code>/balance</code> still record what you find.</li>
   </ul></div>
 
   <div class="tg-box"><h2>Before you start</h2><ul>
