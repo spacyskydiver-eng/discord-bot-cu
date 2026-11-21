@@ -5,11 +5,12 @@ module.exports = {
   // bunker ambience: <path>.mp3 (used everywhere) and <path>.ogg (fallback). Swap the sound here,
   // keeping both files: the page needs the MP3 because Safari misreads Ogg lengths.
   menuAudio: '/media/bunker_ambience_loop_louder',
-  // background video: <path>.webm (VP9) and <path>.mp4 (H.264), muted, loops seamlessly
-  menuVideo: '/media/menu_background_loop',
+  // background video: <path>.webm (VP9) and <path>.mp4 (H.264), muted, loops seamlessly.
+  // Now our own: inside the command post dugout, lamps swinging (Mac, 21 Nov). The old clip stays as menu_background_loop.
+  menuVideo: '/media/bunker_dugout_loop',
   // the first frame: <path>.webp and <path>.jpg, shown first and instead of the video on phones,
   // slow connections and with reduced motion
-  menuPoster: '/media/menu_background_poster',
+  menuPoster: '/media/bunker_dugout_poster',
   audioVolume: 0.4,
   audioFadeSeconds: 2,
 };
