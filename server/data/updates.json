@@ -1,6 +1,16 @@
 {
  "sections": [
   {
+   "title": "v0.26.8",
+   "date": "21 Nov 2026",
+   "id": "v0-26-8",
+   "items": [
+    "Sign in with Discord on the title screen: your browser opens cuevents.xyz; sign in there and press Link it.",
+    "Once you're signed in, your settings are saved online: your keys, video, sound, gun and voice settings, and your server list. A new install on any computer gets them back when you sign in.",
+    "To sign the game out, click its row twice. You can also sign it out, or delete your saved settings, at cuevents.xyz/account/game."
+   ]
+  },
+  {
    "title": "v0.26.7",
    "date": "21 Nov 2026",
    "id": "v0-26-7",
