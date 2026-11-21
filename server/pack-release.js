@@ -21,11 +21,16 @@ async function current() {
 }
 const human = n => n >= 1024 * 1024 ? (n / 1024 / 1024).toFixed(1) + ' MB' : Math.round(n / 1024) + ' KB';
 
-// staff, or the GW Testers role (asked of Discord, cached a minute; fails closed)
+// Owner switch (control centre, site setting pack_open): while it's off (the default) the pack page and the download
+// are staff only. While it's on, testers with the role get them too.
+const packOpen = async () => String((await access.getSetting('pack_open')) || '').trim() === 'on';
+
+// staff always; the GW Testers role only while the pack is open (asked of Discord, cached a minute; fails closed)
 const roleCache = new Map();
 async function allowed(user) {
   if (!user || !user.id) return false;
   if (await access.isStaff(user)) return true;
+  if (!(await packOpen())) return false;
   const hit = roleCache.get(user.id);
   if (hit && Date.now() - hit.at < 60 * 1000) return hit.ok;
   const s = await require('./testers').memberState(user.id);
@@ -65,6 +70,7 @@ async function publicInfo(user) {
   const r = await current();
   const base = { lockEnforced: config.lockEnforced, signedIn: !!user };
   if (!r) return Object.assign(base, { version: null, url: null });
+  if (!(await packOpen()) && !(await access.isStaff(user))) return Object.assign(base, { version: null, url: null, closed: true });
   if (!(await allowed(user))) return Object.assign(base, { version: r.version, url: null, locked: true });
   return Object.assign(base, { version: r.version, url: '/pack/get', size: r.size ? human(r.size) : null, sha256: r.sha256 || null });
 }
@@ -76,7 +82,7 @@ async function get(req, res) {
   noStore(res);
   const user = req.session && req.session.user;
   if (!user) { req.session.oauthReturnTo = '/pack'; return res.redirect('/auth/discord'); }
-  if (!(await allowed(user))) return res.status(403).send('The modpack is for testers and staff only. If you have a place at a test session, make sure you hold the GW Testers role in our Discord.');
+  if (!(await allowed(user))) return res.status(403).send((await packOpen()) ? 'The modpack is for testers and staff only. If you have a place at a test session, make sure you hold the GW Testers role in our Discord.' : 'The modpack page is closed for now.');
   const r = await current();
   if (!r) return res.status(404).send('No pack is out yet.');
   res.redirect(302, '/download/t/' + await mint(user.id, r.version));
@@ -100,4 +106,10 @@ async function serve(req, res) {
   } catch (e) { console.error('[pack] download', e.message); if (!res.headersSent) res.status(502).send('The download is unavailable right now. Please try again in a minute.'); }
 }
 
-module.exports = { current, publicInfo, get, serve, allowed };
+// GET /pack: while closed, only staff see the page; everyone else goes to the home page
+async function page(req, res, next) {
+  if ((await packOpen()) || (await access.isStaff(req.session && req.session.user))) return next();
+  res.set('Cache-Control', 'private, no-store').redirect(302, '/');
+}
+
+module.exports = { current, publicInfo, get, serve, allowed, packOpen, page };

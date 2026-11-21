@@ -464,6 +464,8 @@ B.registerView('pack', {
     const P = CUE().pack || {};
     const download = P.url
       ? card('↓', `The Great War ${esc(P.version)}`, `The modpack file (.mrpack)${P.size ? ' · ' + esc(P.size) : ''}${P.sha256 ? `<span class="pk-sha">SHA-256 ${esc(P.sha256)}</span>` : ''}`, `<span class="store-buy">Download</span>`, `href="${esc(P.url)}"`)
+      : P.closed
+      ? card('↓', 'The modpack page is closed for now', 'It opens again before the next test session.', pill('Closed'))
       : P.locked && !P.signedIn
       ? card('↓', 'Sign in to download', 'The modpack is for testers and staff. Sign in with Discord, and if you hold the GW Testers role the download appears here.', pill('Sign in'), 'href="/pack/get"')
       : P.locked

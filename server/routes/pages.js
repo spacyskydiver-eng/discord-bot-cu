@@ -134,7 +134,7 @@ router.get('/great-war-in-2-minutes', renderApp);
 router.get('/great-war/windows.ics', (req, res) => {
   res.set('Content-Disposition', 'attachment; filename="great-war-windows.ics"').type('text/calendar; charset=utf-8').send(upcomingEvents.windowsIcs());
 });
-router.get('/pack', renderApp);
+router.get('/pack', (req, res, next) => require('../pack-release').page(req, res, next), renderApp);
 router.get('/first-hour', renderApp);
 router.get('/leaders-handbook', renderApp);
 router.get('/builders', renderApp);

@@ -197,6 +197,7 @@ router.get('/', async (req, res) => {
     guilds: guildRes.rows, levels, levelRoles, staffRoles, staffAccess,
     stageSettings, stageBlocks, agreementItems, playstyleOptions, killTicketConfigs,
     maintenance: await access.maintenanceOn(),
+    packOpen: await require('../pack-release').packOpen(),
     arsenalManifest: await access.getSetting('arsenal_manifest_url'),
     query: req.query,
   });
@@ -207,6 +208,12 @@ router.post('/arsenal', async (req, res) => {
   const v = String(req.body.manifest || '').trim();
   if (v && !/^https:\/\/[^\s"'<>]+\/manifest\.json(\?[^\s"'<>]*)?$/.test(v)) return res.redirect('/admin?arsenal=bad');
   await access.setSetting('arsenal_manifest_url', v || null);
+  res.redirect('/admin');
+});
+
+// the modpack page and download: staff only while closed (the default), testers too while open
+router.post('/pack-open', async (req, res) => {
+  await access.setSetting('pack_open', req.body.on === '1' ? 'on' : 'off');
   res.redirect('/admin');
 });
 
