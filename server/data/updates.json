@@ -1,6 +1,16 @@
 {
  "sections": [
   {
+   "title": "v0.26.5",
+   "date": "21 Nov 2026",
+   "id": "v0-26-5",
+   "items": [
+    "v0.26.4 can no longer join: import the new pack, or let the Modrinth App update your instance. Your settings come with you.",
+    "Gun tooltips tell the truth: each gun shows its damage to the body and the head (a soldier has 40 health), its fire rate and magazine, the round it takes, which classes can use it, and the key for attachments. Ammunition and attachments say what they're for.",
+    "The stamina bar shows while it refills, so you can see when you're ready to run again; it fades a few seconds after it's full."
+   ]
+  },
+  {
    "title": "v0.26.4",
    "date": "21 Nov 2026",
    "id": "v0-26-4",
