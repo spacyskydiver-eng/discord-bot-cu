@@ -134,9 +134,12 @@ async function pairedWith() {
 }
 
 // is this application's Minecraft account the one this Discord account linked in game?
+// (two ways in: /link on the War Office page, and S89's sign-in from the game, which Mojang vouches for; the newer wins)
 async function verifiedMap() {
-  try { return Object.fromEntries((await db.query(`SELECT discord_id, mc_uuid FROM game_tokens WHERE mc_uuid IS NOT NULL`)).rows.map(r => [r.discord_id, r.mc_uuid])); }
-  catch (e) { return {}; }
+  let m = {};
+  try { m = Object.fromEntries((await db.query(`SELECT discord_id, mc_uuid FROM game_tokens WHERE mc_uuid IS NOT NULL`)).rows.map(r => [r.discord_id, r.mc_uuid])); }
+  catch (e) { /* none */ }
+  return Object.assign(m, await require('./game-link').verifiedAccounts());
 }
 const plain = u => String(u || '').toLowerCase().replace(/-/g, '');
 

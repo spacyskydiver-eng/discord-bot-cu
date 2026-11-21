@@ -54,7 +54,10 @@
         : `<div class="tst-box"><div class="tst-k">Minecraft account</div><h3>${me.linked ? 'Change your account' : 'Link your account'}</h3>
             <p>Java Edition only. Each Minecraft account can be linked to one Discord account.</p>${form}</div>`;
       body.innerHTML = `<section class="nv-sec"><div class="nv-sec-head"><h2>VIP</h2></div>${tierBox}</section>
-        <section class="nv-sec"><div class="nv-sec-head"><h2>Minecraft</h2></div>${linkBox}</section>`;
+        <section class="nv-sec"><div class="nv-sec-head"><h2>Minecraft</h2></div>${linkBox}</section>
+        <section class="nv-sec"><div class="nv-sec-head"><h2>Linked games</h2></div><div class="tst-box"><div class="tst-k">The Discord button in the game</div>
+          <p>Games you signed in with the Discord button on the title screen, and the settings they saved to your account.</p>
+          <div class="tst-row"><a class="tst-btn" href="/account/game">Manage linked games</a></div></div></section>`;
     }
 
     body.addEventListener('submit', async e => {

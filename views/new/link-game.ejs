@@ -1,0 +1,52 @@
+<%- include('partials/head', { publicBg: true, pageTitle: 'Sign in the game', pageDescription: 'Link The Great War in Minecraft to your Discord account.' }) %>
+<%- include('partials/header') %>
+<style>
+.lg-wrap { max-width: 560px; margin: 0 auto; padding-bottom: 80px; }
+.lg-box { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 20px; }
+.lg-box h2 { font: 800 20px 'Baloo 2', sans-serif; color: #fff; margin: 0 0 8px; }
+.lg-box p { font: 600 14.5px 'Baloo 2', sans-serif; color: #9a9db0; line-height: 1.6; margin: 0 0 12px; }
+.lg-box b { color: #e8e9ee; }
+.lg-code { font: 800 30px 'JetBrains Mono', ui-monospace, monospace; letter-spacing: .12em; color: #fff; text-align: center; padding: 14px; border-radius: 12px; background: rgba(0,0,0,.3); border: 1px solid var(--line); margin: 6px 0 16px; }
+.lg-input { width: 100%; box-sizing: border-box; padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: rgba(0,0,0,.25); color: #fff; font: 800 22px ui-monospace, monospace; letter-spacing: .12em; text-align: center; text-transform: uppercase; }
+.lg-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.lg-btn { padding: 11px 18px; border-radius: 10px; border: 0; background: #5be38f; color: #0c1a12; font: 800 15px 'Baloo 2', sans-serif; cursor: pointer; text-decoration: none; display: inline-block; }
+.lg-btn.no { background: rgba(255,255,255,.1); color: #e8e9ee; }
+.lg-err { padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(248,113,113,.45); background: rgba(248,113,113,.1); color: #fecaca; font: 700 14.5px 'Baloo 2', sans-serif; margin-bottom: 16px; }
+.lg-ok { color: #c9f7da; }
+.lg-box a { color: #74c0fc; }
+</style>
+<main class="wrap"><div class="lg-wrap">
+  <%- include('partials/home-link') %>
+  <div class="page-head"><div><h1 class="page-title">Sign in the game</h1></div></div>
+  <% if (msg) { %><div class="lg-err"><%= msg %></div><% } %>
+
+  <% if (step === 'signin') { %>
+  <div class="lg-box"><h2>Sign in with Discord first</h2>
+    <p>The game asked to link to your Discord account<%= code ? ' with the code' : '' %>.</p>
+    <% if (code) { %><div class="lg-code"><%= code %></div><% } %>
+    <p>Sign in with your own Discord account, then confirm. Each player links their own game; see <a href="/rules">the rules</a>.</p>
+    <div class="lg-row"><a class="lg-btn" href="/auth/discord">Sign in with Discord</a></div></div>
+
+  <% } else if (step === 'enter') { %>
+  <div class="lg-box"><h2>Enter the code from the game</h2>
+    <p>The game shows a code like <b>ABCD-1234</b> after you press the Discord button on its title screen.</p>
+    <form method="GET" action="/link-game"><input class="lg-input" name="code" maxlength="9" autocomplete="off" spellcheck="false" value="<%= code %>" placeholder="XXXX-XXXX" required>
+      <div class="lg-row"><button class="lg-btn" type="submit">Continue</button></div></form></div>
+
+  <% } else if (step === 'confirm') { %>
+  <div class="lg-box"><h2>Link this game to your Discord?</h2>
+    <p>Check the code matches the one in the game:</p>
+    <div class="lg-code"><%= req.user_code %></div>
+    <p>Device: <b><%= req.label %></b><br>Minecraft account: <% if (req.mc_name) { %><b><%= req.mc_name %></b> (confirmed by Mojang)<% } else { %>not confirmed yet: keep the game open a few seconds, then reload this page<% } %><br>Discord account: <b><%= user ? user.username : '' %></b></p>
+    <p>Linking lets the game save your settings to your account and bring them to a new install, and marks your applications as verified for this Minecraft account. You can sign the game out at any time from <a href="/account/game">your account</a>. Only link a game you're playing yourself.</p>
+    <form method="POST" action="/link-game"><input type="hidden" name="code" value="<%= req.user_code %>">
+      <div class="lg-row"><button class="lg-btn" type="submit" name="action" value="approve" <%= req.mc_name ? '' : 'disabled' %>>Link it</button><button class="lg-btn no" type="submit" name="action" value="deny">This isn't me</button></div></form></div>
+
+  <% } else if (step === 'done') { %>
+  <div class="lg-box"><h2 class="lg-ok">Linked</h2><p>Go back to the game: it finishes signing in by itself within a few seconds. Manage linked games on <a href="/account/game">your account</a>.</p></div>
+
+  <% } else if (step === 'denied') { %>
+  <div class="lg-box"><h2>Refused</h2><p>That game was not linked. If you didn't start this, nothing else is needed.</p></div>
+  <% } %>
+</div></main>
+<%- include('partials/foot') %>

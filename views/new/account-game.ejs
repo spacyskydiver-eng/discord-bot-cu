@@ -1,0 +1,29 @@
+<%- include('partials/head', { publicBg: true, pageTitle: 'Your linked games' }) %>
+<%- include('partials/header') %>
+<style>
+.ag-wrap { max-width: 720px; margin: 0 auto; padding-bottom: 80px; }
+.ag-box { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 18px; }
+.ag-box h2 { font: 800 17px 'Baloo 2', sans-serif; color: #fff; margin: 0 0 8px; }
+.ag-box p { font: 600 14px 'Baloo 2', sans-serif; color: #9a9db0; line-height: 1.6; margin: 0 0 10px; }
+.ag-dev { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid rgba(255,255,255,.06); font: 700 14.5px 'Baloo 2', sans-serif; color: #e8e9ee; }
+.ag-dev small { display: block; color: #9a9db0; font-weight: 600; }
+.ag-btn { padding: 8px 14px; border-radius: 10px; border: 0; background: rgba(255,255,255,.1); color: #e8e9ee; font: 800 13.5px 'Baloo 2', sans-serif; cursor: pointer; }
+.ag-btn.danger { background: rgba(248,113,113,.18); color: #fecaca; }
+.ag-ok { padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(91,227,143,.4); background: rgba(91,227,143,.08); color: #c9f7da; font: 700 14px 'Baloo 2', sans-serif; margin-bottom: 16px; }
+</style>
+<main class="wrap"><div class="ag-wrap">
+  <%- include('partials/home-link') %>
+  <div class="page-head"><div><h1 class="page-title">Your linked games</h1><p class="page-sub">Games signed in to your Discord account with the Discord button on the title screen.</p></div></div>
+  <% if (msg) { %><div class="ag-ok"><%= msg %></div><% } %>
+  <div class="ag-box"><h2>Signed-in games</h2>
+    <% if (!devices.length) { %><p>None. Press the Discord button on the game's title screen to link one.</p><% } %>
+    <% devices.forEach(d => { %><div class="ag-dev"><div><%= d.label %><small>Minecraft: <%= d.mc_name || '?' %> · linked <%= new Date(d.created_at).toISOString().slice(0, 10) %><%= d.last_used_at ? ' · last used ' + new Date(d.last_used_at).toISOString().slice(0, 16).replace('T', ' ') + ' UTC' : '' %></small></div>
+      <form method="POST" action="/account/game/revoke" onsubmit="return confirm('Sign this game out? It will need the Discord button again.')"><input type="hidden" name="id" value="<%= d.id %>"><button class="ag-btn" type="submit">Sign out</button></form></div><% }) %>
+  </div>
+  <div class="ag-box"><h2>Saved settings</h2>
+    <% if (!settings) { %><p>Nothing saved yet. A linked game saves your settings (video, sound, controls, keys, the server list) when you quit and every few minutes.</p>
+    <% } else { %><p>Saved from <b style="color:#e8e9ee"><%= settings.device_label || 'a game' %></b> at <%= new Date(settings.written_at).toISOString().slice(0, 16).replace('T', ' ') %> UTC (version <%= settings.version %>, <%= Math.max(1, Math.round(settings.size / 1024)) %> KB). Only your own signed-in games can read them.</p>
+      <form method="POST" action="/account/game/settings/delete" onsubmit="return confirm('Delete your saved settings? Your games keep their own copy.')"><button class="ag-btn danger" type="submit">Delete saved settings</button></form><% } %>
+  </div>
+</div></main>
+<%- include('partials/foot') %>

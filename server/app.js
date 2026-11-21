@@ -27,6 +27,11 @@ module.exports = function startServer() {
   });
   app.use(express.static(path.join(__dirname, '../public')));
   app.use(express.json());
+  // S89: the game's API answers bad JSON with JSON, not the HTML error page
+  app.use((err, req, res, next) => {
+    if (err && err.type === 'entity.parse.failed' && req.path.startsWith('/api/game/')) return res.status(400).set('Cache-Control', 'no-store').json({ error: 'invalid_request', message: 'The body is not valid JSON.' });
+    next(err);
+  });
   app.use(express.urlencoded({ extended: true }));
   app.use(sessions);
   app.use(require('./private-cache').privateWhenSignedIn); // S82: never a shared cache for a signed-in visitor's page
@@ -70,7 +75,7 @@ module.exports = function startServer() {
   // ── Maintenance mode: only staff get past this. /auth stays open so staff can sign in.
   app.use(async (req, res, next) => {
     // the game servers' VIP lookup has its own secret and must keep working during maintenance
-    if (req.path.startsWith('/auth') || req.path.startsWith('/api/vip/') || req.path.startsWith('/campaign-map/s/') || res.locals.isStaff) return next();
+    if (req.path.startsWith('/auth') || req.path.startsWith('/api/vip/') || req.path.startsWith('/campaign-map/s/') || req.path.startsWith('/api/game/') || req.path === '/link-game' || req.path.startsWith('/account/game') || res.locals.isStaff) return next();
     if (!(await access.maintenanceOn())) return next();
     res.set('Retry-After', '3600');
     if (req.path.startsWith('/api/') || req.path.startsWith('/data/') || req.xhr) return res.status(503).json({ error: 'maintenance' });
@@ -85,6 +90,7 @@ module.exports = function startServer() {
     if (!o || o === `${req.protocol}://${req.get('host')}` || o === `https://${req.get('host')}`) return next();
     res.status(403).send('Cross-site request refused.');
   });
+  app.use('/', require('./routes/game-link'));   // S89: Discord sign-in from the game + cloud settings
   app.use('/', require('./routes/pages'));
   app.use('/', require('./routes/updates'));
   app.use('/', require('./routes/testers'));
