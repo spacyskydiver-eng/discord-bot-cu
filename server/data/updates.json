@@ -1,6 +1,15 @@
 {
  "sections": [
   {
+   "title": "v0.26.4",
+   "date": "21 Nov 2026",
+   "id": "v0-26-4",
+   "items": [
+    "v0.26.3 can no longer join: import the new pack, or let the Modrinth App update your instance. From v0.26.3 on, your settings come with you.",
+    "Chat works for everyone, including players whose chat is turned off or restricted in their Minecraft account settings."
+   ]
+  },
+  {
    "title": "v0.26.3",
    "date": "21 Nov 2026",
    "id": "v0-26-3",
