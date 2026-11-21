@@ -1,6 +1,16 @@
 {
  "sections": [
   {
+   "title": "v0.26",
+   "date": "21 Nov 2026",
+   "id": "v0-26",
+   "items": [
+    "The build for the tester event. v0.25 can no longer join: import the new pack, or let the Modrinth App update your instance.",
+    "Soldiers move and heal differently: new stamina, running speed and bandage behaviour, with new settings for them.",
+    "Staff can set up battles for testers: two sides, tickets, a round timer, capture points, class kits when you come back, tanks for each side, and the winner announced at the end."
+   ]
+  },
+  {
    "title": "v0.25",
    "date": "20 Nov 2026",
    "id": "v0-25",

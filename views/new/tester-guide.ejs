@@ -19,12 +19,14 @@
   <% if (locals.isOwner) { %><form method="POST" action="/tester-guide/public" style="margin:0 0 18px"><input type="hidden" name="public" value="<%= isPublic ? 'off' : 'on' %>"><button type="submit" style="padding:9px 14px;border-radius:10px;border:0;background:<%= isPublic ? 'rgba(255,255,255,.12)' : '#5be38f' %>;color:<%= isPublic ? '#fff' : '#0c1a12' %>;font:800 14px 'Baloo 2',sans-serif;cursor:pointer"><%= isPublic ? 'Hide again (owner only)' : 'Make this page public' %></button></form><% } %>
 
   <div class="tg-box"><h2>Before the day</h2><ol>
-    <li>Download the modpack from <a href="/pack">the pack page</a>. It must say <b>v0.25</b>.</li>
+    <li>Download the modpack from <a href="/pack">the pack page</a>. It must say <b>v0.26</b>.</li>
     <li>Install it as a <b>new instance</b> (the <a href="/first-hour">first-hour guide</a> shows how). Don't update an old one in place.</li>
     <li>Launch it once and join the official server, so anything that goes wrong turns up before Saturday, not during it.</li>
-  </ol><p>Older packs (v0.24 and before) <b>can no longer join</b> the official server, so please update. Your key bindings may reset to the pack's defaults on the first launch of the new pack; if you had changed any, check them in Options, Controls.</p></div>
+  </ol><p>Older packs (v0.25 and before) <b>can no longer join</b> the official server, so please update. Your key bindings may reset to the pack's defaults on the first launch of the new pack; if you had changed any, check them in Options, Controls.</p></div>
 
   <div class="tg-box"><h2>New since v0.23</h2><ul>
+    <li><b>Stamina, running speed and bandages</b> work differently, with new settings for them.</li>
+    <li><b>Battles</b>: two sides, tickets, a round timer, capture points and class kits when you come back; the winner is announced at the end.</li>
     <li><b>Borders follow real 1914 lines</b>: provinces and départements where the history is known, rivers and ridges elsewhere.</li>
     <li><b>A region's core is a field command post.</b> Holding it means standing at it: not swimming, in a boat, flying or dug in underneath.</li>
     <li><b>Neutral land is slower to claim</b>, and anyone else there stands against the claim.</li>
