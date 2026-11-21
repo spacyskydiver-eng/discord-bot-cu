@@ -1,6 +1,17 @@
 {
  "sections": [
   {
+   "title": "v0.26.2",
+   "date": "21 Nov 2026",
+   "id": "v0-26-2",
+   "items": [
+    "v0.26.1 can no longer join: import the new pack, or let the Modrinth App update your instance.",
+    "Chat works: messages are no longer refused with \"chat is not allowed\".",
+    "Smoother by default: on first launch the pack turns VSync off, sets the framerate to unlimited and the brightness to Bright. Change them afterwards and your settings stay.",
+    "Our own names in the menus: the gun controls and settings now read \"Great War Gun Settings\"."
+   ]
+  },
+  {
    "title": "v0.26.1",
    "date": "21 Nov 2026",
    "id": "v0-26-1",
