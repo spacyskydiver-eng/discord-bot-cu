@@ -34,9 +34,10 @@
     <div class="sg-box"><h2>Where 19:00 UK falls for them</h2><%- bars(o.windowHour.map(([h, n]) => ({ label: h + ' local', n })), o.total) || '<p class="page-sub">Nobody yet.</p>' %></div>
   </div>
   <div class="sg-box"><h2>Everyone</h2>
+    <p class="page-sub">One person, one account: "verified in game" means the player linked this Minecraft account with /link on the official server. Red notes are flags for staff to look at, never automatic bans. <a href="/staff/same-person">Possible same person list</a>.</p>
     <% if (!o.apps.length) { %><p class="page-sub">No applications yet.</p><% } else { %>
     <table class="sg-table"><tr><th>Discord</th><th>Minecraft</th><th>Time zone</th><th>Hours</th><th>Plays as</th><th>New</th></tr>
-    <% o.apps.forEach(a => { %><tr><td><%= a.discord_name %></td><td><%= a.mc_name %></td><td><%= a.timezone %> <span style="color:#9aa0ad">(<%= S.localHour(a.timezone) %>)</span></td>
+    <% o.apps.forEach(a => { %><tr><td><%= a.discord_name %><% const ck = a.checks || {}; %><div style="font-size:12px;margin-top:3px"><% if (ck.verified) { %><span style="color:#5be38f">verified in game</span><% } else if (ck.linkedOther) { %><span style="color:#ff6b6b">linked to a different Minecraft account</span><% } else { %><span style="color:#ffb020">not verified</span><% } %><% (ck.flags || []).forEach(f => { %> · <span style="color:#ff6b6b"><%= f.text %></span><% }) %><% (ck.same || []).forEach(x => { %> · <span style="color:#ff6b6b">possible same person as <%= x.name || x.id %> (<%= x.ev %>)</span><% }) %></div></td><td><%= a.mc_name %></td><td><%= a.timezone %> <span style="color:#9aa0ad">(<%= S.localHour(a.timezone) %>)</span></td>
       <td><%= (S.HOURS.find(h => h[0] === a.hours) || [])[1] %></td><td><%= a.styles.map(s => (S.STYLES.find(x => x[0] === s) || [])[1]).join(', ') %></td><td><%= a.new_to_modded ? 'Yes' : '' %></td></tr><% }) %>
     </table><% } %>
   </div>

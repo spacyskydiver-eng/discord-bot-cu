@@ -212,7 +212,7 @@ async function mine(discordId) {
 /* ---------------------------------------------------------------- control centre */
 async function applications(sessionId) {
   return (await db.query(
-    `SELECT id, discord_id, discord_name, mc_name, status, team, extract(epoch from applied_at)::bigint AS applied_at
+    `SELECT id, discord_id, discord_name, mc_name, mc_uuid, status, team, extract(epoch from applied_at)::bigint AS applied_at
      FROM tester_applications WHERE session_id = $1
      ORDER BY CASE status WHEN 'accepted' THEN 0 WHEN 'waitlisted' THEN 1 ELSE 2 END, applied_at, id`, [sessionId])).rows
     .map(r => ({ ...r, applied_at: Number(r.applied_at) }));

@@ -1,0 +1,33 @@
+<%- include('partials/head', { pageTitle: 'Possible same person' }) %>
+<%- include('partials/header') %>
+<style>
+.sp-wrap { max-width: 1100px; margin: 0 auto; padding-bottom: 80px; }
+.sp-box { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 18px; }
+.sp-table { width: 100%; border-collapse: collapse; font: 600 13px 'Baloo 2', sans-serif; color: #dfe2ea; }
+.sp-table th { text-align: left; font: 700 11px Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #9aa0ad; padding: 6px; border-bottom: 1px solid var(--line); }
+.sp-table td { padding: 7px 6px; border-bottom: 1px solid rgba(255,255,255,.05); vertical-align: top; }
+.sp-strong { color: #ff6b6b; }
+.sp-weak { color: #ffb020; }
+.sp-wrap code { font-size: 11.5px; color: #9aa0ad; }
+@media (max-width: 640px) { .sp-hide { display: none; } }
+</style>
+<main class="wrap"><div class="sp-wrap">
+  <%- include('partials/home-link') %>
+  <div class="page-head"><div><h1 class="page-title">Possible same person</h1>
+    <p class="page-sub">Different Discord accounts that signed in to the site from the same browser (device) or the same internet address. These are flags for staff to look into, never proof and never an automatic ban: a shared device is strong evidence; a shared IP can also be a family, a school or a phone network.</p></div></div>
+  <div class="sp-box">
+    <% if (!pairs.length) { %><p class="page-sub" style="margin:0">No accounts share a device or an IP so far.</p><% } else { %>
+    <table class="sp-table">
+      <tr><th>Account</th><th>Account</th><th>Shared</th><th class="sp-hide">IP (kept 30 days)</th><th class="sp-hide">Last seen</th></tr>
+      <% pairs.forEach(p => { %><tr>
+        <td><%= p.a_name || '?' %><div><code><%= p.a %></code></div></td>
+        <td><%= p.b_name || '?' %><div><code><%= p.b %></code></div></td>
+        <td><% if (p.device) { %><span class="sp-strong">same device</span><% } %><%= p.device && p.ip ? ', ' : '' %><% if (p.ip) { %><span class="<%= p.device ? 'sp-strong' : 'sp-weak' %>">same IP</span><% } %><%= p.browser ? ', same browser' : '' %></td>
+        <td class="sp-hide"><code><%= (p.ips || []).join(', ') || 'erased' %></code></td>
+        <td class="sp-hide"><time data-ts="<%= Math.floor(new Date(p.last_seen).getTime() / 1000) %>"><%= new Date(p.last_seen).toISOString().slice(0, 16).replace('T', ' ') %> UTC</time></td>
+      </tr><% }) %>
+    </table><% } %>
+  </div>
+  <div class="sp-box"><p class="page-sub" style="margin:0">Applications also need a Discord account at least <%= limits.ageDays %> days old that joined the CU server at least <%= limits.memberDays %> days ago (site settings <code>acct_min_age_days</code>, <code>acct_min_member_days</code>). On the application lists, "verified in game" means the player linked that Minecraft account with /link on the official server.</p></div>
+</div></main>
+<%- include('partials/foot') %>

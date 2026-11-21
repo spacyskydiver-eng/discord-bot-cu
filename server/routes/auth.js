@@ -72,6 +72,9 @@ router.get('/callback', async (req, res) => {
       } catch (_) {}
     }
 
+    // S87: sign-in evidence for the "possible same person" list (hashed IP, device cookie, browser; flag only)
+    await require('../one-account').recordSignin(req, res, req.session.user);
+
     // Redirect back to whichever language the user was on when they clicked Login
     const returnLang = req.session.oauthReturnLang || 'en';
     const returnTo = req.session.oauthReturnTo;

@@ -119,6 +119,7 @@ module.exports = function startServer() {
   require('./nation-roles').start();   // does nothing while site setting nation_roles is off
   require('./leaders').startAutoExport();
   require('./minecraft-links').start();
+  require('./one-account').start();   // S87: raw sign-in IPs erased after 30 days
 
   const port = process.env.PORT || 3000;
   app.listen(port, () => console.log(`Server running on port ${port}`));

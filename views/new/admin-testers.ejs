@@ -106,12 +106,13 @@
 
   <div class="tw-card">
     <h2>Applications</h2>
+    <p class="muted">One person, one account: "verified in game" means the player linked this Minecraft account with /link on the official server. Red notes are flags, never automatic bans. <a href="/staff/same-person">Possible same person list</a>.</p>
     <% if (!apps.length) { %><p class="muted">No applications yet.</p><% } else { %>
     <table>
       <tr><th>Discord</th><th>Minecraft</th><th class="hide-sm">Applied</th><th>Status</th><th></th></tr>
       <% for (const a of apps) { %>
       <tr>
-        <td><%= a.discord_name %><div class="local"><code><%= a.discord_id %></code></div></td>
+        <td><%= a.discord_name %><div class="local"><code><%= a.discord_id %></code></div><% const ck = a.checks || {}; %><div style="font-size:12px;margin-top:3px"><% if (ck.verified) { %><span style="color:#5be38f">verified in game</span><% } else if (ck.linkedOther) { %><span style="color:#ff6b6b">linked to a different Minecraft account</span><% } else { %><span style="color:#ffb020">not verified</span><% } %><% (ck.flags || []).forEach(f => { %> · <span style="color:#ff6b6b"><%= f.text %></span><% }) %><% (ck.same || []).forEach(x => { %> · <span style="color:#ff6b6b">possible same person as <%= x.name || x.id %> (<%= x.ev %>)</span><% }) %></div></td>
         <td><%= a.mc_name %></td>
         <td class="hide-sm"><time data-ts="<%= a.applied_at %>"><%= utc(a.applied_at) %></time></td>
         <td><span class="pill s-<%= a.status %>"><%= a.status %></span><%= a.team ? ' · Team ' + a.team : '' %></td>

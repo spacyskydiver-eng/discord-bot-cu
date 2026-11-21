@@ -37,6 +37,13 @@ router.get('/staff/great-war-applications.csv', staff, wrap(async (req, res) => 
   res.set('Cache-Control', 'private, no-store').set('Content-Disposition', 'attachment; filename="great-war-applications.csv"').type('text/csv');
   res.send(gw.csv((await gw.overview()).apps));
 }));
+// S87: accounts that shared a device or an IP at sign-in, with the evidence (flag only)
+router.get('/staff/same-person', staff, wrap(async (req, res) => {
+  res.set('Cache-Control', 'private, no-store');
+  const oa = require('../one-account');
+  res.render('new/staff-same-person', { pairs: await oa.sharedPairs(), limits: await oa.limits() });
+}));
+
 // opening and closing it is the owner's call
 router.post('/staff/great-war-applications/open', staff, origin, wrap(async (req, res) => {
   if (!res.locals.isOwner) return res.status(403).end();

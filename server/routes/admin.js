@@ -272,7 +272,7 @@ router.post('/testers/session/:id', async (req, res) => {
 router.get('/testers/:id(\\d+)', async (req, res) => {
   const session = await testers.getSession(parseInt(req.params.id, 10));
   if (!session) return res.redirect('/admin/testers');
-  res.render('new/admin-testers', { mode: 'session', sessions: [], interest: [], session, apps: await testers.applications(session.id) });
+  res.render('new/admin-testers', { mode: 'session', sessions: [], interest: [], session, apps: await require('../one-account').annotate(await testers.applications(session.id)) });
 });
 
 router.get('/testers/:id(\\d+)/export.csv', async (req, res) => {

@@ -36,6 +36,9 @@ router.post('/api/testers/apply', sameOrigin, signedIn, async (req, res, next) =
     if (b.attend !== 'yes' || b.full_hour !== 'yes') return res.status(400).json({ error: 'needs-both' });
     const agreed = Array.isArray(b.agree) ? b.agree.map(Number) : [];
     if (![1, 2, 3, 4, 5].every(n => agreed.includes(n))) return res.status(400).json({ error: 'Please tick all five agreements.' });
+    // S87: one person, one account
+    const acct = await require('../one-account').check(req.session.user.id);
+    if (!acct.ok) return res.status(403).json({ error: acct.reason });
     let mc;
     try { mc = await javaAccount(b.mc_name); } catch (e) { return res.status(503).json({ error: "We couldn't check your Minecraft username just now. Please try again in a minute." }); }
     if (!mc) return res.status(400).json({ error: "That isn't a Minecraft Java username we can find. Check the spelling and try again." });

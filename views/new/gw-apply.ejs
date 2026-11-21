@@ -30,10 +30,11 @@
   <% if (error) { %><div class="ga-err"><%= error %></div><% } %>
   <form class="ga-box" method="POST" action="/apply/great-war">
     <h2><%= me ? 'Your application' : 'Join The Great War' %></h2>
+    <p class="ga-hint" style="margin:0 0 10px"><b>Accounts: one person, one account. Each player signs in and completes their own application with their own Discord account. Using another person's account, letting someone use yours, or making a new account to act for someone else voids the application and can bar both players from the event.</b> The Discord account on a submitted application can't be changed by the player; changes go through staff.</p>
     <p>A few questions so we can plan the nations and the war windows around the people who'll actually play. New to modded Minecraft? Welcome: say so below. Start with <a href="/great-war-in-2-minutes">the event in 2 minutes</a>.</p>
     <div class="ga-field"><label for="mc">Your Minecraft username (Java Edition)</label>
       <input id="mc" type="text" name="mc_name" maxlength="16" required value="<%= f.mc_name || '' %>" class="<%= field === 'mc_name' ? 'ga-bad' : '' %>" autocomplete="off" spellcheck="false">
-      <p class="ga-hint">One Minecraft account per person. Discord: <b><%= user.username %></b>.</p></div>
+      <p class="ga-hint">One Minecraft account per person. Discord: <b><%= user.username %></b>. To verify it, join the official server with this Minecraft account, type <code>/link</code> and enter the code on <a href="/war-office">the War Office page</a>.</p></div>
     <div class="ga-field"><label for="tz">Your time zone</label>
       <select id="tz" name="timezone" required class="<%= field === 'timezone' ? 'ga-bad' : '' %>" data-value="<%= f.timezone || '' %>"><option value="">Pick your time zone</option></select>
       <p class="ga-hint" id="tz-hint">War windows are 19:00 to 22:00 UK time.</p></div>

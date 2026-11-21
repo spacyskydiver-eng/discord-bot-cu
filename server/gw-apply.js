@@ -52,6 +52,9 @@ async function mine(discordId) {
 async function submit(user, f) {
   await ready;
   if (!(await isOpen())) throw new GwApplyError('Applications for The Great War aren\'t open yet.');
+  // S87: one person, one account: no brand-new Discord accounts or brand-new members of our server
+  const acct = await require('./one-account').check(user.id);
+  if (!acct.ok) throw new GwApplyError(acct.reason);
   const name = String(f.mc_name || '').trim();
   if (!name) throw new GwApplyError('Enter your Minecraft username.', 'mc_name');
   let acc;
@@ -87,6 +90,7 @@ async function submit(user, f) {
 async function overview() {
   await ready;
   const apps = (await db.query(`SELECT *, extract(epoch from applied_at)::bigint AS at FROM gw_applications ORDER BY applied_at DESC`)).rows;
+  await require('./one-account').annotate(apps);   // S87: verified, account flags, possible same person
   const tally = (list, key) => list.map(([k, label]) => ({ key: k, label, n: apps.filter(a => key(a, k)).length }));
   const windowHour = {};
   apps.forEach(a => { const h = localHour(a.timezone); windowHour[h] = (windowHour[h] || 0) + 1; });

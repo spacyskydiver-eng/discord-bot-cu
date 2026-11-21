@@ -861,6 +861,7 @@ function showTesters(view) {
         <label class="tst-choice"><input type="radio" name="full_hour" value="no"> No</label></fieldset>
       <label class="tst-field"><span>Minecraft username</span>
         <input type="text" name="mc_name" autocomplete="off" spellcheck="false" maxlength="16" pattern="[A-Za-z0-9_]{3,16}" required placeholder="Your Java Edition username"></label>
+      <p class="tst-note"><b>Accounts: one person, one account.</b> Each player signs in and completes their own application with their own Discord account. Using another person's account, letting someone use yours, or making a new account to act for someone else voids the application and can bar both players from the event. The Discord account on a submitted application can't be changed by the player; changes go through staff.</p>
       <fieldset class="tst-agree"><legend>Agreements</legend>
         ${AGREEMENTS.map((t, i) => `<label class="tst-check"><input type="checkbox" name="agree" value="${i + 1}" required><span>${esc(t)}</span></label>`).join('')}
       </fieldset>

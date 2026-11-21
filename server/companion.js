@@ -15,6 +15,9 @@ class CompanionError extends Error {}
 
 const ready = (async () => {
   await db.query(`CREATE TABLE IF NOT EXISTS game_tokens (discord_id TEXT PRIMARY KEY, token TEXT NOT NULL, linked_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
+  // S87: the Minecraft account the game says this link belongs to (from /api/me), so applications can be verified
+  await db.query(`ALTER TABLE game_tokens ADD COLUMN IF NOT EXISTS mc_uuid TEXT`);
+  await db.query(`ALTER TABLE game_tokens ADD COLUMN IF NOT EXISTS mc_name TEXT`);
 })().catch(e => console.error('[companion] setup', e.message));
 
 const seal = t => { const iv = crypto.randomBytes(12), c = crypto.createCipheriv('aes-256-gcm', KEY, iv); const enc = Buffer.concat([c.update(t, 'utf8'), c.final()]); return [iv, c.getAuthTag(), enc].map(b => b.toString('base64')).join('.'); };
@@ -34,7 +37,11 @@ async function link(user, code) {
   const r = await call('/api/link', { method: 'POST', body: JSON.stringify({ code, label: 'cuevents.xyz' }) });
   const d = await r.json().catch(() => ({}));
   if (!r.ok || !d.token) throw new CompanionError(d.message || 'That code didn\'t work. Codes last 10 minutes: get a fresh one with /link.');
-  await db.query(`INSERT INTO game_tokens (discord_id, token) VALUES ($1, $2) ON CONFLICT (discord_id) DO UPDATE SET token = EXCLUDED.token, linked_at = NOW()`, [user.id, seal(d.token)]);
+  // S87: who the game says this is (the account that ran /link in game)
+  let me = null;
+  try { const m = await call('/api/me', {}, d.token); if (m.ok) me = await m.json(); } catch (e) { /* stored without; verified later */ }
+  const uuid = me && me.uuid ? String(me.uuid).toLowerCase().replace(/-/g, '') : null;
+  await db.query(`INSERT INTO game_tokens (discord_id, token, mc_uuid, mc_name) VALUES ($1, $2, $3, $4) ON CONFLICT (discord_id) DO UPDATE SET token = EXCLUDED.token, mc_uuid = EXCLUDED.mc_uuid, mc_name = EXCLUDED.mc_name, linked_at = NOW()`, [user.id, seal(d.token), uuid, me && me.name ? String(me.name) : null]);
 }
 
 async function unlink(discordId) {
