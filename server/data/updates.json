@@ -1,6 +1,16 @@
 {
  "sections": [
   {
+   "title": "v0.26.3",
+   "date": "21 Nov 2026",
+   "id": "v0-26-3",
+   "items": [
+    "v0.26.2 can no longer join: import the new pack, or let the Modrinth App update your instance.",
+    "Your settings follow you to each new version: the pack keeps a copy of your video, sound and control settings, key bindings, server list, and gun and voice-chat settings on your computer. The first time you start a newly installed version, they're already there.",
+    "It starts with this version: your first install of v0.26.3 has nothing kept yet; every install after it brings your settings across."
+   ]
+  },
+  {
    "title": "v0.26.2",
    "date": "21 Nov 2026",
    "id": "v0-26-2",
