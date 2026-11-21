@@ -657,7 +657,10 @@ router.post('/nation-place/clear', async (req, res) => {
 
 // The public campaign map: anyone can view it, signed in or not. Its data comes from its own endpoint, which serves
 // only the public cut of the map (server/campaign-map.js publicMap), never the owner's file.
-router.get('/map', (req, res) => {
+// /map is the new war map (owner, 21 Nov): the real terrain tiles, the game's live 1914 borders and who holds what,
+// on the same 10-minute hold as everything else. The old campaign map stays at /map/campaign.
+router.get('/map', (req, res, next) => wmnPage(req, res, next));
+router.get('/map/campaign', (req, res) => {
   res.render('new/admin-campaign-map', { pub: true, v: ASSET_V, dataUrl: '/map/data.json', shareUrl: '', current: {}, msg: '', bad: false });
 });
 // the war for people who aren't online: the War Report and the Daily Front (server/war-feed.js)
@@ -943,15 +946,15 @@ router.get(/^\/map-tiles\/(\d)\/(0|[1-9]\d{0,2})\/(0|[1-9]\d{0,2})\.webp$/, asyn
     res.send(hit.body);
   } catch (e) { res.set('Cache-Control', 'no-store'); res.status(502).end(); }
 });
-router.get('/war-map-next', async (req, res, next) => {
+async function wmnPage(req, res, next) {
   try {
-    if (!res.locals.isOwner) return next();
     const regions = FRONT.regions.map(r => ({ id: r.id, name: r.name, owner: r.owner, theatre: r.theatre, capital: r.capital || null }));
     res.set('Cache-Control', 'private, no-store');
     const frontOn = res.locals.isOwner || (await access.getSetting('front_public')) === 'on';
     res.render('new/war-map-next', { frontOn, regions, tiles: await wmnTileConfig(), nations: require('../nations').NATIONS });
   } catch (e) { next(e); }
-});
+}
+router.get('/war-map-next', (req, res) => res.redirect(301, '/map'));
 router.get('/war-map-next/dev-tiles/*', (req, res, next) => {
   const dir = process.env.MAP_TILES_DEV_DIR;
   if (!res.locals.isOwner || !dir) return next();
@@ -961,25 +964,36 @@ router.get('/war-map-next/dev-tiles/*', (req, res, next) => {
 });
 // the shapes: the game's traced borders when its feed is live, else the placeholder from tools/war_map_borders.js;
 // the fills, label spots and capitals from the placeholder until the fills are built from the traced lines
-router.get('/war-map-next/shapes.json', async (req, res, next) => {
+// the shapes, public: the game's live border lines, and the fills built from them (server/war-map-fills.js: label
+// spots and capital stars from each shape alone, never a game position). Without the live feed, the stored lines and
+// fills, with their label spots recomputed the same way.
+router.get('/map/shapes.json', async (req, res, next) => {
   try {
-    if (!res.locals.isOwner) return next();
+    const fills = require('../war-map-fills');
     let borders = null;
-    try { const b = await require('../war-feed').borders(); if (b && Array.isArray(b.lines)) borders = b; } catch (e) { console.error('[war-map-next] borders', e.message); }
-    const shapes = await wmnRegions();
-    res.set('Cache-Control', 'private, max-age=300').json({ live: !!borders, borders: borders || await wmnBorders(), regions: shapes.regions || {}, capitals: shapes.capitals || [] });
+    try { const b = await require('../war-feed').borders(); if (b && Array.isArray(b.lines)) borders = b; } catch (e) { console.error('[war-map] borders', e.message); }
+    const stored = await wmnRegions();
+    let shapes = borders ? fills.build(borders, 4, stored.capitals || []) : null;
+    if (!shapes || !Object.keys(shapes.regions).length) {
+      const regions = {};
+      for (const [id, r] of Object.entries(stored.regions || {})) if (r && Array.isArray(r.polygons) && r.polygons.length) {
+        const big = r.polygons.slice().sort((p, q) => q[0].length - p[0].length)[0];
+        regions[id] = { label: fills.poleOf(big), polygons: r.polygons };
+      }
+      shapes = { regions, capitals: (stored.capitals || []).filter(c => regions[c.territory]).map(c => ({ name: c.name, nation: c.nation, territory: c.territory, pos: regions[c.territory].label })) };
+    }
+    res.set('Cache-Control', 'public, max-age=300').json({ live: !!borders, borders: borders || await wmnBorders(), regions: shapes.regions, capitals: shapes.capitals });
   } catch (e) { next(e); }
 });
 // who holds what (delayed as for /war-map) and which nations are at war, for the fronts
-router.get('/war-map-next/owners.json', async (req, res, next) => {
+router.get('/map/owners.json', async (req, res, next) => {
   try {
-    if (!res.locals.isOwner) return next();
     const own = await delayedOwners();
     const owners = {};
     if (own) FRONT.regions.forEach(r => { if (own[r.id]) owners[r.id] = String(own[r.id]); });
     let wars = [];
     if (own) try { wars = ((await require('../war-feed').report()).relations || []).filter(x => x.state === 'war').map(x => [String(x.a), String(x.b)]); } catch (e) { /* no fronts shown */ }
-    res.set('Cache-Control', 'private, max-age=60').json({ live: !!own, owners, wars, at: Date.now() });
+    res.set('Cache-Control', 'public, max-age=60').json({ live: !!own, owners, wars, at: Date.now() });
   } catch (e) { next(e); }
 });
 

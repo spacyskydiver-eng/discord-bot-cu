@@ -4,7 +4,7 @@ const TONE = { gb: '#d9483b', fr: '#4f7fd9', de: '#454d59', ah: '#e0b33a', ru: '
 const NAT = nations.map(n => ({ id: n.id, name: n.name, flag: n.flag, slug: n.slug }));
 const j = v => JSON.stringify(v).replace(/</g, '\\u003c');
 %>
-<%- include('partials/head', { publicBg: true, _url: '/war-map-next', pageTitle: 'The war map', pageDescription: 'The map of Europe in The Great War, region by region: who holds what, coloured by nation.' }) %>
+<%- include('partials/head', { publicBg: true, _url: '/map', pageTitle: 'The war map', pageDescription: 'The map of Europe in The Great War, region by region: who holds what, coloured by nation.' }) %>
 <%- include('partials/header') %>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer">
 <style>
@@ -104,7 +104,6 @@ const j = v => JSON.stringify(v).replace(/</g, '\\u003c');
 </style>
 <main class="wrap"><div class="wm-wrap">
   <%- include('partials/home-link') %>
-  <div class="wm-draft">Preview: only the owner sees this page. The war map everyone will see is still <a href="/war-map">/war-map</a>.</div>
   <div class="page-head"><div><h1 class="page-title">The war map</h1><p class="page-sub">Europe region by region, from the whole continent down to single blocks. Pick a nation to see its lands, search for a place, or tap a region to see who holds it<%= frontOn ? ' and read about it' : '' %>.</p></div></div>
   <p class="wm-status"><span class="wm-dot" id="wm-dot"></span><span id="wm-status">Europe at the start, 1914.</span></p>
   <div class="wm-filters" id="wm-filters">
@@ -474,7 +473,7 @@ const j = v => JSON.stringify(v).replace(/</g, '\\u003c');
   // once the game's war feed is live (captures during a window show 10 minutes late); a capture only restyles what's
   // drawn, nothing is fetched again but this small list
   function refresh() {
-    fetch('/war-map-next/owners.json', { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+    fetch('/map/owners.json', { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
       if (!j || !j.live) return;
       Object.keys(j.owners).forEach(function (id) { if (byId[id]) byId[id].owner = j.owners[id]; });
       wars = {}; (j.wars || []).forEach(function (w) { wars[warKey(w[0], w[1])] = true; });
@@ -493,7 +492,7 @@ const j = v => JSON.stringify(v).replace(/</g, '\\u003c');
   // 1:1 or as whole-pixel blocks, where between levels scaled tiles leave hairline seams and blur the blocks.
   // the first view: a #region link centres on it (?z=N: at N blocks a pixel, for testing), else all of Europe
   fitAll(true);
-  fetch('/war-map-next/shapes.json', { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (data) {
+  fetch('/map/shapes.json', { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (data) {
     build(data); fitAll(true);
     var h = decodeURIComponent(location.hash.slice(1)), z = parseFloat(new URLSearchParams(location.search).get('z'));
     if (byId[h]) {
