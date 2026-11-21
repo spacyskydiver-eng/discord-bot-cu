@@ -1,6 +1,17 @@
 {
  "sections": [
   {
+   "title": "v0.26.1",
+   "date": "21 Nov 2026",
+   "id": "v0-26-1",
+   "items": [
+    "v0.26 can no longer join: import the new pack, or let the Modrinth App update your instance.",
+    "The menus are quiet for now: the old background sound is gone until the event's own track is ready. The intro's booms still play.",
+    "The map's far-out views come with the pack again, from the updated map, so they load instantly.",
+    "Tidier mod details in the game's mod list."
+   ]
+  },
+  {
    "title": "v0.26",
    "date": "21 Nov 2026",
    "id": "v0-26",
