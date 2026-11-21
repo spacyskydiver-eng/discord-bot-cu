@@ -1,6 +1,18 @@
 {
  "sections": [
   {
+   "title": "v0.26.7",
+   "date": "21 Nov 2026",
+   "id": "v0-26-7",
+   "items": [
+    "A server-only fix, no new pack: keep using v0.26.6.",
+    "Nothing drops when you die in the battle. You come back with your class's kit.",
+    "A class you pick in the battle is for the battle only: it doesn't change your main-war class or start its 24-hour wait.",
+    "Horses, boats and minecarts come back inside the edge with their rider.",
+    "No more respawning underground: every respawn spot is now under open sky."
+   ]
+  },
+  {
    "title": "v0.26.6",
    "date": "21 Nov 2026",
    "id": "v0-26-6",
