@@ -784,7 +784,7 @@ function showTesters(view) {
       <div class="nv-mod-bar"><button class="nv-back" data-go="${esc(B.V.home)}">${icon('arrow-left')} Home</button></div>
       <div class="nv-kicker">Test sessions</div>
       <h1>Become a tester</h1>
-      <p class="nv-lede">Before The Great War opens, we run test battles on prebuilt maps. They let us try out the event's systems with real players, and we record them for the event trailer. Each session has 50 places, two teams of 25, and lasts about an hour.</p>
+      <p class="nv-lede"><b>Testing is open now, until Sunday 22 November, 8pm UK time.</b> Anyone can sign up and get the GW Testers role, as usual. Put your Minecraft Java username in the form: we use it to add you to the test server's whitelist. Right now the server is a free-for-all test day on the Lorraine front, so you can try the guns, tanks and classes as much as you like.</p>
     </div></header>
     <div class="tst-body"><div class="nv-empty">Loading…</div></div>
   </div>`;
@@ -825,12 +825,12 @@ function showTesters(view) {
         <p>Applied as <b>${esc(a.mc_name)}</b>. ${notIn ? '' : d && d.hasRole ? 'You have the GW Testers role on our Discord.' : ''}</p>
         ${notIn ? `<div class="tst-warn"><p><b>One more step:</b> you're not in our Discord server yet, so we can't give you the GW Testers role. Join the server, then come back and press the button below. If you join first, the bot gives you the role on its own.</p>
           <div class="tst-row">${discordLink()}<button class="tst-btn" data-act="retry">I've joined, give me the role</button></div></div>` : ''}
-        <div class="tst-next"><div class="tst-k">Before Saturday</div>
+        <div class="tst-next"><div class="tst-k">Before you play</div>
           <ul><li><b>Install the pack:</b> download it from <a href="/pack">the pack page</a> (signed in, with the GW Testers role). It takes about 10 minutes.</li>
-          <li><b>Launch it once</b> before the day, so anything that goes wrong goes wrong early. Stuck? See <a href="/pack-faq">the pack FAQ</a>.</li>
+          <li><b>Launch it once</b> and join the official server; you're added to its whitelist a little after you sign up. Stuck? See <a href="/pack-faq">the pack FAQ</a>.</li>
           <li><b>Report problems</b> at <a href="/report">cuevents.xyz/report</a>, with your log file.</li>
-          <li>The battle on 21 November is over; the server is a free-for-all test day for now.</li>
-          <li>If you can't make it any more, withdraw here so the next person on the waitlist gets your place.</li></ul></div>
+          <li>Testing is open until Sunday 22 November, 8pm UK time.</li>
+          <li>If you don't want to test any more, withdraw here.</li></ul></div>
         <div class="tst-row">${notIn ? '' : discordLink()}<button class="tst-btn tst-danger" data-act="withdraw" data-session="${s.id}">Withdraw</button></div>
       </div>`;
     }

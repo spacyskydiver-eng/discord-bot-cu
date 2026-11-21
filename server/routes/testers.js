@@ -29,6 +29,21 @@ router.get('/api/testers', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// The game server's tester whitelist (owner, 21 Nov): accepted testers' Java accounts for sessions that haven't ended.
+// Server to server only: the game's web secret in X-Greatwar-Secret (the same shared secret the site uses to call the game).
+router.get('/api/game/testers/whitelist', async (req, res, next) => {
+  try {
+    const want = process.env.GAME_API_SECRET || process.env.WAR_FEED_SECRET || '';
+    const got = String(req.get('x-greatwar-secret') || '');
+    const crypto = require('crypto');
+    const ok = want.length >= 16 && got.length === want.length && crypto.timingSafeEqual(Buffer.from(got), Buffer.from(want));
+    res.set('Cache-Control', 'no-store');
+    if (!ok) return res.status(401).json({ error: 'unauthorised' });
+    const list = await testers.whitelist();
+    res.json({ at: Date.now(), players: list.map(p => ({ name: p.name, uuid: p.uuid })) });
+  } catch (e) { next(e); }
+});
+
 router.post('/api/testers/apply', sameOrigin, signedIn, async (req, res, next) => {
   try {
     const b = req.body || {};

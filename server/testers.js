@@ -161,7 +161,8 @@ async function apply(sessionId, user, mc) {
   await ready;
   const result = await inSession(sessionId, async c => {
     const s = await getSession(sessionId, c);
-    if (!s || !s.open || s.starts_at <= Date.now() / 1000) throw new ApplyError('closed', 'Applications for this session are closed.');
+    // a session takes applications until it ends (owner, 21 Nov: the free-for-all test day is open while it runs)
+    if (!s || !s.open || s.starts_at + s.duration_minutes * 60 <= Date.now() / 1000) throw new ApplyError('closed', 'Applications for this session are closed.');
     const prev = (await c.query(`SELECT status FROM tester_applications WHERE session_id = $1 AND discord_id = $2`, [sessionId, user.id])).rows[0];
     if (prev && (prev.status === 'accepted' || prev.status === 'waitlisted')) return { status: prev.status, already: true };
     if (prev && prev.status === 'removed') throw new ApplyError('removed', 'Staff have removed you from this session. Ask in the Discord if you think this is a mistake.');
@@ -295,7 +296,16 @@ async function onMemberJoin(member) {
   if (has) await syncQuietly(member.id);
 }
 
+// the game server's tester whitelist (owner, 21 Nov): every accepted tester's Java account in a session that hasn't ended
+async function whitelist() {
+  await ready;
+  return (await db.query(`SELECT DISTINCT ON (a.mc_uuid) a.mc_name AS name, a.mc_uuid AS uuid, a.discord_name AS discord, s.title AS session
+    FROM tester_applications a JOIN test_sessions s ON s.id = a.session_id
+    WHERE a.status = 'accepted' AND a.mc_uuid IS NOT NULL AND ${ENDS} > NOW() ORDER BY a.mc_uuid, a.applied_at`)).rows;
+}
+
 module.exports = {
+  whitelist,
   GUILD_ID, TESTER_ROLE_ID, ApplyError,
   upcomingSessions, allSessions, getSession, apply, withdraw, joinInterest, mine, syncRole, memberState,
   applications, adminSetStatus, saveSession, autoTeams, setTeam, clearTeams, roster, sweep, startSweeps, onMemberJoin,

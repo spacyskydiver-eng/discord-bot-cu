@@ -68,7 +68,7 @@ async function renderApp(req, res) {
     testSessions = (await testers.upcomingSessions()).filter(s => s.open)
       .map(s => ({ id: s.id, title: s.title, starts_at: s.starts_at, duration_minutes: s.duration_minutes, team_size: s.team_size, full: s.taken >= s.slots }));
   } catch (e) { console.error('[home] test sessions', e.message); }
-  for (const s of testSessions) applications.push({ title: 'Tester: ' + s.title, detail: s.full ? 'Waitlist open' : 'Free-for-all test day, open now', view: 'testers' });
+  for (const s of testSessions) applications.push({ title: 'Tester: ' + s.title, detail: s.full ? 'Waitlist open' : 'Open until 22 Nov, 8pm UK', view: 'testers' });
   try {
     const L = leaders.publicInfo();
     // a notice for anyone named in a leadership team who hasn't answered yet
