@@ -1,6 +1,19 @@
 {
  "sections": [
   {
+   "title": "v0.26.6",
+   "date": "21 Nov 2026",
+   "id": "v0-26-6",
+   "items": [
+    "The tester battle. v0.26.5 can no longer join: import the new pack, or let the Modrinth App update your instance. Your settings come with you.",
+    "Germany against France in Lorraine, Alsace, Nancy and Verdun. You're placed on a side when you join, and you stay on it.",
+    "Pick your class when the battle starts: each shows the gun, kit and armour it gives you, two of each class per side. Press P during the battle to change class (from your next respawn), see the score and your side's objectives, or open Settings.",
+    "Objectives at the top of the screen tell your side what to take or hold, with tickets and the clock.",
+    "When you fall, choose which of your side's regions to come back in.",
+    "The battlefield has an edge: a red wall marks where you can't go further."
+   ]
+  },
+  {
    "title": "v0.26.5",
    "date": "21 Nov 2026",
    "id": "v0-26-5",
