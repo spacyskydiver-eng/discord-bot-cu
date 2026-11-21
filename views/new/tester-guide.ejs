@@ -14,57 +14,36 @@
 </style>
 <main class="wrap"><div class="tg-wrap">
   <%- include('partials/home-link') %>
-  <div class="page-head"><div><h1 class="page-title">Testers' guide</h1><p class="page-sub">Saturday 21 November · one hour · thank you for helping</p></div></div>
+  <div class="page-head"><div><h1 class="page-title">Testers' guide</h1><p class="page-sub">Saturday 21 November · 19:00 UK time · a 30-minute battle · thank you for helping</p></div></div>
   <% if (!isPublic) { %><div class="tg-draft">Hidden: only the owner sees this page until it's made public (site setting testers_guide_public). Check the "not in yet" list against the build before publishing.</div><% } %>
   <% if (locals.isOwner) { %><form method="POST" action="/tester-guide/public" style="margin:0 0 18px"><input type="hidden" name="public" value="<%= isPublic ? 'off' : 'on' %>"><button type="submit" style="padding:9px 14px;border-radius:10px;border:0;background:<%= isPublic ? 'rgba(255,255,255,.12)' : '#5be38f' %>;color:<%= isPublic ? '#fff' : '#0c1a12' %>;font:800 14px 'Baloo 2',sans-serif;cursor:pointer"><%= isPublic ? 'Hide again (owner only)' : 'Make this page public' %></button></form><% } %>
 
   <div class="tg-box"><h2>Before the day</h2><ol>
     <li>Download the modpack from <a href="/pack">the pack page</a>. It must say <b>v0.26.8</b>.</li>
     <li>Install it as a <b>new instance</b> (the <a href="/first-hour">first-hour guide</a> shows how). Don't update an old one in place.</li>
-    <li>Launch it once and join the official server, so anything that goes wrong turns up before Saturday, not during it.</li>
+    <li>Launch it once and join the official server before 19:00, so anything that goes wrong turns up before the battle, not during it.</li>
   </ol><p>Older packs (v0.26.5 and before) <b>can no longer join</b> the official server, so please update. Your key bindings may reset to the pack's defaults on the first launch of v0.26.3; if you had changed any, check them in Options, Controls. From v0.26.3 on, the pack keeps your settings (video, sound, controls, keys, servers) and brings them to each new version by itself.</p></div>
 
-  <div class="tg-box"><h2>New since v0.23</h2><ul>
-    <li><b>Stamina, running speed and bandages</b> work differently, with new settings for them.</li>
-    <li><b>Battles</b>: two sides, tickets, a round timer, capture points and class kits when you come back; the winner is announced at the end.</li>
-    <li><b>Borders follow real 1914 lines</b>: provinces and départements where the history is known, rivers and ridges elsewhere.</li>
-    <li><b>A region's core is a field command post.</b> Holding it means standing at it: not swimming, in a boat, flying or dug in underneath.</li>
-    <li><b>Neutral land is slower to claim</b>, and anyone else there stands against the claim.</li>
-    <li><b>Nobody comes back into a siege</b>: spawn areas are kept well away from every core, on level ground under open sky.</li>
-    <li><b>The world has an edge</b>: a border stops you at the edge of the map.</li>
-    <li>While a contested zone is open, both sides can cross the land around it to get in.</li>
-  </ul><p>The full list is on <a href="/updates">the updates page</a>.</p></div>
-
-  <div class="tg-box"><h2>Tonight's battle</h2><ul>
-    <li><b>Germany against France</b> in Lorraine, Alsace, Nancy and Verdun. You're placed on a side when you join, and you stay on it.</li>
-    <li><b>Pick your class</b> when the battle starts (two of each class per side). Press <b>P</b> to change class from your next respawn, see the score and your objectives, or open Settings.</li>
-    <li>The objectives at the top of the screen show what your side must take or hold, the tickets and the clock.</li>
-    <li>When you fall, choose which of your side's regions to come back in. A red wall marks the edge of the battlefield.</li>
+  <div class="tg-box"><h2>Tonight: France against Germany</h2>
+    <p>It starts at <b>19:00 UK time</b> (GMT) and is <b>one 30-minute battle</b>. Be in the game a few minutes early if you can.</p><ul>
+    <li><b>The field:</b> Lorraine, Lower Alsace and Upper Alsace (German) against Nancy and Verdun (French). A red wall marks the edge of the battlefield.</li>
+    <li><b>Your side</b> is fixed the first time you join, and you stay on it.</li>
+    <li><b>Pick your class</b> when the battle starts: each shows its gun, kit and armour; two of each class per side.</li>
+    <li><b>Press P</b> for the battle screen: the score, your side's objectives, and changing class (it applies from your next respawn).</li>
+    <li><b>Capture the objectives</b> shown in the bars at the top of the screen, with the tickets and the clock.</li>
+    <li><b>When you fall</b> you drop nothing: choose which of your side's regions to come back in, and your class's kit is restored.</li>
+    <li><b>Chat works</b>, including for accounts whose chat is limited by their Minecraft settings.</li>
   </ul></div>
 
-  <div class="tg-box"><h2>On the day</h2>
-    <p>It starts at <b>19:00 UK time</b> (GMT). Be in the game a few minutes early if you can. The session lasts about an hour. Staff run it as a series of short battles: you'll be put on a side, everything resets between rounds, and nobody can be hurt between them.</p></div>
-
-  <div class="tg-box"><h2>What we most want tested, in this order</h2><ol>
-    <li><b>The new war map (K).</b> Open it, zoom from all of Europe down to single regions, find your nation's regions. Does it open quickly, scroll smoothly and show the borders in the right places?</li>
-    <li><b>A war window with weather.</b> Fight in the rain and mist. Does it look right? Can you still see and aim?</li>
-    <li><b>The death recap.</b> When you fall, is it clear who got you, with what, and from how far?</li>
-    <li><b>Daily orders</b> (War Office, Orders, Daily). Do your three orders make sense, and do they tick off when done?</li>
-    <li><b>Builders' commissions.</b> If staff post one, help build it from the outline and report it done.</li>
-    <li><b>Field post.</b> Write a postcard to a comrade at a runner's post box. Does it arrive?</li>
-    <li><b>The market.</b> Set up a stall, sell something, buy from someone else's.</li>
-    <li><b>The dead's wager.</b> If you're out of the fight for good, call the front from the War Office (Front, The wager).</li>
-  </ol></div>
+  <div class="tg-box"><h2>Before you start</h2><ul>
+    <li>If you played an older pack, check your video settings: <b>VSync off</b> runs smoother.</li>
+    <li>Optional: press the <b>Discord</b> button on the title screen to link your game and keep your settings online.</li>
+  </ul></div>
 
   <div class="tg-box"><h2>Tell us what you find</h2><ul>
     <li><code>/bug</code> followed by what happened, in game, the moment it happens (it records where you are).</li>
     <li><code>/balance</code> followed by what feels too strong or too weak.</li>
-    <li>Anything else, or after the session: <a href="/report">the report form</a>.</li>
+    <li>Anything else, or after the battle: <a href="/report">the report form</a>.</li>
   </ul><p>"I didn't understand what to do" is a useful report too.</p></div>
-
-  <div class="tg-box"><h2>What isn't in yet</h2><ul>
-    <li><b>Some of the map's details.</b> The session is fought on the map of Europe, but its mines, structures and some finishing touches are still being added for December.</li>
-    <li>Numbers like prices and pay may still change before 17 December.</li>
-  </ul></div>
 </div></main>
 <%- include('partials/foot') %>

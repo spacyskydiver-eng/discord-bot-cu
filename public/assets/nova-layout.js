@@ -829,7 +829,7 @@ function showTesters(view) {
           <ul><li><b>Install the pack:</b> download it from <a href="/pack">the pack page</a> (signed in, with the GW Testers role). It takes about 10 minutes.</li>
           <li><b>Launch it once</b> before the day, so anything that goes wrong goes wrong early. Stuck? See <a href="/pack-faq">the pack FAQ</a>.</li>
           <li><b>Report problems</b> at <a href="/report">cuevents.xyz/report</a>, with your log file.</li>
-          <li>Be ready at the start time. The session lasts about an hour.</li>
+          <li>Be ready at the start time. Tonight is one 30-minute battle.</li>
           <li>If you can't make it any more, withdraw here so the next person on the waitlist gets your place.</li></ul></div>
         <div class="tst-row">${notIn ? '' : discordLink()}<button class="tst-btn tst-danger" data-act="withdraw" data-session="${s.id}">Withdraw</button></div>
       </div>`;
