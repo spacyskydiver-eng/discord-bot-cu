@@ -5,29 +5,27 @@
       "name": "Closed Alpha 1",
       "date": "21 November 2026",
       "version": "v0.26.8",
-      "intro": "The first time players fought in The Great War. On Saturday 21 November our testers took the field in a France against Germany battle, and the server stayed open afterwards as a free-for-all so everyone could keep trying it out.",
+      "intro": "The first time players fought in The Great War.",
       "sections": [
-        { "title": "The battle", "items": [
-          "France against Germany over Lorraine, Alsace, Nancy and Verdun, on the real map of 1914 Europe.",
-          "Your side is fixed when you first join. Capture and hold the objectives shown at the top of the screen, with the tickets and the clock.",
-          "When you fall you drop nothing: choose which of your side's regions to come back in, with your class's kit.",
-          "A red wall marks the edge of the battlefield."
-        ]},
-        { "title": "Soldiers", "items": [
-          "Pick a class when the battle starts, each with its own gun, kit and armour; press P to change class for your next respawn.",
-          "Stamina, running and bandages work like a soldier's should; the stamina bar shows while it refills.",
-          "Every gun tells you what it really does: its damage to the body and the head, its fire rate and magazine, and the round it takes.",
-          "Tanks, crewed by anyone on the field."
-        ]},
-        { "title": "The war map", "items": [
-          "Press K for the map: the whole front drawn from the real terrain, with the 1914 borders of every province.",
-          "Zoom from all of Europe down to a single region, search for any place, and see who holds what."
-        ]},
-        { "title": "Your game", "items": [
-          "Chat works for everyone, including players whose Minecraft account limits chat.",
-          "Your settings come with you to every new version of the pack, and the first launch is set up to run smoothly.",
-          "The website is ready to link your game to your Discord account and keep your settings online; the button in the game is coming next."
-        ]}
+        {
+          "title": "Bugs",
+          "items": [
+            "Crawling didn't work with most guns.",
+            "Rifles sometimes wouldn't fire after a reload until you switched slots.",
+            "Some players' settings went back to the defaults after updating the pack.",
+            "The key bindings screen showed the wrong name for the gun controls."
+          ]
+        },
+        {
+          "title": "Suggested",
+          "items": [
+            "An option to stop ammo moving into the hotbar by itself.",
+            "Gun upgrades, and guns that can jam.",
+            "Anti-tank mines.",
+            "Lanterns, doors, ladders, chairs and other decorations you can actually use.",
+            "Slimmer armour, and new tank sounds."
+          ]
+        }
       ]
     },
     {
