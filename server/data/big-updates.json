@@ -12,18 +12,8 @@
           "items": [
             "Crawling didn't work with most guns.",
             "Rifles sometimes wouldn't fire after a reload until you switched slots.",
-            "Some players' settings went back to the defaults after updating the pack.",
-            "The key bindings screen showed the wrong name for the gun controls."
-          ]
-        },
-        {
-          "title": "Suggested",
-          "items": [
-            "An option to stop ammo moving into the hotbar by itself.",
-            "Gun upgrades, and guns that can jam.",
-            "Anti-tank mines.",
-            "Lanterns, doors, ladders, chairs and other decorations you can actually use.",
-            "Slimmer armour, and new tank sounds."
+            "Tank sounds were wrong or missing.",
+            "Some building decor blocks didn't work."
           ]
         }
       ]
