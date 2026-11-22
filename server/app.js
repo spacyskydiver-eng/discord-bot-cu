@@ -92,7 +92,7 @@ module.exports = function startServer() {
   });
   app.use('/', require('./routes/game-link'));   // S89: Discord sign-in from the game + cloud settings
   app.use('/', require('./routes/pages'));
-  app.use('/', require('./routes/updates'));
+  app.use('/', require('./routes/updates').router);
   app.use('/', require('./routes/testers'));
   app.use('/', require('./routes/leaders'));
   app.use('/', require('./routes/gw-apply').router);

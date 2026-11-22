@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <% if (locals.noindex) { %><meta name="robots" content="noindex, nofollow"><% } %>
   <title><%= typeof pageTitle !== 'undefined' && pageTitle ? pageTitle + ' · ' : '' %>Collective Union Events</title>
   <%- include('../../partials/meta', { meta: { title: (typeof pageTitle !== 'undefined' && pageTitle ? pageTitle + ' · ' : '') + 'Collective Union Events', description: locals.pageDescription, path: locals._url || '/' } }) %>
   <link rel="icon" href="/img/favicon.webp" type="image/webp">

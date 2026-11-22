@@ -1,0 +1,34 @@
+<%- include('partials/head', { publicBg: true, noindex: true, _url: '/staff/releases', pageTitle: 'Every release (staff)' }) %>
+<%- include('partials/header') %>
+<style>
+.up-wrap { max-width: 860px; margin: 0 auto; padding-bottom: 80px; }
+.up-layout { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.up-toc { background: rgba(10,12,18,.72); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+.up-toc b { display: block; font: 800 14px 'Baloo 2', sans-serif; color: #fff; margin: 0 0 6px; }
+.up-toc div { display: flex; flex-wrap: wrap; gap: 6px; }
+.up-toc a { font: 700 13px 'Baloo 2', sans-serif; color: #c4c8d2; text-decoration: none; padding: 4px 9px; border-radius: 8px; background: rgba(255,255,255,.06); border: 1px solid var(--line); }
+.up-toc a:hover, .up-toc a:focus { color: #fff; background: rgba(255,255,255,.12); }
+.up-sec { background: rgba(10,12,18,.72); border: 1px solid var(--line); border-radius: 14px; padding: 15px 18px; scroll-margin-top: 80px; }
+.up-sec h2 { font: 800 19px 'Baloo 2', sans-serif; color: #fff; margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.up-sec h2 small { font: 700 13.5px 'Baloo 2', sans-serif; color: #9aa0ad; }
+.up-sec.next { border-color: rgba(91,227,143,.4); }
+.up-sec.next h2 small { color: #5be38f; }
+.up-sec ul { margin: 10px 0 0; padding: 0 0 0 18px; }
+.up-sec li { font: 600 15px/1.55 'Baloo 2', sans-serif; color: #c4c8d2; margin: 0 0 5px; }
+</style>
+<main class="wrap"><div class="up-wrap">
+  <%- include('partials/home-link') %>
+  <div class="page-head"><div><h1 class="page-title">Every release</h1><p class="page-sub">Staff only: every pack and server release, newest first, in players' words. Players see only the big updates on /updates; the full technical record is the vault's Changelog.</p></div></div>
+  <div class="up-layout">
+    <nav class="up-toc" aria-label="Versions"><b>Jump to a version</b><div>
+      <% sections.forEach(s => { %><a href="#<%= s.id %>"><%= s.title %></a><% }) %>
+    </div></nav>
+    <% sections.forEach(s => { %>
+      <section class="up-sec<%= /coming/i.test(s.title) ? ' next' : '' %>" id="<%= s.id %>">
+        <h2><%= s.title %><% if (s.date) { %><small><%= s.date %></small><% } else if (/coming/i.test(s.title)) { %><small>in the works</small><% } %></h2>
+        <ul><% s.items.forEach(i => { %><li><%= i %></li><% }) %></ul>
+      </section>
+    <% }) %>
+  </div>
+</div></main>
+<%- include('partials/foot') %>
