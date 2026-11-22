@@ -784,7 +784,7 @@ function showTesters(view) {
       <div class="nv-mod-bar"><button class="nv-back" data-go="${esc(B.V.home)}">${icon('arrow-left')} Home</button></div>
       <div class="nv-kicker">Test sessions</div>
       <h1>Become a tester</h1>
-      <p class="nv-lede"><b>Testing is open now, until Sunday 22 November, 8pm UK time.</b> Anyone can sign up and get the GW Testers role, as usual. Put your Minecraft Java username in the form: we use it to add you to the test server's whitelist. Right now the server is a free-for-all test day on the Lorraine front, so you can try the guns, tanks and classes as much as you like.</p>
+      <p class="nv-lede"><b>Testing closed on Sunday 22 November.</b> Thank you to everyone who took part. New test sessions will show here when they open.</p>
     </div></header>
     <div class="tst-body"><div class="nv-empty">Loading…</div></div>
   </div>`;
@@ -829,7 +829,7 @@ function showTesters(view) {
           <ul><li><b>Install the pack:</b> download it from <a href="/pack">the pack page</a> (signed in, with the GW Testers role). It takes about 10 minutes.</li>
           <li><b>Launch it once</b> and join the official server; you're added to its whitelist a little after you sign up. Stuck? See <a href="/pack-faq">the pack FAQ</a>.</li>
           <li><b>Report problems</b> at <a href="/report">cuevents.xyz/report</a>, with your log file.</li>
-          <li>Testing is open until Sunday 22 November, 8pm UK time.</li>
+          <li>Testing closed on Sunday 22 November.</li>
           <li>If you don't want to test any more, withdraw here.</li></ul></div>
         <div class="tst-row">${notIn ? '' : discordLink()}<button class="tst-btn tst-danger" data-act="withdraw" data-session="${s.id}">Withdraw</button></div>
       </div>`;
