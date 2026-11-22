@@ -40,8 +40,9 @@ router.get('/api/game/testers/whitelist', async (req, res, next) => {
     const ok = want.length >= 16 && got.length === want.length && crypto.timingSafeEqual(Buffer.from(got), Buffer.from(want));
     res.set('Cache-Control', 'no-store');
     if (!ok) return res.status(401).json({ error: 'unauthorised' });
-    // cached 15 minutes: the host asks every 10, and each read would wake the database
-    if (!wl.at || Date.now() - wl.at > 15 * 60 * 1000) wl.list = await testers.whitelist(), wl.at = Date.now();
+    // cached an hour: the host asks every 10 minutes, and each database read keeps the database awake (a new tester
+    // reaches the whitelist within the hour)
+    if (!wl.at || Date.now() - wl.at > 60 * 60 * 1000) wl.list = await testers.whitelist(), wl.at = Date.now();
     const list = wl.list;
     res.json({ at: Date.now(), players: list.map(p => ({ name: p.name, uuid: p.uuid })) });
   } catch (e) { next(e); }
