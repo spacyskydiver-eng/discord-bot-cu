@@ -14,13 +14,10 @@
 .up-post li { font: 600 15px/1.55 'Baloo 2', sans-serif; color: #c4c8d2; margin: 0 0 4px; }
 .up-ver { font: 600 12px Inter, sans-serif; color: #6f7484; margin: 14px 0 0; }
 .up-empty { font: 600 15px 'Baloo 2', sans-serif; color: #9aa0ad; }
-.up-staff { font: 600 13px 'Baloo 2', sans-serif; color: #fbbf24; margin: 0 0 14px; }
-.up-staff a { color: #fbbf24; }
 </style>
 <main class="wrap"><div class="up-wrap">
   <%- include('partials/home-link') %>
   <div class="page-head"><div><h1 class="page-title">Updates</h1><p class="page-sub">The big updates to The Great War, newest first.</p></div></div>
-  <% if (staff) { %><p class="up-staff">Staff view: drafts are marked and only staff see them; Alex publishes each post from the control centre. Every small release is on <a href="/staff/releases">the staff list</a>.</p><% } %>
   <% if (!posts.length) { %><p class="up-empty">Nothing here yet.</p><% } %>
   <% posts.forEach(p => { %>
     <article class="up-post<%= p.draft ? ' draft' : '' %>" id="<%= p.id %>">
