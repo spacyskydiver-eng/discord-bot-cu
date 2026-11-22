@@ -31,7 +31,7 @@ module.exports = async (message) => {
 
   // Log every non-bot message for moderation (enables deleted message tracking)
   if (!message.author.bot) {
-    // queued, written with the rest every 15 minutes (utils/writeBuffer.js), so chat doesn't wake the database
+    // queued, written with the rest every hour (utils/writeBuffer.js), so chat doesn't wake the database
     buffer.logMessage(
       [message.id, message.guild.id, message.channel.id, message.author.id,
        message.author.username,
@@ -108,7 +108,7 @@ module.exports = async (message) => {
   const userId = message.author.id;
 
   // XP (22 Nov): a guild's settings and levels are cached 30 minutes, each member's XP is read once and then kept in
-  // memory, and the gains are written as increments every 15 minutes (utils/writeBuffer.js), so chat doesn't keep
+  // memory, and the gains are written as increments every hour (utils/writeBuffer.js), so chat doesn't keep
   // the database awake
   const config = await guildXpConfig(guildId);
   const user = await memberXp(guildId, userId);

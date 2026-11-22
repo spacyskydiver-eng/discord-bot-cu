@@ -4,7 +4,7 @@
 // Reads that rarely change (a guild's XP settings and levels) are cached by their callers.
 const db = require('../db');
 
-const FLUSH_MS = 15 * 60 * 1000;
+const FLUSH_MS = 60 * 60 * 1000;   // hourly: each flush wakes the database for at least 5 minutes (22 Nov: every 15 min kept it awake a third of the time)
 const queue = [];                 // { sql, params }
 const logs = new Map();           // message_id -> params of a message_logs insert not written yet
 const xp = new Map();             // "guild:user" -> { guildId, userId, delta, level, last }
