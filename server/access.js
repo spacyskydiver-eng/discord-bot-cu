@@ -70,9 +70,13 @@ async function setMaintenance(on) {
 /* ---------------------------------------------------------------- other site settings */
 // small values set from the control centre (in site_settings), read at most once a minute
 const settings = {};
-async function getSetting(key) {
+// ttlMs: how long a value read from the database is trusted (default a minute). Background jobs that only check an
+// on/off switch pass a long one, so the database can sleep when the site is idle (Neon suspends after 5 quiet minutes;
+// the free plan's monthly compute ran out on 22 Nov with jobs waking it every minute). setSetting updates this cache
+// at once, so a switch changed from the control centre still takes effect immediately.
+async function getSetting(key, ttlMs = 60 * 1000) {
   const c = settings[key];
-  if (c && Date.now() - c.at < 60 * 1000) return c.value;
+  if (c && Date.now() - c.at < ttlMs) return c.value;
   let value = null;
   try { const row = (await db.query(`SELECT value FROM site_settings WHERE key = $1`, [key])).rows[0]; value = row ? row.value : null; }
   catch (e) { console.error('[settings]', e.message); if (c) return c.value; }

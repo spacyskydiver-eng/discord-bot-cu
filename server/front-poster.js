@@ -16,7 +16,7 @@ const ready = (async () => {
     key TEXT PRIMARY KEY, mode TEXT NOT NULL, title TEXT, posted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), error TEXT)`);
 })().catch(e => console.error('[front-poster] setup', e.message));
 
-const mode = async () => { const m = await access.getSetting('front_post'); return m === 'on' || m === 'dry' ? m : 'off'; };
+const mode = async () => { const m = await access.getSetting('front_post', 30 * 60 * 1000); return m === 'on' || m === 'dry' ? m : 'off'; };
 const nat = id => { const n = NATIONS.find(x => x.id === id); return n ? n.name.replace(/^The /, '') : id; };
 const COLOUR = 0xC9A84C;
 

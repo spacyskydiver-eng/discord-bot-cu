@@ -30,7 +30,7 @@ const ready = (async () => {
     discord_id TEXT, role_id TEXT, kind TEXT, note TEXT)`);
 })().catch(e => console.error('[nation-roles] setup', e.message));
 
-const mode = async () => { const m = await access.getSetting('nation_roles'); return m === 'on' || m === 'dry' ? m : 'off'; };
+const mode = async () => { const m = await access.getSetting('nation_roles', 30 * 60 * 1000); return m === 'on' || m === 'dry' ? m : 'off'; };
 async function config() {
   try { return Object.assign({ nations: {}, voice: {}, leader: null, seat: null }, JSON.parse((await access.getSetting('nation_roles_config')) || '{}')); }
   catch (e) { return { nations: {}, voice: {}, leader: null, seat: null }; }

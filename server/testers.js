@@ -288,7 +288,7 @@ async function sweep() {
 }
 function startSweeps() {
   setTimeout(sweep, 60 * 1000);
-  setInterval(sweep, 10 * 60 * 1000);
+  setInterval(sweep, 60 * 60 * 1000);   // hourly, so the database can sleep between (22 Nov)
 }
 async function onMemberJoin(member) {
   if (member.guild.id !== GUILD_ID) return;

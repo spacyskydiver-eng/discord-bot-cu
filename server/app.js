@@ -18,7 +18,7 @@ module.exports = function startServer() {
   app.set('view engine', 'ejs');
   app.set('views', path.join(__dirname, '../views'));
   const sessions = session({
-    store: new pgSession({ pool, tableName: 'sessions' }),
+    store: new pgSession({ pool, tableName: 'sessions', pruneSessionInterval: 24 * 60 * 60 }),   // expired sessions cleared daily, not every 15 min (lets the database sleep)
     // never a known fallback: without SESSION_SECRET each start gets its own random secret (everyone signs in again)
     secret: process.env.SESSION_SECRET || (console.error('[session] SESSION_SECRET is not set; using a random one for this run'), require('crypto').randomBytes(32).toString('hex')),
     resave: false,

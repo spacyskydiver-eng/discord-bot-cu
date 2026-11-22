@@ -76,7 +76,7 @@ let since = Date.now() - 5 * 60 * 1000;
 const meCache = new Map();
 
 async function poll() {
-  const mode = await access.getSetting('call_to_line');
+  const mode = await access.getSetting('call_to_line', 30 * 60 * 1000);
   if (mode !== 'on' && mode !== 'dry') return;
   if (!companion.isLive()) return;
   await ready;

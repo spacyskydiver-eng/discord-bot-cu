@@ -95,7 +95,7 @@ async function remove(discordId) {
 function start() {
   const run = () => copyFromApplications().then(n => { if (n) console.log(`[links] copied ${n} Minecraft account${n === 1 ? '' : 's'} from applications`); }).catch(e => console.error('[links] copy', e.message));
   run();
-  setInterval(run, 10 * 60 * 1000);
+  setInterval(run, 60 * 60 * 1000);   // hourly, so the database can sleep between (22 Nov)
 }
 
 // Minecraft accounts given by more than one Discord account, anywhere the site has them (the links and every kind of
