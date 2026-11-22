@@ -4,7 +4,7 @@ let cached = new Set();
 let lastRefreshed = 0;
 
 async function isNationGuild(guildId) {
-  if (Date.now() - lastRefreshed > 90000) {
+  if (Date.now() - lastRefreshed > 30 * 60 * 1000) {   // 30 min (was 90 s): every refresh wakes the database
     const rows = (await db.query(`SELECT guild_id FROM nation_leader_applications`)).rows;
     cached = new Set(rows.map(r => r.guild_id));
     lastRefreshed = Date.now();

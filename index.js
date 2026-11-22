@@ -82,20 +82,13 @@ client.on('messageCreate', require('./events/messageCreate'));
 
 client.on('messageDelete', async (message) => {
   if (!message.guild || message.author?.bot) return;
-  db.query(
-    `UPDATE message_logs SET deleted = TRUE, deleted_at = NOW() WHERE message_id = $1`,
-    [message.id]
-  ).catch(() => {});
+  require('./utils/writeBuffer').logDeleted(message.id);   // queued (22 Nov)
 });
 
 client.on('messageUpdate', async (oldMsg, newMsg) => {
   if (!newMsg.guild || newMsg.author?.bot) return;
   if (oldMsg.content === newMsg.content) return;
-  db.query(
-    `UPDATE message_logs SET content = $1, edited = TRUE, original_content = COALESCE(original_content, $2)
-     WHERE message_id = $3`,
-    [newMsg.content || '', oldMsg.content || '', newMsg.id]
-  ).catch(() => {});
+  require('./utils/writeBuffer').logEdited(newMsg.id, newMsg.content || '', oldMsg.content || '');   // queued (22 Nov)
 });
 
 const CU_GUILD_ID = '1449004906068312189';

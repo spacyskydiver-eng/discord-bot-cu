@@ -1,4 +1,5 @@
 const db = require('../db');
+const buffer = require('../utils/writeBuffer');
 const { isNationGuild } = require('../utils/nationGuilds');
 const { checkContent } = require('../utils/contentFilter');
 
@@ -30,16 +31,14 @@ module.exports = async (message) => {
 
   // Log every non-bot message for moderation (enables deleted message tracking)
   if (!message.author.bot) {
-    db.query(
-      `INSERT INTO message_logs (message_id, guild_id, channel_id, author_id, author_tag, author_avatar, content, attachments, sent_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT (message_id) DO NOTHING`,
+    // queued, written with the rest every 15 minutes (utils/writeBuffer.js), so chat doesn't wake the database
+    buffer.logMessage(
       [message.id, message.guild.id, message.channel.id, message.author.id,
        message.author.username,
        message.author.avatar ? `https://cdn.discordapp.com/avatars/${message.author.id}/${message.author.avatar}.png?size=64` : null,
        message.content || null,
        JSON.stringify([...message.attachments.values()].map(a => ({ url: a.url, name: a.filename, type: a.contentType }))),
-       message.createdAt]
-    ).catch(() => {});
+       message.createdAt]);
   }
 
   // Nation advert forum: only allow the starter message per thread; delete everything else
@@ -59,21 +58,19 @@ module.exports = async (message) => {
     const attachments = message.attachments.size
       ? JSON.stringify([...message.attachments.values()].map(a => ({ url: a.url, name: a.name })))
       : null;
-    db.query(
+    buffer.enqueue(
       `INSERT INTO nation_messages (guild_id, channel_id, message_id, discord_id, username, avatar, content, attachments, sent_at)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT (message_id) DO NOTHING`,
       [message.guild.id, message.channel.id, message.id, message.author.id, message.author.username,
        message.author.displayAvatarURL({ size: 64, extension: 'png' }),
-       message.content || null, attachments, message.createdAt]
-    ).catch(console.error);
+       message.content || null, attachments, message.createdAt]);
     // Update member record in case display name changed
-    db.query(
+    buffer.enqueue(
       `INSERT INTO nation_members (guild_id, discord_id, username, display_name, avatar)
        VALUES ($1,$2,$3,$4,$5) ON CONFLICT (guild_id, discord_id) DO UPDATE SET username=$3, display_name=$4, avatar=$5`,
       [message.guild.id, message.author.id, message.author.username,
        message.member?.displayName || message.author.username,
-       message.author.displayAvatarURL({ size: 64, extension: 'png' })]
-    ).catch(() => {});
+       message.author.displayAvatarURL({ size: 64, extension: 'png' })]);
 
     // Content moderation — alert staff if flagged word/phrase detected
     const flag = checkContent(message.content);
@@ -110,27 +107,11 @@ module.exports = async (message) => {
   const guildId = message.guild.id;
   const userId = message.author.id;
 
-  await db.query(
-    `INSERT INTO guild_config (guild_id) VALUES ($1) ON CONFLICT DO NOTHING`,
-    [guildId]
-  );
-
-  const configRes = await db.query(
-    `SELECT xp_per_message, xp_cooldown_seconds, level_up_channel_id FROM guild_config WHERE guild_id = $1`,
-    [guildId]
-  );
-  const config = configRes.rows[0];
-
-  await db.query(
-    `INSERT INTO user_xp (discord_id, guild_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-    [userId, guildId]
-  );
-
-  const userRes = await db.query(
-    `SELECT xp, level, last_message_at FROM user_xp WHERE discord_id = $1 AND guild_id = $2`,
-    [userId, guildId]
-  );
-  const user = userRes.rows[0];
+  // XP (22 Nov): a guild's settings and levels are cached 30 minutes, each member's XP is read once and then kept in
+  // memory, and the gains are written as increments every 15 minutes (utils/writeBuffer.js), so chat doesn't keep
+  // the database awake
+  const config = await guildXpConfig(guildId);
+  const user = await memberXp(guildId, userId);
 
   const now = new Date();
   if (user.last_message_at) {
@@ -139,29 +120,19 @@ module.exports = async (message) => {
   }
 
   const newXp = user.xp + config.xp_per_message;
-
-  const levelRes = await db.query(
-    `SELECT level_number, level_name, xp_required FROM level_config WHERE guild_id = $1 AND xp_required <= $2 ORDER BY xp_required DESC LIMIT 1`,
-    [guildId, newXp]
-  );
+  const earned = config.levels.filter(l => l.xp_required <= newXp).sort((x, y) => y.xp_required - x.xp_required)[0];
 
   let newLevel = user.level;
   let leveledUp = false;
   let newLevelName = null;
-
-  if (levelRes.rows.length > 0) {
-    const earned = levelRes.rows[0];
-    if (earned.level_number > user.level) {
-      newLevel = earned.level_number;
-      newLevelName = earned.level_name;
-      leveledUp = true;
-    }
+  if (earned && earned.level_number > user.level) {
+    newLevel = earned.level_number;
+    newLevelName = earned.level_name;
+    leveledUp = true;
   }
 
-  await db.query(
-    `UPDATE user_xp SET xp = $1, level = $2, last_message_at = $3 WHERE discord_id = $4 AND guild_id = $5`,
-    [newXp, newLevel, now, userId, guildId]
-  );
+  user.xp = newXp; user.level = newLevel; user.last_message_at = now;
+  buffer.addXp(guildId, userId, config.xp_per_message, newLevel, now);
 
   if (leveledUp) {
     // Assign level role
@@ -175,6 +146,30 @@ module.exports = async (message) => {
     }
   }
 };
+
+// cached XP settings and levels per guild, and each member's XP once read
+const XP_CONFIG_TTL = 30 * 60 * 1000;
+const xpConfig = new Map();
+const xpMembers = new Map();
+async function guildXpConfig(guildId) {
+  const hit = xpConfig.get(guildId);
+  if (hit && Date.now() - hit.at < XP_CONFIG_TTL) return hit.config;
+  await db.query(`INSERT INTO guild_config (guild_id) VALUES ($1) ON CONFLICT DO NOTHING`, [guildId]);
+  const config = (await db.query(`SELECT xp_per_message, xp_cooldown_seconds, level_up_channel_id FROM guild_config WHERE guild_id = $1`, [guildId])).rows[0];
+  config.levels = (await db.query(`SELECT level_number, level_name, xp_required FROM level_config WHERE guild_id = $1`, [guildId])).rows;
+  xpConfig.set(guildId, { at: Date.now(), config });
+  return config;
+}
+async function memberXp(guildId, userId) {
+  const k = guildId + ':' + userId;
+  let m = xpMembers.get(k);
+  if (m) return m;
+  await db.query(`INSERT INTO user_xp (discord_id, guild_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`, [userId, guildId]);
+  m = (await db.query(`SELECT xp, level, last_message_at FROM user_xp WHERE discord_id = $1 AND guild_id = $2`, [userId, guildId])).rows[0];
+  if (xpMembers.size > 20000) xpMembers.clear();
+  xpMembers.set(k, m);
+  return m;
+}
 
 const NATION_LEADER_ROLE_ID = '1531798604849872976';
 const MAIN_GUILD_ID = '1449004906068312189';
