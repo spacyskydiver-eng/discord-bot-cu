@@ -198,7 +198,7 @@ router.get('/', async (req, res) => {
     stageSettings, stageBlocks, agreementItems, playstyleOptions, killTicketConfigs,
     maintenance: await access.maintenanceOn(),
     packOpen: await require('../pack-release').packOpen(),
-    updatePosts: require('./updates').POSTS, updatesPublished: [...(await require('./updates').published())],
+    updateReleases: require('./updates').RELEASES(), updatesPublished: [...(await require('./updates').published())],
     arsenalManifest: await access.getSetting('arsenal_manifest_url'),
     query: req.query,
   });
@@ -212,13 +212,13 @@ router.post('/arsenal', async (req, res) => {
   res.redirect('/admin');
 });
 
-// S94: each big update on /updates shows only once Alex publishes it here
+// /updates: each official release shows only once Alex publishes it here
 router.post('/updates/publish', async (req, res) => {
-  const { POSTS, published } = require('./updates');
-  const id = String((req.body || {}).id || ''), on = (req.body || {}).on === '1';
-  if (!POSTS.some(p => p.id === id)) return res.redirect('/admin');
+  const { RELEASES, published } = require('./updates');
+  const v = String((req.body || {}).version || ''), on = (req.body || {}).on === '1';
+  if (!RELEASES().some(r => r.version === v)) return res.redirect('/admin');
   const set = await published();
-  if (on) set.add(id); else set.delete(id);
+  if (on) set.add(v); else set.delete(v);
   await access.setSetting('updates_published', JSON.stringify([...set]));
   res.redirect('/admin');
 });

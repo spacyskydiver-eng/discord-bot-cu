@@ -1,0 +1,11 @@
+{
+  "releases": [
+    {
+      "version": "v0.26.8",
+      "date": "21 November 2026",
+      "changes": [
+        "The first release to players."
+      ]
+    }
+  ]
+}

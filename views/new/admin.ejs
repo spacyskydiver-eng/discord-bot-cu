@@ -287,13 +287,13 @@
   </div>
 
   <div class="nd-card" style="margin-bottom:18px">
-    <h2 style="margin:0 0 4px">Updates page (/updates)</h2>
-    <p style="margin:0 0 10px;color:var(--muted);font-size:13px">Players see a post only once you publish it. The page is open to anyone with the address but linked from nowhere and hidden from search engines. Nothing is posted anywhere else. <a href="/updates" target="_blank">Preview</a> (drafts show to staff) · <a href="/staff/releases" target="_blank">every small release</a></p>
-    <% (updatePosts || []).forEach(p => { const on = (updatesPublished || []).includes(p.id); %>
+    <h2 style="margin:0 0 4px">Updates page</h2>
+    <p style="margin:0 0 10px;color:var(--muted);font-size:13px"><a href="/updates/preview" target="_blank">Preview</a> · <a href="/updates" target="_blank">Live page</a></p>
+    <% (updateReleases || []).forEach(r => { const on = (updatesPublished || []).includes(r.version); %>
     <form action="/admin/updates/publish" method="POST" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid rgba(255,255,255,.06);margin:0">
-      <span><b><%= p.name %></b> <span style="color:var(--muted);font-size:13px"><%= p.date %><%= p.version ? ' · ' + p.version : '' %> · <%= on ? 'published' : 'draft' %><%= (p.sections || []).length ? '' : ' · no text yet' %></span></span>
-      <input type="hidden" name="id" value="<%= p.id %>"><input type="hidden" name="on" value="<%= on ? '0' : '1' %>">
-      <button type="submit" class="nd-btn nd-btn-sm <%= on ? 'nd-btn-danger' : 'nd-btn-primary' %>" onclick="return confirm('<%= on ? 'Take ' + p.name + ' off the updates page?' : 'Publish ' + p.name + ' on the updates page?' %>')"><%= on ? 'Unpublish' : 'Publish' %></button>
+      <span><b><%= r.version %></b> <span style="color:var(--muted);font-size:13px"><%= r.date %> · <%= on ? 'live' : 'not live' %></span></span>
+      <input type="hidden" name="version" value="<%= r.version %>"><input type="hidden" name="on" value="<%= on ? '0' : '1' %>">
+      <button type="submit" class="nd-btn nd-btn-sm <%= on ? 'nd-btn-danger' : 'nd-btn-primary' %>"><%= on ? 'Take down' : 'Publish' %></button>
     </form><% }) %>
   </div>
 
